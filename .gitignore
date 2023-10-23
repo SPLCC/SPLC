@@ -1,0 +1,4 @@
+*.out
+syntax.tab.c 
+syntax.tab.h
+lex.yy.c
