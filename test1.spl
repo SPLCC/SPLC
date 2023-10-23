@@ -1,5 +1,5 @@
 int test_1_r01(int a, int b) {
-    int 3a = -1;
+    int 3a = 0.074914;
     int i1 = '/';
     int i2 = 0x1;
     c = '\xt0';

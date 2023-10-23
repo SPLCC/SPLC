@@ -1,3 +1,4 @@
+%option yylineno
 %{
     // #include "syntax.tab.h"
     #include <stdlib.h>
@@ -5,23 +6,28 @@
     
     int check_hex(char* s);
     void errprintf(char* msg);
+
+    // TODO 返回ID的identifier  CHAR：value   TYPE:具体type
+    // TODO 剩下的无法匹配的字符目前返回ID
 %}
 
 %%
 
-"int"|"float"|"char"    { printf("TYPE "); }
-"struct"                { printf("STRUCT "); }
-"if"                    { printf("IF "); }
-"else"                  { printf("ELSE "); }
-"while"                 { printf("WHILE "); }
-"return"                { printf("RETURN "); }
+"int"|"float"|"char"   { return TYPE;   }
+"struct"               { return STRUCT; }
+"if"                   { return IF;     }
+"else"                 { return ELSE;   }
+"while"                { return WHILE;  }
+"return"               { return RETURN; }
+
+[0-9]+\.[0-9]+ { yylval = atof(yytext); return FLOAT; }
 
 [0-9]+ {
     if (yytext[0] == '0' && yyleng > 1) {
         errprintf("Illegal decimal integer starting with 0");
     }
-    // return INT;
-    printf("INT ");
+    yylval = atoi(yytext);
+    return INT;
 }
 
 
@@ -32,63 +38,64 @@
     } else if (yyleng > 3 && yytext[2] == '0') {
         errprintf("Illegal hexadecimal integer starting with 0");
     }
-    printf("INT ");
+    yylval = strtol(yytext, NULL, 16);
+    return INT;
 }
 '\\x[0-9a-zA-Z]{2}' {
     yytext++; 
     yytext[4] = '\0'; 
     yytext[0]='0';
-    if(!check_hex(yytext)) {
+    if(!check_hex(yytext + 2)) {
         errprintf("Illegal hex-form character");
     }
-    printf("CHAR %ld ", strtol(yytext, NULL, 16)); 
+
+    return CHAR;
 
 }
 
-[a-zA-Z_][a-zA-Z0-9_]* { printf("ID %s ",  strdup(yytext)); }
+[a-zA-Z_][a-zA-Z0-9_]* { return ID; }
 
 [0-9][a-zA-Z0-9_]* {
         errprintf("Illegal identifier starting with digits");
-        printf("ID %s ",  strdup(yytext)); 
-    }
-"<=" { printf("LE "); }
-">" { printf("GT "); }
-">=" { printf("GE "); }
-"!=" { printf("NE "); }
-"==" { printf("EQ "); }
+        return ID;
+}
 
-"." { printf("DOT "); }
-";" { printf("SEMI "); }
-"," { printf("COMMA "); }
-"=" { printf("ASSIGN "); }
-"<" { printf("LT "); }
+"<=" { return LE; }
+">"  { return GT; }
+">=" { return GE; }
+"!=" { return NE; }
+"==" { return EQ; }
+"."  { return DOT; }
+";"  { return SEMI; }
+","  { return COMMA; }
+"="  { return ASSIGN; }
+"<"  { return LT; }
+"+"  { return PLUS; }
+"-"  { return MINUS; }
+"*"  { return MUL; }
+"/"  { return DIV; }
+"&&" { return AND; }
+"||" { return OR; }
+"!"  { return NOT; }
+"("  { return LP; }
+")"  { return RP; }
+"["  { return LB; }
+"]"  { return RB; }
+"{"  { return LC; }
+"}"  { return RC; }
 
-"+" { printf("PLUS "); }
-"-" { printf("MINUS "); }
-"*" { printf("MUL "); }
-"/" { printf("DIV "); }
-"&&" { printf("AND "); }
-"||" { printf("OR "); }
-"!" { printf("NOT "); }
-"(" { printf("LP "); }
-")" { printf("RP "); }
-"[" { printf("LB "); }
-"]" { printf("RB "); }
-"{" { printf("LC "); }
-"}" { printf("RC "); }
-'.' { printf("CHAR %d ", yytext[1]); }
+'.' { return CHAR; }
 
-^[-+]?[0-9]*\.[0-9]+$ { printf("FLOAT %f ", atof(yytext)); }
-\n {yylineno++;}
-[ \r\t] {}
-. { fprintf(stderr, "Error type A at line %d: Mysterious lexeme %s\n", yylineno, yytext); return 1; }
+[ \n\r\t] {}
+
+. { fprintf(stderr, "Error type A at line %d: Mysterious lexeme %s\n", yylineno, yytext); return ID; }
 %%
 
 int check_hex(char* s)
     {
         int n = strlen(s);
-        for(int i=2;i<n;i++)
-          if((s[i]<'0'||s[i]>'9')&&(s[i]<'a'||s[i]>'f')&&(s[i]<'A'||s[i]>'Z')) return 0;
+        for(int i = 0; i < n; i++)
+            if((s[i]<'0'||s[i]>'9')&&(s[i]<'a'||s[i]>'f')&&(s[i]<'A'||s[i]>'Z')) return 0;
         return 1;
     }
 

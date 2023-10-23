@@ -36,12 +36,12 @@
 %token RB
 %token LC
 %token RC
+
+
 %%
-/* 以下是您的语法规则 */
 stmt : INT {printf("INT");}
      | FLOAT {printf("FLOAT");}
      | CHAR {printf("CHAR");}
-     /* 添加其他规则 */
      ;
 %%
 void yyerror(const char *s) {
