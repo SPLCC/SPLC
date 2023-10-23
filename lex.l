@@ -21,7 +21,7 @@
         errprintf("Illegal decimal integer starting with 0");
     }
     // return INT;
-    printf("INT ")
+    printf("INT ");
 }
 
 

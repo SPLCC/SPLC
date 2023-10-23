@@ -7,7 +7,7 @@ test:
 	$(CC) syntax.tab.c -lfl -ly -o test.out
 
 tflex:
-	$(FLEX) lex_copy.l
+	$(FLEX) lex.l
 	$(CC) lex.yy.c -lfl -o tflex.out
 
 clean:
