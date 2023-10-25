@@ -1,4 +1,7 @@
 *.out
+!test_1_r*.out
 syntax.tab.c 
 syntax.tab.h
+syntax.output
 lex.yy.c
+diff*
