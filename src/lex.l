@@ -1,25 +1,14 @@
 %option yylineno
 %{
-    #define YYSTYPE struct TreeNode *
+
     #include "syntax.tab.h"
-    #include "treenode.h"
     #include <stdlib.h>
     #include <string.h>
     #include <ctype.h>
 
-    // location
-    int yycolno = 1;
-    #define YY_USER_ACTION \
-        yylloc.first_line = yylineno; \
-        yylloc.first_column = yycolno; \
-        yylloc.last_line = yylineno; \
-        yylloc.last_column = yycolno + yyleng; \
-        yycolno += yyleng;
+    // TODO: define YY_USER_ACTION
 
     int err_flag = 0;
-    
-    int check_hex(char* s);
-    void errA(char* msg);
     
     // TODO 剩下的无法匹配的字符目前返回ID
 %}
