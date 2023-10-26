@@ -2,7 +2,7 @@
     #include "lex.yy.c"
     #include "treenode.h"
     void yyerror(const char*);
-    void errB(const char*);
+    void errB(int, const char*);
 %}
 
 %token INT FLOAT CHAR
@@ -63,6 +63,8 @@ VarDec : ID { $$ = createNode("VarDec", @$.first_line, 1, $1);}
 
 FunDec : ID LP VarList RP { $$ = createNode("FunDec", @$.first_line, 4, $1, $2, $3, $4);}
        | ID LP RP { $$ = createNode("FunDec", @$.first_line, 3, $1, $2, $3);}
+       | ID LP VarList error { errB(@2.first_line, "Missing closing parenthesis ')'"); yyerrok; }
+       | ID LP error { errB(@2.first_line, "Missing closing parenthesis ')'"); yyerrok; }
        ;
 
 VarList : ParamDec COMMA VarList { $$ = createNode("VarList", @$.first_line, 3, $1, $2, $3);}
@@ -76,6 +78,7 @@ ParamDec : Specifier VarDec { $$ = createNode("ParamDec", @$.first_line, 2, $1, 
 CompSt : LC DefList StmtList RC {
             $$ = createNode("CompSt", @$.first_line, 4, $1, $2, $3, $4);
         }
+       | LC DefList StmtList error { errB(@3.first_line, "Missing specifier"); yyerrok; }
        ;
 
 StmtList : Stmt StmtList {$$ = createNode("StmtList", @$.first_line, 2, $1, $2);}
@@ -91,7 +94,7 @@ Stmt : Exp SEMI {$$ = createNode("Stmt", @$.first_line, 2, $1, $2);}
      | IF LP Exp RP Stmt %prec LOWER_ELSE {$$ = createNode("Stmt", @$.first_line, 5, $1, $2, $3, $4, $5);}
      | IF LP Exp RP Stmt ELSE Stmt {$$ = createNode("Stmt", @$.first_line, 7, $1, $2, $3, $4, $5, $6, $7);}
      | WHILE LP Exp RP Stmt {$$ = createNode("Stmt", @$.first_line, 5, $1, $2, $3, $4, $5);}
-     | RETURN Exp error { errB("Missing semicolon ';'"); yyerrok;} // error
+     | RETURN Exp error { errB(@2.first_line, "Missing semicolon ';'"); yyerrok; } 
      ;
 
 /* local definition */
@@ -103,6 +106,8 @@ DefList : Def DefList { $$ = createNode("DefList", @$.first_line, 2, $1, $2);}
         ;
 
 Def : Specifier DecList SEMI { $$ = createNode("Def", @$.first_line, 3, $1, $2, $3);}
+    | Specifier DecList error { errB(@2.first_line, "Missing semicolon ';'"); yyerrok; }
+    //TODO| DecList SEMI error { errB(@1.first_line, "Missing specifier"); yyerrok; } // a=10; 
     ;
 
 DecList : Dec { $$ = createNode("DecList", @$.first_line, 1, $1);}
@@ -138,7 +143,9 @@ Exp : Exp ASSIGN Exp { $$ = createNode("Exp", @$.first_line, 3, $1, $2, $3);}
     | INT { $$ = createNode("Exp", @$.first_line, 1, $1);}
     | FLOAT { $$ = createNode("Exp", @$.first_line, 1, $1);}
     | CHAR { $$ = createNode("Exp", @$.first_line, 1, $1);}
-    | ID LP Args error // error recovery
+    | LP Exp error { errB(@1.first_line, "Missing closing parenthesis ')'"); yyerrok; }
+    | ID LP Args error { errB(@2.first_line, "Missing closing parenthesis ')'"); yyerrok; }
+    | ID LP error { errB(@2.first_line, "Missing closing parenthesis ')'"); yyerrok; }
     ;
 
 Args : Exp COMMA Args { $$ = createNode("Args", @$.first_line, 3, $1, $2, $3);}
@@ -150,8 +157,8 @@ void yyerror(const char *s) {
     fprintf(stderr, "%s\n", s);
 }
 
-void errB(const char *s) {
-    fprintf(stdout, "Error type B at line %d: %s\n", yylineno, s);
+void errB(int lineno, const char *s) {
+    fprintf(stdout, "Error type B at Line %d: %s\n", lineno, s);
     err_flag = 1;
 }
 

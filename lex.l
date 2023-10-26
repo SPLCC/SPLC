@@ -19,7 +19,7 @@
     int err_flag = 0;
     
     int check_hex(char* s);
-    void errA(char* msg);
+    void errA(const char* msg);
     
     // TODO 剩下的无法匹配的字符目前返回ID
 %}
@@ -56,7 +56,7 @@
 }
 
 
-0[xX][0-9a-zA-Z]+ {
+0[xX][0-9a-zA-Z]* {
     // skip 0x
     if (!check_hex(yytext + 2)) {
         errA("Illegal hex-form integer");
@@ -71,12 +71,17 @@
 '\\x[0-9a-zA-Z]*' {
     yylval = createLeafNode("CHAR");
     yylval->type = 1;
-    yylval->string_val = strdup(yytext);
 
-    yytext++;
-    if(!check_hex(yytext + 2)) {
+    char* text = strdup(yytext);
+    text[yyleng - 1] = '\0';
+    text++;
+
+    if(!check_hex(text + 2) || strlen(text) != 4) {
         errA("Illegal hex-form character");
     }
+    // to match the test_1_r12.out
+    yylval->string_val = strdup(yytext);
+
     return CHAR;
 
 }
@@ -121,12 +126,12 @@
 "&&" { yylval = createLeafNode("AND"); return AND; }
 "||" { yylval = createLeafNode("OR"); return OR; }
 "&"  { 
-    errA("Mysterious lexeme");
+    errA("unknown lexeme");
     yylval = createLeafNode("AND"); 
     return AND; 
 }
 "|"  {
-    errA("Mysterious lexeme");
+    errA("unknown lexeme");
     yylval = createLeafNode("OR"); 
     return OR; 
 }
@@ -148,7 +153,7 @@
     yylval = createLeafNode("ID");
     yylval->type = 1;
     yylval->string_val = strdup(yytext);
-    errA("Mysterious lexeme");
+    errA("unknown lexeme");
     return ID; 
 }
 %%
@@ -163,8 +168,8 @@ int check_hex(char* s)
         return 1;
     }
 
-void errA(char* msg) {
-    fprintf(stdout, "Error type A at line %d: %s `%s`\n", yylineno, msg, yytext);
+void errA(const char* msg) {
+    fprintf(stdout, "Error type A at Line %d: %s %s\n", yylineno, msg, yytext);
     err_flag = 1;
     // printf("Error type A at line %d: %s `%s`\n", yylineno, msg, yytext);
 }
