@@ -1,159 +1,159 @@
 %option yylineno
 %{
+    #include "spldef.h"
+    #include "utils.h"
+    #include "lut.h"
+    #include "ast.h"
 
     #include "syntax.tab.h"
+
     #include <stdlib.h>
     #include <string.h>
     #include <ctype.h>
-
     // TODO: define YY_USER_ACTION
-
-    int err_flag = 0;
-    
-    // TODO 剩下的无法匹配的字符目前返回ID
+    int yycolno = 1;
+    #define YY_USER_ACTION \
+        yylloc.first_line = yylineno; \
+        yylloc.first_column = yycolno; \
+        yylloc.last_line = yylineno; \
+        yylloc.last_column = yycolno + yyleng; \
+        yycolno += yyleng;
 %}
 
 %%
 
 "int"|"float"|"char"   {
-    yylval = createLeafNode("TYPE"); 
-    yylval->type = 1;
-    yylval->string_val = strdup(yytext);
-    return TYPE;   
+    yylval = create_leaf_node(AST_BUILTIN_TYPE);
+    yylval->val = (void *)strdup(yytext);
+    return TYPE;
 }
-"struct"               { yylval = createLeafNode("STRUCT"); return STRUCT; }
-"if"                   { yylval = createLeafNode("IF"); return IF;     }
-"else"                 { yylval = createLeafNode("ELSE"); return ELSE;   }
-"while"                { yylval = createLeafNode("WHILE"); return WHILE;  }
-"return"               { yylval = createLeafNode("RETURN"); return RETURN; }
 
-[0-9]+\.[0-9]+ {
-    yylval = createLeafNode("FLOAT");
-    yylval->type = 3;
+"struct"               { yylval = create_leaf_node(AST_STRUCT); return STRUCT; }
+"if"                   { yylval = create_leaf_node(AST_IF); return IF; }
+"else"                 { yylval = create_leaf_node(AST_ELSE); return ELSE; }
+"while"                { yylval = create_leaf_node(AST_WHILE); return WHILE; }
+"return"               { yylval = create_leaf_node(AST_RETURN); return RETURN; }
+
+
+[0-9]*\.[0-9]+ {
+    yylval = create_leaf_node(AST_FLOAT);
     yylval->float_val = atof(yytext);
-    return FLOAT; 
+    return FLOAT;
 }
 
 [0-9]+ {
-    if (yytext[0] == '0' && yyleng > 1) {
-        errA("Illegal decimal integer starting with 0");
+    yylval = create_leaf_node(AST_INT);
+    if (yyleng > 1 && yytext[0] == '0') 
+    {
+        splerror(ERR_A, yylineno, "Illegal decimal integer starting with 0: ", yytext);
     }
-    yylval = createLeafNode("INT");
-    yylval->type = 2;
-    yylval->int_val = atoi(yytext);
+    else 
+    {
+        yylval->int_val = atoi(yytext);
+    }
     return INT;
 }
 
-
-0[xX][0-9a-zA-Z]+ {
-    // skip 0x
-    if (!check_hex(yytext + 2)) {
-        errA("Illegal hex-form integer");
-    } else if (yyleng > 3 && yytext[2] == '0') {
-        errA("Illegal hexadecimal integer starting with 0");
+0[xX][0-9a-fA-F]+ {
+    yylval = create_leaf_node(AST_INT);
+    if (yyleng > 3 && yytext[2] == '0')
+    {
+        splerror(ERR_A, yylineno, "Illegal hexadecimal integer starting with 0: ", yytext);
     }
-    yylval = createLeafNode("INT");
-    yylval->type = 2;
     yylval->int_val = strtol(yytext, NULL, 16);
     return INT;
 }
-'\\x[0-9a-zA-Z]*' {
-    yylval = createLeafNode("CHAR");
-    yylval->type = 1;
-    yylval->string_val = strdup(yytext);
 
-    yytext++;
-    if(!check_hex(yytext + 2)) {
-        errA("Illegal hex-form character");
-    }
+0[xX][0-9a-zA-Z]+ {
+    splerror(ERR_A, yylineno, "Illegal hex-form integer: ", yytext);
+    yylval = create_leaf_node(AST_INT);
+    return INT;
+}
+
+'\\x[0-9a-fA-F]{2}' {
+    yylval = create_leaf_node(AST_CHAR);
+    yylval->val = (void *)strndup(yytext + 1, 4);
     return CHAR;
+}
 
+'\\x[0-9a-zA-Z]*' {
+    yylval = create_leaf_node(AST_CHAR);
+    splerror(ERR_A, yylineno, "Illegal oct-form character: ", yytext);
+    yylval->val = (void *)strndup(yytext + 1, strlen(yytext) - 2);
+    return CHAR;
 }
 
 [a-zA-Z_][a-zA-Z0-9_]* { 
-        yylval = createLeafNode("ID");
-        yylval->type = 1;
-        yylval->string_val = strdup(yytext);
-        return ID;
-    }
+    yylval = create_leaf_node(AST_ID);
+    yylval->val = (void *)strdup(yytext);
+    return ID;
+}
 
 [0-9][a-zA-Z0-9_]* {
-        yylval = createLeafNode("ID");
-        yylval->type = 1;
-        yylval->string_val = strdup(yytext);
-        errA("Illegal identifier starting with digits");
-        return ID;
+    yylval = create_leaf_node(AST_ID);
+    yylval->val = (void *)strdup(yytext);       
+    splerror(ERR_A, yylineno, "Illegal identifier starting with digits: ", yytext);
+    return ID;
+}
+
+'\\[abefnrtv\\\'\"\?]' {
+    yylval = create_leaf_node(AST_CHAR);
+    yylval->val = (void *)strndup(yytext + 2, 1);
+    return CHAR; 
 }
 
 '.' {
-        yylval = createLeafNode("CHAR");
-        yylval->type = 1;
-        yylval->string_val = strdup(yytext);
-        return CHAR; 
-    }
+    yylval = create_leaf_node(AST_CHAR);
+    yylval->val = (void *)strndup(yytext + 1, 1);
+    return CHAR;
+}
 
-"<=" { yylval = createLeafNode("LE"); return LE; }
-">"  { yylval = createLeafNode("GT"); return GT; }
-">=" { yylval = createLeafNode("GE"); return GE; }
-"!=" { yylval = createLeafNode("NE"); return NE; }
-"==" { yylval = createLeafNode("EQ"); return EQ; }
-"."  { yylval = createLeafNode("DOT"); return DOT; }
-";"  { yylval = createLeafNode("SEMI"); return SEMI; }
-","  { yylval = createLeafNode("COMMA"); return COMMA; }
-"="  { yylval = createLeafNode("ASSIGN"); return ASSIGN; }
-"<"  { yylval = createLeafNode("LT"); return LT; }
-"+"  { yylval = createLeafNode("PLUS"); return PLUS; }
-"-"  { yylval = createLeafNode("MINUS"); return MINUS; }
-"*"  { yylval = createLeafNode("MUL"); return MUL; }
-"/"  { yylval = createLeafNode("DIV"); return DIV; }
 
-"&&" { yylval = createLeafNode("AND"); return AND; }
-"||" { yylval = createLeafNode("OR"); return OR; }
+"="  { yylval = create_leaf_node(AST_ASSIGN); return ASSIGN; }
+
+"&&" { yylval = create_leaf_node(AST_AND); return AND; }
+"||" { yylval = create_leaf_node(AST_OR); return OR; }
 "&"  { 
-    errA("Mysterious lexeme");
-    yylval = createLeafNode("AND"); 
-    return AND; 
+    yylval = create_leaf_node(AST_BITWISE_AND); 
+    splerror(ERR_A, yylineno, "Unsupported lexeme: ", "Bitwise and");
+    return BITWISE_AND; 
 }
-"|"  {
-    errA("Mysterious lexeme");
-    yylval = createLeafNode("OR"); 
-    return OR; 
+"|"  { 
+    yylval = create_leaf_node(AST_BITWISE_OR); 
+    splerror(ERR_A, yylineno, "Unsupported lexeme: ", "Bitwise or");
+    return BITWISE_OR; 
 }
 
-"!"  { yylval = createLeafNode("NOT"); return NOT; }
-"("  { yylval = createLeafNode("LP"); return LP; }
-")"  { yylval = createLeafNode("RP"); return RP; }
-"["  { yylval = createLeafNode("LB"); return LB; }
-"]"  { yylval = createLeafNode("RB"); return RB; }
-"{"  { yylval = createLeafNode("LC"); return LC; }
-"}"  { yylval = createLeafNode("RC"); return RC; }
+"<"  { yylval = create_leaf_node(AST_LT); return LT; }
+"<=" { yylval = create_leaf_node(AST_LE); return LE; }
+">"  { yylval = create_leaf_node(AST_GT); return GT; }
+">=" { yylval = create_leaf_node(AST_GE); return GE; }
+"!=" { yylval = create_leaf_node(AST_NE); return NE; }
+"==" { yylval = create_leaf_node(AST_EQ); return EQ; }
+"."  { yylval = create_leaf_node(AST_DOT); return DOT; }
+";"  { yylval = create_leaf_node(AST_SEMI); return SEMI; }
+","  { yylval = create_leaf_node(AST_COMMA); return COMMA; }
+"+"  { yylval = create_leaf_node(AST_PLUS); return PLUS; }
+"-"  { yylval = create_leaf_node(AST_MINUS); return MINUS; }
+"*"  { yylval = create_leaf_node(AST_MUL); return MUL; }
+"/"  { yylval = create_leaf_node(AST_DIV); return DIV; }
 
 
+"!"  { yylval = create_leaf_node(AST_NOT); return NOT; }
+"{"  { yylval = create_leaf_node(AST_LC); return LC; }
+"}"  { yylval = create_leaf_node(AST_RC); return RC; }
+"("  { yylval = create_leaf_node(AST_LP); return LP; }
+")"  { yylval = create_leaf_node(AST_RP); return RP; }
+"["  { yylval = create_leaf_node(AST_LSB); return LSB; }
+"]"  { yylval = create_leaf_node(AST_RSB); return RSB; }
 
 "\n" { yycolno = 1; }
 [ \r\t] {}
 
-. { 
-    yylval = createLeafNode("ID");
-    yylval->type = 1;
-    yylval->string_val = strdup(yytext);
-    errA("Mysterious lexeme");
-    return ID; 
+. {
+    yylval = create_leaf_node(AST_ID);
+    yylval->val = (void *)strdup(yytext);
+    splerror(ERR_A, yylineno, "Ignoring unknown lexeme: ", yytext);
+    return ID;
 }
 %%
-
-int check_hex(char* s)
-    {
-        int n = strlen(s);
-        if (n == 0) return 0; // cannot be empty
-
-        for(int i = 0; i < n; i++)
-            if(!isxdigit(s[i])) return 0;
-        return 1;
-    }
-
-void errA(char* msg) {
-    fprintf(stdout, "Error type A at line %d: %s `%s`\n", yylineno, msg, yytext);
-    err_flag = 1;
-    // printf("Error type A at line %d: %s `%s`\n", yylineno, msg, yytext);
-}

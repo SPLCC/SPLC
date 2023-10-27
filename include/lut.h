@@ -2,30 +2,34 @@
 #ifndef LUT_H
 #define LUT_H
 
-/* Included libraries */
+#include "spldef.h"
 
 #include <stddef.h>
 
-/* Definitions */
+#define LUT_UNORDERED_IMPL
 
-/* This shows that the implementation of LUT is unordered. */
-#define _LUT_UNORDERED_IMPL
-
-#define _LUT_DEFAULT_CAPACITY 1000
-
-/* Declarations */
+#define LUT_DEFAULT_CAPACITY 1000
 
 /* Pointer to struct for holding properties of a node of linked list. */
-typedef struct lut_node_struct *lut_node;
+typedef struct lut_entry_struct *lut_entry;
 
 /* Struct for holding properties of a node of linked list. */
-typedef struct lut_node_struct
+typedef struct lut_entry_struct
 {
-    
-    char *id;                     /* The name of the node */
-    sap_num val;                  /* The value of the entry */
-    struct lut_node_struct *next; /* Point to the next element in case of Hash Collision */
-} lut_node_struct;
+    spl_entry_t type;              /* Type of this entry */
+    char *id;                      /* The name of the entry, if any */
+    size_t pointer_level;          /* Level of pointer */
+    struct lut_entry_struct *next; /* Point to the next element in case of Hash Collision */
+
+    int lineno; /* line number */
+    int colno;  /* column number */
+
+    union {
+        void *val;       /* General data */
+        int int_val;     /* Interpret the value as integer */
+        float float_val; /* Interpret the value as float  */
+    };
+} lut_entry_struct;
 
 /* Pointer to struct for holding properties of a hashtable. */
 typedef struct lut_table_struct *lut_table;
@@ -33,21 +37,23 @@ typedef struct lut_table_struct *lut_table;
 /* Struct for holding properties of a hashtable. */
 typedef struct lut_table_struct
 {
-    lut_node *entries; /* Pointer to the start of array of pointer to entries */
-    size_t capacity;   /* Capacity of this lut_table */
+    lut_entry *entries; /* Pointer to the start of array of pointer to entries */
+    size_t capacity;    /* Capacity of this lut_table */
 } lut_table_struct;
 
-/* Function prototypes */
+extern lut_table global_symbol_table;
+
+void init_global_lut(void);
 
 lut_table lut_new_table(void);
 
 void lut_free_table(lut_table *table);
 
-sap_num lut_find(lut_table table, char *key);
+lut_entry lut_find(lut_table table, const char *name);
 
-void lut_insert(lut_table table, char *key, sap_num val);
+lut_entry lut_insert(lut_table table, const char *name);
 
-void lut_delete(lut_table table, char *key);
+void lut_delete(lut_table table, const char *name);
 
 void lut_reset_all(lut_table table);
 

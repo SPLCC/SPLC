@@ -1,0 +1,94 @@
+Error type A at Line 7: Unsupported lexeme:  Bitwise or
+Error type A at Line 8: Unsupported lexeme:  Bitwise and
+Program (1)
+  ExtDefList (1)
+    ExtDef (1)
+      Specifier (1)
+        TYPE: int
+      FunDec (1)
+        ID: test_1_r07
+        LP
+        RP
+      CompSt (2)
+        LC
+        DefList (3)
+          Def (3)
+            Specifier (3)
+              TYPE: int
+            DecList (3)
+              Dec (3)
+                VarDec (3)
+                  ID: a
+              COMMA
+              DecList (3)
+                Dec (3)
+                  VarDec (3)
+                    ID: b
+                COMMA
+                DecList (3)
+                  Dec (3)
+                    VarDec (3)
+                      ID: c
+            SEMI
+        StmtList (4)
+          Stmt (4)
+            Exp (4)
+              Exp (4)
+                ID: a
+              ASSIGN
+              Exp (4)
+                INT: 1
+            SEMI
+          StmtList (5)
+            Stmt (5)
+              Exp (5)
+                Exp (5)
+                  ID: b
+                ASSIGN
+                Exp (5)
+                  Exp (5)
+                    ID: a
+                  AND
+                  Exp (5)
+                    INT: 2
+              SEMI
+            StmtList (6)
+              Stmt (6)
+                Exp (6)
+                  Exp (6)
+                    ID: c
+                  ASSIGN
+                  Exp (6)
+                    Exp (6)
+                      ID: b
+                    ExtDefList
+                    Exp (6)
+                      INT: 3
+                SEMI
+              StmtList (7)
+                Stmt (7)
+                  Exp (7)
+                    Exp (7)
+                      ID: a
+                    ASSIGN
+                    Exp (7)
+                      Exp (7)
+                        ID: c
+                      UNRECOGNIZED
+                      Exp (7)
+                        INT: 4
+                  SEMI
+                StmtList (8)
+                  Stmt (8)
+                    Exp (8)
+                      Exp (8)
+                        ID: b
+                      ASSIGN
+                      Exp (8)
+                        Exp (8)
+                          ID: a
+                        UNRECOGNIZED
+                        Exp (8)
+                          INT: 5
+                    SEMI
+        RC

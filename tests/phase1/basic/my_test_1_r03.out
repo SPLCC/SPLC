@@ -1,0 +1,73 @@
+Error type A at Line 4: Ignoring unknown lexeme:  $
+Error type B at Line 6: Missing semicolon ';' 
+Error type A at Line 8: Ignoring unknown lexeme:  @
+Program (1)
+  ExtDefList (1)
+    ExtDef (1)
+      Specifier (1)
+        TYPE: int
+      FunDec (1)
+        ID: test_1_r03
+        LP
+        RP
+      CompSt (2)
+        LC
+        DefList (3)
+          Def (3)
+            Specifier (3)
+              TYPE: int
+            DecList (3)
+              Dec (3)
+                VarDec (3)
+                  ID: i
+                ASSIGN
+                Exp (3)
+                  INT: 0
+              COMMA
+              DecList (3)
+                Dec (3)
+                  VarDec (3)
+                    ID: j
+                  ASSIGN
+                  Exp (3)
+                    INT: 1
+            SEMI
+          DefList (4)
+            Def (4)
+              Specifier (4)
+                TYPE: float
+              DecList (4)
+                Dec (4)
+                  VarDec (4)
+                    ID: i
+                  ASSIGN
+                  Exp (4)
+                    ID: $
+              SEMI
+        StmtList (5)
+          Stmt (5)
+            IF
+            LP
+            Exp (5)
+              Exp (5)
+                ID: i
+              LT
+              Exp (5)
+                FLOAT: 9
+            RP
+            Stmt (5)
+              CompSt (5)
+                LC
+                StmtList (6)
+                  Stmt (6)
+                    RETURN
+                    Exp (6)
+                      INT: 1
+                RC
+          StmtList (8)
+            Stmt (8)
+              RETURN
+              Exp (8)
+                ID: @
+              SEMI
+        RC

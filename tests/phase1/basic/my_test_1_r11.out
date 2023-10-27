@@ -1,0 +1,88 @@
+Error type A at Line 3: Illegal hex-form integer:  0x77G
+Error type A at Line 4: Illegal hex-form integer:  0xCS
+Error type A at Line 7: Illegal oct-form character:  '\x6u'
+Error type A at Line 8: Illegal oct-form character:  '\x910'
+Program (1)
+  ExtDefList (1)
+    ExtDef (1)
+      Specifier (1)
+        TYPE: int
+      FunDec (1)
+        ID: test_1_o01
+        LP
+        RP
+      CompSt (2)
+        LC
+        DefList (3)
+          Def (3)
+            Specifier (3)
+              TYPE: int
+            DecList (3)
+              Dec (3)
+                VarDec (3)
+                  ID: _wrong_hex_int_1
+                ASSIGN
+                Exp (3)
+                  INT: 0
+            SEMI
+          DefList (4)
+            Def (4)
+              Specifier (4)
+                TYPE: int
+              DecList (4)
+                Dec (4)
+                  VarDec (4)
+                    ID: _wrong_hex_int_2
+                  ASSIGN
+                  Exp (4)
+                    INT: 0
+              SEMI
+            DefList (5)
+              Def (5)
+                Specifier (5)
+                  TYPE: int
+                DecList (5)
+                  Dec (5)
+                    VarDec (5)
+                      ID: _right_hex_int
+                    ASSIGN
+                    Exp (5)
+                      INT: -559038737
+                SEMI
+              DefList (6)
+                Def (6)
+                  Specifier (6)
+                    TYPE: char
+                  DecList (6)
+                    Dec (6)
+                      VarDec (6)
+                        ID: _right_hex_char
+                      ASSIGN
+                      Exp (6)
+                        CHAR: \xa0
+                  SEMI
+                DefList (7)
+                  Def (7)
+                    Specifier (7)
+                      TYPE: char
+                    DecList (7)
+                      Dec (7)
+                        VarDec (7)
+                          ID: _wrong_hex_char_1
+                        ASSIGN
+                        Exp (7)
+                          CHAR: \x6u
+                    SEMI
+                  DefList (8)
+                    Def (8)
+                      Specifier (8)
+                        TYPE: char
+                      DecList (8)
+                        Dec (8)
+                          VarDec (8)
+                            ID: _wrong_hex_char_2
+                          ASSIGN
+                          Exp (8)
+                            CHAR: \x910
+                      SEMI
+        RC

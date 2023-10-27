@@ -1,2 +1,9 @@
+.vscode
+
+# Project related
 bin/
 tmp/
+test.spl
+test.out
+./*.c
+./*.h

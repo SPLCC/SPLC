@@ -1,0 +1,31 @@
+Error type B at Line 3: Missing semicolon ';' 
+Program (1)
+  ExtDefList (1)
+    ExtDef (1)
+      Specifier (1)
+        TYPE: int
+      FunDec (1)
+        ID: test_1_r08
+        LP
+        RP
+      CompSt (2)
+        LC
+        DefList (3)
+          Def (3)
+        StmtList (4)
+          Stmt (4)
+            IF
+            LP
+            Exp (4)
+              Exp (4)
+                ID: a
+              GT
+              Exp (4)
+                INT: 4
+            RP
+            Stmt (5)
+              RETURN
+              Exp (5)
+                ID: bb
+              SEMI
+        RC

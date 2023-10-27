@@ -1,8 +1,0 @@
-{
-    "C_Cpp.errorSquiggles": "disabled",
-    "files.associations": {
-        "cstdarg": "c",
-        "string.h": "c",
-        "treenode.h": "c"
-    }
-}
