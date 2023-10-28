@@ -1,0 +1,14 @@
+int main()
+{
+    int a = 0; // This is a single comment.
+    int b = 0; // This is a cross-line comment \
+                  as you can tell by changing the language server interpreting this comment to match the C language.
+    int c = 233; // Hi! C
+    /*
+    This is a cross-line comment.
+    */
+    int d = c;
+    /* Hi!
+    */
+   // This is a hanging comment, which should not be recognized
+}

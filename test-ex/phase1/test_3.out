@@ -1,5 +1,5 @@
-test-ex/test_3.spl:4:15: [31merror:[0m too many decimal points or exponential indicators [[31mA[0m]
-test-ex/test_3.spl:6:5: [31merror:[0m expected expression before '>' [[31mB[0m]
+test-ex/phase1//test_3.spl:4:15: [31merror:[0m too many decimal points or exponential indicators [[31mA[0m]
+test-ex/phase1//test_3.spl:6:5: [31merror:[0m expected expression before '>' [[31mB[0m]
        4 |    float y = [31m.3e-13e7[0m;
          |              [31m^~~~~~~~[0m
        6 |    [31m>[0m7;

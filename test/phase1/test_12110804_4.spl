@@ -1,4 +1,9 @@
 int main(){
+    {
+        if (hi()) {
+            foo();
+        }
+    }
     else
         printf();
 }
