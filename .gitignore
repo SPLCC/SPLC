@@ -9,3 +9,4 @@ test.out
 test.c
 ./*.c
 ./*.h
+a.out

@@ -71,13 +71,16 @@ void builtin_print_ast(ast_node node, int level)
         break;
 
     case AST_INT:
-        printf(": %d", node->int_val);
+        printf(": %lu", node->ulong_val);
         break;
     case AST_FLOAT:
         printf(": %g", node->float_val);
         break;
     case AST_CHAR:
         printf(": %s", (char *)node->val);
+        break;
+    case AST_STR:
+        printf(": \"%s\"", (char *)node->val);
         break;
 
     default:

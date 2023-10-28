@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+ast_node root;
+
 static void usage(const char *progname)
 {
     printf("usage: %s [FILE]\n%s", progname, 
@@ -34,4 +36,9 @@ int main(int argc, char *argv[])
 
     /* Start parsing */
     yyparse();
+
+    if (err_flag)
+        return 1;
+    
+    return 0;
 }

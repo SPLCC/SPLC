@@ -173,6 +173,12 @@ const char *get_spl_token_string(spl_token_t type) {
     
     case AST_CHAR:
         return "CHAR";
+
+    case AST_STREXP:
+        return "StrExp";
+
+    case AST_STR:
+        return "STRING";
     
     default:
         return "UNRECOGNIZED";

@@ -1,0 +1,13 @@
+
+int main()
+{
+    char msg1 = "Hi Just want to test!";
+
+    char msg2 = "Hi \
+                    Just want to test!";
+
+    char msg3 = "Hi"
+                "Thanks!";
+    printf("[%s]", msg);
+    return 0;
+}

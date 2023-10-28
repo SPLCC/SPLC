@@ -21,8 +21,8 @@ typedef struct ast_node_struct
 
     union {
         void *val;
-        int int_val;     /* Interpret the value as integer */
-        float float_val; /* Interpret the value as float  */
+        unsigned long ulong_val; /* Interpret the value as integer */
+        float float_val;  /* Interpret the value as float  */
     };
 } ast_node_struct;
 

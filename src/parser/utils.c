@@ -27,7 +27,7 @@ static char *fetchline(FILE *file, int linebegin)
     return lineptr;
 }
 
-static void print_colored_line(error_t type, const char *line, int linebegin, int colbegin, int colend)
+static const char *get_color_code(error_t type)
 {
     const char *color_code = "\033[31m";
     switch (type)
@@ -37,11 +37,19 @@ static void print_colored_line(error_t type, const char *line, int linebegin, in
     case SPLERR_B:
         color_code = "\033[31m";
         break;
+    case SPLWARN:
+        color_code = "\033[35m";
+        break;
     default:
         color_code = "\033[36m";
         break;
     }
+    return color_code;
+}
 
+static void print_colored_line(error_t type, const char *line, int linebegin, int colbegin, int colend)
+{
+    const char *color_code = get_color_code(type);
     printf("%8d |", linebegin);
 
     for (int i = 0; i < colbegin - 1; ++i)
@@ -59,18 +67,7 @@ static void print_colored_line(error_t type, const char *line, int linebegin, in
 
 static void print_indicator(error_t type, int colbegin, int colend)
 {
-    const char *color_code = "\033[31m";
-    switch (type)
-    {
-    case SPLERR_CRIT:
-    case SPLERR_A:
-    case SPLERR_B:
-        color_code = "\033[31m";
-        break;
-    default:
-        color_code = "\033[36m";
-        break;
-    }
+    const char *color_code = get_color_code(type);
 
     printf("         |");
 
@@ -85,9 +82,9 @@ static void print_indicator(error_t type, int colbegin, int colend)
     return;
 }
 
-void spl_func_trace(trace_t type, const char *func_name)
+void spltrace(trace_t type, const char *name)
 {
-    char *type_str = "UNDEFINED";
+    const char *type_str = "UNDEFINED";
     switch (type)
     {
     case SPLTR_FUNCTION:
@@ -100,31 +97,40 @@ void spl_func_trace(trace_t type, const char *func_name)
         type_str = "unknown structure";
         break;
     }
-    fprintf(stderr, "%s: In %s `%s`\n", filename, type_str, func_name);
+    fprintf(stderr, "%s: In %s `%s`\n", filename, type_str, name);
     return;
 }
 
-void splerror(error_t type, int linebegin, int colbegin, int lineend, int colend, const char *msg)
+static void spl_handle_msg(error_t type, int linebegin, int colbegin, int lineend, int colend, const char *msg)
 {
-    char *type_str = "UNDEFINED";
-    set_error_flag(1);
+    const char *color_code = get_color_code(type);
+    const char *type_name = "undefined message";
+    const char *type_suffix = "UNDEFINED";
     switch (type)
     {
     case SPLERR_CRIT:
-        type_str = "CRITICAL";
+        type_name = "critical error";
+        type_suffix = "CRITICAL";
         break;
     case SPLERR_A:
-        type_str = "A";
+        type_name = "error";
+        type_suffix = "A";
         break;
     case SPLERR_B:
-        type_str = "B";
+        type_name = "error";
+        type_suffix = "B";
+        break;
+    case SPLWARN:
+        type_name = "warning";
+        type_suffix = "WARNING";
         break;
     default:
-        type_str = "UNKNOWN";
+        type_name = "critical error";
+        type_suffix = "UNKNOWN";
         break;
     }
-    fprintf(stderr, "%s:%d:%d: \033[31merror:\033[0m %s [\033[31m%s\033[0m]\n", filename, linebegin, colbegin, msg,
-            type_str);
+    fprintf(stderr, "%s:%d:%d: %s%s:\033[0m %s [%s%s\033[0m]\n", filename, linebegin, colbegin, color_code, type_name,
+            msg, color_code, type_suffix);
 
     FILE *file = NULL;
     if ((file = fopen(filename, "r")) == NULL)
@@ -148,4 +154,15 @@ void splerror(error_t type, int linebegin, int colbegin, int lineend, int colend
     free(line);
 
     return;
+}
+
+void splerror(error_t type, int linebegin, int colbegin, int lineend, int colend, const char *msg)
+{
+    set_error_flag(1);
+    spl_handle_msg(type, linebegin, colbegin, lineend, colend, msg);
+}
+
+void splwarn(int linebegin, int colbegin, int lineend, int colend, const char *msg)
+{
+    spl_handle_msg(SPLWARN, linebegin, colbegin, lineend, colend, msg);
 }

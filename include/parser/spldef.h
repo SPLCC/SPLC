@@ -76,10 +76,12 @@ enum spl_token_type
 
     /* Terminals: Constant Expressions */
     AST_BUILTIN_TYPE, /* keyword: built-in type */
-    AST_ID,
-    AST_INT,
-    AST_FLOAT,
-    AST_CHAR,
+    AST_ID,           /* id literal */
+    AST_INT,          /* integer literal */
+    AST_FLOAT,        /* float literal scientific notation allowed */
+    AST_CHAR,         /* character literal */
+    AST_STREXP,       /* parent of the string expression */
+    AST_STR,          /* string literal */
 };
 
 const char *get_spl_token_string(spl_token_t type);
@@ -107,6 +109,8 @@ typedef struct ast_node_struct *ast_node;
 /* Flex & Bison */
 struct YYLTYPE;
 typedef struct YYLTYPE YYLTYPE;
+
+extern ast_node root;
 
 extern int err_flag;
 

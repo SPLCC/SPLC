@@ -25,9 +25,9 @@ typedef struct lut_entry_struct
     int colno;  /* column number */
 
     union {
-        void *val;       /* General data */
-        int int_val;     /* Interpret the value as integer */
-        float float_val; /* Interpret the value as float  */
+        void *val;            /* General data */
+        unsigned int ulong_val; /* Interpret the value as integer */
+        float float_val;      /* Interpret the value as float  */
     };
 } lut_entry_struct;
 
