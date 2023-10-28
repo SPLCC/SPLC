@@ -6,3 +6,9 @@ int gg()
   a = 10;
   int i = 0;
 }
+
+
+int what()
+{
+    int a, b = 1;
+    a = 1;

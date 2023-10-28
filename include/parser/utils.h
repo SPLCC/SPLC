@@ -8,9 +8,17 @@ typedef enum error_type error_t;
 
 enum error_type
 {
-    CRITICAL,
-    ERR_A,
-    ERR_B,
+    SPLERR_CRIT,
+    SPLERR_A,
+    SPLERR_B,
+};
+
+typedef enum trace_type trace_t;
+
+enum trace_type
+{
+    SPLTR_STRUCT,
+    SPLTR_FUNCTION,
 };
 
 /* This method prints the corresponding colored message, and outputs the corresponding line in the file.
@@ -19,5 +27,7 @@ enum error_type
    output only one line.
  */
 void splerror(error_t type, int linebegin, int colbegin, int lineend, int colend, const char *msg);
+
+void set_error_flag(int val);
 
 #endif

@@ -5,7 +5,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* Return an array of lines fetched */
+void set_error_flag(int val)
+{
+    err_flag = val;
+}
+
+/* Return an array of lines fetched. No newline character will be present. */
 static char *fetchline(FILE *file, int linebegin)
 {
     char *lineptr = (char *)NULL;
@@ -15,6 +20,10 @@ static char *fetchline(FILE *file, int linebegin)
         size_t n = 0;
         getline(&lineptr, &n, file);
     }
+    /* Handling newline and EOF */
+    size_t linelen = strlen(lineptr);
+    if (linelen > 0 && lineptr[linelen - 1] == '\n')
+        lineptr[linelen - 1] = '\0';
     return lineptr;
 }
 
@@ -23,9 +32,9 @@ static void print_colored_line(error_t type, const char *line, int linebegin, in
     const char *color_code = "\033[31m";
     switch (type)
     {
-    case CRITICAL:
-    case ERR_A:
-    case ERR_B:
+    case SPLERR_CRIT:
+    case SPLERR_A:
+    case SPLERR_B:
         color_code = "\033[31m";
         break;
     default:
@@ -45,6 +54,7 @@ static void print_colored_line(error_t type, const char *line, int linebegin, in
 
     for (int i = colend; line[i] != '\0'; ++i)
         printf("%c", line[i]);
+    printf("\n");
 }
 
 static void print_indicator(error_t type, int colbegin, int colend)
@@ -52,9 +62,9 @@ static void print_indicator(error_t type, int colbegin, int colend)
     const char *color_code = "\033[31m";
     switch (type)
     {
-    case CRITICAL:
-    case ERR_A:
-    case ERR_B:
+    case SPLERR_CRIT:
+    case SPLERR_A:
+    case SPLERR_B:
         color_code = "\033[31m";
         break;
     default:
@@ -75,19 +85,38 @@ static void print_indicator(error_t type, int colbegin, int colend)
     return;
 }
 
+void spl_func_trace(trace_t type, const char *func_name)
+{
+    char *type_str = "UNDEFINED";
+    switch (type)
+    {
+    case SPLTR_FUNCTION:
+        type_str = "function";
+        break;
+    case SPLTR_STRUCT:
+        type_str = "struct";
+        break;
+    default:
+        type_str = "unknown structure";
+        break;
+    }
+    fprintf(stderr, "%s: In %s `%s`\n", filename, type_str, func_name);
+    return;
+}
+
 void splerror(error_t type, int linebegin, int colbegin, int lineend, int colend, const char *msg)
 {
     char *type_str = "UNDEFINED";
-    err_flag = 1;
+    set_error_flag(1);
     switch (type)
     {
-    case CRITICAL:
+    case SPLERR_CRIT:
         type_str = "CRITICAL";
         break;
-    case ERR_A:
+    case SPLERR_A:
         type_str = "A";
         break;
-    case ERR_B:
+    case SPLERR_B:
         type_str = "B";
         break;
     default:
@@ -104,10 +133,18 @@ void splerror(error_t type, int linebegin, int colbegin, int lineend, int colend
         return;
     }
     char *line = fetchline(file, linebegin);
-    int line_len = (int)strlen(line);
     fclose(file);
-    print_colored_line(type, line, linebegin, colbegin, lineend == linebegin ? colend : line_len);
-    print_indicator(type, colbegin, lineend == linebegin ? colend : line_len);
+
+    int line_len = (int)strlen(line);
+
+    int t_colend = colbegin;
+    if (lineend == linebegin && colend > colbegin)
+        t_colend = colend - 1;
+    else if (lineend != linebegin)
+        t_colend = line_len;
+
+    print_colored_line(type, line, linebegin, colbegin, t_colend);
+    print_indicator(type, colbegin, t_colend);
     free(line);
 
     return;

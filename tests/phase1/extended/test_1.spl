@@ -1,4 +1,0 @@
-int what()
-{
-    int a, b = 1;
-    a = 1;
