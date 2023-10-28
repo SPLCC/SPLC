@@ -35,6 +35,15 @@
   
   - Allowing for loop declaration
   
+    - Allow any type of for loop combination:
+  
+      ```c
+      for ([optional definition]; [optional expression]; optional expression)
+          stmt
+      ```
+  
+    - Run parser on `test_ex/test_6.spl` for details.
+  
   - Allowing the following floating-point declaration, given by `[0-9]*\.[0-9]+([eE][-+]?[0-9]+)?`:
   
     ```c

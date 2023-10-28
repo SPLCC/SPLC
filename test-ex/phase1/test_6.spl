@@ -1,0 +1,19 @@
+int main()
+{
+    for (int i = 0; i < 10; ++i)
+        hi();
+    
+    for (;;)
+        hi();
+
+    for (;i == 3;)
+        hi();
+
+    for (;i == 3; i = i + 8)
+        hi();
+
+    for (int i = 0; printf();)
+        ;
+    for (int i = 0; i>3;
+        
+}

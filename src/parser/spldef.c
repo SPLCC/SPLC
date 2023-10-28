@@ -49,6 +49,9 @@ const char *get_spl_token_string(spl_token_t type) {
 
     case AST_STMT:
         return "Stmt";
+
+    case AST_FOR_LOOP_BODY:
+        return "FOR_LOOP_BODY";
     
     /* Nonterminals: local definition */
     case AST_DEF_LIST:

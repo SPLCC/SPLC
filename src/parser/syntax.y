@@ -118,17 +118,34 @@ StmtList: Stmt StmtList { $$ = create_parent_node(AST_STMT_LIST, @$.first_line, 
 Stmt: SEMI { $$ = create_parent_node(AST_STMT, @$.first_line, 1, $1); }
     | Exp SEMI { $$ = create_parent_node(AST_STMT, @$.first_line, 2, $1, $2); }
     | Exp error { splerror(SPLERR_B, @1.last_line, @1.last_column, @1.last_line, @1.last_column, "missing semicolon ';'"); $$ = create_parent_node(AST_STMT, @$.first_line, 0); yyerrok; }
+
     | CompStmt { $$ = create_parent_node(AST_STMT, @$.first_line, 1, $1); }
+
     | RETURN Exp SEMI { $$ = create_parent_node(AST_STMT, @$.first_line, 3, $1, $2, $3); }
     | RETURN Exp error { splerror(SPLERR_B, @2.last_line, @2.last_column, @2.last_line, @2.last_column, "missing semicolon ';'"); $$ = create_parent_node(AST_STMT, @$.first_line, 2, $1, $2); yyerrok; }
+
     | IF LP Exp RP Stmt %prec THEN { $$ = create_parent_node(AST_STMT, @$.first_line, 5, $1, $2, $3, $4, $5); }
     | IF LP Exp RP Stmt ELSE Stmt { $$ = create_parent_node(AST_STMT, @$.first_line, 7, $1, $2, $3, $4, $5, $6, $7); }
     | ELSE Stmt { splerror(SPLERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "hanging else is not allowed."); $$ = create_parent_node(AST_STMT, @$.first_line, 2, $1, $2); yyerrok; }
+
     | WHILE LP Exp RP Stmt { $$ = create_parent_node(AST_STMT, @$.first_line, 5, $1, $2, $3, $4, $5); }
-    | FOR LP Def Exp SEMI Exp RP Stmt { $$ = create_parent_node(AST_STMT, @$.first_line, 8, $1, $2, $3, $4, $5, $6, $7, $8); }
-    | FOR LP Def Exp SEMI Exp RP error { splerror(SPLERR_B, @8.first_line, @8.first_column, @8.last_line, @8.last_column, "for loop requires at one statement to be executed"); $$ = create_parent_node(AST_STMT, @$.first_line, 7, $1, $2, $3, $4, $5, $6, $7); yyerrok; }
-    | FOR LP Def Exp SEMI Exp error { splerror(SPLERR_B, @6.last_line, @6.last_column, @6.last_line, @6.last_column, "missing right parenthesis ')'"); $$ = create_parent_node(AST_STMT, @$.first_line, 0); yyerrok; }
-    | FOR LP Def Exp error { splerror(SPLERR_B, @4.last_line, @4.last_column, @4.last_line, @4.last_column, "missing semicolon ';'"); $$ = create_parent_node(AST_STMT, @$.first_line, 0); yyerrok; }
+
+    | FOR LP ForLoopBody RP Stmt { $$ = create_parent_node(AST_STMT, @$.first_line, 5, $1, $2, $3, $4, $5); }
+    | FOR LP ForLoopBody RP error { splerror(SPLERR_B, @4.last_line, @4.last_column, @4.last_line, @4.last_column, "for loop requires at least one statement to be executed"); $$ = create_parent_node(AST_STMT, @$.first_line, 0); yyerrok; }
+    | FOR LP ForLoopBody error { splerror(SPLERR_B, @3.last_line, @3.last_column, @3.last_line, @3.last_column, "missing right parenthesis ')'"); $$ = create_parent_node(AST_STMT, @$.first_line, 0); yyerrok; }
+    ;
+
+ForLoopBody: Def Exp SEMI Exp { $$ = create_parent_node(AST_FOR_LOOP_BODY, @$.first_line, 4, $1, $2, $3, $4); }
+
+    | SEMI Exp SEMI Exp { $$ = create_parent_node(AST_FOR_LOOP_BODY, @$.first_line, 4, $1, $2, $3, $4); }
+    | Def Exp SEMI { $$ = create_parent_node(AST_FOR_LOOP_BODY, @$.first_line, 3, $1, $2, $3); }
+    | Def SEMI Exp { $$ = create_parent_node(AST_FOR_LOOP_BODY, @$.first_line, 3, $1, $2, $3); }
+
+    | SEMI Exp SEMI { $$ = create_parent_node(AST_FOR_LOOP_BODY, @$.first_line, 3, $1, $2, $3); }
+    | SEMI SEMI Exp { $$ = create_parent_node(AST_FOR_LOOP_BODY, @$.first_line, 3, $1, $2, $3); }
+    | Def SEMI { $$ = create_parent_node(AST_FOR_LOOP_BODY, @$.first_line, 2, $1, $2); }
+    
+    | SEMI SEMI { $$ = create_parent_node(AST_FOR_LOOP_BODY, @$.first_line, 2, $1, $2); }
     ;
 
 /* Definition: List of definitions. Recursive definition. */

@@ -1,0 +1,76 @@
+Program (2)
+  ExtDefList (2)
+    ExtDef (2)
+      Specifier (2)
+        TYPE: int
+      FunDec (2)
+        ID: main
+        LP
+        RP
+      CompSt (3)
+        LC
+        DefList (4)
+          Def (4)
+            Specifier (4)
+              TYPE: char
+            DecList (4)
+              Dec (4)
+                VarDec (4)
+                  ID: msg1
+                ASSIGN
+                Exp (4)
+                  StrExp (4)
+                    STRING: "Hi Just want to test!"
+            SEMI
+          DefList (6)
+            Def (6)
+              Specifier (6)
+                TYPE: char
+              DecList (6)
+                Dec (6)
+                  VarDec (6)
+                    ID: msg2
+                  ASSIGN
+                  Exp (6)
+                    StrExp (6)
+                      STRING: "Hi "
+                      StrExp (7)
+                        STRING: "                    Just want to test!"
+              SEMI
+            DefList (9)
+              Def (9)
+                Specifier (9)
+                  TYPE: char
+                DecList (9)
+                  Dec (9)
+                    VarDec (9)
+                      ID: msg3
+                    ASSIGN
+                    Exp (9)
+                      StrExp (9)
+                        STRING: "Hi"
+                        StrExp (10)
+                          STRING: "Thanks!"
+                SEMI
+        StmtList (11)
+          Stmt (11)
+            Exp (11)
+              ID: printf
+              LP
+              Args (11)
+                Exp (11)
+                  StrExp (11)
+                    STRING: "[%s]"
+                COMMA
+                Args (11)
+                  Exp (11)
+                    ID: msg
+              RP
+            SEMI
+          StmtList (12)
+            Stmt (12)
+              RETURN
+              Exp (12)
+                INT: 0
+              SEMI
+        RC

@@ -23,6 +23,7 @@ enum spl_token_type
     AST_COMP_STMT,        /* compound statement */
     AST_STMT_LIST,        /* list of statements */
     AST_STMT,             /* a single statement */
+    AST_FOR_LOOP_BODY,    /* body of a for loop */
 
     /* Nonterminals: local definition */
     AST_DEF_LIST, /* list of definitions */

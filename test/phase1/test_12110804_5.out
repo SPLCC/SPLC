@@ -1,0 +1,106 @@
+test/test_12110804_5.spl:3:13: [35mwarning:[0m overflow in integer constant [[35mWARNING[0m]
+test/test_12110804_5.spl:5:13: [35mwarning:[0m overflow in integer constant [[35mWARNING[0m]
+test/test_12110804_5.spl:6:13: [35mwarning:[0m overflow in integer constant [[35mWARNING[0m]
+       3 |    int x = [35m0x123456789[0m;
+         |            [35m^~~~~~~~~~~[0m
+       5 |    int z = [35m4294967308[0m;
+         |            [35m^~~~~~~~~~[0m
+       6 |    int k = [35m2147483649[0m;
+         |            [35m^~~~~~~~~~[0m
+Program (1)
+  ExtDefList (1)
+    ExtDef (1)
+      Specifier (1)
+        TYPE: int
+      FunDec (1)
+        ID: q
+        LP
+        RP
+      CompSt (1)
+        LC
+        DefList (2)
+          Def (2)
+            Specifier (2)
+              TYPE: int
+            DecList (2)
+              Dec (2)
+                VarDec (2)
+                  ID: a
+            SEMI
+          DefList (3)
+            Def (3)
+              Specifier (3)
+                TYPE: int
+              DecList (3)
+                Dec (3)
+                  VarDec (3)
+                    ID: x
+                  ASSIGN
+                  Exp (3)
+                    INT: 0
+              SEMI
+            DefList (4)
+              Def (4)
+                Specifier (4)
+                  TYPE: int
+                DecList (4)
+                  Dec (4)
+                    VarDec (4)
+                      ID: y
+                    ASSIGN
+                    Exp (4)
+                      INT: 2147483647
+                SEMI
+              DefList (5)
+                Def (5)
+                  Specifier (5)
+                    TYPE: int
+                  DecList (5)
+                    Dec (5)
+                      VarDec (5)
+                        ID: z
+                      ASSIGN
+                      Exp (5)
+                        INT: 4294967308
+                  SEMI
+                DefList (6)
+                  Def (6)
+                    Specifier (6)
+                      TYPE: int
+                    DecList (6)
+                      Dec (6)
+                        VarDec (6)
+                          ID: k
+                        ASSIGN
+                        Exp (6)
+                          INT: 2147483649
+                    SEMI
+        StmtList (7)
+          Stmt (7)
+            Exp (7)
+              Exp (7)
+                ID: a
+              ASSIGN
+              Exp (7)
+                Exp (7)
+                  ID: a
+                PLUS
+                Exp (7)
+                  MINUS
+                  Exp (7)
+                    INT: 1
+            SEMI
+          StmtList (8)
+            Stmt (8)
+              Exp (8)
+                Exp (8)
+                  ID: a
+                ASSIGN
+                Exp (8)
+                  PLUS
+                  Exp (8)
+                    PLUS
+                    Exp (8)
+                      INT: 1
+              SEMI
+        RC
