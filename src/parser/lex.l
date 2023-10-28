@@ -5,7 +5,7 @@
     #include "lut.h"
     #include "ast.h"
 
-    #include "syntax.tab.h"
+    #include "parser_syntax.tab.h"
 
     #include <stdlib.h>
     #include <string.h>
@@ -32,6 +32,7 @@
 "if"                   { yylval = create_leaf_node(AST_IF); return IF; }
 "else"                 { yylval = create_leaf_node(AST_ELSE); return ELSE; }
 "while"                { yylval = create_leaf_node(AST_WHILE); return WHILE; }
+"for"                  { yylval = create_leaf_node(AST_FOR); return FOR; }
 "return"               { yylval = create_leaf_node(AST_RETURN); return RETURN; }
 
 
@@ -41,11 +42,18 @@
     return FLOAT;
 }
 
+[0-9]*\.[0-9\.]+ {
+    yylval = create_leaf_node(AST_FLOAT);
+    splerror(ERR_A, yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column, "too many decimal points in number");
+    yylval->float_val = 0.0f;
+    return FLOAT;
+}
+
 [0-9]+ {
     yylval = create_leaf_node(AST_INT);
     if (yyleng > 1 && yytext[0] == '0') 
     {
-        splerror(ERR_A, yylineno, "Illegal decimal integer starting with 0: ", yytext);
+        splerror(ERR_A, yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column, "decimal integer cannot start with 0");
     }
     else 
     {
@@ -58,14 +66,14 @@
     yylval = create_leaf_node(AST_INT);
     if (yyleng > 3 && yytext[2] == '0')
     {
-        splerror(ERR_A, yylineno, "Illegal hexadecimal integer starting with 0: ", yytext);
+        splerror(ERR_A, yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column, "hexadecimal integer cannot start with 0");
     }
     yylval->int_val = strtol(yytext, NULL, 16);
     return INT;
 }
 
 0[xX][0-9a-zA-Z]+ {
-    splerror(ERR_A, yylineno, "Illegal hex-form integer: ", yytext);
+    splerror(ERR_A, yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column, "hexadecimal integer contains invalid characters");
     yylval = create_leaf_node(AST_INT);
     return INT;
 }
@@ -78,7 +86,7 @@
 
 '\\x[0-9a-zA-Z]*' {
     yylval = create_leaf_node(AST_CHAR);
-    splerror(ERR_A, yylineno, "Illegal oct-form character: ", yytext);
+    splerror(ERR_A, yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column, "invalid form of octal-form character");
     yylval->val = (void *)strndup(yytext + 1, strlen(yytext) - 2);
     return CHAR;
 }
@@ -92,7 +100,7 @@
 [0-9][a-zA-Z0-9_]* {
     yylval = create_leaf_node(AST_ID);
     yylval->val = (void *)strdup(yytext);       
-    splerror(ERR_A, yylineno, "Illegal identifier starting with digits: ", yytext);
+    splerror(ERR_A, yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column, "identifier name cannot start with digits");
     return ID;
 }
 
@@ -115,12 +123,12 @@
 "||" { yylval = create_leaf_node(AST_OR); return OR; }
 "&"  { 
     yylval = create_leaf_node(AST_BITWISE_AND); 
-    splerror(ERR_A, yylineno, "Unsupported lexeme: ", "Bitwise and");
+    splerror(ERR_A, yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column, "unsupported lexeme");
     return BITWISE_AND; 
 }
 "|"  { 
     yylval = create_leaf_node(AST_BITWISE_OR); 
-    splerror(ERR_A, yylineno, "Unsupported lexeme: ", "Bitwise or");
+    splerror(ERR_A, yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column, "unsupported lexeme");
     return BITWISE_OR; 
 }
 
@@ -153,7 +161,7 @@
 . {
     yylval = create_leaf_node(AST_ID);
     yylval->val = (void *)strdup(yytext);
-    splerror(ERR_A, yylineno, "Ignoring unknown lexeme: ", yytext);
+    splerror(ERR_A, yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.first_column, "unknown lexeme");
     return ID;
 }
 %%

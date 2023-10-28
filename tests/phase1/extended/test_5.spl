@@ -1,0 +1,4 @@
+int char;
+char thank(){
+    return 3;
+}

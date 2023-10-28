@@ -23,7 +23,7 @@ ast_node create_leaf_node(spl_token_t type)
     return node;
 }
 
-ast_node add_child(ast_node parent, ast_node child)
+void add_child(ast_node parent, ast_node child)
 {
     parent->children = (ast_node *)realloc(parent->children, (parent->num_child + 1) * sizeof(ast_node_struct));
     parent->children[parent->num_child] = child;

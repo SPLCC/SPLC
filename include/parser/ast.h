@@ -34,7 +34,7 @@ ast_node create_empty_node();
 ast_node create_leaf_node(spl_token_t type);
 
 /* Add a child to a node. Uses `realloc` to allocate memory. */
-ast_node add_child(ast_node parent, ast_node child);
+void add_child(ast_node parent, ast_node child);
 
 /* Create a parent node, given a list of child nodes */
 ast_node create_parent_node(spl_token_t type, int lineno, size_t num_child, ...);

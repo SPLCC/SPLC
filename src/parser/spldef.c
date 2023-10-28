@@ -1,5 +1,9 @@
 #include "spldef.h"
 
+int err_flag = 0;
+
+const char* filename = NULL;
+
 const char *get_spl_token_string(spl_token_t type) {
     switch (type)
     {
@@ -148,6 +152,9 @@ const char *get_spl_token_string(spl_token_t type) {
     case AST_WHILE:
         return "WHILE";
 
+    case AST_FOR:
+        return "FOR";
+
     case AST_RETURN:
         return "RETURN";
 
@@ -171,5 +178,3 @@ const char *get_spl_token_string(spl_token_t type) {
         return "UNRECOGNIZED";
     }
 }
-
-int err_flag = 0;

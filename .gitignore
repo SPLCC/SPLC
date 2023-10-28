@@ -3,7 +3,9 @@
 # Project related
 bin/
 tmp/
+obj/
 test.spl
 test.out
+test.c
 ./*.c
 ./*.h

@@ -45,7 +45,7 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 1 "src/syntax.y"
+#line 1 "src/parser/syntax.y"
 
     #include "spldef.h"
     #include "lut.h"
@@ -78,32 +78,39 @@ extern int yydebug;
     THEN = 265,                    /* THEN  */
     ELSE = 266,                    /* ELSE  */
     WHILE = 267,                   /* WHILE  */
-    RETURN = 268,                  /* RETURN  */
-    SEMI = 269,                    /* SEMI  */
-    COMMA = 270,                   /* COMMA  */
-    ASSIGN = 271,                  /* ASSIGN  */
-    AND = 272,                     /* AND  */
-    OR = 273,                      /* OR  */
-    BITWISE_AND = 274,             /* BITWISE_AND  */
-    BITWISE_OR = 275,              /* BITWISE_OR  */
-    LT = 276,                      /* LT  */
-    LE = 277,                      /* LE  */
-    GT = 278,                      /* GT  */
-    GE = 279,                      /* GE  */
-    NE = 280,                      /* NE  */
-    EQ = 281,                      /* EQ  */
-    PLUS = 282,                    /* PLUS  */
-    MINUS = 283,                   /* MINUS  */
-    MUL = 284,                     /* MUL  */
-    DIV = 285,                     /* DIV  */
-    LC = 286,                      /* LC  */
-    RC = 287,                      /* RC  */
-    LP = 288,                      /* LP  */
-    RP = 289,                      /* RP  */
-    NOT = 290,                     /* NOT  */
-    DOT = 291,                     /* DOT  */
-    LSB = 292,                     /* LSB  */
-    RSB = 293                      /* RSB  */
+    FOR = 268,                     /* FOR  */
+    RETURN = 269,                  /* RETURN  */
+    SEMI = 270,                    /* SEMI  */
+    COMMA = 271,                   /* COMMA  */
+    ASSIGN = 272,                  /* ASSIGN  */
+    AND = 273,                     /* AND  */
+    OR = 274,                      /* OR  */
+    BITWISE_AND = 275,             /* BITWISE_AND  */
+    BITWISE_OR = 276,              /* BITWISE_OR  */
+    LT = 277,                      /* LT  */
+    LE = 278,                      /* LE  */
+    GT = 279,                      /* GT  */
+    GE = 280,                      /* GE  */
+    NE = 281,                      /* NE  */
+    EQ = 282,                      /* EQ  */
+    PLUS = 283,                    /* PLUS  */
+    MINUS = 284,                   /* MINUS  */
+    MUL = 285,                     /* MUL  */
+    DIV = 286,                     /* DIV  */
+    LC = 287,                      /* LC  */
+    RC = 288,                      /* RC  */
+    LP = 289,                      /* LP  */
+    RP = 290,                      /* RP  */
+    NOT = 291,                     /* NOT  */
+    DOT = 292,                     /* DOT  */
+    LSB = 293,                     /* LSB  */
+    RSB = 294,                     /* RSB  */
+    UPLUS = 295,                   /* UPLUS  */
+    UMINUS = 296,                  /* UMINUS  */
+    PRE_PLUS = 297,                /* PRE_PLUS  */
+    PRE_MINUS = 298,               /* PRE_MINUS  */
+    POST_PLUS = 299,               /* POST_PLUS  */
+    POST_MINUS = 300               /* POST_MINUS  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif

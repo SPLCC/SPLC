@@ -71,6 +71,7 @@ enum spl_token_type
     AST_IF,     /* keyword: if */
     AST_ELSE,   /* keyword: else */
     AST_WHILE,  /* keyword: while */
+    AST_FOR,    /* keyword: for */
     AST_RETURN, /* keyword: while */
 
     /* Terminals: Constant Expressions */
@@ -108,5 +109,7 @@ struct YYLTYPE;
 typedef struct YYLTYPE YYLTYPE;
 
 extern int err_flag;
+
+extern const char *filename;
 
 #endif

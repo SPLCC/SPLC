@@ -1,4 +1,4 @@
-int test_1_r10()
+int gg()
 {
   int a, b = 1;
   a = 10;
