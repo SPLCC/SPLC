@@ -243,5 +243,5 @@ Args: Exp COMMA Args { $$ = create_parent_node(AST_ARGS, @$.first_line, 3, $1, $
 
 void yyerror(const char *s) {
     // suppressed
-    fprintf(stderr, "%s at line %d\n", s, yylloc.first_line);
+    /* fprintf(stderr, "%s at line %d\n", s, yylloc.first_line); */
 }
