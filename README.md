@@ -1,5 +1,20 @@
 # CS323-Compiler-Project
 
+## TODO
+- C Preprocessor
+  - Macro variable/function substitution
+  - Recursive macro expansion
+- Main structure
+  - LUT (Look-Up Table)
+  - AST
+    - Recursive macro expansion and substitution
+    - Mark the source of function precisely
+  - `util_file_node`
+    - Support file node ID
+    - Reference file node from AST through ID
+    - Rewrite auto-recycling:
+      - Keep track of file ID and filename
+
 ## Phase 1
 
 ### Extended Feature List

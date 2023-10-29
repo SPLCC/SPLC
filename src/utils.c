@@ -40,7 +40,7 @@ static char *fetchline(FILE *file, int linebegin)
     return lineptr;
 }
 
-static const char *get_color_code(error_t type)
+static const char *get_spl_error_color_code(error_t type)
 {
     const char *color_code = "\033[31m";
     switch (type)
@@ -66,7 +66,7 @@ static const char *get_color_code(error_t type)
 
 static void print_colored_line(error_t type, const char *line, int linebegin, int colbegin, int colend)
 {
-    const char *color_code = get_color_code(type);
+    const char *color_code = get_spl_error_color_code(type);
     printf("%8d |", linebegin);
 
     for (int i = 0; i < colbegin - 1; ++i)
@@ -85,7 +85,7 @@ static void print_colored_line(error_t type, const char *line, int linebegin, in
 static void print_indicator(error_t type, int colbegin, int colend)
 {
     // printf("Accepted parameters: %d %d\n", colbegin, colend);
-    const char *color_code = get_color_code(type);
+    const char *color_code = get_spl_error_color_code(type);
 
     printf("         |");
 
@@ -195,7 +195,7 @@ static char *spl_get_msg_type_suffix(error_t type)
 
 static void spl_handle_msg_nopos(error_t type, const char *msg)
 {
-    const char *color_code = get_color_code(type);
+    const char *color_code = get_spl_error_color_code(type);
     char *type_name = spl_get_msg_type_name(type);
     char *type_suffix = spl_get_msg_type_suffix(type);
     fprintf(stderr, "%s: %s%s:\033[0m %s", spl_cur_filename, color_code, type_name, msg);
@@ -219,7 +219,7 @@ void splerror_nopos(error_t type, const char *msg)
 static void spl_handle_msg(error_t type, const char *restrict orig_file, int linebegin, int colbegin, int lineend,
                            int colend, const char *msg)
 {
-    const char *color_code = get_color_code(type);
+    const char *color_code = get_spl_error_color_code(type);
     char *type_name = spl_get_msg_type_name(type);
     char *type_suffix = spl_get_msg_type_suffix(type);
     fprintf(stderr, "%s:%d:%d: %s%s:\033[0m %s", orig_file, linebegin, colbegin, color_code, type_name,
