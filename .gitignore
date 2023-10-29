@@ -10,3 +10,4 @@ test.c
 ./*.c
 ./*.h
 a.out
+basic_test.sh

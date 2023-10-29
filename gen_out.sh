@@ -13,8 +13,8 @@ process_directory() {
             # Get the filename without the directory path and suffix
             filename=$(basename "$file" .spl)
 
-            # Call bin/parser with the input file and redirect the output to a .out file
-            bin/spl_parser "$file" > "$input_directory/$filename.out" 2>&1
+            # Call bin/splc with the input file and redirect the output to a .out file
+            bin/splc "$file" > "$input_directory/$filename.out" 2>&1
 
             # Optionally, you can print a message indicating the file has been processed
             echo "Processed $file"

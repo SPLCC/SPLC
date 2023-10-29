@@ -10,18 +10,17 @@
 
 ast_node root;
 
-static void usage(const char *progname)
-{
-    printf("usage: %s [FILE]\n%s", progname, 
-           "  FILE           the input file to parse\n");
-}
+// static void splperror(const char *msg)
+// {
+//     fprintf(stderr, "splc: \033[31mfatal error:\033[0m %s\n", msg);
+//     exit(1);
+// }
 
 int main(int argc, char *argv[])
 {
     if (argc != 2)
     {
-        fprintf(stderr, "Invalid number of arguments supported. Expected 1.\n");
-        usage(argv[0]);
+        fprintf(stderr, "spl_parser: \033[31mfatal error:\033[0m expected exactly one file to be parsed.\n");
         exit(1);
     }
     if (freopen(argv[1], "r", stdin) != NULL)
@@ -30,7 +29,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        fprintf(stderr, "spl_parser: \033[31mfatal error:\033[0m %s: No such file\nparsing terminated.\n", argv[1]);
+        fprintf(stderr, "spl_parser: \033[31mfatal error:\033[0m %s: no such file\nparsing terminated.\n", argv[1]);
         exit(1);
     }
 

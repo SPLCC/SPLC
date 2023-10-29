@@ -14,8 +14,8 @@ process_directory() {
             # Get the filename without the directory path and suffix
             filename=$(basename "$file" .spl)
 
-            # Call bin/parser with the input file and redirect the output to a .out file
-            bin/spl_parser "$file" > "$input_directory/tmp_$filename.out" 2>&1
+            # Call bin/splc with the input file and redirect the output to a .out file
+            bin/splc "$file" > "$input_directory/tmp_$filename.out" 2>&1
             
             output=$(diff "$input_directory/$filename.out" "$input_directory/tmp_$filename.out")
 
@@ -24,7 +24,8 @@ process_directory() {
             if [ $exit_code -eq 0 ]; then
                 echo "Passed."
             elif [ $exit_code -eq 1 ]; then
-                echo "Different"
+                echo "Difference found. Please check output files. "
+                echo
                 echo $output
             else
                 echo "An error occurred"
