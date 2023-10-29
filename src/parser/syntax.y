@@ -165,8 +165,8 @@ DecList: Dec { $$ = create_parent_node(AST_DEC_LIST, @$.first_line, 1, $1); }
 
 /* Definition: Single declaration unit. */
 Dec: VarDec { $$ = create_parent_node(AST_DEC, @$.first_line, 1, $1); }
-    | VarDec LP RP { splerror(SPLERR_B, @1.first_line, @1.first_column, @3.last_line, @3.last_column, "function definition not allowed here."); $$ = create_parent_node(AST_DEC, @$.first_line, 0); yyerrok; } 
-    | VarDec LP Exp RP { splerror(SPLERR_B, @1.first_line, @1.first_column, @4.last_line, @4.last_column, "function definition not allowed here."); $$ = create_parent_node(AST_DEC, @$.first_line, 0); yyerrok; } 
+    | VarDec LP RP { splerror(SPLERR_B, @1.first_line, @1.first_column, @3.last_line, @3.last_column, "function definition not allowed here"); $$ = create_parent_node(AST_DEC, @$.first_line, 0); yyerrok; } 
+    | VarDec LP Exp RP { splerror(SPLERR_B, @1.first_line, @1.first_column, @4.last_line, @4.last_column, "function definition not allowed here"); $$ = create_parent_node(AST_DEC, @$.first_line, 0); yyerrok; } 
     | VarDec ASSIGN Exp { $$ = create_parent_node(AST_DEC, @$.first_line, 3, $1, $2, $3); }
     | VarDec ASSIGN error { splerror(SPLERR_B, @3.first_line, @3.first_column, @3.last_line, @3.last_column, "invalid initialization"); $$ = create_parent_node(AST_DEC, @$.first_line, 0); yyerrok; }
     ;
