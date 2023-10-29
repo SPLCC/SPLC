@@ -243,9 +243,6 @@
 <INITIAL>[ \r\t] { }
 
 <INITIAL>. {
-    yylval = create_leaf_node(AST_ID);
-    yylval->val = (void *)strdup(yytext);
     splerror(SPLERR_A, yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column, "unknown lexeme");
-    return ID;
 }
 %%

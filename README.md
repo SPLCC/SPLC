@@ -23,7 +23,7 @@
 - Features:
   - Optimized error/warning output
   
-    ![image-20231028154347773](images/img-1.png)
+    ![image-20231029131149498](images/img-1.png)
   
     **This may cause the `diff`** **utility not to work when batch verifying**, as ASCII control sequences are used to color the output and they will not be recognized by `diff`.
   
