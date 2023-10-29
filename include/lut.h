@@ -24,10 +24,12 @@ typedef struct lut_entry_struct
     int lineno; /* line number */
     int colno;  /* column number */
 
+    ast_node root; /* If this entry is a macro, the root contains the AST of the macro in expanded form */
+
     union {
-        void *val;            /* General data */
+        void *val;              /* General data */
         unsigned int ulong_val; /* Interpret the value as integer */
-        float float_val;      /* Interpret the value as float  */
+        float float_val;        /* Interpret the value as float  */
     };
 } lut_entry_struct;
 

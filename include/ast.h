@@ -39,6 +39,18 @@ void add_child(ast_node parent, ast_node child);
 /* Create a parent node, given a list of child nodes */
 ast_node create_parent_node(spl_token_t type, int lineno, size_t num_child, ...);
 
+/* Release the entire tree */
+void release_tree(ast_node root);
+
+/* Duplicate a single node */
+ast_node duplicate_node(ast_node node);
+
+/* Duplicate the entire tree */
+ast_node duplicate_tree(ast_node root);
+
+/* Based on the given root, return the root a recursively built tree by expanding all macros. */
+ast_node invoke_macro_subtitution(ast_node root);
+
 /* Print the Syntax Tree */
 void print_ast(ast_node root);
 

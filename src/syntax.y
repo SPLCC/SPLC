@@ -56,8 +56,9 @@ ExtDefList: ExtDef ExtDefList { $$ = create_parent_node(AST_EXT_DEF_LIST, @$.fir
 ExtDef: Specifier ExtDecList SEMI { $$ = create_parent_node(AST_EXT_DEF, @$.first_line, 3, $1, $2, $3); }
     | Specifier SEMI { $$ = create_parent_node(AST_EXT_DEF, @$.first_line, 2, $1, $2); } // Allowing structure definitions
     | Specifier FuncDec CompStmt { $$ = create_parent_node(AST_EXT_DEF, @$.first_line, 3, $1, $2, $3); }
-    | Specifier FuncDec error { splerror(SPLERR_B, @2.first_line, @2.first_column, @2.last_line, @2.last_column, "invalid function body"); $$ = create_parent_node(AST_EXT_DEF, @$.first_line, 0); yyerrok; }
-    | Specifier error { splerror(SPLERR_B, @2.first_line, @2.first_column, @2.last_line, @2.last_column, "missing valid identifier"); $$ = create_parent_node(AST_EXT_DEF, @$.first_line, 0); yyerrok; }
+    | Specifier FuncDec SEMI { $$ = create_parent_node(AST_EXT_DEF, @$.first_line, 3, $1, $2, $3); }
+    | Specifier FuncDec error { splerror(SPLC_ERR_B, @2.first_line, @2.first_column, @2.last_line, @2.last_column, "invalid function body"); $$ = create_parent_node(AST_EXT_DEF, @$.first_line, 0); yyerrok; }
+    | Specifier error { splerror(SPLC_ERR_B, @2.first_line, @2.first_column, @2.last_line, @2.last_column, "missing valid identifier"); $$ = create_parent_node(AST_EXT_DEF, @$.first_line, 0); yyerrok; }
     ;
 
 /* External declaration list: Recursive variable definition of a single type. */
@@ -76,18 +77,18 @@ StructSpecifier: STRUCT ID LC DefList RC { $$ = create_parent_node(AST_STRUCT_SP
 
 /* Single variable declaration */
 VarDec: ID { $$ = create_parent_node(AST_VAR_DEC, @$.first_line, 1, $1); }
-    | Specifier { splerror(SPLERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "two or more data types in declaration specifiers"); $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 0); yyerrok; }
+    | Specifier { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "two or more data types in declaration specifiers"); $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 0); yyerrok; }
     | VarDec LSB INT RSB { $$ = create_parent_node(AST_VAR_DEC, @$.first_line, 4, $1, $2, $3, $4); }
-    | VarDec LSB error { splerror(SPLERR_B, @2.last_line, @2.last_column, @2.last_line, @2.last_column, "missing closing bracket ']'"); $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 0); yyerrok; } 
-    /* | VarDec error { splerror(SPLERR_B, @2.first_line, @2.first_column, @2.last_line, @2.last_column, "unrecognized following content"); $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 0); yyerrok; } */
+    | VarDec LSB error { splerror(SPLC_ERR_B, @2.last_line, @2.last_column, @2.last_line, @2.last_column, "missing closing bracket ']'"); $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 0); yyerrok; } 
+    /* | VarDec error { splerror(SPLC_ERR_B, @2.first_line, @2.first_column, @2.last_line, @2.last_column, "unrecognized following content"); $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 0); yyerrok; } */
     ;
 
 /* Function: Function name and body. */
 FuncDec: ID LP VarList RP { $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 4, $1, $2, $3, $4); }
-    | ID LP error RP { splerror(SPLERR_B, @3.first_line, @3.first_column, @3.last_line, @3.last_column, "invalid parameter declaration ')'"); $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 0); yyerrok; }
-    | ID LP VarList error { splerror(SPLERR_B, @3.last_line, @3.last_column, @3.last_line, @3.last_column, "missing closing parenthesis ')'"); $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 0); yyerrok; }
+    | ID LP error RP { splerror(SPLC_ERR_B, @3.first_line, @3.first_column, @3.last_line, @3.last_column, "invalid parameter declaration ')'"); $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 0); yyerrok; }
+    | ID LP VarList error { splerror(SPLC_ERR_B, @3.last_line, @3.last_column, @3.last_line, @3.last_column, "missing closing parenthesis ')'"); $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 0); yyerrok; }
     | ID LP RP { $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 3, $1, $2, $3); }
-    | ID LP error { splerror(SPLERR_B, @2.last_line, @2.last_column, @2.last_line, @2.last_column, "missing closing parenthesis ')'"); $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 0); yyerrok; }
+    | ID LP error { splerror(SPLC_ERR_B, @2.last_line, @2.last_column, @2.last_line, @2.last_column, "missing closing parenthesis ')'"); $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 0); yyerrok; }
     ;
 
 /* List of variables names */
@@ -104,9 +105,9 @@ CompStmt: LC RC { $$ = create_parent_node(AST_COMP_STMT, @$.first_line, 0); }
     | LC DefList StmtList RC { $$ = create_parent_node(AST_COMP_STMT, @$.first_line, 4, $1, $2, $3, $4); }
     | LC DefList RC { $$ = create_parent_node(AST_COMP_STMT, @$.first_line, 3, $1, $2, $3); }
     | LC StmtList RC { $$ = create_parent_node(AST_COMP_STMT, @$.first_line, 3, $1, $2, $3); }
-    | LC DefList StmtList error { splerror(SPLERR_B, @3.last_line, @3.last_column, @3.last_line, @3.last_column, "missing closing brace '}'"); $$ = create_parent_node(AST_COMP_STMT, @$.first_line, 0); yyerrok; }
-    | LC DefList StmtList DefList error { splerror(SPLERR_B, @3.first_line, @3.first_column, @3.last_line, @3.last_column, "cannot interleave definitions with statements. "); $$ = create_parent_node(AST_COMP_STMT, @$.first_line, 0); }
-    | LC StmtList DefList StmtList error { splerror(SPLERR_B, @3.first_line, @3.first_column, @3.last_line, @3.last_column, "cannot interleave definitions with statements. "); $$ = create_parent_node(AST_COMP_STMT, @$.first_line, 0); }
+    | LC DefList StmtList error { splerror(SPLC_ERR_B, @3.last_line, @3.last_column, @3.last_line, @3.last_column, "missing closing brace '}'"); $$ = create_parent_node(AST_COMP_STMT, @$.first_line, 0); yyerrok; }
+    | LC DefList StmtList DefList error { splerror(SPLC_ERR_B, @3.first_line, @3.first_column, @3.last_line, @3.last_column, "cannot interleave definitions with statements. "); $$ = create_parent_node(AST_COMP_STMT, @$.first_line, 0); }
+    | LC StmtList DefList StmtList error { splerror(SPLC_ERR_B, @3.first_line, @3.first_column, @3.last_line, @3.last_column, "cannot interleave definitions with statements. "); $$ = create_parent_node(AST_COMP_STMT, @$.first_line, 0); }
     ;
 
 /* Statement: List of statements. Recursive definition. */
@@ -117,22 +118,22 @@ StmtList: Stmt StmtList { $$ = create_parent_node(AST_STMT_LIST, @$.first_line, 
 /* Statement: A single statement. */
 Stmt: SEMI { $$ = create_parent_node(AST_STMT, @$.first_line, 1, $1); }
     | Exp SEMI { $$ = create_parent_node(AST_STMT, @$.first_line, 2, $1, $2); }
-    | Exp error { splerror(SPLERR_B, @1.last_line, @1.last_column, @1.last_line, @1.last_column, "missing semicolon ';'"); $$ = create_parent_node(AST_STMT, @$.first_line, 0); yyerrok; }
+    | Exp error { splerror(SPLC_ERR_B, @1.last_line, @1.last_column, @1.last_line, @1.last_column, "missing semicolon ';'"); $$ = create_parent_node(AST_STMT, @$.first_line, 0); yyerrok; }
 
     | CompStmt { $$ = create_parent_node(AST_STMT, @$.first_line, 1, $1); }
 
     | RETURN Exp SEMI { $$ = create_parent_node(AST_STMT, @$.first_line, 3, $1, $2, $3); }
-    | RETURN Exp error { splerror(SPLERR_B, @2.last_line, @2.last_column, @2.last_line, @2.last_column, "missing semicolon ';'"); $$ = create_parent_node(AST_STMT, @$.first_line, 2, $1, $2); yyerrok; }
+    | RETURN Exp error { splerror(SPLC_ERR_B, @2.last_line, @2.last_column, @2.last_line, @2.last_column, "missing semicolon ';'"); $$ = create_parent_node(AST_STMT, @$.first_line, 2, $1, $2); yyerrok; }
 
     | IF LP Exp RP Stmt %prec THEN { $$ = create_parent_node(AST_STMT, @$.first_line, 5, $1, $2, $3, $4, $5); }
     | IF LP Exp RP Stmt ELSE Stmt { $$ = create_parent_node(AST_STMT, @$.first_line, 7, $1, $2, $3, $4, $5, $6, $7); }
-    | ELSE Stmt { splerror(SPLERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "hanging else is not allowed."); $$ = create_parent_node(AST_STMT, @$.first_line, 2, $1, $2); yyerrok; }
+    | ELSE Stmt { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "hanging else is not allowed."); $$ = create_parent_node(AST_STMT, @$.first_line, 2, $1, $2); yyerrok; }
 
     | WHILE LP Exp RP Stmt { $$ = create_parent_node(AST_STMT, @$.first_line, 5, $1, $2, $3, $4, $5); }
 
     | FOR LP ForLoopBody RP Stmt { $$ = create_parent_node(AST_STMT, @$.first_line, 5, $1, $2, $3, $4, $5); }
-    | FOR LP ForLoopBody RP error { splerror(SPLERR_B, @4.last_line, @4.last_column, @4.last_line, @4.last_column, "for loop requires at least one statement to be executed"); $$ = create_parent_node(AST_STMT, @$.first_line, 0); yyerrok; }
-    | FOR LP ForLoopBody error { splerror(SPLERR_B, @3.last_line, @3.last_column, @3.last_line, @3.last_column, "missing right parenthesis ')'"); $$ = create_parent_node(AST_STMT, @$.first_line, 0); yyerrok; }
+    | FOR LP ForLoopBody RP error { splerror(SPLC_ERR_B, @4.last_line, @4.last_column, @4.last_line, @4.last_column, "for loop requires at least one statement to be executed"); $$ = create_parent_node(AST_STMT, @$.first_line, 0); yyerrok; }
+    | FOR LP ForLoopBody error { splerror(SPLC_ERR_B, @3.last_line, @3.last_column, @3.last_line, @3.last_column, "missing right parenthesis ')'"); $$ = create_parent_node(AST_STMT, @$.first_line, 0); yyerrok; }
     ;
 
 ForLoopBody: Def Exp SEMI Exp { $$ = create_parent_node(AST_FOR_LOOP_BODY, @$.first_line, 4, $1, $2, $3, $4); }
@@ -155,7 +156,7 @@ DefList: Def DefList { $$ = create_parent_node(AST_DEF_LIST, @$.first_line, 2, $
 
 /* Definition: Base */
 Def: Specifier DecList SEMI { $$ = create_parent_node(AST_DEF, @$.first_line, 3, $1, $2, $3); }
-    | Specifier DecList error { splerror(SPLERR_B, @2.last_line, @2.last_column, @2.last_line, @2.last_column, "missing semicolon ';'"); $$ = create_parent_node(AST_DEF, @$.first_line, 0); yyerrok; }
+    | Specifier DecList error { splerror(SPLC_ERR_B, @2.last_line, @2.last_column, @2.last_line, @2.last_column, "missing semicolon ';'"); $$ = create_parent_node(AST_DEF, @$.first_line, 0); yyerrok; }
     ;
 
 /* Definition: Declaration of multiple variable.  */ 
@@ -165,29 +166,29 @@ DecList: Dec { $$ = create_parent_node(AST_DEC_LIST, @$.first_line, 1, $1); }
 
 /* Definition: Single declaration unit. */
 Dec: VarDec { $$ = create_parent_node(AST_DEC, @$.first_line, 1, $1); }
-    | VarDec LP RP { splerror(SPLERR_B, @1.first_line, @1.first_column, @3.last_line, @3.last_column, "function definition not allowed here."); $$ = create_parent_node(AST_DEC, @$.first_line, 0); yyerrok; } 
-    | VarDec LP Exp RP { splerror(SPLERR_B, @1.first_line, @1.first_column, @4.last_line, @4.last_column, "function definition not allowed here."); $$ = create_parent_node(AST_DEC, @$.first_line, 0); yyerrok; } 
+    | VarDec LP RP { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @3.last_line, @3.last_column, "function definition not allowed here."); $$ = create_parent_node(AST_DEC, @$.first_line, 0); yyerrok; } 
+    | VarDec LP Exp RP { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @4.last_line, @4.last_column, "function definition not allowed here."); $$ = create_parent_node(AST_DEC, @$.first_line, 0); yyerrok; } 
     | VarDec ASSIGN Exp { $$ = create_parent_node(AST_DEC, @$.first_line, 3, $1, $2, $3); }
-    | VarDec ASSIGN error { splerror(SPLERR_B, @3.first_line, @3.first_column, @3.last_line, @3.last_column, "invalid initialization"); $$ = create_parent_node(AST_DEC, @$.first_line, 0); yyerrok; }
+    | VarDec ASSIGN error { splerror(SPLC_ERR_B, @3.first_line, @3.first_column, @3.last_line, @3.last_column, "invalid initialization"); $$ = create_parent_node(AST_DEC, @$.first_line, 0); yyerrok; }
     ;
 
 /* Expression */
 Exp: Exp ASSIGN Exp { $$ = create_parent_node(AST_EXP, @$.first_line, 3, $1, $2, $3); }
-    | ASSIGN Exp {  splerror(SPLERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression before '='"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
-    | ASSIGN error {  splerror(SPLERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression after '='"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | ASSIGN Exp {  splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression before '='"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | ASSIGN error {  splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression after '='"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
 
     | Exp AND Exp { $$ = create_parent_node(AST_EXP, @$.first_line, 3, $1, $2, $3); }
     | Exp OR Exp { $$ = create_parent_node(AST_EXP, @$.first_line, 3, $1, $2, $3); }
     | Exp BITWISE_AND Exp { $$ = create_parent_node(AST_EXP, @$.first_line, 3, $1, $2, $3); }
     | Exp BITWISE_OR Exp { $$ = create_parent_node(AST_EXP, @$.first_line, 3, $1, $2, $3); }
-    | AND Exp { splerror(SPLERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression before '&&'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
-    | OR Exp { splerror(SPLERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression before '||'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
-    | BITWISE_AND Exp { splerror(SPLERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression before '&'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
-    | BITWISE_OR Exp { splerror(SPLERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression before '|'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
-    | AND { splerror(SPLERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression after '&&'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
-    | OR { splerror(SPLERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression after '||'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
-    | BITWISE_AND { splerror(SPLERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression after '&'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
-    | BITWISE_OR { splerror(SPLERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression after '|'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | AND Exp { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression before '&&'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | OR Exp { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression before '||'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | BITWISE_AND Exp { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression before '&'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | BITWISE_OR Exp { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression before '|'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | AND { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression after '&&'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | OR { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression after '||'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | BITWISE_AND { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression after '&'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | BITWISE_OR { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression after '|'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
 
     | Exp LT Exp { $$ = create_parent_node(AST_EXP, @$.first_line, 3, $1, $2, $3); }
     | Exp LE Exp { $$ = create_parent_node(AST_EXP, @$.first_line, 3, $1, $2, $3); }
@@ -195,34 +196,34 @@ Exp: Exp ASSIGN Exp { $$ = create_parent_node(AST_EXP, @$.first_line, 3, $1, $2,
     | Exp GE Exp { $$ = create_parent_node(AST_EXP, @$.first_line, 3, $1, $2, $3); }
     | Exp NE Exp { $$ = create_parent_node(AST_EXP, @$.first_line, 3, $1, $2, $3); }
     | Exp EQ Exp { $$ = create_parent_node(AST_EXP, @$.first_line, 3, $1, $2, $3); }
-    | LT Exp { splerror(SPLERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression before '<'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
-    | LE Exp { splerror(SPLERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression before '<='"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
-    | GT Exp { splerror(SPLERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression before '>'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
-    | GE Exp { splerror(SPLERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression before '>='"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
-    | NE Exp { splerror(SPLERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression before '!='"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
-    | EQ Exp { splerror(SPLERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression before '=='"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
-    | LT { splerror(SPLERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression after '<'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
-    | LE { splerror(SPLERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression after '<='"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
-    | GT { splerror(SPLERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression after '>'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
-    | GE { splerror(SPLERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression after '>='"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
-    | NE { splerror(SPLERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression after '!='"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
-    | EQ { splerror(SPLERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression after '=='"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | LT Exp { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression before '<'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | LE Exp { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression before '<='"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | GT Exp { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression before '>'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | GE Exp { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression before '>='"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | NE Exp { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression before '!='"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | EQ Exp { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression before '=='"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | LT { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression after '<'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | LE { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression after '<='"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | GT { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression after '>'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | GE { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression after '>='"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | NE { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression after '!='"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | EQ { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression after '=='"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
 
     | Exp PLUS Exp { $$ = create_parent_node(AST_EXP, @$.first_line, 3, $1, $2, $3); }
     | Exp MINUS Exp { $$ = create_parent_node(AST_EXP, @$.first_line, 3, $1, $2, $3); }
-    | Exp PLUS error { splerror(SPLERR_B, @2.first_line, @2.first_column, @2.last_line, @2.last_column, "expected expression after '+'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
-    | Exp MINUS error { splerror(SPLERR_B, @2.first_line, @2.first_column, @2.last_line, @2.last_column, "expected expression after '-'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | Exp PLUS error { splerror(SPLC_ERR_B, @2.first_line, @2.first_column, @2.last_line, @2.last_column, "expected expression after '+'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | Exp MINUS error { splerror(SPLC_ERR_B, @2.first_line, @2.first_column, @2.last_line, @2.last_column, "expected expression after '-'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
 
     | Exp MUL Exp { $$ = create_parent_node(AST_EXP, @$.first_line, 3, $1, $2, $3); }
     | Exp DIV Exp { $$ = create_parent_node(AST_EXP, @$.first_line, 3, $1, $2, $3); }
-    | MUL Exp { splerror(SPLERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression before '*'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
-    | DIV Exp { splerror(SPLERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression before '/'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
-    | MUL error { splerror(SPLERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression after '*'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
-    | DIV error { splerror(SPLERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression after '/'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | MUL Exp { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression before '*'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | DIV Exp { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression before '/'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | MUL error { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression after '*'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | DIV error { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "expected expression after '/'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
 
     | LP Exp RP { $$ = create_parent_node(AST_EXP, @$.first_line, 3, $1, $2, $3); }
-    | LP Exp error { splerror(SPLERR_B, @2.last_line, @2.last_column, @2.last_line, @2.last_column, "missing closing parenthesis ')'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
-    | LP error RP { splerror(SPLERR_B, @2.first_line, @2.first_column, @2.last_line, @2.last_column, "invalid expression"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | LP Exp error { splerror(SPLC_ERR_B, @2.last_line, @2.last_column, @2.last_line, @2.last_column, "missing closing parenthesis ')'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | LP error RP { splerror(SPLC_ERR_B, @2.first_line, @2.first_column, @2.last_line, @2.last_column, "invalid expression"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
 
     | Exp PLUS PLUS %prec POST_PLUS { $$ = create_parent_node(AST_EXP, @$.first_line, 3, $1, $2, $3); }
     /* | PLUS PLUS Exp %prec PRE_PLUS { $$ = create_parent_node(AST_EXP, @$.first_line, 3, $1, $2, $3); } */
@@ -233,8 +234,8 @@ Exp: Exp ASSIGN Exp { $$ = create_parent_node(AST_EXP, @$.first_line, 3, $1, $2,
     | NOT Exp { $$ = create_parent_node(AST_EXP, @$.first_line, 2, $1, $2); }
     | ID LP RP { $$ = create_parent_node(AST_EXP, @$.first_line, 3, $1, $2, $3); }
     | ID LP Args RP { $$ = create_parent_node(AST_EXP, @$.first_line, 4, $1, $2, $3, $4); }
-    | ID LP Args error { splerror(SPLERR_B, @3.last_line, @3.last_column, @3.last_line, @3.last_column, "missing right parenthesis ')'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
-    | ID LP error RP { splerror(SPLERR_B, @3.first_line, @3.first_column, @3.last_line, @3.last_column, "invalid argument list"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | ID LP Args error { splerror(SPLC_ERR_B, @3.last_line, @3.last_column, @3.last_line, @3.last_column, "missing right parenthesis ')'"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
+    | ID LP error RP { splerror(SPLC_ERR_B, @3.first_line, @3.first_column, @3.last_line, @3.last_column, "invalid argument list"); $$ = create_parent_node(AST_EXP, @$.first_line, 0); yyerrok; }
 
     | Exp LSB Exp RSB { $$ = create_parent_node(AST_EXP, @$.first_line, 4, $1, $2, $3, $4); }
     | Exp DOT ID { $$ = create_parent_node(AST_EXP, @$.first_line, 3, $1, $2, $3); }

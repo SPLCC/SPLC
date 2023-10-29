@@ -3,6 +3,7 @@
 #define SPLDEFS_H
 
 #include <stddef.h>
+#include <stdio.h>
 
 typedef enum spl_token_type spl_token_t;
 
@@ -83,6 +84,10 @@ enum spl_token_type
     AST_CHAR,         /* character literal */
     AST_STREXP,       /* parent of the string expression */
     AST_STR,          /* string literal */
+
+    /* Nonterminals: Macro Expressions */
+    AST_MACRO_MNTPT, /* AST: macro mount point */
+    AST_MACRO_ID,    /* macro ID */
 };
 
 const char *get_spl_token_string(spl_token_t type);
@@ -92,6 +97,8 @@ typedef enum spl_entry_type spl_entry_t;
 
 enum spl_entry_type
 {
+    SPL_MACRO_VAR,
+    SPL_MACRO_FUNC,
     SPL_STRUCT_DEC,
     SPL_TYPEDEF,
     SPL_VAR,
@@ -111,12 +118,25 @@ typedef struct ast_node_struct *ast_node;
 struct YYLTYPE;
 typedef struct YYLTYPE YYLTYPE;
 
+struct yy_buffer_state;
+typedef struct yy_buffer_state *YY_BUFFER_STATE;
+
+extern int yycolno;
+
+/* Only set this to 1 if entering a new file and needs recounting. This will trigger the parser to restart counting. */
+extern int yynewfile;
+
 extern ast_node root;
 
 extern int err_flag;
 
-extern const char *filename;
+extern char *spl_cur_filename;
+
+extern FILE* spl_cur_file;
+
+extern YY_BUFFER_STATE spl_cur_buffer;
 
 extern const char *progname;
+
 
 #endif
