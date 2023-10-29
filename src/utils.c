@@ -135,7 +135,7 @@ static void spl_handle_msg(error_t type, int linebegin, int colbegin, int lineen
     FILE *file = NULL;
     if ((file = fopen(filename, "r")) == NULL)
     {
-        fprintf(stderr, "spl_parser: \033[31merror:\033[0m %s: file no longer exists\n", filename);
+        fprintf(stderr, "%s: \033[31merror:\033[0m %s: file no longer exists\n", progname, filename);
         return;
     }
     char *line = fetchline(file, linebegin);

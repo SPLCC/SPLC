@@ -117,4 +117,6 @@ extern int err_flag;
 
 extern const char *filename;
 
+extern const char *progname;
+
 #endif

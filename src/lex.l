@@ -5,7 +5,7 @@
     #include "lut.h"
     #include "ast.h"
 
-    #include "parser_syntax.tab.h"
+    #include "syntax.tab.h"
 
     #include <errno.h>
     #include <limits.h>

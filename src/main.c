@@ -2,13 +2,15 @@
 #include "ast.h"
 #include "lut.h"
 #include "utils.h"
-#include "parser_syntax.tab.h"
+#include "syntax.tab.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 ast_node root;
+
+const char *progname = "splc";
 
 // static void splperror(const char *msg)
 // {
@@ -20,7 +22,7 @@ int main(int argc, char *argv[])
 {
     if (argc != 2)
     {
-        fprintf(stderr, "spl_parser: \033[31mfatal error:\033[0m expected exactly one file to be parsed.\n");
+        fprintf(stderr, "%s: \033[31mfatal error:\033[0m expected exactly one file to be parsed\ncompilation terminated.\n", progname);
         exit(1);
     }
     if (freopen(argv[1], "r", stdin) != NULL)
@@ -29,7 +31,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        fprintf(stderr, "spl_parser: \033[31mfatal error:\033[0m %s: no such file\nparsing terminated.\n", argv[1]);
+        fprintf(stderr, "%s: \033[31mfatal error:\033[0m %s: no such file\ncompilation terminated.\n", progname, argv[1]);
         exit(1);
     }
 
