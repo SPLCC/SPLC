@@ -1,7 +1,5 @@
 int _(){}
 
-int /*;
-
 int main()
 {
     int a[3;

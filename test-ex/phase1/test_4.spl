@@ -11,5 +11,5 @@ int main()
     /* Hi!
     */
    
-    */ // This is a hanging comment, which should not be recognized
+    */ // This is a dangling comment, which should not be recognized
 }

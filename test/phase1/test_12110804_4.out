@@ -1,3 +1,3 @@
-test/phase1/test_12110804_4.spl:7:5: [31merror:[0m hanging else is not allowed. [[31mB[0m]
+test/phase1/test_12110804_4.spl:7:5: [31merror:[0m dangling else is not allowed [[31mB[0m]
        7 |    [31melse[0m
          |    [31m^~~~[0m
