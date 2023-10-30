@@ -20,7 +20,9 @@
     #define YY_USER_ACTION \
         yylloc.first_line = (yynewfile == 1) ? 1 : yylloc.last_line; \
         yylloc.first_column = (yynewfile == 1) ? 1 : yylloc.last_column; \
-        if (yynewfile) yynewfile = 0; \
+        if (yynewfile == 1) { \
+            yynewfile = 0; \
+        } \
         yylloc.last_line = yylloc.first_line; \
         yylloc.last_column = yylloc.first_column; \
         for (int i = 0; yytext[i] != '\0'; ++i) { \
@@ -37,6 +39,8 @@
         // yylloc.last_line = yylineno;
         // yylloc.last_column = yycolno + yyleng;
         // yycolno += yyleng;
+
+    #define SPL_UNPACK_YYLLOC(x) x.first_line, x.first_column, x.last_line, x.last_column
     
     ast_node pproot = NULL;
     ast_node tmp = NULL;
@@ -93,9 +97,9 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 
 <IN_PPD_INCL>\<([^\r\n]|(\\\r?\n))+\> {
     char *filename = strndup(yytext + 1, strlen(yytext) - 2);
-    if (spl_enter_file(filename) != 0)
+    if (spl_enter_file(filename, SPL_UNPACK_YYLLOC(yylloc)) != 0)
     {
-        splerror(SPLC_ERR_CRIT, yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column, "failed to include file. Please check whether it exists or this program has access right");
+        splerror(SPLC_ERR_CRIT, SPL_UNPACK_YYLLOC(yylloc), "failed to include file. Please check whether it exists or this program has access right");
     }
     free(filename);
     BEGIN(INITIAL);
@@ -103,9 +107,9 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 
 <IN_PPD_INCL>\"([^\r\n]|(\\\r?\n))+\" {
     char *filename = strndup(yytext + 1, strlen(yytext) - 2);
-    if (spl_enter_file(filename) != 0)
+    if (spl_enter_file(filename, SPL_UNPACK_YYLLOC(yylloc)) != 0)
     {
-        splerror(SPLC_ERR_CRIT, yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column, "failed to include file. Please check whether it exists or this program has access right");
+        splerror(SPLC_ERR_CRIT, SPL_UNPACK_YYLLOC(yylloc), "failed to include file. Please check whether it exists or this program has access right");
     }
     free(filename);
     BEGIN(INITIAL);
@@ -169,14 +173,14 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     if (errno == ERANGE)
     {
         errno = 0;
-        splwarn(yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column, "overflow in floating-point constant");
+        splwarn(SPL_UNPACK_YYLLOC(yylloc), "overflow in floating-point constant");
     }
     return FLOAT;
 }
 
 <INITIAL>[0-9]*\.([0-9]|[eE]|[-+]|[\.])+ {
     yylval = create_leaf_node(AST_FLOAT);
-    splerror(SPLC_ERR_A, yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column, "too many decimal points or exponential indicators");
+    splerror(SPLC_ERR_A, SPL_UNPACK_YYLLOC(yylloc), "too many decimal points or exponential indicators");
     yylval->float_val = 0.0f;
     return FLOAT;
 }
@@ -186,13 +190,13 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     yylval = create_leaf_node(AST_INT);
     if (yyleng > 1 && yytext[0] == '0') 
     {
-        splerror(SPLC_ERR_A, yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column, "decimal integer cannot start with 0");
+        splerror(SPLC_ERR_A, SPL_UNPACK_YYLLOC(yylloc), "decimal integer cannot start with 0");
     }
     yylval->ulong_val = strtoul(yytext, NULL, 10);
     if (errno == ERANGE || yylval->ulong_val > (unsigned long)(-(long)INT_MIN))
     {
         errno = 0;
-        splwarn(yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column, "overflow in integer constant");
+        splwarn(SPL_UNPACK_YYLLOC(yylloc), "overflow in integer constant");
     }
     return INT;
 }
@@ -201,13 +205,13 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     yylval = create_leaf_node(AST_INT);
     if (yyleng > 3 && yytext[2] == '0')
     {
-        splerror(SPLC_ERR_A, yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column, "hexadecimal integer cannot start with 0");
+        splerror(SPLC_ERR_A, SPL_UNPACK_YYLLOC(yylloc), "hexadecimal integer cannot start with 0");
     }
     yylval->ulong_val = strtoul(yytext, NULL, 16);
     if (errno == ERANGE)
     {
         errno = 0;
-        splwarn(yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column, "overflow in integer constant");
+        splwarn(SPL_UNPACK_YYLLOC(yylloc), "overflow in integer constant");
     }
     return INT;
 }
@@ -215,14 +219,14 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     /* SPL: invalid hexadecimal integer */
 <INITIAL>0[xX][0-9a-fA-F]{9,} {
     yylval = create_leaf_node(AST_INT);
-    splwarn(yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column, "overflow in integer constant");
+    splwarn(SPL_UNPACK_YYLLOC(yylloc), "overflow in integer constant");
     yylval->ulong_val = 0;
     return INT;
 }
 
     /* =================== SPL: char =================== */
 <INITIAL>0[xX][0-9a-zA-Z]+ {
-    splerror(SPLC_ERR_A, yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column, "hexadecimal integer contains invalid characters");
+    splerror(SPLC_ERR_A, SPL_UNPACK_YYLLOC(yylloc), "hexadecimal integer contains invalid characters");
     yylval = create_leaf_node(AST_INT);
     return INT;
 }
@@ -235,7 +239,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 
 <INITIAL>'\\x[0-9a-zA-Z]*' {
     yylval = create_leaf_node(AST_CHAR);
-    splerror(SPLC_ERR_A, yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column, "invalid form of octal-form character");
+    splerror(SPLC_ERR_A, SPL_UNPACK_YYLLOC(yylloc), "invalid form of octal-form character");
     yylval->val = (void *)strndup(yytext + 1, strlen(yytext) - 2);
     return CHAR;
 }
@@ -250,7 +254,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 <INITIAL>[0-9][a-zA-Z0-9_]* {
     yylval = create_leaf_node(AST_ID);
     yylval->val = (void *)strdup(yytext);       
-    splerror(SPLC_ERR_A, yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column, "identifier name cannot start with digits");
+    splerror(SPLC_ERR_A, SPL_UNPACK_YYLLOC(yylloc), "identifier name cannot start with digits");
     return ID;
 }
 
@@ -274,12 +278,12 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 <INITIAL>"||" { yylval = create_leaf_node(AST_OR); return OR; }
 <INITIAL>"&"  { 
     yylval = create_leaf_node(AST_BITWISE_AND); 
-    splerror(SPLC_ERR_A, yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column, "unsupported lexeme");
+    splerror(SPLC_ERR_A, SPL_UNPACK_YYLLOC(yylloc), "unsupported lexeme");
     return BITWISE_AND; 
 }
 <INITIAL>"|"  { 
     yylval = create_leaf_node(AST_BITWISE_OR); 
-    splerror(SPLC_ERR_A, yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column, "unsupported lexeme");
+    splerror(SPLC_ERR_A, SPL_UNPACK_YYLLOC(yylloc), "unsupported lexeme");
     return BITWISE_OR; 
 }
 
@@ -316,7 +320,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 <INITIAL>. {
     yylval = create_leaf_node(AST_ID);
     yylval->val = (void *)strdup(yytext);
-    splerror(SPLC_ERR_A, yylloc.first_line, yylloc.first_column, yylloc.last_line, yylloc.last_column, "unknown lexeme");
+    splerror(SPLC_ERR_A, SPL_UNPACK_YYLLOC(yylloc), "unknown lexeme");
     return ID;
 }
 %%

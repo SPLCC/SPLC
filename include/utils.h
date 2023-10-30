@@ -47,7 +47,11 @@ void splnote(int linebegin, int colbegin, int lineend, int colend, const char *m
 
 /* When switching parser into parsing a new file, this function must be called to preserve the previously opened files. 
    Return 0 on success, else there is an error to be handled. */
-int spl_enter_file(const char *restrict _filename);
+int spl_enter_root(const char *restrict _filename);
+
+/* When switching parser into parsing a new file, this function must be called to preserve the previously opened files. 
+   Return 0 on success, else there is an error to be handled. */
+int spl_enter_file(const char *restrict _filename, int linebegin, int colbegin, int lineend, int colend);
 
 /* When the parser finishes parsing a new file and returned, this function must be called to starting parsing on the previously opened files.
    If there is still file left, return 0. Else return nonzero. */

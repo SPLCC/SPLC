@@ -126,17 +126,42 @@ extern int yycolno;
 /* Only set this to 1 if entering a new file and needs recounting. This will trigger the parser to restart counting. */
 extern int yynewfile;
 
+/* Parsing and error tracking */
+
+typedef struct util_file_node_struct *util_file_node;
+
+typedef struct util_file_node_struct
+{
+    int fid;                     /* File ID */
+    char *filename;              /* name of the file. Must be freed when freeing this struct */
+    FILE *file;                  /* file descriptor. Will be closed after splc finished reading this file */
+    YY_BUFFER_STATE file_buffer; /* YY_BUFFER_STATE for flex. Will be closed after splc finished reading this file */
+    int linebegin, colbegin;
+    int lineend, colend;
+    int yylineno;
+    int yycolno;
+    struct util_file_node_struct *next;
+} util_file_node_struct;
+
+extern int spl_file_counter;
+
+/* All previously appeared files will be stored there. They will be indexed using their IDs. */
+extern util_file_node *spl_all_file_nodes;
+
+/* The root of linked list files */
+extern util_file_node spl_cur_file_node;
+
 extern ast_node root;
 
 extern int err_flag;
 
+/* When modifying, free its content first, and then make a copy and assign to it */
 extern char *spl_cur_filename;
 
-extern FILE* spl_cur_file;
+extern FILE *spl_cur_file;
 
 extern YY_BUFFER_STATE spl_cur_buffer;
 
 extern const char *progname;
-
 
 #endif

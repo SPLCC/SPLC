@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    if (spl_enter_file(argv[1]) != 0)
+    if (spl_enter_root(argv[1]) != 0)
     {        
         fprintf(stderr, "%s: \033[31mfatal error:\033[0m no such file: %s\ncompilation terminated.\n", progname, argv[1]);
         exit(1);
