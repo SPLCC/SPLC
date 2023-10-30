@@ -7,7 +7,6 @@ obj/
 test.spl
 test.out
 test.c
-tmp_*
 ./*.c
 ./*.h
 a.out

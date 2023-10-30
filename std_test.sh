@@ -10,7 +10,9 @@ process_directory() {
     # Iterate over each .spl file in the directory
     for file in "$input_directory"/*.spl; do
         if [ -f "$file" ]; then
+            printf '\x1b[33m'
             echo ================ "$file" =================
+            printf '\x1b[0m'
             # Get the filename without the directory path and suffix
             filename=$(basename "$file" .spl)
 
@@ -22,11 +24,21 @@ process_directory() {
             exit_code=$?
 
             if [ $exit_code -eq 0 ]; then
-                echo "Passed."
+                printf '\x1b[32m'
+                echo "==>Passed."
+                printf '\x1b[0m'
             elif [ $exit_code -eq 1 ]; then
-                echo "Difference found. Please check output files. "
+                printf '\x1b[31m'
+                echo "==>Difference found. Please check output files. "
+                printf '\x1b[0m'
                 echo
+                echo "=========> Diff Output"
+                
                 echo $output
+                echo
+                echo "=========> Program Output"
+
+                bin/splc "$file"
             else
                 echo "An error occurred"
             fi
