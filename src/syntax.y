@@ -49,13 +49,14 @@ Program: ExtDefList {
 
 /* External definition list: Recursive definition */
 ExtDefList: ExtDef ExtDefList { $$ = create_parent_node(AST_EXT_DEF_LIST, @$.first_line, 2, $1, $2); }
-    | Stmt ExtDefList{ splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "statement is not allowed at global scope"); $$ = create_parent_node(AST_EXT_DEF_LIST, @$.first_line, 2, $1, $2); yyerrok; }
+    /* | Stmt ExtDefList{ splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "statement is not allowed at global scope"); $$ = create_parent_node(AST_EXT_DEF_LIST, @$.first_line, 2, $1, $2); yyerrok; } */
     | { $$ = NULL; }
     ;
 
 /* External definition list: A single unit of one of {variables, structs, functions}. */
 ExtDef: Specifier ExtDecList SEMI { $$ = create_parent_node(AST_EXT_DEF, @$.first_line, 3, $1, $2, $3); }
-    /* | ExtDecList SEMI { splwarn(@1.first_line, @1.first_column, @1.first_line, @1.first_column, "declaration is missing a specifier and will default to int"); $$ = create_parent_node(AST_EXT_DEF, @$.first_line, 0); yyerrok; } */
+    | Specifier Specifier ExtDecList SEMI { splerror(SPLC_ERR_B, @2.first_line, @2.first_column, @2.last_line, @2.last_column, "two or more data types in declaration specifiers"); $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 0); yyerrok; }
+    | ExtDecList SEMI { splwarn(@1.first_line, @1.first_column, @1.first_line, @1.first_column, "declaration is missing a specifier and will default to int"); $$ = create_parent_node(AST_EXT_DEF, @$.first_line, 0); yyerrok; }
     | Specifier SEMI { $$ = create_parent_node(AST_EXT_DEF, @$.first_line, 2, $1, $2); } // Allowing structure definitions
     | FuncDec CompStmt { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.first_line, @1.first_column, "function is missing a specifier"); $$ = create_parent_node(AST_EXT_DEF, @$.first_line, 0); yyerrok; } 
     /* | FuncDec SEMI { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.first_line, @1.first_column, "function is missing a specifier"); $$ = create_parent_node(AST_EXT_DEF, @$.first_line, 0); yyerrok; }  */
@@ -65,7 +66,7 @@ ExtDef: Specifier ExtDecList SEMI { $$ = create_parent_node(AST_EXT_DEF, @$.firs
     | Specifier error { splerror(SPLC_ERR_B, @2.first_line, @2.first_column, @2.last_line, @2.last_column, "missing valid identifier"); $$ = create_parent_node(AST_EXT_DEF, @$.first_line, 0); yyerrok; }
     ;
 
-/* External declaration list: Recursive variable definition of a single type. */
+/* External declaration list: Multiple variable definition of a single type. */
 ExtDecList: VarDec { $$ = create_parent_node(AST_EXT_DEC_LIST, @$.first_line, 1, $1); }
     | VarDec COMMA ExtDecList { $$ = create_parent_node(AST_EXT_DEC_LIST, @$.first_line, 3, $1, $2, $3); }
     ;
@@ -81,7 +82,7 @@ StructSpecifier: STRUCT ID LC DefList RC { $$ = create_parent_node(AST_STRUCT_SP
 
 /* Single variable declaration */
 VarDec: ID { $$ = create_parent_node(AST_VAR_DEC, @$.first_line, 1, $1); }
-    | Specifier { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "two or more data types in declaration specifiers"); $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 0); yyerrok; }
+    /* | Specifier { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "two or more data types in declaration specifiers"); $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 0); yyerrok; } */
     | VarDec LSB INT RSB { $$ = create_parent_node(AST_VAR_DEC, @$.first_line, 4, $1, $2, $3, $4); }
     | VarDec LSB error { splerror(SPLC_ERR_B, @2.last_line, @2.last_column, @2.last_line, @2.last_column, "missing closing bracket ']'"); $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 0); yyerrok; } 
     /* | VarDec error { splerror(SPLC_ERR_B, @2.first_line, @2.first_column, @2.last_line, @2.last_column, "unrecognized following content"); $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 0); yyerrok; } */
@@ -90,6 +91,7 @@ VarDec: ID { $$ = create_parent_node(AST_VAR_DEC, @$.first_line, 1, $1); }
 /* Function: Function name and body. */
 FuncDec: ID LP VarList RP { $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 4, $1, $2, $3, $4); }
     | ID LP error RP { splerror(SPLC_ERR_B, @3.first_line, @3.first_column, @3.last_line, @3.last_column, "invalid parameter declaration ')'"); $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 0); yyerrok; }
+    | ID error RP { splerror(SPLC_ERR_B, @2.first_line, @2.first_column, @2.first_line, @2.first_column, "expected '(' here"); $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 0); yyerrok; }
     /* | ID LP VarList { splerror(SPLC_ERR_B, @3.last_line, @3.last_column, @3.last_line, @3.last_column, "missing closing parenthesis ')'"); $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 0); yyerrok; } */
     | ID LP VarList error { splerror(SPLC_ERR_B, @3.last_line, @3.last_column, @3.last_line, @3.last_column, "missing closing parenthesis ')'"); $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 0); yyerrok; }
     | ID LP RP { $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 3, $1, $2, $3); }
@@ -131,16 +133,16 @@ Stmt: SEMI { $$ = create_parent_node(AST_STMT, @$.first_line, 1, $1); }
     | RETURN Exp error { splerror(SPLC_ERR_B, @2.last_line, @2.last_column, @2.last_line, @2.last_column, "missing semicolon ';'"); $$ = create_parent_node(AST_STMT, @$.first_line, 2, $1, $2); yyerrok; }
 
     | IF LP Exp RP Stmt %prec THEN { $$ = create_parent_node(AST_STMT, @$.first_line, 5, $1, $2, $3, $4, $5); }
-    /* | IF Exp RP Stmt %prec THEN { splerror(SPLC_ERR_B, @2.first_line, @2.first_column, @2.first_line, @2.first_column, "expected '(' here"); $$ = create_parent_node(AST_STMT, @$.first_line, 0); yyerrok; } */
+    | IF error RP Stmt %prec THEN { splerror(SPLC_ERR_B, @2.first_line, @2.first_column, @2.first_line, @2.first_column, "expected '(' here"); $$ = create_parent_node(AST_STMT, @$.first_line, 0); yyerrok; }
     | IF LP Exp RP error { splerror(SPLC_ERR_B, @4.last_line, @4.last_column, @4.last_line, @4.last_column, "if requires at least one statement to be executed"); $$ = create_parent_node(AST_STMT, @$.first_line, 0); yyerrok; }
     | IF LP Exp RP Stmt ELSE Stmt { $$ = create_parent_node(AST_STMT, @$.first_line, 7, $1, $2, $3, $4, $5, $6, $7); }
-    /* | IF Exp RP Stmt ELSE Stmt { splerror(SPLC_ERR_B, @2.first_line, @2.first_column, @2.first_line, @2.first_column, "expected '(' here"); $$ = create_parent_node(AST_STMT, @$.first_line, 0); yyerrok; } */
+    | IF error RP Stmt ELSE Stmt { splerror(SPLC_ERR_B, @2.first_line, @2.first_column, @2.first_line, @2.first_column, "expected '(' here"); $$ = create_parent_node(AST_STMT, @$.first_line, 0); yyerrok; }
     | IF LP Exp RP Stmt ELSE error { $$ = create_parent_node(AST_STMT, @$.first_line, 7, $1, $2, $3, $4, $5, $6, $7); }
     | IF LP Exp error { splerror(SPLC_ERR_B, @3.last_line, @3.last_column, @3.last_line, @3.last_column, "missing closing parenthesis ')'"); $$ = create_parent_node(AST_STMT, @$.first_line, 0); yyerrok; }
     | ELSE Stmt { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "hanging else is not allowed."); $$ = create_parent_node(AST_STMT, @$.first_line, 2, $1, $2); yyerrok; }
 
     | WHILE LP Exp RP Stmt { $$ = create_parent_node(AST_STMT, @$.first_line, 5, $1, $2, $3, $4, $5); }
-    /* | WHILE Exp RP Stmt { splerror(SPLC_ERR_B, @2.first_line, @2.first_column, @2.first_line, @2.first_column, "expected '(' here"); $$ = create_parent_node(AST_STMT, @$.first_line, 0); yyerrok; } */
+    | WHILE error RP Stmt { splerror(SPLC_ERR_B, @2.first_line, @2.first_column, @2.first_line, @2.first_column, "expected '(' here"); $$ = create_parent_node(AST_STMT, @$.first_line, 0); yyerrok; }
     | WHILE LP Exp RP error { splerror(SPLC_ERR_B, @4.last_line, @4.last_column, @4.last_line, @4.last_column, "while loop requires at least one statement to be executed"); $$ = create_parent_node(AST_STMT, @$.first_line, 0); yyerrok; }
     /* | WHILE Exp RP Stmt { splerror(SPLC_ERR_B, @1.last_line, @1.last_column, @1.last_line, @1.last_column, "missing opening parenthesis '('"); $$ = create_parent_node(AST_STMT, @$.first_line, 0); yyerrok;  } */
     | WHILE LP Exp error { splerror(SPLC_ERR_B, @3.last_line, @3.last_column, @3.last_line, @3.last_column, "missing closing parenthesis ')'"); $$ = create_parent_node(AST_STMT, @$.first_line, 0); yyerrok;  }
