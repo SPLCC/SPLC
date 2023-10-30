@@ -39,11 +39,11 @@ void splerror_nopos(error_t type, const char *msg);
    The colbegin and colend does not have to be necessarily at the same line, since the function will
    output only one line.
  */
-void splerror(error_t type, int linebegin, int colbegin, int lineend, int colend, const char *msg);
+void splerror(error_t type, spl_loc location, const char *msg);
 
-void splwarn(int linebegin, int colbegin, int lineend, int colend, const char *msg);
+void splwarn(spl_loc location, const char *msg);
 
-void splnote(int linebegin, int colbegin, int lineend, int colend, const char *msg);
+void splnote(spl_loc location, const char *msg);
 
 /* When switching parser into parsing a new file, this function must be called to preserve the previously opened files. 
    Return 0 on success, else there is an error to be handled. */
@@ -52,7 +52,7 @@ int spl_enter_root(const char *restrict _filename);
 /* When switching parser into parsing a new file, this function must be called to preserve the previously opened files. 
    Return 0 on success, else there is an error to be handled.
    Specify where the file is included in the previous file in the global stack */
-int spl_enter_file(const char *restrict _filename, int linebegin, int colbegin, int lineend, int colend);
+int spl_enter_file(const char *restrict _filename, spl_loc location);
 
 /* When the parser finishes parsing a new file and returned, this function must be called to starting parsing on the previously opened files.
    If there is still file left, return 0. Else return nonzero. */

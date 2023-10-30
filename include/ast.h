@@ -19,6 +19,7 @@ typedef struct ast_node_struct
     int fid;    /* Which file is this? */
     int lineno; /* line number */
     int colno;  /* column number */
+    spl_loc location; /* Location of this token */
 
     union {
         void *val;

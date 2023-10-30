@@ -12,11 +12,35 @@ typedef struct spl_loc
     int lineend, colend;
 } spl_loc;
 
+const spl_loc spl_loc_zero = {.linebegin = 0, .colbegin = 0, .lineend = 0, .colend = 0};
+
 #define SPL_MAKE_SPLLOC(_linebegin, _colbegin, _lineend, _colend) \
      (spl_loc){.linebegin = _linebegin, \
      .colbegin = _colbegin, \
      .lineend = _lineend, \
      .colend = _colend } \
+
+#define SPL_UNPACK_YYLLOC(x) x.first_line, x.first_column, x.last_line, x.last_column
+/* Make a spl_loc struct with yylloc */
+#define YY2SPLLOC(x) SPL_MAKE_SPLLOC(SPL_UNPACK_YYLLOC(x))
+/* Make a spl_loc struct with single point */
+#define YY2SPLLOC_1_PNT_ALL(_lineno, _colno) SPL_MAKE_SPLLOC(_lineno, _colno, _lineno, _colno)
+
+/* Make a spl_loc struct from _loc by capturing the entire region */
+#define YY2SPLLOC_1_PNT_ALL(_loc) SPL_MAKE_SPLLOC(_loc.first_line, _loc.first_column, _loc.last_line, _loc.last_column)
+/* Make a spl_loc struct from _loc by capturing the first point */
+#define YY2SPLLOC_1_PNT_FIRST(_loc) SPL_MAKE_SPLLOC(_loc.first_line, _loc.first_column, _loc.first_line, _loc.first_column)
+/* Make a spl_loc struct from _loc by capturing the last point */
+#define YY2SPLLOC_1_PNT_LAST(_loc) SPL_MAKE_SPLLOC(_loc.last_line, _loc.last_column, _loc.last_line, _loc.last_column)
+
+/* Make a spl_loc struct from l1, l2 by capturing the interval. F - first_line/column, L - last_line/column */
+#define YY2SPLLOC_2_PNT_FL(l1, l2) SPL_MAKE_SPLLOC(l1.first_line, l1.first_column, l2.last_line, l2.last_column)
+/* Make a spl_loc struct from l1, l2 by capturing the interval. F - first_line/column, L - last_line/column */
+#define YY2SPLLOC_2_PNT_FF(l1, l2) SPL_MAKE_SPLLOC(l1.first_line, l1.first_column, l2.first_line, l2.first_column)
+/* Make a spl_loc struct from l1, l2 by capturing the interval. F - first_line/column, L - last_line/column */
+#define YY2SPLLOC_2_PNT_LF(l1, l2) SPL_MAKE_SPLLOC(l1.last_line, l1.last_column, l2.first_line, l2.first_column)
+/* Make a spl_loc struct from l1, l2 by capturing the interval. F - first_line/column, L - last_line/column */
+#define YY2SPLLOC_2_PNT_LL(l1, l2) SPL_MAKE_SPLLOC(l1.last_line, l1.last_column, l2.last_line, l2.last_column)
 
 typedef enum spl_token_type spl_token_t;
 
@@ -149,8 +173,6 @@ typedef struct util_file_node_struct
     char *filename;              /* name of the file. Must be freed when freeing this struct */
     FILE *file;                  /* file descriptor. Will be closed after splc finished reading this file */
     YY_BUFFER_STATE file_buffer; /* YY_BUFFER_STATE for flex. Will be closed after splc finished reading this file */
-    int linebegin, colbegin;
-    int lineend, colend;
     spl_loc location; /* Location */
     int yylineno;
     int yycolno;
