@@ -84,7 +84,9 @@ StructSpecifier: STRUCT ID LC DefList RC { $$ = create_parent_node(AST_STRUCT_SP
 VarDec: ID { $$ = create_parent_node(AST_VAR_DEC, @$.first_line, 1, $1); }
     /* | Specifier { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.last_line, @1.last_column, "two or more data types in declaration specifiers"); $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 0); yyerrok; } */
     | VarDec LSB INT RSB { $$ = create_parent_node(AST_VAR_DEC, @$.first_line, 4, $1, $2, $3, $4); }
-    | VarDec LSB error { splerror(SPLC_ERR_B, @2.last_line, @2.last_column, @2.last_line, @2.last_column, "missing closing bracket ']'"); $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 0); yyerrok; } 
+    | VarDec LSB INT error { splerror(SPLC_ERR_B, @2.last_line, @2.last_column, @2.last_line, @2.last_column, "missing closing bracket ']'"); $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 0); yyerrok; } 
+    | VarDec INT RSB { splerror(SPLC_ERR_B, @2.first_line, @2.first_column, @2.first_line, @2.first_column, "expected '[' here"); $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 0); yyerrok; } 
+    | VarDec RSB { splerror(SPLC_ERR_B, @2.first_line, @2.first_column, @2.first_line, @2.first_column, "expected '[' here"); $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 0); yyerrok; } 
     /* | VarDec error { splerror(SPLC_ERR_B, @2.first_line, @2.first_column, @2.last_line, @2.last_column, "unrecognized following content"); $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 0); yyerrok; } */
     ;
 
