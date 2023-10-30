@@ -1,3 +1,0 @@
-extra-test/phase1//test_1_s08.spl:11:3: [31merror:[0m hanging else is not allowed. [[31mB[0m]
-      11 |  [31melse[0m
-         |  [31m^~~~[0m

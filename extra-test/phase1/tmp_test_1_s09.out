@@ -1,3 +1,0 @@
-extra-test/phase1//test_1_s09.spl:1:5: [31merror:[0m invalid function body [[31mB[0m]
-       1 |int [31mreverse(int x)[0m {
-         |    [31m^~~~~~~~~~~~~~[0m
