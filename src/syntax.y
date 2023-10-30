@@ -55,7 +55,10 @@ ExtDefList: ExtDef ExtDefList { $$ = create_parent_node(AST_EXT_DEF_LIST, @$.fir
 
 /* External definition list: A single unit of one of {variables, structs, functions}. */
 ExtDef: Specifier ExtDecList SEMI { $$ = create_parent_node(AST_EXT_DEF, @$.first_line, 3, $1, $2, $3); }
+    /* | ExtDecList SEMI { splwarn(@1.first_line, @1.first_column, @1.first_line, @1.first_column, "declaration is missing a specifier and will default to int"); $$ = create_parent_node(AST_EXT_DEF, @$.first_line, 0); yyerrok; } */
     | Specifier SEMI { $$ = create_parent_node(AST_EXT_DEF, @$.first_line, 2, $1, $2); } // Allowing structure definitions
+    | FuncDec CompStmt { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.first_line, @1.first_column, "function is missing a specifier"); $$ = create_parent_node(AST_EXT_DEF, @$.first_line, 0); yyerrok; } 
+    /* | FuncDec SEMI { splerror(SPLC_ERR_B, @1.first_line, @1.first_column, @1.first_line, @1.first_column, "function is missing a specifier"); $$ = create_parent_node(AST_EXT_DEF, @$.first_line, 0); yyerrok; }  */
     | Specifier FuncDec CompStmt { $$ = create_parent_node(AST_EXT_DEF, @$.first_line, 3, $1, $2, $3); }
     | Specifier FuncDec SEMI { $$ = create_parent_node(AST_EXT_DEF, @$.first_line, 3, $1, $2, $3); }
     | Specifier FuncDec error { splerror(SPLC_ERR_B, @2.first_line, @2.first_column, @2.last_line, @2.last_column, "invalid function body"); $$ = create_parent_node(AST_EXT_DEF, @$.first_line, 0); yyerrok; }
