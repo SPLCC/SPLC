@@ -253,20 +253,20 @@ static void spl_handle_msg(error_t type, const char *restrict orig_file, int lin
     return;
 }
 
-void _builtin_splerror(error_t type, const char *restrict orig_file, int linebegin, int colbegin, int lineend,
+static void _builtin_splerror(error_t type, const char *restrict orig_file, int linebegin, int colbegin, int lineend,
                        int colend, const char *msg)
 {
     set_error_flag(1);
     spl_handle_msg(type, orig_file, linebegin, colbegin, lineend, colend, msg);
 }
 
-void _builtin_splwarn(const char *restrict orig_file, int linebegin, int colbegin, int lineend, int colend,
+static void _builtin_splwarn(const char *restrict orig_file, int linebegin, int colbegin, int lineend, int colend,
                       const char *msg)
 {
     spl_handle_msg(SPLC_WARN, orig_file, linebegin, colbegin, lineend, colend, msg);
 }
 
-void _builtin_splnote(const char *restrict orig_file, int linebegin, int colbegin, int lineend, int colend,
+static void _builtin_splnote(const char *restrict orig_file, int linebegin, int colbegin, int lineend, int colend,
                       const char *msg)
 {
     spl_handle_msg(SPLC_NOTE, orig_file, linebegin, colbegin, lineend, colend, msg);
@@ -318,7 +318,7 @@ void splnote(int linebegin, int colbegin, int lineend, int colend, const char *m
     _builtin_splnote(spl_cur_filename, linebegin, colbegin, lineend, colend, msg);
 }
 
-int _builtin_spl_enter_file(const char *restrict _filename, int linebegin, int colbegin, int lineend, int colend)
+static int _builtin_spl_enter_file(const char *restrict _filename, int linebegin, int colbegin, int lineend, int colend)
 {
     FILE *new_file = NULL;
     if ((new_file = fopen(_filename, "r")) == NULL)
