@@ -10,7 +10,7 @@ int spl_file_counter = 0;
 
 util_file_node *spl_all_file_nodes = NULL;
 
-util_file_node spl_cur_file_node = NULL;
+util_file_node spl_file_stack = NULL;
 
 /* Return an array of lines fetched. No newline character will be present. */
 static char *fetchline(FILE *file, int linebegin)
@@ -118,7 +118,7 @@ void spltrace(trace_t type, int show_source, const char *name)
         type_str = "unknown structure";
         break;
     }
-    fprintf(stderr, "%s%sIn %s `%s`:\n", show_source != 0 ? spl_cur_filename : "", show_source != 0 ? ": " : "",
+    fprintf(stderr, "%s%sIn %s `%s`:\n", show_source != 0 ? spl_file_stack->filename : "", show_source != 0 ? ": " : "",
             type_str, name);
     return;
 }
@@ -195,7 +195,7 @@ static void spl_handle_msg_nopos(error_t type, const char *msg)
     const char *color_code = get_spl_error_color_code(type);
     char *type_name = spl_get_msg_type_name(type);
     char *type_suffix = spl_get_msg_type_suffix(type);
-    fprintf(stderr, "%s: %s%s:\033[0m %s", spl_cur_filename, color_code, type_name, msg);
+    fprintf(stderr, "%s: %s%s:\033[0m %s", spl_file_stack->filename, color_code, type_name, msg);
     if (type_suffix != NULL)
     {
         fprintf(stderr, " [%s%s\033[0m]", color_code, type_suffix);
@@ -280,8 +280,8 @@ static void _builtin_print_trace(util_file_node node)
     {
         _builtin_print_trace(node->next);
         spltrace(SPLTR_FILE_INCL, 0, node->filename);
-        _builtin_splnote(node->next->filename, node->next->linebegin, node->next->colbegin, node->next->lineend,
-                         node->next->colend, "file included here");
+        _builtin_splnote(node->next->filename, node->linebegin, node->colbegin, node->lineend,
+                         node->colend, "file included here");
         // printf("Current node %s, last_node: %p, %s\n", node->filename, node->next, (node->next != NULL) ?
         // node->next->filename : "");
     }
@@ -289,33 +289,25 @@ static void _builtin_print_trace(util_file_node node)
 
 static void print_trace()
 {
-    _builtin_print_trace(spl_cur_file_node);
-    if (spl_cur_file_node != NULL)
-    {
-        util_file_node node = spl_cur_file_node;
-        /* Going into this branch means that the file has been included from somewhere else. */
-        spltrace(SPLTR_FILE_INCL, 0, spl_cur_filename);
-        _builtin_splnote(node->filename, node->linebegin, node->colbegin, node->lineend, node->colend,
-                         "file included here");
-    }
+    _builtin_print_trace(spl_file_stack);
 }
 
 void splerror(error_t type, int linebegin, int colbegin, int lineend, int colend, const char *msg)
 {
     print_trace();
-    _builtin_splerror(type, spl_cur_filename, linebegin, colbegin, lineend, colend, msg);
+    _builtin_splerror(type, spl_file_stack->filename, linebegin, colbegin, lineend, colend, msg);
 }
 
 void splwarn(int linebegin, int colbegin, int lineend, int colend, const char *msg)
 {
     print_trace();
-    _builtin_splwarn(spl_cur_filename, linebegin, colbegin, lineend, colend, msg);
+    _builtin_splwarn(spl_file_stack->filename, linebegin, colbegin, lineend, colend, msg);
 }
 
 void splnote(int linebegin, int colbegin, int lineend, int colend, const char *msg)
 {
     print_trace();
-    _builtin_splnote(spl_cur_filename, linebegin, colbegin, lineend, colend, msg);
+    _builtin_splnote(spl_file_stack->filename, linebegin, colbegin, lineend, colend, msg);
 }
 
 static int _builtin_spl_enter_file(const char *restrict _filename, int linebegin, int colbegin, int lineend, int colend)
@@ -326,34 +318,29 @@ static int _builtin_spl_enter_file(const char *restrict _filename, int linebegin
         return -1;
     }
 
-    if (spl_cur_buffer != NULL)
+    util_file_node node = (util_file_node)malloc(sizeof(util_file_node_struct));
+    node->fid = spl_file_counter++;
+    node->filename = strdup(_filename);
+    node->file = new_file;
+    node->file_buffer = yy_create_buffer(new_file, YY_BUF_SIZE);
+    node->linebegin = linebegin;
+    node->colbegin = colbegin;
+    node->lineend = lineend;
+    node->colend = colend;
+    node->yylineno = yylineno;
+    node->yycolno = yycolno;
+    node->next = spl_file_stack;
+    spl_file_stack = node;
+    
+    spl_all_file_nodes = (util_file_node *)realloc(spl_all_file_nodes, spl_file_counter * sizeof(util_file_node));
+    if (spl_all_file_nodes == NULL)
     {
-        util_file_node node = (util_file_node)malloc(sizeof(util_file_node_struct));
-        node->fid = spl_file_counter++;
-        node->filename = strdup(spl_cur_filename);
-        node->file = spl_cur_file;
-        node->file_buffer = spl_cur_buffer;
-        node->linebegin = linebegin;
-        node->colbegin = colbegin;
-        node->lineend = lineend;
-        node->colend = colend;
-        node->yylineno = yylineno;
-        node->yycolno = yycolno;
-        node->next = spl_cur_file_node;
-        spl_cur_file_node = node;
-        
-        spl_all_file_nodes = (util_file_node *)realloc(spl_all_file_nodes, spl_file_counter * sizeof(util_file_node));
-        if (spl_all_file_nodes == NULL)
-        {
-            splerror_nopos(SPLC_ERR_CRIT, "out of memory when opening file");
-            exit(1);
-        }
-        spl_all_file_nodes[spl_file_counter - 1] = node;
+        splerror_nopos(SPLC_ERR_CRIT, "out of memory when opening file");
+        exit(1);
     }
-    spl_cur_filename = strdup(_filename);
-    spl_cur_file = new_file;
-    spl_cur_buffer = yy_create_buffer(new_file, YY_BUF_SIZE);
-    yy_switch_to_buffer(spl_cur_buffer);
+    spl_all_file_nodes[spl_file_counter - 1] = node;
+
+    yy_switch_to_buffer(node->file_buffer);
     yynewfile = 1;
     yylineno = 1;
     yycolno = 1;
@@ -373,30 +360,25 @@ int spl_enter_file(const char *restrict _filename, int linebegin, int colbegin, 
 
 int spl_exit_file()
 {
-    if (spl_cur_file_node == NULL)
+    if (spl_file_stack == NULL)
     {
-        return -1;
+        splerror_nopos(SPLC_ERR_CRIT, "incorrect file recursion");
+        exit(1);
     }
 
-    util_file_node tmp = spl_cur_file_node;
+    util_file_node tmp = spl_file_stack;
 
-    free(spl_cur_filename);
-    spl_cur_filename = strdup(tmp->filename);
+    yy_delete_buffer(tmp->file_buffer);
+    fclose(tmp->file);
 
-    fclose(spl_cur_file);
-    spl_cur_file = tmp->file;
-
-    yy_switch_to_buffer(tmp->file_buffer);
-    yy_delete_buffer(spl_cur_buffer);
-    spl_cur_buffer = tmp->file_buffer;
-
+    spl_file_stack = tmp->next;
+    tmp->next = NULL;
+    yy_switch_to_buffer(spl_file_stack->file_buffer);
     yynewfile = 0;
     yylineno = tmp->yylineno;
     yycolno = tmp->yycolno;
-    tmp->next = NULL;
-    spl_cur_file_node = tmp->next;
 
-    return 0;
+    return spl_file_stack == NULL;
 }
 
 void set_error_flag(int val)

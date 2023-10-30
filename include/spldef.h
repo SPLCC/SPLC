@@ -5,6 +5,19 @@
 #include <stddef.h>
 #include <stdio.h>
 
+/* SPL location struct for tracking purposes */
+typedef struct spl_loc
+{
+    int linebegin, colbegin;
+    int lineend, colend;
+} spl_loc;
+
+#define SPL_MAKE_SPLLOC(_linebegin, _colbegin, _lineend, _colend) \
+     (spl_loc){.linebegin = _linebegin, \
+     .colbegin = _colbegin, \
+     .lineend = _lineend, \
+     .colend = _colend } \
+
 typedef enum spl_token_type spl_token_t;
 
 enum spl_token_type
@@ -138,29 +151,24 @@ typedef struct util_file_node_struct
     YY_BUFFER_STATE file_buffer; /* YY_BUFFER_STATE for flex. Will be closed after splc finished reading this file */
     int linebegin, colbegin;
     int lineend, colend;
+    spl_loc location; /* Location */
     int yylineno;
     int yycolno;
     struct util_file_node_struct *next;
 } util_file_node_struct;
 
-extern int spl_file_counter;
+
+extern int spl_file_counter; /* How many files have splc encountered */
 
 /* All previously appeared files will be stored there. They will be indexed using their IDs. */
 extern util_file_node *spl_all_file_nodes;
 
-/* The root of linked list files */
-extern util_file_node spl_cur_file_node;
+/* The root of linked list files. The root marks the previous file. */
+extern util_file_node spl_file_stack;
 
 extern ast_node root;
 
 extern int err_flag;
-
-/* When modifying, free its content first, and then make a copy and assign to it */
-extern char *spl_cur_filename;
-
-extern FILE *spl_cur_file;
-
-extern YY_BUFFER_STATE spl_cur_buffer;
 
 extern const char *progname;
 

@@ -16,6 +16,7 @@ typedef struct ast_node_struct
     ast_node *children; /* Array of children */
     size_t num_child;   /* Number of children */
 
+    int fid;    /* Which file is this? */
     int lineno; /* line number */
     int colno;  /* column number */
 

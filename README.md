@@ -10,7 +10,7 @@
     - Recursive macro expansion and substitution
     - Mark the source of function precisely
   - `util_file_node`
-    - Support file node ID
+    - *(Done) Support file node ID*
     - Reference file node from AST through ID
     - Rewrite auto-recycling:
       - Keep track of file ID and filename
