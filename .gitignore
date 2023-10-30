@@ -11,3 +11,5 @@ test.c
 ./*.h
 a.out
 basic_test.sh
+syntax.tab.h
+syntax.tab.c
