@@ -36,7 +36,15 @@ static char *fetchline(FILE *file, int linebegin)
     /* Handling newline and EOF */
     size_t linelen = strlen(lineptr);
     if (linelen > 0 && lineptr[linelen - 1] == '\n')
+    {
         lineptr[linelen - 1] = '\0';
+        linelen--;
+    }
+    if (linelen > 0 && lineptr[linelen - 1] == '\r')
+    {
+        lineptr[linelen - 1] = '\0';
+        linelen--;
+    }
     return lineptr;
 }
 
@@ -67,35 +75,35 @@ static const char *get_spl_error_color_code(error_t type)
 static void print_colored_line(error_t type, const char *line, int linebegin, int colbegin, int colend)
 {
     const char *color_code = get_spl_error_color_code(type);
-    printf("%8d |", linebegin);
+    fprintf(stderr, "%8d |", linebegin);
 
     for (int i = 0; i < colbegin - 1; ++i)
-        printf("%c", line[i]);
+        fprintf(stderr, "%c", line[i]);
 
-    printf("%s", color_code);
+    fprintf(stderr, "%s", color_code);
     for (int i = colbegin - 1; i < colend; ++i)
-        printf("%c", line[i]);
-    printf("\033[0m");
+        fprintf(stderr, "%c", line[i]);
+    fprintf(stderr, "\033[0m");
 
     for (int i = colend; line[i] != '\0'; ++i)
-        printf("%c", line[i]);
-    printf("\n");
+        fprintf(stderr, "%c", line[i]);
+    fprintf(stderr, "\n");
 }
 
 static void print_indicator(error_t type, int colbegin, int colend)
 {
-    // printf("Accepted parameters: %d %d\n", colbegin, colend);
+    // fprintf(stderr, "Accepted parameters: %d %d\n", colbegin, colend);
     const char *color_code = get_spl_error_color_code(type);
 
-    printf("         |");
+    fprintf(stderr, "         |");
 
     for (int i = 1; i < colbegin; ++i)
-        printf(" ");
+        fprintf(stderr, " ");
 
-    printf("%s^", color_code);
+    fprintf(stderr, "%s^", color_code);
     for (int i = colbegin + 1; i <= colend; ++i)
-        printf("~");
-    printf("\033[0m\n");
+        fprintf(stderr, "~");
+    fprintf(stderr, "\033[0m\n");
 
     return;
 }
@@ -222,8 +230,7 @@ static void spl_handle_msg(error_t type, const char *restrict orig_file, int lin
     const char *color_code = get_spl_error_color_code(type);
     char *type_name = spl_get_msg_type_name(type);
     char *type_suffix = spl_get_msg_type_suffix(type);
-    fprintf(stderr, "%s:%d:%d: %s%s:\033[0m %s", orig_file, linebegin, colbegin, color_code, type_name,
-            msg);
+    fprintf(stderr, "%s:%d:%d: %s%s:\033[0m %s", orig_file, linebegin, colbegin, color_code, type_name, msg);
     if (type_suffix != NULL)
     {
         fprintf(stderr, " [%s%s\033[0m]", color_code, type_suffix);
@@ -345,8 +352,6 @@ int spl_enter_file(const char *restrict _filename)
     spl_cur_buffer = yy_create_buffer(new_file, YY_BUF_SIZE);
     yy_switch_to_buffer(spl_cur_buffer);
     yynewfile = 1;
-    yylineno = 1;
-    yycolno = 1;
 
     return 0;
 }

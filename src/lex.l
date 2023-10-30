@@ -18,8 +18,8 @@
     int yycolno = 1;
 
     #define YY_USER_ACTION \
-        yylloc.first_line = (yynewfile == 1) ? yylineno : yylloc.last_line; \
-        yylloc.first_column = (yynewfile == 1) ? yycolno : yylloc.last_column; \
+        yylloc.first_line = (yynewfile == 1) ? 1 : yylloc.last_line; \
+        yylloc.first_column = (yynewfile == 1) ? 1 : yylloc.last_column; \
         if (yynewfile) yynewfile = 0; \
         yylloc.last_line = yylloc.first_line; \
         yylloc.last_column = yylloc.first_column; \
@@ -27,9 +27,11 @@
             if (yytext[i] == '\n') { \
                 yylloc.last_line++; \
                 yylloc.last_column = 1; \
+                yycolno = 1; \
             } \
             else { \
                 yylloc.last_column++; \
+                yycolno++; \
             } \
         } \
         // yylloc.last_line = yylineno;
@@ -68,7 +70,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     BEGIN(INITIAL);
 }
 
-<IN_CL_COMMENT>[^*]+ {
+<IN_CL_COMMENT>[^\*]+ {
     // eat comment in chunks
 }
 
