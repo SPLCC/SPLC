@@ -55,7 +55,7 @@ const char *get_spl_token_string(spl_token_t type) {
         return "Stmt";
 
     case AST_FOR_LOOP_BODY:
-        return "FOR_LOOP_BODY";
+        return "For Loop Body";
     
     /* Nonterminals: local definition */
     case AST_DEF_LIST:
@@ -182,10 +182,16 @@ const char *get_spl_token_string(spl_token_t type) {
         return "CHAR";
 
     case AST_STREXP:
-        return "StrExp";
+        return "Compound String Expr";
 
     case AST_STR:
-        return "STRING";
+        return "String";
+
+    case AST_MACRO_MNTPT:
+        return "AST Macro Mountpoint";
+    
+    case AST_MACRO_ID:
+        return "AST Macro ID";
     
     default:
         return "UNRECOGNIZED";

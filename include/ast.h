@@ -12,7 +12,7 @@ typedef struct ast_node_struct *ast_node;
 typedef struct ast_node_struct
 {
     spl_token_t type;   /* Type of this node */
-    lut_entry entry;    /* The entry of this ID, if possible. Else NULL. */
+    lut_entry entry;    /* The entry of this ID, if possible. Else NULL. AST has no control of this entry, and thus cannot free it. */
     ast_node *children; /* Array of children */
     size_t num_child;   /* Number of children */
 
@@ -48,8 +48,8 @@ ast_node duplicate_node(ast_node node);
 /* Duplicate the entire tree */
 ast_node duplicate_tree(ast_node root);
 
-/* Based on the given root, return the root a recursively built tree by expanding all macros. */
-ast_node invoke_macro_subtitution(ast_node root);
+/* Substitute all macro mount points inside the given tree */
+void invoke_macro_subtitution(ast_node root);
 
 /* Print the Syntax Tree */
 void print_ast(ast_node root);
