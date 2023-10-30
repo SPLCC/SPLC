@@ -1,0 +1,12 @@
+extra-test/phase1//test_1_s01.spl:4:7: [31merror:[0m identifier name cannot start with digits [[31mA[0m]
+extra-test/phase1//test_1_s01.spl:4:14: [31merror:[0m expected expression after '+' [[31mB[0m]
+extra-test/phase1//test_1_s01.spl:4:21: [31merror:[0m invalid initialization [[31mB[0m]
+extra-test/phase1//test_1_s01.spl:4:29: [31merror:[0m invalid initialization [[31mB[0m]
+       4 |  int [31m3b[0m = 3 + , C= a*, d = 5/;
+         |      [31m^~[0m
+       4 |  int 3b = 3 [31m+[0m , C= a*, d = 5/;
+         |             [31m^[0m
+       4 |  int 3b = 3 + , C= [31ma*,[0m d = 5/;
+         |                    [31m^~~[0m
+       4 |  int 3b = 3 + , C= a*, d = [31m5/;[0m
+         |                            [31m^~~[0m

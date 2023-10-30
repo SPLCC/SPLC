@@ -1,0 +1,12 @@
+extra-test/phase1//test_1_s07.spl:5:9: [31merror:[0m missing closing bracket ']' [[31mB[0m]
+extra-test/phase1//test_1_s07.spl:6:7: [31merror:[0m missing semicolon ';' [[31mB[0m]
+extra-test/phase1//test_1_s07.spl:7:4: [31merror:[0m missing semicolon ';' [[31mB[0m]
+extra-test/phase1//test_1_s07.spl:8:3: [31merror:[0m expected expression before '=' [[31mB[0m]
+       5 |  int x[[31m5[0m, y[10];
+         |        [31m^[0m
+       6 |  x[m][31m [0m= ;
+         |      [31m^[0m
+       7 |  y[31m[[0mn = 8;
+         |   [31m^[0m
+       8 |  [31m=[0m2;
+         |  [31m^[0m
