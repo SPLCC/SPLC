@@ -2,54 +2,54 @@
 #include "lex.yy.h"
 #include "lut.h"
 #include "spldef.h"
+#include "splopt.h"
 #include "syntax.tab.h"
 #include "utils.h"
-#include "splopt.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-ast_node root;
+ast_node root = NULL;
 
 const char *progname = "splc";
 
-// static void splperror(const char *msg)
-// {
-//     fprintf(stderr, "splc: \033[31mfatal error:\033[0m %s\n", msg);
-//     exit(1);
-// }
-
-const char *files = "";
-
-static void test()
-{
-}
-
 int main(int argc, char *argv[])
 {
-    //====================
-    int test;
-    while ((test = spl_parse_opt(argc, argv, "I:")) != -1)
-    {
-        if (test == 0)
-            printf("found arg: %s\n", spl_optarg);
-        else if (test == 1)
-            printf("found arg: %c, %s\n", spl_optopt, spl_optarg);
-    }
-    // return 0;
-    //====================
+    spl_process_args(argc, argv);
 
-    if (spl_enter_root(argv[1]) != 0)
+    //===========
+    for (int i = 0; i < spl_src_file_cnt; ++i)
     {
-        fprintf(stderr, "%s: \033[31mfatal error:\033[0m no such file: %s\ncompilation terminated.\n", progname,
-                argv[1]);
+        printf("Diagnostics: source file: %s\n", spl_src_files[i]);
+    }
+    for (int i = 0; i < spl_include_dir_cnt; ++i)
+    {
+        printf("Diagnostics: include directories: %s\n", spl_include_dirs[i]);
+    }
+    //===========
+
+    if (spl_src_file_cnt == 0)
+    {
+        fprintf(stderr, "%s: \033[31mfatal error:\033[0m no input file\ncompilation terminated.\n", progname);
         exit(1);
     }
-    return 0;
 
-    /* Start parsing */
-    yyparse();
+    for (int i = 0; i < spl_src_file_cnt; ++i)
+    {
+        if (spl_enter_root(spl_src_files[i]) != 0)
+        {
+            fprintf(stderr, "%s: \033[31mfatal error:\033[0m no such file: %s\ncompilation terminated.\n", progname,
+                    spl_src_files[i]);
+            exit(1);
+        }
+
+        /* Start parsing */
+        yyparse();
+
+        if (!err_flag)
+            print_ast(root);
+    }
 
     if (err_flag)
         return 1;

@@ -6,15 +6,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-int spl_include_dir_counter = 0;
-
-const char **spl_include_directories = NULL;
-
-int spl_file_counter = 0;
+int spl_file_node_cnt = 0;
 
 util_file_node *spl_all_file_nodes = NULL;
 
-util_file_node spl_file_stack = NULL;
+util_file_node spl_file_node_stack = NULL;
 
 /* Return an array of lines fetched. No newline character will be present. */
 static char *fetchline(FILE *file, int linebegin)
@@ -50,11 +46,11 @@ static const char *get_spl_error_color_code(error_t type)
     case SPLC_ERR_UNIV:
     case SPLC_ERR_A:
     case SPLC_ERR_B:
-    case SPLMACRO_ERROR:
+    case SPLC_MACRO_ERROR:
         color_code = "\033[31m";
         break;
     case SPLC_WARN:
-    case SPLMACRO_WARN:
+    case SPLC_MACRO_WARN:
         color_code = "\033[35m";
         break;
     case SPLC_NOTE:
@@ -122,7 +118,7 @@ void spltrace(trace_t type, int show_source, const char *name)
         type_str = "unknown structure";
         break;
     }
-    fprintf(stderr, "%s%sIn %s `%s`:\n", show_source != 0 ? spl_file_stack->filename : "", show_source != 0 ? ": " : "",
+    fprintf(stderr, "%s%sIn %s `%s`:\n", show_source != 0 ? spl_file_node_stack->filename : "", show_source != 0 ? ": " : "",
             type_str, name);
     return;
 }
@@ -146,10 +142,10 @@ static char *spl_get_msg_type_prefix(error_t type)
     case SPLC_NOTE:
         type_name = "note";
         break;
-    case SPLMACRO_ERROR:
+    case SPLC_MACRO_ERROR:
         type_name = "error";
         break;
-    case SPLMACRO_WARN:
+    case SPLC_MACRO_WARN:
         type_name = "warning";
         break;
     default:
@@ -181,10 +177,10 @@ static char *spl_get_msg_type_suffix(error_t type)
     case SPLC_NOTE:
         type_suffix = NULL;
         break;
-    case SPLMACRO_ERROR:
+    case SPLC_MACRO_ERROR:
         type_suffix = "Wmacro-error";
         break;
-    case SPLMACRO_WARN:
+    case SPLC_MACRO_WARN:
         type_suffix = "Wmacro-warning";
         break;
     default:
@@ -199,7 +195,7 @@ static void _builtin_spl_handle_msg_noloc(error_t type, const char *msg)
     const char *color_code = get_spl_error_color_code(type);
     char *type_name = spl_get_msg_type_prefix(type);
     char *type_suffix = spl_get_msg_type_suffix(type);
-    char *filename = (spl_file_stack != NULL) ? spl_file_stack->filename : "(root)";
+    char *filename = (spl_file_node_stack != NULL) ? spl_file_node_stack->filename : "(root)";
     fprintf(stderr, "%s: %s%s:\033[0m %s", filename, color_code, type_name, msg);
     if (type_suffix != NULL)
     {
@@ -255,7 +251,7 @@ static void _builtin_spl_handle_msg(error_t type, const spl_loc *const location,
 
 static void spl_handle_msg(error_t type, const spl_loc *const location, const char *msg)
 {
-    if (location != NULL)
+    if (location != NULL && !SPL_IS_SPLLOC_ROOT(*location))
         _builtin_spl_handle_msg(type, location, msg);
     else
         _builtin_spl_handle_msg_noloc(type, msg);
@@ -288,7 +284,7 @@ static void _builtin_print_trace(util_file_node node)
 {
     if (node == NULL)
         return;
-    if (node->next != NULL)
+    if (!SPL_IS_SPLLOC_ROOT(node->location))
     {
         _builtin_print_trace(node->next);
         spltrace(SPLTR_FILE_INCL, 0, node->filename);
@@ -300,7 +296,7 @@ static void _builtin_print_trace(util_file_node node)
 
 static void print_trace()
 {
-    _builtin_print_trace(spl_file_stack);
+    _builtin_print_trace(spl_file_node_stack);
 }
 
 void splerror(error_t type, const spl_loc location, const char *msg)
@@ -329,35 +325,35 @@ static int _builtin_spl_enter_file(const char *restrict _filename, const spl_loc
         if (location != NULL)
         {
             splerror(SPLC_ERR_CRIT, *location,
-                     "failed to read file. Please check whether the path exists or this program has access right.");
+                     "failed to include file. Please check whether the path exists or this program has access right.");
         }
         else
         {
             splerror_noloc(
                 SPLC_ERR_CRIT,
-                "failed to read file. Please check whether the path exists or this program has access right.");
+                "failed to include file. Please check whether the path exists or this program has access right.");
         }
         return -1;
     }
 
     util_file_node node = (util_file_node)malloc(sizeof(util_file_node_struct));
-    node->fid = spl_file_counter++;
+    node->fid = spl_file_node_cnt++;
     node->filename = strdup(_filename);
     node->file = new_file;
     node->file_buffer = yy_create_buffer(new_file, YY_BUF_SIZE);
-    node->location = *location;
+    node->location = (location != NULL) ? *location : spl_loc_root;
     node->yylineno = yylineno;
     node->yycolno = yycolno;
-    node->next = spl_file_stack;
-    spl_file_stack = node;
+    node->next = spl_file_node_stack;
+    spl_file_node_stack = node;
 
-    spl_all_file_nodes = (util_file_node *)realloc(spl_all_file_nodes, spl_file_counter * sizeof(util_file_node));
+    spl_all_file_nodes = (util_file_node *)realloc(spl_all_file_nodes, spl_file_node_cnt * sizeof(util_file_node));
     if (spl_all_file_nodes == NULL)
     {
         splerror_noloc(SPLC_ERR_CRIT, "out of memory when opening file");
         exit(1);
     }
-    spl_all_file_nodes[spl_file_counter - 1] = node;
+    spl_all_file_nodes[spl_file_node_cnt - 1] = node;
 
     yy_switch_to_buffer(node->file_buffer);
     yynewfile = 1;
@@ -379,26 +375,26 @@ int spl_enter_file(const char *restrict _filename, const spl_loc location)
 
 int _builtin_spl_exit_file()
 {
-    if (spl_file_stack == NULL)
+    if (spl_file_node_stack == NULL)
     {
         return 1;
     }
 
-    util_file_node tmp = spl_file_stack;
+    util_file_node tmp = spl_file_node_stack;
 
     yy_delete_buffer(tmp->file_buffer);
     fclose(tmp->file);
 
-    spl_file_stack = tmp->next;
-    if (spl_file_stack != NULL)
+    spl_file_node_stack = tmp->next;
+    if (spl_file_node_stack != NULL)
     {
-        yy_switch_to_buffer(spl_file_stack->file_buffer);
+        yy_switch_to_buffer(spl_file_node_stack->file_buffer);
         yynewfile = 0;
         yylineno = tmp->yylineno;
         yycolno = tmp->yycolno;
     }
 
-    return spl_file_stack == NULL;
+    return spl_file_node_stack == NULL;
 }
 
 int spl_exit_file()

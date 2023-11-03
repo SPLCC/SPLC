@@ -2,12 +2,6 @@
 
 int err_flag = 0;
 
-char* spl_cur_filename = NULL;
-
-FILE* spl_cur_file = NULL;
-
-YY_BUFFER_STATE spl_cur_buffer = NULL;
-
 const char *get_spl_token_string(spl_token_t type) {
     switch (type)
     {

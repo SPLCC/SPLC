@@ -10,8 +10,8 @@ enum error_type
 {
     SPLC_WARN,
     SPLC_NOTE,
-    SPLMACRO_ERROR,
-    SPLMACRO_WARN,
+    SPLC_MACRO_ERROR,
+    SPLC_MACRO_WARN,
 
     SPLC_ERR_CRIT = 0x1000,
     SPLC_ERR_UNIV, /* splc: universal error */

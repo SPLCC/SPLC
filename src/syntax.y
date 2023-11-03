@@ -42,8 +42,6 @@
 /* Entire program */
 Program: ExtDefList {
         root = $$ = create_parent_node(AST_PROGRAM, @$.first_line, 1, $1);
-        if (!err_flag)
-            print_ast($$);
       }
     ;
 

@@ -13,6 +13,8 @@ typedef struct spl_loc
     int lineend, colend;     /* ending line, ending column */
 } spl_loc;
 
+static const spl_loc spl_loc_root = {.fid = -1, .linebegin = 0, .colbegin = 0, .lineend = 0, .colend = 0};
+
 typedef enum spl_token_type spl_token_t;
 
 enum spl_token_type
@@ -150,21 +152,26 @@ typedef struct util_file_node_struct
     struct util_file_node_struct *next;
 } util_file_node_struct;
 
-extern int spl_include_dir_counter; /* Number of include directories. */
+extern int spl_include_dir_cnt; /* Number of include directories. */
 
 /* List of include directories. Each entry ends with the directory
    separator, so that they can be directly concatenated. This array must
    end with `NULL`. */
-extern const char **spl_include_directories;
+extern const char **spl_include_dirs;
 
-extern int spl_file_counter; /* How many files have splc encountered */
+extern int spl_src_file_cnt; /* Number of source files. */
+
+extern const char **spl_src_files; /* Source files */
+
+extern int spl_file_node_cnt; /* How many files have splc encountered */
 
 /* All previously appeared files will be stored there. They will be indexed using their IDs. */
 extern util_file_node *spl_all_file_nodes;
 
 /* The root of linked list files. The root marks the previous file. */
-extern util_file_node spl_file_stack;
+extern util_file_node spl_file_node_stack;
 
+/* The root of AST parsed from call to `yyparse()` */
 extern ast_node root;
 
 extern int err_flag;
@@ -172,6 +179,7 @@ extern int err_flag;
 extern const char *progname;
 
 /* Macros */
+
 /* Make a spl_loc struct with specific fid, lines and columns */
 #define SPL_MAKE_SPLLOC(_fid, _linebegin, _colbegin, _lineend, _colend)                                                \
     (spl_loc)                                                                                                          \
@@ -183,9 +191,11 @@ extern const char *progname;
 #define SPL_MAKE_SPLLOC_CF(_linebegin, _colbegin, _lineend, _colend)                                                   \
     (spl_loc)                                                                                                          \
     {                                                                                                                  \
-        .fid = spl_file_stack->fid, .linebegin = (_linebegin), .colbegin = (_colbegin), .lineend = (_lineend),         \
+        .fid = spl_file_node_stack->fid, .linebegin = (_linebegin), .colbegin = (_colbegin), .lineend = (_lineend),    \
         .colend = (_colend)                                                                                            \
     }
+
+#define SPL_IS_SPLLOC_ROOT(_loc) ((_loc).fid == -1)
 
 #define SPL_UNPACK_YYLLOC(x) x.first_line, x.first_column, x.last_line, x.last_column
 /* Make a spl_loc struct directly from current file and yylloc */
