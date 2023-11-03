@@ -367,7 +367,7 @@ static int _builtin_splc_enter_file(const char *restrict _filename, const splc_l
         }
         return -1;
     }
-    SPLC_FDIAG("the include file has been identified: %s", filename);
+    SPLC_FDIAG("the included file has been identified: %s", filename);
 
     util_file_node node = (util_file_node)malloc(sizeof(util_file_node_struct));
     node->fid = splc_file_node_cnt++;
