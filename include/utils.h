@@ -8,15 +8,18 @@ typedef enum error_type error_t;
 
 enum error_type
 {
-    SPLC_ERR_CRIT,
-    SPLC_ERR_UNIV, /* splc: universal error */
-    SPLC_ERR_A,
-    SPLC_ERR_B,
     SPLC_WARN,
     SPLC_NOTE,
     SPLMACRO_ERROR,
     SPLMACRO_WARN,
+
+    SPLC_ERR_CRIT = 0x10000000,
+    SPLC_ERR_UNIV, /* splc: universal error */
+    SPLC_ERR_A,
+    SPLC_ERR_B,
 };
+
+#define SPLC_ERR_MASK 0x10000000
 
 typedef enum trace_type trace_t;
 
@@ -55,7 +58,8 @@ int spl_enter_root(const char *restrict _filename);
 int spl_enter_file(const char *restrict _filename, spl_loc location);
 
 /* When the parser finishes parsing a new file and returned, this function must be called to starting parsing on the previously opened files.
-   If there is still file left, return 0. Else return nonzero. */
+   If there is still file left, return 0. Else return nonzero.
+   The file node will be kept, with the information of entry preserved. */
 int spl_exit_file();
 
 void set_error_flag(int val);

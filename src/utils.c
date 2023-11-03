@@ -123,7 +123,7 @@ void spltrace(trace_t type, int show_source, const char *name)
     return;
 }
 
-static char *spl_get_msg_type_name(error_t type)
+static char *spl_get_msg_type_prefix(error_t type)
 {
     const char *type_name = "undefined message";
     switch (type)
@@ -193,7 +193,7 @@ static char *spl_get_msg_type_suffix(error_t type)
 static void spl_handle_msg_nopos(error_t type, const char *msg)
 {
     const char *color_code = get_spl_error_color_code(type);
-    char *type_name = spl_get_msg_type_name(type);
+    char *type_name = spl_get_msg_type_prefix(type);
     char *type_suffix = spl_get_msg_type_suffix(type);
     fprintf(stderr, "%s: %s%s:\033[0m %s", spl_file_stack->filename, color_code, type_name, msg);
     if (type_suffix != NULL)
@@ -213,13 +213,14 @@ void splerror_nopos(error_t type, const char *msg)
     spl_handle_msg_nopos(type, msg);
 }
 
-static void spl_handle_msg(error_t type, const char *restrict orig_file, spl_loc location, const char *msg)
+static void spl_handle_msg(error_t type, const spl_loc *const location, const char *msg)
 {
     // fprintf(stderr, "msg param %d %d - %d %d\n", linebegin, colbegin, lineend, colend);
     const char *color_code = get_spl_error_color_code(type);
-    char *type_name = spl_get_msg_type_name(type);
+    char *type_name = spl_get_msg_type_prefix(type);
     char *type_suffix = spl_get_msg_type_suffix(type);
-    fprintf(stderr, "%s:%d:%d: %s%s:\033[0m %s", orig_file, location.linebegin, location.colbegin, color_code, type_name, msg);
+    const char *const orig_file = spl_all_file_nodes[location->fid]->filename;
+    fprintf(stderr, "%s:%d:%d: %s%s:\033[0m %s", orig_file, location->linebegin, location->colbegin, color_code, type_name, msg);
     if (type_suffix != NULL)
     {
         fprintf(stderr, " [%s%s\033[0m]", color_code, type_suffix);
@@ -234,38 +235,38 @@ static void spl_handle_msg(error_t type, const char *restrict orig_file, spl_loc
         fprintf(stderr, "%s: \033[31merror:\033[0m %s: file no longer exists\n", progname, orig_file);
         return;
     }
-    char *line = fetchline(file, location.linebegin);
+    char *line = fetchline(file, location->linebegin);
     fclose(file);
 
     int line_len = (int)strlen(line);
 
-    int t_colend = location.colbegin;
-    if (location.lineend == location.linebegin && location.colend > location.colbegin)
-        t_colend = location.colend - 1;
-    else if (location.lineend != location.linebegin)
+    int t_colend = location->colbegin;
+    if (location->lineend == location->linebegin && location->colend > location->colbegin)
+        t_colend = location->colend - 1;
+    else if (location->lineend != location->linebegin)
         t_colend = line_len;
 
-    print_colored_line(type, line, location.linebegin, location.colbegin, t_colend);
-    print_indicator(type, location.colbegin, t_colend);
+    print_colored_line(type, line, location->linebegin, location->colbegin, t_colend);
+    print_indicator(type, location->colbegin, t_colend);
     free(line);
 
     return;
 }
 
-static void _builtin_splerror(error_t type, const char *restrict orig_file, spl_loc location, const char *msg)
+static void _builtin_splerror(error_t type, const spl_loc *const location, const char *msg)
 {
     set_error_flag(1);
-    spl_handle_msg(type, orig_file, location, msg);
+    spl_handle_msg(type, location, msg);
 }
 
-static void _builtin_splwarn(const char *restrict orig_file, spl_loc location, const char *msg)
+static void _builtin_splwarn(const spl_loc *const location, const char *msg)
 {
-    spl_handle_msg(SPLC_WARN, orig_file, location, msg);
+    spl_handle_msg(SPLC_WARN, location, msg);
 }
 
-static void _builtin_splnote(const char *restrict orig_file, spl_loc location, const char *msg)
+static void _builtin_splnote(const spl_loc *const location, const char *msg)
 {
-    spl_handle_msg(SPLC_NOTE, orig_file, location, msg);
+    spl_handle_msg(SPLC_NOTE, location, msg);
 }
 
 static void _builtin_print_trace(util_file_node node)
@@ -276,7 +277,7 @@ static void _builtin_print_trace(util_file_node node)
     {
         _builtin_print_trace(node->next);
         spltrace(SPLTR_FILE_INCL, 0, node->filename);
-        _builtin_splnote(node->next->filename, node->location, "file included here");
+        _builtin_splnote(&node->location, "file included here");
         // printf("Current node %s, last_node: %p, %s\n", node->filename, node->next, (node->next != NULL) ?
         // node->next->filename : "");
     }
@@ -287,29 +288,30 @@ static void print_trace()
     _builtin_print_trace(spl_file_stack);
 }
 
-void splerror(error_t type, spl_loc location, const char *msg)
+void splerror(error_t type, const spl_loc location, const char *msg)
 {
     print_trace();
-    _builtin_splerror(type, spl_file_stack->filename, location, msg);
+    _builtin_splerror(type, &location, msg);
 }
 
-void splwarn(spl_loc location, const char *msg)
+void splwarn(const spl_loc location, const char *msg)
 {
     print_trace();
-    _builtin_splwarn(spl_file_stack->filename, location, msg);
+    _builtin_splwarn(&location, msg);
 }
 
-void splnote(spl_loc location, const char *msg)
+void splnote(const spl_loc location, const char *msg)
 {
     print_trace();
-    _builtin_splnote(spl_file_stack->filename, location, msg);
+    _builtin_splnote(&location, msg);
 }
 
-static int _builtin_spl_enter_file(const char *restrict _filename, spl_loc location)
+static int _builtin_spl_enter_file(const char *restrict _filename, const spl_loc *const location)
 {
     FILE *new_file = NULL;
     if ((new_file = fopen(_filename, "r")) == NULL)
-    {
+    {        
+        splerror(SPLC_ERR_CRIT, *location, "failed to read file. Please check whether the path exists or this program has access right");
         return -1;
     }
 
@@ -318,7 +320,7 @@ static int _builtin_spl_enter_file(const char *restrict _filename, spl_loc locat
     node->filename = strdup(_filename);
     node->file = new_file;
     node->file_buffer = yy_create_buffer(new_file, YY_BUF_SIZE);
-    node->location = location;
+    node->location = *location;
     node->yylineno = yylineno;
     node->yycolno = yycolno;
     node->next = spl_file_stack;
@@ -342,12 +344,12 @@ static int _builtin_spl_enter_file(const char *restrict _filename, spl_loc locat
 
 int spl_enter_root(const char *restrict _filename)
 {
-    return _builtin_spl_enter_file(_filename, spl_loc_zero);
+    return _builtin_spl_enter_file(_filename, &spl_loc_zero);
 }
 
-int spl_enter_file(const char *restrict _filename, spl_loc location)
+int spl_enter_file(const char *restrict _filename, const spl_loc location)
 {
-    return _builtin_spl_enter_file(_filename, location);
+    return _builtin_spl_enter_file(_filename, &location);
 }
 
 int spl_exit_file()
@@ -364,7 +366,6 @@ int spl_exit_file()
     fclose(tmp->file);
 
     spl_file_stack = tmp->next;
-    tmp->next = NULL;
     yy_switch_to_buffer(spl_file_stack->file_buffer);
     yynewfile = 0;
     yylineno = tmp->yylineno;
