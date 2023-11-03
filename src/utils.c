@@ -356,7 +356,7 @@ int spl_exit_file()
 {
     if (spl_file_stack == NULL)
     {
-        splerror_nopos(SPLC_ERR_CRIT, "incorrect file recursion");
+        splerror_nopos(SPLC_ERR_CRIT, "incorrect file recursion: file stack is empty");
         exit(1);
     }
 

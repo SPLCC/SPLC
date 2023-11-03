@@ -13,13 +13,13 @@ enum error_type
     SPLMACRO_ERROR,
     SPLMACRO_WARN,
 
-    SPLC_ERR_CRIT = 0x10000000,
+    SPLC_ERR_CRIT = 0x1000,
     SPLC_ERR_UNIV, /* splc: universal error */
     SPLC_ERR_A,
     SPLC_ERR_B,
 };
 
-#define SPLC_ERR_MASK 0x10000000
+#define SPLC_ERR_MASK 0x1000
 
 typedef enum trace_type trace_t;
 
@@ -42,11 +42,11 @@ void splerror_nopos(error_t type, const char *msg);
    The colbegin and colend does not have to be necessarily at the same line, since the function will
    output only one line.
  */
-void splerror(error_t type, spl_loc location, const char *msg);
+void splerror(error_t type, const spl_loc location, const char *msg);
 
-void splwarn(spl_loc location, const char *msg);
+void splwarn(const spl_loc location, const char *msg);
 
-void splnote(spl_loc location, const char *msg);
+void splnote(const spl_loc location, const char *msg);
 
 /* When switching parser into parsing a new file, this function must be called to preserve the previously opened files. 
    Return 0 on success, else there is an error to be handled. */
@@ -55,7 +55,7 @@ int spl_enter_root(const char *restrict _filename);
 /* When switching parser into parsing a new file, this function must be called to preserve the previously opened files. 
    Return 0 on success, else there is an error to be handled.
    Specify where the file is included in the previous file in the global stack */
-int spl_enter_file(const char *restrict _filename, spl_loc location);
+int spl_enter_file(const char *restrict _filename, const spl_loc location);
 
 /* When the parser finishes parsing a new file and returned, this function must be called to starting parsing on the previously opened files.
    If there is still file left, return 0. Else return nonzero.

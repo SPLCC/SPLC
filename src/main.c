@@ -1,9 +1,9 @@
-#include "spldef.h"
 #include "ast.h"
-#include "lut.h"
-#include "utils.h"
 #include "lex.yy.h"
+#include "lut.h"
+#include "spldef.h"
 #include "syntax.tab.h"
+#include "utils.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,17 +19,24 @@ const char *progname = "splc";
 //     exit(1);
 // }
 
+static void test()
+{
+}
+
 int main(int argc, char *argv[])
 {
     if (argc != 2)
     {
-        fprintf(stderr, "%s: \033[31mfatal error:\033[0m expected exactly one file to be parsed\ncompilation terminated.\n", progname);
+        fprintf(stderr,
+                "%s: \033[31mfatal error:\033[0m expected exactly one file to be parsed\ncompilation terminated.\n",
+                progname);
         exit(1);
     }
 
     if (spl_enter_root(argv[1]) != 0)
-    {        
-        fprintf(stderr, "%s: \033[31mfatal error:\033[0m no such file: %s\ncompilation terminated.\n", progname, argv[1]);
+    {
+        fprintf(stderr, "%s: \033[31mfatal error:\033[0m no such file: %s\ncompilation terminated.\n", progname,
+                argv[1]);
         exit(1);
     }
 
@@ -44,6 +51,6 @@ int main(int argc, char *argv[])
 
     if (err_flag)
         return 1;
-    
+
     return 0;
 }
