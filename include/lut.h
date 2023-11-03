@@ -2,7 +2,7 @@
 #ifndef LUT_H
 #define LUT_H
 
-#include "spldef.h"
+#include "splcdef.h"
 
 #include <stddef.h>
 
@@ -16,7 +16,7 @@ typedef struct lut_entry_struct *lut_entry;
 /* Struct for holding properties of a node of linked list. */
 typedef struct lut_entry_struct
 {
-    spl_entry_t type;              /* Type of this entry */
+    splc_entry_t type;              /* Type of this entry */
     char *id;                      /* The name of the entry, if any */
     size_t pointer_level;          /* Level of pointer */
     struct lut_entry_struct *next; /* Point to the next element in case of Hash Collision */

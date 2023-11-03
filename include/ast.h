@@ -3,7 +3,7 @@
 #ifndef AST_H
 #define AST_H
 
-#include "spldef.h"
+#include "splcdef.h"
 
 /* Struct definitions */
 
@@ -11,7 +11,7 @@ typedef struct ast_node_struct *ast_node;
 
 typedef struct ast_node_struct
 {
-    spl_token_t type;   /* Type of this node */
+    splc_token_t type;   /* Type of this node */
     lut_entry entry;    /* The entry of this ID, if possible. Else NULL. AST has no control of this entry, and thus cannot free it. */
     ast_node *children; /* Array of children */
     size_t num_child;   /* Number of children */
@@ -19,7 +19,7 @@ typedef struct ast_node_struct
     int fid;    /* Which file is this? */
     int lineno; /* line number */
     int colno;  /* column number */
-    spl_loc location; /* Location of this token */
+    splc_loc location; /* Location of this token */
 
     union {
         void *val;
@@ -33,13 +33,13 @@ typedef struct ast_node_struct
 ast_node create_empty_node();
 
 /* Create a leaf node given type. */
-ast_node create_leaf_node(spl_token_t type);
+ast_node create_leaf_node(splc_token_t type);
 
 /* Add a child to a node. Uses `realloc` to allocate memory. */
 void add_child(ast_node parent, ast_node child);
 
 /* Create a parent node, given a list of child nodes */
-ast_node create_parent_node(spl_token_t type, int lineno, size_t num_child, ...);
+ast_node create_parent_node(splc_token_t type, int lineno, size_t num_child, ...);
 
 /* Release the entire tree */
 void release_tree(ast_node root);

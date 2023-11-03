@@ -1,8 +1,8 @@
-#include "spldef.h"
+#include "splcdef.h"
 
 int err_flag = 0;
 
-const char *get_spl_token_string(spl_token_t type) {
+const char *get_splc_token_string(splc_token_t type) {
     switch (type)
     {
     /* Nonterminals */

@@ -1,1 +1,4 @@
-int foo()[];
+int foo()
+{
+    return 3;
+}

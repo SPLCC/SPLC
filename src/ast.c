@@ -16,7 +16,7 @@ ast_node create_empty_node()
     return node;
 }
 
-ast_node create_leaf_node(spl_token_t type)
+ast_node create_leaf_node(splc_token_t type)
 {
     ast_node node = create_empty_node();
     node->type = type;
@@ -30,7 +30,7 @@ void add_child(ast_node parent, ast_node child)
     ++(parent->num_child);
 }
 
-ast_node create_parent_node(spl_token_t type, int lineno, size_t num_child, ...)
+ast_node create_parent_node(splc_token_t type, int lineno, size_t num_child, ...)
 {
     ast_node node = create_empty_node();
     node->type = type;
@@ -58,7 +58,7 @@ void builtin_print_ast(ast_node node, int level)
         printf("  ");
     }
 
-    printf("%s", get_spl_token_string(node->type));
+    printf("%s", get_splc_token_string(node->type));
 
     switch (node->type)
     {

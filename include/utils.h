@@ -1,7 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include "spldef.h"
+#include "splcdef.h"
 #include <stdio.h>
 
 typedef enum error_type error_t;
@@ -10,6 +10,7 @@ enum error_type
 {
     SPLC_WARN,
     SPLC_NOTE,
+    SPLC_DIAG, /* splc: diagnostic message */
     SPLC_MACRO_ERROR,
     SPLC_MACRO_WARN,
 
@@ -31,37 +32,105 @@ enum trace_type
     SPLTR_FUNCTION,
 };
 
-/* This method prints a message, indicating in which structure the error lies. If show_source is zero, then do not display source file. */
-void spltrace(trace_t type, int show_source, const char *name);
+/* This method prints a message, indicating in which structure the error lies. If show_source is zero, then do not
+ * display source file. */
+void splctrace(trace_t type, int show_source, const char *name);
 
 /* Print an error without position */
-void splerror_noloc(error_t type, const char *msg);
+void splcerror_noloc(error_t type, const char *msg);
+
+void splcfail(const char *msg);
 
 /* This method prints the corresponding colored message, and outputs the corresponding line in the file.
-   
+
    The colbegin and colend does not have to be necessarily at the same line, since the function will
    output only one line.
  */
-void splerror(error_t type, const spl_loc location, const char *msg);
+void splcerror(error_t type, const splc_loc location, const char *msg);
 
-void splwarn(const spl_loc location, const char *msg);
+void splcwarn(const splc_loc location, const char *msg);
 
-void splnote(const spl_loc location, const char *msg);
+void splcnote(const splc_loc location, const char *msg);
 
-/* When switching parser into parsing a new file, this function must be called to preserve the previously opened files. 
+void splcdiag(const char *msg);
+
+/* When switching parser into parsing a new file, this function must be called to preserve the previously opened files.
    Return 0 on success, else there is an error to be handled. */
-int spl_enter_root(const char *restrict _filename);
+int splc_enter_root(const char *restrict _filename);
 
-/* When switching parser into parsing a new file, this function must be called to preserve the previously opened files. 
+/* When switching parser into parsing a new file, this function must be called to preserve the previously opened files.
    Return 0 on success, else there is an error to be handled.
    Specify where the file is included in the previous file in the global stack */
-int spl_enter_file(const char *restrict _filename, const spl_loc location);
+int splc_enter_file(const char *restrict _filename, const splc_loc location);
 
-/* When the parser finishes parsing a new file and returned, this function must be called to starting parsing on the previously opened files.
-   If there is still file left, return 0. Else return nonzero.
-   The file node will be kept, with the information of entry preserved. */
-int spl_exit_file();
+/* When the parser finishes parsing a new file and returned, this function must be called to starting parsing on the
+   previously opened files. If there is still file left, return 0. Else return nonzero. The file node will be kept, with
+   the information of entry preserved. */
+int splc_exit_file();
 
 void set_error_flag(int val);
+
+/* Macros */
+
+/* Call this to print a formatted message and immediately fail */
+#define SPLC_FFAIL(_msg, ...)                                                                                          \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        fprintf(stderr, "%s: \033[31mfatal error\033[0m:" _msg "\n", progname, __VA_ARGS__);                           \
+        abort();                                                                                                       \
+    } while (0)
+
+/* Print a formatted message without location and exit splc(1) */
+#define SPLC_FEXIT_NOLOC(_msg, ...)                                                                                    \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        size_t needed = snprintf(NULL, 0, _msg, __VA_ARGS__) + 1;                                                      \
+        char *buffer = (char *)malloc(needed);                                                                         \
+        if (buffer == NULL)                                                                                            \
+            splcfail("cannot allocate memory for printing error");                                                     \
+        sprintf(buffer, _msg, __VA_ARGS__);                                                                            \
+        splcerror_noloc(SPLC_ERR_CRIT, buffer);                                                                        \
+        free(buffer);                                                                                                  \
+        exit(1);                                                                                                       \
+    } while (0)
+
+/* Call this to print a formatted error */
+#define SPLC_FERROR(type, _location, _msg, ...)                                                                        \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        size_t needed = snprintf(NULL, 0, _msg, __VA_ARGS__) + 1;                                                      \
+        char *buffer = (char *)malloc(needed);                                                                         \
+        if (buffer == NULL)                                                                                            \
+            splcfail("cannot allocate memory for printing error");                                                     \
+        sprintf(buffer, _msg, __VA_ARGS__);                                                                            \
+        splcerror(type, _location, buffer);                                                                            \
+        free(buffer);                                                                                                  \
+    } while (0)
+
+/* Call this to print a formatted warning */
+#define SPLC_FWARN(_location, _msg, ...)                                                                               \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        size_t needed = snprintf(NULL, 0, _msg, __VA_ARGS__) + 1;                                                      \
+        char *buffer = (char *)malloc(needed);                                                                         \
+        if (buffer == NULL)                                                                                            \
+            splcfail("cannot allocate memory for printing error");                                                     \
+        sprintf(buffer, _msg, __VA_ARGS__);                                                                            \
+        splcwarn(_location, buffer);                                                                                   \
+        free(buffer);                                                                                                  \
+    } while (0)
+
+/* Call this to print a formatted diagnostic message */
+#define SPLC_FDIAG(_msg, ...)                                                                                          \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        size_t needed = snprintf(NULL, 0, _msg, __VA_ARGS__) + 1;                                                      \
+        char *buffer = (char *)malloc(needed);                                                                         \
+        if (buffer == NULL)                                                                                            \
+            splcfail("cannot allocate memory for printing error");                                                     \
+        sprintf(buffer, _msg, __VA_ARGS__);                                                                            \
+        splcdiag(buffer);                                                                                              \
+        free(buffer);                                                                                                  \
+    } while (0)
 
 #endif
