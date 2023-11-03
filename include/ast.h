@@ -50,7 +50,9 @@ ast_node duplicate_node(ast_node node);
 /* Duplicate the entire tree */
 ast_node duplicate_tree(ast_node root);
 
-/* Substitute all macro mount points inside the given tree */
+/* Substitute all macro mount points inside the given tree.
+   When subsituting macro functions, the following requirement holds:
+   - Once the target macro function has been substituted, it is not possible to substitute again. */
 void invoke_macro_subtitution(ast_node root);
 
 /* Print the Syntax Tree */
