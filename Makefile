@@ -9,7 +9,7 @@ all: splc
 # ===================== splc =====================
 splc_out=splc
 splc_src_files := src/main.c src/syntax.y src/lex.l
-splc_compile_files := src/main.c tmp/lex.yy.c tmp/syntax.tab.c src/lut.c src/ast.c src/spldef.c src/utils.c
+splc_compile_files := tmp/lex.yy.c tmp/syntax.tab.c $(wildcard src/*.c)
 splc_includes = -Iinclude/ -Itmp/
 
 splc:

@@ -35,7 +35,7 @@ enum trace_type
 void spltrace(trace_t type, int show_source, const char *name);
 
 /* Print an error without position */
-void splerror_nopos(error_t type, const char *msg);
+void splerror_noloc(error_t type, const char *msg);
 
 /* This method prints the corresponding colored message, and outputs the corresponding line in the file.
    

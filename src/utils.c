@@ -6,6 +6,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+int spl_include_dir_counter = 0;
+
+const char **spl_include_directories = NULL;
+
 int spl_file_counter = 0;
 
 util_file_node *spl_all_file_nodes = NULL;
@@ -190,12 +194,13 @@ static char *spl_get_msg_type_suffix(error_t type)
     return (type_suffix != NULL) ? strdup(type_suffix) : NULL;
 }
 
-static void spl_handle_msg_nopos(error_t type, const char *msg)
+static void _builtin_spl_handle_msg_noloc(error_t type, const char *msg)
 {
     const char *color_code = get_spl_error_color_code(type);
     char *type_name = spl_get_msg_type_prefix(type);
     char *type_suffix = spl_get_msg_type_suffix(type);
-    fprintf(stderr, "%s: %s%s:\033[0m %s", spl_file_stack->filename, color_code, type_name, msg);
+    char *filename = (spl_file_stack != NULL) ? spl_file_stack->filename : "(root)";
+    fprintf(stderr, "%s: %s%s:\033[0m %s", filename, color_code, type_name, msg);
     if (type_suffix != NULL)
     {
         fprintf(stderr, " [%s%s\033[0m]", color_code, type_suffix);
@@ -207,20 +212,15 @@ static void spl_handle_msg_nopos(error_t type, const char *msg)
     return;
 }
 
-void splerror_nopos(error_t type, const char *msg)
-{
-    set_error_flag(1);
-    spl_handle_msg_nopos(type, msg);
-}
-
-static void spl_handle_msg(error_t type, const spl_loc *const location, const char *msg)
+static void _builtin_spl_handle_msg(error_t type, const spl_loc *const location, const char *msg)
 {
     // fprintf(stderr, "msg param %d %d - %d %d\n", linebegin, colbegin, lineend, colend);
     const char *color_code = get_spl_error_color_code(type);
     char *type_name = spl_get_msg_type_prefix(type);
     char *type_suffix = spl_get_msg_type_suffix(type);
     const char *const orig_file = spl_all_file_nodes[location->fid]->filename;
-    fprintf(stderr, "%s:%d:%d: %s%s:\033[0m %s", orig_file, location->linebegin, location->colbegin, color_code, type_name, msg);
+    fprintf(stderr, "%s:%d:%d: %s%s:\033[0m %s", orig_file, location->linebegin, location->colbegin, color_code,
+            type_name, msg);
     if (type_suffix != NULL)
     {
         fprintf(stderr, " [%s%s\033[0m]", color_code, type_suffix);
@@ -251,6 +251,21 @@ static void spl_handle_msg(error_t type, const spl_loc *const location, const ch
     free(line);
 
     return;
+}
+
+static void spl_handle_msg(error_t type, const spl_loc *const location, const char *msg)
+{
+    if (location != NULL)
+        _builtin_spl_handle_msg(type, location, msg);
+    else
+        _builtin_spl_handle_msg_noloc(type, msg);
+    return;
+}
+
+void splerror_noloc(error_t type, const char *msg)
+{
+    set_error_flag(1);
+    spl_handle_msg(type, NULL, msg);
 }
 
 static void _builtin_splerror(error_t type, const spl_loc *const location, const char *msg)
@@ -310,8 +325,18 @@ static int _builtin_spl_enter_file(const char *restrict _filename, const spl_loc
 {
     FILE *new_file = NULL;
     if ((new_file = fopen(_filename, "r")) == NULL)
-    {        
-        splerror(SPLC_ERR_CRIT, *location, "failed to read file. Please check whether the path exists or this program has access right");
+    {
+        if (location != NULL)
+        {
+            splerror(SPLC_ERR_CRIT, *location,
+                     "failed to read file. Please check whether the path exists or this program has access right.");
+        }
+        else
+        {
+            splerror_noloc(
+                SPLC_ERR_CRIT,
+                "failed to read file. Please check whether the path exists or this program has access right.");
+        }
         return -1;
     }
 
@@ -325,11 +350,11 @@ static int _builtin_spl_enter_file(const char *restrict _filename, const spl_loc
     node->yycolno = yycolno;
     node->next = spl_file_stack;
     spl_file_stack = node;
-    
+
     spl_all_file_nodes = (util_file_node *)realloc(spl_all_file_nodes, spl_file_counter * sizeof(util_file_node));
     if (spl_all_file_nodes == NULL)
     {
-        splerror_nopos(SPLC_ERR_CRIT, "out of memory when opening file");
+        splerror_noloc(SPLC_ERR_CRIT, "out of memory when opening file");
         exit(1);
     }
     spl_all_file_nodes[spl_file_counter - 1] = node;
@@ -344,7 +369,7 @@ static int _builtin_spl_enter_file(const char *restrict _filename, const spl_loc
 
 int spl_enter_root(const char *restrict _filename)
 {
-    return _builtin_spl_enter_file(_filename, &spl_loc_zero);
+    return _builtin_spl_enter_file(_filename, NULL);
 }
 
 int spl_enter_file(const char *restrict _filename, const spl_loc location)
@@ -352,12 +377,11 @@ int spl_enter_file(const char *restrict _filename, const spl_loc location)
     return _builtin_spl_enter_file(_filename, &location);
 }
 
-int spl_exit_file()
+int _builtin_spl_exit_file()
 {
     if (spl_file_stack == NULL)
     {
-        splerror_nopos(SPLC_ERR_CRIT, "incorrect file recursion: file stack is empty");
-        exit(1);
+        return 1;
     }
 
     util_file_node tmp = spl_file_stack;
@@ -366,12 +390,20 @@ int spl_exit_file()
     fclose(tmp->file);
 
     spl_file_stack = tmp->next;
-    yy_switch_to_buffer(spl_file_stack->file_buffer);
-    yynewfile = 0;
-    yylineno = tmp->yylineno;
-    yycolno = tmp->yycolno;
+    if (spl_file_stack != NULL)
+    {
+        yy_switch_to_buffer(spl_file_stack->file_buffer);
+        yynewfile = 0;
+        yylineno = tmp->yylineno;
+        yycolno = tmp->yycolno;
+    }
 
     return spl_file_stack == NULL;
+}
+
+int spl_exit_file()
+{
+    return _builtin_spl_exit_file();
 }
 
 void set_error_flag(int val)
