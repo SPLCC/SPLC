@@ -111,12 +111,16 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     free(filename);
 }
 
+<IN_PPD_INCL>. {
+    splcwarn(SPLC_YY2LOC_CF_1_PNT_E(yylineno, yycolno - 1), "Unrecognized token in #include directive");
+}
+
 <IN_PPD_INCL>\r?\n {
     BEGIN(INITIAL);
 }
 
 <IN_MACRO_DEF>. {
-    splcwarn(SPLC_YY2LOC_CF_1_PNT_E(yylineno, yycolno),"unsupported preprocessor directive");
+    splcwarn(SPLC_YY2LOC_CF_1_PNT_E(yylineno, yycolno - 1), "unsupported preprocessor directive");
     BEGIN(INITIAL);
 }
 
@@ -327,5 +331,8 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 
 int yywrap()
 {
-    return splc_exit_file();
+    int op = splc_exit_file();
+    if (op == 0)
+        BEGIN(IN_PPD_INCL);
+    return op;
 }

@@ -51,7 +51,8 @@ ExtDefList: ExtDef ExtDefList { $$ = create_parent_node(AST_EXT_DEF_LIST, @$.fir
     ;
 
 /* External definition list: A single unit of one of {variables, structs, functions}. */
-ExtDef: Specifier ExtDecList SEMI { $$ = create_parent_node(AST_EXT_DEF, @$.first_line, 3, $1, $2, $3); }
+ExtDef: SEMI { $$ = create_parent_node(AST_EXT_DEF, @$.first_line, 1, $1); }
+    | Specifier ExtDecList SEMI { $$ = create_parent_node(AST_EXT_DEF, @$.first_line, 3, $1, $2, $3); }
     | Specifier Specifier ExtDecList SEMI { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_I(@2), "two or more data types in declaration specifiers"); $$ = create_parent_node(AST_FUNC_DEC, @$.first_line, 0); yyerrok; }
     | ExtDecList SEMI { splcwarn(SPLC_YY2LOC_CF_1_PNT_F(@1), "declaration is missing a specifier and will default to int"); $$ = create_parent_node(AST_EXT_DEF, @$.first_line, 0); yyerrok; }
     | Specifier SEMI { $$ = create_parent_node(AST_EXT_DEF, @$.first_line, 2, $1, $2); } // Allowing structure definitions
@@ -269,5 +270,5 @@ Args: Exp COMMA Args { $$ = create_parent_node(AST_ARGS, @$.first_line, 3, $1, $
 
 void yyerror(const char *s) {
     // suppressed
-    fprintf(stderr, "%s at line %d\n", s, yylloc.first_line);
+    /* fprintf(stderr, "%s at line %d\n", s, yylloc.first_line); */
 }
