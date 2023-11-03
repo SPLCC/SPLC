@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+int splc_enable_diag = 0;
+
 int splc_file_node_cnt = 0;
 
 util_file_node *splc_all_file_nodes = NULL;
@@ -344,7 +346,8 @@ void splcnote(const splc_loc location, const char *msg)
 
 void splcdiag(const char *msg)
 {
-    _builtin_splcdiag(msg);
+    if (splc_enable_diag)
+        _builtin_splcdiag(msg);
 }
 
 static int _builtin_splc_enter_file(const char *restrict _filename, const splc_loc *const location)

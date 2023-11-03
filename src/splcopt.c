@@ -1,3 +1,4 @@
+#include "splcdef.h"
 #include "splcopt.h"
 #include "utils.h"
 
@@ -73,7 +74,7 @@ int splc_getopt(int nargc, char *nargv[], const char *ostr)
 void splc_process_args(int nargc, char *nargv[])
 {
     int opcode;
-    while ((opcode = splc_getopt(nargc, nargv, "I:")) != -1)
+    while ((opcode = splc_getopt(nargc, nargv, "I:v")) != -1)
     {
         switch (opcode)
         {
@@ -111,7 +112,9 @@ void splc_process_args(int nargc, char *nargv[])
                 splc_incl_dirs = new_filev;
                 splc_incl_dirs[splc_incl_dir_cnt - 1] = target;
                 break;
-
+            case 'v':
+                splc_enable_diag = 1;
+                break;
             default:
                 break;
             }

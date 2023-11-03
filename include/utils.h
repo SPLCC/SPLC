@@ -70,6 +70,9 @@ int splc_exit_file();
 
 void set_error_flag(int val);
 
+/* Global variables */
+extern int splc_enable_diag;
+
 /* Macros */
 
 /* Call this to print a formatted message and immediately fail */
