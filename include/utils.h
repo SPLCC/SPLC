@@ -71,6 +71,8 @@ int splc_exit_file();
 void set_error_flag(int val);
 
 /* Global variables */
+
+/* If 1, enable diagnostic output. */
 extern int splc_enable_diag;
 
 /* Macros */

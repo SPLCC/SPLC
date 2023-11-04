@@ -90,7 +90,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 
 <IN_PPD_INCL>[ ] {
-
+    /* Skip spaces */
 }
 
 <IN_PPD_INCL>\<([^\r\n]|(\\\r?\n))+\> {
