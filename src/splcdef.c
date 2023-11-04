@@ -120,7 +120,7 @@ const char *splc_get_token_color_code(splc_token_t type)
     case AST_EQ:
     case AST_PLUS:
     case AST_MINUS:
-    case AST_MUL:
+    case AST_ASTRK:
     case AST_DIV:
     case AST_NOT:
     case AST_DOT:
@@ -232,7 +232,7 @@ const char *splc_token2str(splc_token_t type)
     case AST_MINUS:
         return "MINUS";
 
-    case AST_MUL:
+    case AST_ASTRK:
         return "MUL";
 
     case AST_DIV:

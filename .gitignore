@@ -12,4 +12,5 @@ test.c
 a.out
 basic_test.sh
 syntax.tab.h
-syntax.tab.
+syntax.tab.c
+syntax.output

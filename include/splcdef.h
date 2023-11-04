@@ -42,7 +42,10 @@ enum splc_token_type
     AST_PARAM_DEC,        /* single parameter declaration */
     AST_COMP_STMT,        /* compound statement */
     AST_STMT_LIST,        /* list of statements */
-    AST_STMT,             /* a single statement */
+    AST_STMT,             /* single statement */
+    AST_RETURN_STMT,      /* return statement */
+    AST_COND_STMT,        /* conditional statement */
+    AST_ITER_STMT,        /* iteration statement */
     AST_FOR_LOOP_BODY,    /* body of a for loop */
 
     /* Nonterminals: local definition */
@@ -61,10 +64,10 @@ enum splc_token_type
     /* Terminals: Operators */
     AST_ASSIGN, /* assign */
 
-    AST_AND,         /* and */
-    AST_OR,          /* or */
-    AST_BITWISE_AND, /* bitwise and */
-    AST_BITWISE_OR,  /* bitwise or */
+    AST_AND,    /* and */
+    AST_OR,     /* or */
+    AST_BW_AND, /* bitwise and */
+    AST_BW_OR,  /* bitwise or */
 
     AST_LT, /* less than */
     AST_LE, /* less than or equal to */
@@ -75,7 +78,7 @@ enum splc_token_type
 
     AST_PLUS,  /* plus */
     AST_MINUS, /* minus */
-    AST_MUL,   /* multiplication operator */
+    AST_ASTRK, /* asterisk operator */
     AST_DIV,   /* division operator */
 
     AST_LC,  /* left curly bracket */
@@ -105,12 +108,12 @@ enum splc_token_type
     AST_STR,          /* string literal */
 
     /* Nonterminals: Macro Expressions */
-    AST_MACRO_MNTPT, /* AST: macro mount point */
-    AST_MACRO_ID,    /* macro ID */
-    AST_MACRO_DEFINE,    /* macro: define */
-    AST_MACRO_IFDEF,    /* macro: ifdef */
-    AST_MACRO_IFNDEF,    /* macro: ifndef */
-    AST_MACRO_ENDIF,    /* macro: endif */
+    AST_MACRO_MNTPT,  /* AST: macro mount point */
+    AST_MACRO_ID,     /* macro ID */
+    AST_MACRO_DEFINE, /* macro: define */
+    AST_MACRO_IFDEF,  /* macro: ifdef */
+    AST_MACRO_IFNDEF, /* macro: ifndef */
+    AST_MACRO_ENDIF,  /* macro: endif */
 };
 
 /* Convert a token to string. The caller shall not free this string. */
@@ -154,7 +157,6 @@ extern YYLTYPE yylloc;
 
 /* Only set this to 1 if entering a new file and needs recounting. This will trigger the parser to restart counting. */
 extern int yynewfile;
-
 
 /* Parsing and error tracking */
 
@@ -249,16 +251,20 @@ extern const char *progname;
 #define SPLC_YY2LOC_CF_1_PNT_L(_loc)                                                                                   \
     SPLC_MAKE_LOC_CF((_loc).last_line, (_loc).last_column, (_loc).last_line, (_loc).last_column)
 
-/* Make a splc_loc struct from l1, l2 from current file by capturing the interval. F - first_line/column, L - last_line/column */
+/* Make a splc_loc struct from l1, l2 from current file by capturing the interval. F - first_line/column, L -
+ * last_line/column */
 #define SPLC_YY2LOC_CF_2_PNT_FL(l1, l2)                                                                                \
     SPLC_MAKE_LOC_CF((l1).first_line, (l1).first_column, (l2).last_line, (l2).last_column)
-/* Make a splc_loc struct from l1, l2 from current file by capturing the interval. F - first_line/column, L - last_line/column */
+/* Make a splc_loc struct from l1, l2 from current file by capturing the interval. F - first_line/column, L -
+ * last_line/column */
 #define SPLC_YY2LOC_CF_2_PNT_FF(l1, l2)                                                                                \
     SPLC_MAKE_LOC_CF((l1).first_line, (l1).first_column, (l2).first_line, (l2).first_column)
-/* Make a splc_loc struct from l1, l2 from current file by capturing the interval. F - first_line/column, L - last_line/column */
+/* Make a splc_loc struct from l1, l2 from current file by capturing the interval. F - first_line/column, L -
+ * last_line/column */
 #define SPLC_YY2LOC_CF_2_PNT_LF(l1, l2)                                                                                \
     SPLC_MAKE_LOC_CF((l1).last_line, (l1).last_column, (l2).first_line, (l2).first_column)
-/* Make a splc_loc struct from l1, l2 from current file by capturing the interval. F - first_line/column, L - last_line/column */
+/* Make a splc_loc struct from l1, l2 from current file by capturing the interval. F - first_line/column, L -
+ * last_line/column */
 #define SPLC_YY2LOC_CF_2_PNT_LL(l1, l2)                                                                                \
     SPLC_MAKE_LOC_CF((l1).last_line, (l1).last_column, (l2).last_line, (l2).last_column)
 

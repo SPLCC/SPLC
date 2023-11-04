@@ -281,14 +281,14 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 <INITIAL>"&&" { yylval = create_leaf_node(AST_AND, SPLC_YY2LOC_CF_D(yylloc)); return AND; }
 <INITIAL>"||" { yylval = create_leaf_node(AST_OR, SPLC_YY2LOC_CF_D(yylloc)); return OR; }
 <INITIAL>"&"  { 
-    yylval = create_leaf_node(AST_BITWISE_AND, SPLC_YY2LOC_CF_D(yylloc)); 
+    yylval = create_leaf_node(AST_BW_AND, SPLC_YY2LOC_CF_D(yylloc)); 
     splcerror(SPLC_ERR_A, SPLC_YY2LOC_CF_D(yylloc), "unsupported lexeme");
-    return BITWISE_AND; 
+    return BW_AND; 
 }
 <INITIAL>"|"  { 
-    yylval = create_leaf_node(AST_BITWISE_OR, SPLC_YY2LOC_CF_D(yylloc)); 
+    yylval = create_leaf_node(AST_BW_OR, SPLC_YY2LOC_CF_D(yylloc)); 
     splcerror(SPLC_ERR_A, SPLC_YY2LOC_CF_D(yylloc), "unsupported lexeme");
-    return BITWISE_OR; 
+    return BW_OR; 
 }
 
 <INITIAL>"<"  { yylval = create_leaf_node(AST_LT, SPLC_YY2LOC_CF_D(yylloc)); return LT; }
@@ -302,7 +302,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 <INITIAL>","  { yylval = create_leaf_node(AST_COMMA, SPLC_YY2LOC_CF_D(yylloc)); return COMMA; }
 <INITIAL>"+"  { yylval = create_leaf_node(AST_PLUS, SPLC_YY2LOC_CF_D(yylloc)); return PLUS; }
 <INITIAL>"-"  { yylval = create_leaf_node(AST_MINUS, SPLC_YY2LOC_CF_D(yylloc)); return MINUS; }
-<INITIAL>"*"  { yylval = create_leaf_node(AST_MUL, SPLC_YY2LOC_CF_D(yylloc)); return MUL; }
+<INITIAL>"*"  { yylval = create_leaf_node(AST_ASTRK, SPLC_YY2LOC_CF_D(yylloc)); return MUL; }
 <INITIAL>"/"  { yylval = create_leaf_node(AST_DIV, SPLC_YY2LOC_CF_D(yylloc)); return DIV; }
 
 
