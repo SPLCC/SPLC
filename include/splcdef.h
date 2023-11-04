@@ -29,92 +29,162 @@ typedef enum splc_token_type splc_token_t;
 enum splc_token_type
 {
     /* Nonterminals */
-    AST_NULL,             /* uninitialized type */
-    AST_PROGRAM,          /* entire program */
-    AST_EXT_DEF_LIST,     /* external definition list */
-    AST_EXT_DEF,          /* a single external definition: variable/struct/function */
-    AST_EXT_DEC_LIST,     /* variable list */
-    AST_SPECIFIER,        /* specifier */
-    AST_STRUCT_SPECIFIER, /* struct specifier */
-    AST_VAR_DEC,          /* variable declaration (single/array) */
-    AST_FUNC_DEC,         /* function declaration in the form of `foo(type1 var1, type2 var2, ...) */
-    AST_VAR_LIST,         /* variable list (parameter list) */
-    AST_PARAM_DEC,        /* single parameter declaration */
-    AST_COMP_STMT,        /* compound statement */
-    AST_STMT_LIST,        /* list of statements */
-    AST_STMT,             /* single statement */
-    AST_RETURN_STMT,      /* return statement */
-    AST_COND_STMT,        /* conditional statement */
-    AST_ITER_STMT,        /* iteration statement */
-    AST_FOR_LOOP_BODY,    /* body of a for loop */
+    SPLT_NULL,             /* uninitialized type */
+    SPLT_TRANS_UNIT,       /* translation unit */
+    SPLT_EXT_DEF_LIST,     /* external definition list */
+    SPLT_EXT_DEF,          /* a single external definition: variable/struct/function */
+    SPLT_EXT_DEC_LIST,     /* variable list */
+    SPLT_TYPE_SPEC,        /* specifier */
+    SPLT_STRUCT_SPECIFIER, /* struct specifier */
+    SPLT_VAR_DEC,          /* variable declaration (pointer interface) */
+    SPLT_DIR_DEC,          /* variable declaration (single/array) */
+    SPLT_PTR,              /* pointer */
+    SPLT_FUNC_DEC,         /* function declaration in the form of `foo(type1 var1, type2 var2, ...) */
+    SPLT_DIR_FUNC_DEC,     /* direct function declaration in the form of `foo(type1 var1, type2 var2, ...) */
 
-    /* Nonterminals: local definition */
-    AST_DEF_LIST, /* list of definitions */
-    AST_DEF,      /* base for a single definition: list of variable declaration */
-    AST_DEC_LIST, /* list of variable declaration */
-    AST_DEC,      /* single declaration unit */
+    SPLT_VAR_LIST,  /* variable list (parameter list) */
+    SPLT_PARAM_DEC, /* single parameter declaration */
 
-    AST_EXP,  /* expressions */
-    AST_ARGS, /* argument list */
+    SPLT_COMP_STMT,     /* compound statement */
+    SPLT_STMT_LIST,     /* list of statements */
+    SPLT_STMT,          /* single statement */
+    SPLT_EXPR_STMT,     /* expression statement */
+    SPLT_SEL_STMT,      /* conditional statement */
+    SPLT_ITER_STMT,     /* iteration statement */
+    SPLT_FOR_LOOP_BODY, /* body of a for loop */
+    SPLT_LABELED_STMT,  /* labeled statement */
+    SPLT_JUMP_STMT,     /* jump statement */
 
-    /* Terminals: Punctuations */
-    AST_SEMI,  /* semicolon */
-    AST_COMMA, /* comma */
+    SPLT_DEF_LIST, /* list of definitions */
+    SPLT_DEF,      /* base for a single definition: list of variable declaration */
+    SPLT_DEC_LIST, /* list of variable declaration */
+    SPLT_DEC,      /* single declarator, one of `var`s in `type var1, var2` */
 
-    /* Terminals: Operators */
-    AST_ASSIGN, /* assign */
+    SPLT_PRIM_EXPR,   /* primary expression */
+    SPLT_POSTF_EXPR,  /* postfix expression */
+    SPLT_UNARY_EXPR,  /* unary expression */
+    SPLT_CAST_EXPR,   /* unary expression */
+    SPLT_MUL_EXPR,    /* multiplicative expression */
+    SPLT_ADD_EXPR,    /* additive expression */
+    SPLT_SHIFT_EXPR,  /* shift expression */
+    SPLT_REL_EXPR,    /* relational expression */
+    SPLT_EQ_EXPR,     /* equality expression */
+    SPLT_BW_AND_EXPR, /* bitwise AND expression */
+    SPLT_BW_XOR_EXPR, /* bitwise XOR expression */
+    SPLT_BW_OR_EXPR,  /* bitwise OR expression */
+    SPLT_AND_EXPR,    /* logical AND expression */
+    SPLT_OR_EXPR,     /* logical OR expression */
+    SPLT_COND_EXPR,   /* conditional expression, using "?:" */
+    SPLT_ASSIGN_EXPR, /* assignment expression */
+    SPLT_EXPR,        /* expression */
+    SPLT_CONST_EXPR,  /* constant expression */
 
-    AST_AND,    /* and */
-    AST_OR,     /* or */
-    AST_BW_AND, /* bitwise and */
-    AST_BW_OR,  /* bitwise or */
-
-    AST_LT, /* less than */
-    AST_LE, /* less than or equal to */
-    AST_GT, /* greater than */
-    AST_GE, /* greater than or equal to */
-    AST_NE, /* not equal to */
-    AST_EQ, /* equal to */
-
-    AST_PLUS,  /* plus */
-    AST_MINUS, /* minus */
-    AST_ASTRK, /* asterisk operator */
-    AST_DIV,   /* division operator */
-
-    AST_LC,  /* left curly bracket */
-    AST_RC,  /* right curly bracket */
-    AST_LP,  /* left parenthesis */
-    AST_RP,  /* right parenthesis */
-    AST_NOT, /* not operator */
-    AST_DOT, /* dot - member access */
-    AST_LSB, /* left square bracket */
-    AST_RSB, /* right square bracket */
+    // SPLT_CONST_EXPR, /* constant expression */
+    SPLT_ARG_LIST, /* argument list */
 
     /* Terminal: Keywords */
-    AST_STRUCT, /* keyword: struct */
-    AST_IF,     /* keyword: if */
-    AST_ELSE,   /* keyword: else */
-    AST_WHILE,  /* keyword: while */
-    AST_FOR,    /* keyword: for */
-    AST_RETURN, /* keyword: while */
+    SPLT_STRUCT,  /* keyword: struct */
+    SPLT_UNION,   /* keyword: union */
+
+    SPLT_WHILE,   /* keyword: while */
+    SPLT_FOR,     /* keyword: for */
+    SPLT_DO,      /* keyword: do */
+
+    SPLT_IF,      /* keyword: if */
+    SPLT_ELSE,    /* keyword: else */
+    SPLT_SWITCH,  /* keyword: switch */
+    SPLT_DEFAULT, /* keyword: default */
+    SPLT_CASE,    /* keyword: case */
+
+    SPLT_GOTO,     /* keyword: goto */
+    SPLT_CONTINUE, /* keyword: continue */
+    SPLT_BREAK,    /* keyword: break */
+    SPLT_RETURN,   /* keyword: return */
+
+    /* Terminals: Punctuators */
+    SPLT_LC,  /* left curly bracket */
+    SPLT_RC,  /* right curly bracket */
+    SPLT_LP,  /* left parenthesis */
+    SPLT_RP,  /* right parenthesis */
+    SPLT_LSB, /* left square bracket */
+    SPLT_RSB, /* right square bracket */
+
+    SPLT_SEMI,  /* semicolon */
+    SPLT_COMMA, /* comma */
+
+    SPLT_QM,    /* question mark */
+    SPLT_COLON, /* colon */
+
+    /* Assignment Operators */
+    SPLT_ASSIGN,        /* assign */
+    SPLT_MUL_ASSIGN,    /* multiply and assign */
+    SPLT_DIV_ASSIGN,    /* divide and assign */
+    SPLT_MOD_ASSIGN,    /* mode and assign */
+    SPLT_PLUS_ASSIGN,   /* plus and assign */
+    SPLT_MINUS_ASSIGN,  /* minus and assign */
+    SPLT_LSHIFT_ASSIGN, /* left shift and assign */
+    SPLT_RSHIFT_ASSIGN, /* right shift and assign */
+    SPLT_BW_AND_ASSIGN, /* bitwise AND and assign */
+    SPLT_BW_XOR_ASSIGN, /* bitwise XOR and assign */
+    SPLT_BW_OR_ASSIGN,  /* bitwise OR assign */
+
+    SPLT_LSHIFT, /* right shift */
+    SPLT_RSHIFT, /* left shift */
+    SPLT_BW_AND, /* bitwise and */
+    SPLT_BW_OR,  /* bitwise or */
+    SPLT_BW_XOR, /* bitwise xor */
+    SPLT_BW_NOT, /* not operator */
+    SPLT_AND,    /* and */
+    SPLT_OR,     /* or */
+    SPLT_NOT,    /* not operator */
+
+    SPLT_SIZEOF, /* sizeof */
+
+    SPLT_LT, /* less than */
+    SPLT_LE, /* less than or equal to */
+    SPLT_GT, /* greater than */
+    SPLT_GE, /* greater than or equal to */
+    SPLT_NE, /* not equal to */
+    SPLT_EQ, /* equal to */
+
+    SPLT_DPLUS,  /* double plus */
+    SPLT_DMINUS, /* double minus */
+    SPLT_PLUS,   /* plus */
+    SPLT_MINUS,  /* minus */
+    SPLT_ASTRK,  /* asterisk operator */
+    SPLT_DIV,    /* division operator */
+    SPLT_MOD,    /* mod operator */
+
+    SPLT_DOT,    /* dot - member access */
+    SPLT_RARROW, /* right arrow - member access */
 
     /* Terminals: Constant Expressions */
-    AST_BUILTIN_TYPE, /* keyword: built-in type */
-    AST_ID,           /* id literal */
-    AST_INT,          /* integer literal */
-    AST_FLOAT,        /* float literal scientific notation allowed */
-    AST_CHAR,         /* character literal */
-    AST_STREXP,       /* parent of the string expression */
-    AST_STR,          /* string literal */
+    SPLT_TYPE_INT,      /* type: int */
+    SPLT_TYPE_FLOAT,    /* type: float */
+    SPLT_TYPE_CHAR,     /* type: char */
+    // SPLT_TYPE_UNSIGNED, /* type: int */
+    // SPLT_TYPE_SIGNED,   /* type: int */
+    // SPLT_TYPE_LONG,     /* type: int */
+    SPLT_ID,            /* id literal */
+    SPLT_CONSTANT,      /* constants */
 
     /* Nonterminals: Macro Expressions */
-    AST_MACRO_MNTPT,  /* AST: macro mount point */
-    AST_MACRO_ID,     /* macro ID */
-    AST_MACRO_DEFINE, /* macro: define */
-    AST_MACRO_IFDEF,  /* macro: ifdef */
-    AST_MACRO_IFNDEF, /* macro: ifndef */
-    AST_MACRO_ENDIF,  /* macro: endif */
+    SPLT_MACRO_MNTPT,  /* AST: macro mount point */
+    SPLT_MACRO_ID,     /* macro ID */
+    SPLT_MACRO_DEFINE, /* macro: define */
+    SPLT_MACRO_IFDEF,  /* macro: ifdef */
+    SPLT_MACRO_IFNDEF, /* macro: ifndef */
+    SPLT_MACRO_ENDIF,  /* macro: endif */
+
+    /* Terminals: Literals */
+    SPLT_LTR_INT,   /* integer literal */
+    SPLT_LTR_FLOAT, /* float literal scientific notation allowed */
+    SPLT_LTR_CHAR,  /* character literal */
+    SPLT_LTR_STR,   /* string literal */
+    SPLT_STR,       /* basic string unit */
 };
+
+#define SPLT_IS_BUILTIN_TYPE(x) ((x) == SPLT_TYPE_INT || (x) == SPLT_TYPE_FLOAT || (x) == SPLT_TYPE_CHAR)
 
 /* Convert a token to string. The caller shall not free this string. */
 const char *splc_token2str(splc_token_t type);

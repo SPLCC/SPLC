@@ -10,7 +10,7 @@ int splc_enable_colored_ast = 0;
 ast_node create_empty_node()
 {
     ast_node node = (ast_node)malloc(sizeof(ast_node_struct));
-    node->type = AST_NULL;
+    node->type = SPLT_NULL;
     node->entry = NULL;
     node->children = NULL;
     node->num_child = 0;
@@ -48,7 +48,7 @@ ast_node create_parent_node(const splc_token_t type, size_t num_child, ...)
         ast_node child = va_arg(args, ast_node);
         if (SPLC_IS_LOC_INVALID(node->location))
             node->location = child->location;
-        if (child == NULL || child->type == AST_NULL)
+        if (child == NULL || child->type == SPLT_NULL)
             continue;
         add_child(node, child);
     }
@@ -73,24 +73,19 @@ void builtin_print_ast(const ast_node node, int level)
 
     switch (node->type)
     {
-    case AST_BUILTIN_TYPE:
+    case SPLT_ID:
         printf(": %s", (char *)node->val);
         break;
-
-    case AST_ID:
-        printf(": %s", (char *)node->val);
-        break;
-
-    case AST_INT:
+    case SPLT_LTR_INT:
         printf(": %lu", node->ulong_val);
         break;
-    case AST_FLOAT:
+    case SPLT_LTR_FLOAT:
         printf(": %g", node->float_val);
         break;
-    case AST_CHAR:
+    case SPLT_LTR_CHAR:
         printf(": %s", (char *)node->val);
         break;
-    case AST_STR:
+    case SPLT_STR:
         printf(": \"%s\"", (char *)node->val);
         break;
 
