@@ -1,5 +1,5 @@
 BasedOnStyle: Microsoft
 IndentWidth: 4
 Language: Cpp
-AlignAfterOpenBracket: true
+AlignAfterOpenBracket: Align
 BraceBreakingStyle: Stroustrup

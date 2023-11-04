@@ -1,6 +1,7 @@
 #include "utils.h"
 #include "dir_search.h"
 #include "lex.yy.h"
+#include "syntax.tab.h"
 
 #include <limits.h>
 #include <stddef.h>
@@ -51,20 +52,20 @@ static const char *get_splc_error_color_code(error_t type)
     case SPLC_ERR_A:
     case SPLC_ERR_B:
     case SPLC_MACRO_ERROR:
-        color_code = "\033[31m";
+        color_code = "\033[91m";
         break;
     case SPLC_WARN:
     case SPLC_MACRO_WARN:
-        color_code = "\033[35m";
+        color_code = "\033[95m";
         break;
     case SPLC_NOTE:
-        color_code = "\033[36m";
+        color_code = "\033[96m";
         break;
     case SPLC_DIAG:
-        color_code = "\033[33m";
+        color_code = "\033[93m";
         break;
     default:
-        color_code = "\033[36m";
+        color_code = "\033[96m";
         break;
     }
     return color_code;
@@ -225,7 +226,8 @@ static void _builtin_splc_handle_msg_noloc(error_t type, const char *msg)
 
 static void _builtin_splc_handle_msg(error_t type, const splc_loc *const location, const char *msg)
 {
-    // fprintf(stderr, "msg param %d %d - %d %d\n", linebegin, colbegin, lineend, colend);
+    // fprintf(stderr, "msg param %d %d - %d %d\n", location->linebegin, location->colbegin, location->lineend,
+    // location->colend);
     const char *color_code = get_splc_error_color_code(type);
     char *type_name = splc_get_msg_type_prefix(type);
     char *type_suffix = splc_get_msg_type_suffix(type);
@@ -377,7 +379,7 @@ static int _builtin_splc_enter_file(const char *restrict _filename, const splc_l
     node->filename = filename;
     node->file = new_file;
     node->file_buffer = yy_create_buffer(new_file, YY_BUF_SIZE);
-    node->location = (location != NULL) ? *location : splc_loc_root;
+    node->location = (location != NULL) ? *location : SPLC_ROOT_LOC;
     node->yylineno = yylineno;
     node->yycolno = yycolno;
     node->next = splc_file_node_stack;
@@ -426,6 +428,11 @@ int _builtin_splc_exit_file()
     {
         yy_switch_to_buffer(splc_file_node_stack->file_buffer);
         yynewfile = 0;
+        /* Handle yylloc */
+        yylloc.first_line = tmp->location.linebegin;
+        yylloc.first_column = tmp->location.colbegin;
+        yylloc.last_line = tmp->location.lineend;
+        yylloc.last_column = tmp->location.colend;
         yylineno = tmp->yylineno;
         yycolno = tmp->yycolno;
     }

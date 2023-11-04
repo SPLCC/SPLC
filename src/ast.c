@@ -3,6 +3,9 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+int splc_enable_colored_ast = 0;
 
 ast_node create_empty_node()
 {
@@ -11,15 +14,16 @@ ast_node create_empty_node()
     node->entry = NULL;
     node->children = NULL;
     node->num_child = 0;
-    node->lineno = 0;
-    node->colno = 0;
+    memset(&node->location, 0, sizeof(splc_loc));
+    node->location.fid = -1;
     return node;
 }
 
-ast_node create_leaf_node(splc_token_t type)
+ast_node create_leaf_node(const splc_token_t type, const splc_loc location)
 {
     ast_node node = create_empty_node();
     node->type = type;
+    node->location = location;
     return node;
 }
 
@@ -30,12 +34,11 @@ void add_child(ast_node parent, ast_node child)
     ++(parent->num_child);
 }
 
-ast_node create_parent_node(splc_token_t type, int lineno, size_t num_child, ...)
+ast_node create_parent_node(const splc_token_t type, size_t num_child, ...)
 {
     ast_node node = create_empty_node();
     node->type = type;
-    node->num_child = 0;
-    node->lineno = lineno;
+    node->location = SPLC_INVALID_LOC;
 
     va_list args;
     va_start(args, num_child);
@@ -43,6 +46,8 @@ ast_node create_parent_node(splc_token_t type, int lineno, size_t num_child, ...
     for (size_t i = 0; i < num_child; ++i)
     {
         ast_node child = va_arg(args, ast_node);
+        if (SPLC_IS_LOC_INVALID(node->location))
+            node->location = child->location;
         if (child == NULL || child->type == AST_NULL)
             continue;
         add_child(node, child);
@@ -51,14 +56,20 @@ ast_node create_parent_node(splc_token_t type, int lineno, size_t num_child, ...
     return node;
 }
 
-void builtin_print_ast(ast_node node, int level)
+void builtin_print_ast(const ast_node node, int level)
 {
     for (int i = 0; i < level; i++)
     {
         printf("  ");
     }
+    if (splc_enable_colored_ast)
+        printf("%s", splc_get_token_color_code(node->type));
 
-    printf("%s", get_splc_token_string(node->type));
+    const char *tokenstr = splc_token2str(node->type); /* do not free this string, as it is a constant */
+    printf("%s", tokenstr);
+
+    if (splc_enable_colored_ast)
+        printf("\033[0m");
 
     switch (node->type)
     {
@@ -87,11 +98,19 @@ void builtin_print_ast(ast_node node, int level)
         break;
     }
 
-    if (node->lineno > 0)
+    if (splc_enable_colored_ast && SPLC_IS_LOC_INVALID(node->location))
+        printf("\033[33m");
+    if (node->num_child == 0) 
     {
-        printf(" (%d)", node->lineno);
+        char *location = splc_loc2str(node->location);
+        printf(" %s", location);
+        free(location);
     }
     printf("\n");
+
+    if (splc_enable_colored_ast && SPLC_IS_LOC_INVALID(node->location))
+        printf("\033[0m");
+
     for (int i = 0; i < node->num_child; i++)
     {
         builtin_print_ast(node->children[i], level + 1);

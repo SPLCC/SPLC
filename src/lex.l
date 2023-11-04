@@ -137,7 +137,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 
 <IN_STRING>\\[abefnrtv\\\'\"\?] {
-    yylval = create_leaf_node(AST_STR);
+    yylval = create_leaf_node(AST_STR, SPLC_YY2LOC_CF_D(yylloc));
     yylval->val = (void *)strdup(yytext);
     return STR;
 }
@@ -147,7 +147,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 
 <IN_STRING>[^\n\r\"\\]+ {
-    yylval = create_leaf_node(AST_STR);
+    yylval = create_leaf_node(AST_STR, SPLC_YY2LOC_CF_D(yylloc));
     yylval->val = (void *)strdup(yytext);
     return STR;
 }
@@ -158,21 +158,21 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 
     /* =================== SPL: keywords =================== */
 <INITIAL>"int"|"float"|"char"  {
-    yylval = create_leaf_node(AST_BUILTIN_TYPE);
+    yylval = create_leaf_node(AST_BUILTIN_TYPE, SPLC_YY2LOC_CF_D(yylloc));
     yylval->val = (void *)strdup(yytext);
     return TYPE;
 }
 
-<INITIAL>"struct"  { yylval = create_leaf_node(AST_STRUCT); return STRUCT; }
-<INITIAL>"if"      { yylval = create_leaf_node(AST_IF); return IF; }
-<INITIAL>"else"    { yylval = create_leaf_node(AST_ELSE); return ELSE; }
-<INITIAL>"while"   { yylval = create_leaf_node(AST_WHILE); return WHILE; }
-<INITIAL>"for"     { yylval = create_leaf_node(AST_FOR); return FOR; }
-<INITIAL>"return"  { yylval = create_leaf_node(AST_RETURN); return RETURN; }
+<INITIAL>"struct"  { yylval = create_leaf_node(AST_STRUCT, SPLC_YY2LOC_CF_D(yylloc)); return STRUCT; }
+<INITIAL>"if"      { yylval = create_leaf_node(AST_IF, SPLC_YY2LOC_CF_D(yylloc)); return IF; }
+<INITIAL>"else"    { yylval = create_leaf_node(AST_ELSE, SPLC_YY2LOC_CF_D(yylloc)); return ELSE; }
+<INITIAL>"while"   { yylval = create_leaf_node(AST_WHILE, SPLC_YY2LOC_CF_D(yylloc)); return WHILE; }
+<INITIAL>"for"     { yylval = create_leaf_node(AST_FOR, SPLC_YY2LOC_CF_D(yylloc)); return FOR; }
+<INITIAL>"return"  { yylval = create_leaf_node(AST_RETURN, SPLC_YY2LOC_CF_D(yylloc)); return RETURN; }
 
     /* =================== SPL: floating point =================== */
 <INITIAL>[0-9]*\.[0-9]+([eE][-+]?[0-9]+)? {
-    yylval = create_leaf_node(AST_FLOAT);
+    yylval = create_leaf_node(AST_FLOAT, SPLC_YY2LOC_CF_D(yylloc));
     yylval->float_val = strtof(yytext, NULL);
     if (errno == ERANGE)
     {
@@ -183,7 +183,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 
 <INITIAL>[0-9]*\.([0-9]|[eE]|[-+]|[\.])+ {
-    yylval = create_leaf_node(AST_FLOAT);
+    yylval = create_leaf_node(AST_FLOAT, SPLC_YY2LOC_CF_D(yylloc));
     splcerror(SPLC_ERR_A, SPLC_YY2LOC_CF_D(yylloc), "too many decimal points or exponential indicators");
     yylval->float_val = 0.0f;
     return FLOAT;
@@ -191,7 +191,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 
     /* =================== SPL: integers =================== */
 <INITIAL>[0-9]+ {
-    yylval = create_leaf_node(AST_INT);
+    yylval = create_leaf_node(AST_INT, SPLC_YY2LOC_CF_D(yylloc));
     if (yyleng > 1 && yytext[0] == '0') 
     {
         splcerror(SPLC_ERR_A, SPLC_YY2LOC_CF_D(yylloc), "decimal integer cannot start with 0");
@@ -206,7 +206,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 
 <INITIAL>0[xX][0-9a-fA-F]{1,8} {
-    yylval = create_leaf_node(AST_INT);
+    yylval = create_leaf_node(AST_INT, SPLC_YY2LOC_CF_D(yylloc));
     if (yyleng > 3 && yytext[2] == '0')
     {
         splcerror(SPLC_ERR_A, SPLC_YY2LOC_CF_D(yylloc), "hexadecimal integer cannot start with 0");
@@ -222,7 +222,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 
     /* SPL: invalid hexadecimal integer */
 <INITIAL>0[xX][0-9a-fA-F]{9,} {
-    yylval = create_leaf_node(AST_INT);
+    yylval = create_leaf_node(AST_INT, SPLC_YY2LOC_CF_D(yylloc));
     splcwarn(SPLC_YY2LOC_CF_D(yylloc), "overflow in integer constant");
     yylval->ulong_val = 0;
     return INT;
@@ -231,18 +231,18 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     /* =================== SPL: char =================== */
 <INITIAL>0[xX][0-9a-zA-Z]+ {
     splcerror(SPLC_ERR_A, SPLC_YY2LOC_CF_D(yylloc), "hexadecimal integer contains invalid characters");
-    yylval = create_leaf_node(AST_INT);
+    yylval = create_leaf_node(AST_INT, SPLC_YY2LOC_CF_D(yylloc));
     return INT;
 }
 
 <INITIAL>'\\x[0-9a-fA-F]{2}' {
-    yylval = create_leaf_node(AST_CHAR);
+    yylval = create_leaf_node(AST_CHAR, SPLC_YY2LOC_CF_D(yylloc));
     yylval->val = (void *)strndup(yytext + 1, 4);
     return CHAR;
 }
 
 <INITIAL>'\\x[0-9a-zA-Z]*' {
-    yylval = create_leaf_node(AST_CHAR);
+    yylval = create_leaf_node(AST_CHAR, SPLC_YY2LOC_CF_D(yylloc));
     splcerror(SPLC_ERR_A, SPLC_YY2LOC_CF_D(yylloc), "invalid form of octal-form character");
     yylval->val = (void *)strndup(yytext + 1, strlen(yytext) - 2);
     return CHAR;
@@ -250,69 +250,69 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 
     /* =================== SPL: ID =================== */
 <INITIAL>{identifier} { 
-    yylval = create_leaf_node(AST_ID);
+    yylval = create_leaf_node(AST_ID, SPLC_YY2LOC_CF_D(yylloc));
     yylval->val = (void *)strdup(yytext);
     return ID;
 }
 
 <INITIAL>[0-9][a-zA-Z0-9_]* {
-    yylval = create_leaf_node(AST_ID);
+    yylval = create_leaf_node(AST_ID, SPLC_YY2LOC_CF_D(yylloc));
     yylval->val = (void *)strdup(yytext);       
     splcerror(SPLC_ERR_A, SPLC_YY2LOC_CF_D(yylloc), "identifier name cannot start with digits");
     return ID;
 }
 
 <INITIAL>'\\[abefnrtv\\\'\"\?]' {
-    yylval = create_leaf_node(AST_CHAR);
+    yylval = create_leaf_node(AST_CHAR, SPLC_YY2LOC_CF_D(yylloc));
     yylval->val = (void *)strndup(yytext + 2, 1);
     return CHAR; 
 }
 
 <INITIAL>'.' {
-    yylval = create_leaf_node(AST_CHAR);
+    yylval = create_leaf_node(AST_CHAR, SPLC_YY2LOC_CF_D(yylloc));
     yylval->val = (void *)strndup(yytext + 1, 1);
     return CHAR;
 }
 
 
     /* =================== SPL: operators =================== */
-<INITIAL>"="  { yylval = create_leaf_node(AST_ASSIGN); return ASSIGN; }
+<INITIAL>"="  { yylval = create_leaf_node(AST_ASSIGN, SPLC_YY2LOC_CF_D(yylloc)); return ASSIGN; }
 
-<INITIAL>"&&" { yylval = create_leaf_node(AST_AND); return AND; }
-<INITIAL>"||" { yylval = create_leaf_node(AST_OR); return OR; }
+<INITIAL>"&&" { yylval = create_leaf_node(AST_AND, SPLC_YY2LOC_CF_D(yylloc)); return AND; }
+<INITIAL>"||" { yylval = create_leaf_node(AST_OR, SPLC_YY2LOC_CF_D(yylloc)); return OR; }
 <INITIAL>"&"  { 
-    yylval = create_leaf_node(AST_BITWISE_AND); 
+    yylval = create_leaf_node(AST_BITWISE_AND, SPLC_YY2LOC_CF_D(yylloc)); 
     splcerror(SPLC_ERR_A, SPLC_YY2LOC_CF_D(yylloc), "unsupported lexeme");
     return BITWISE_AND; 
 }
 <INITIAL>"|"  { 
-    yylval = create_leaf_node(AST_BITWISE_OR); 
+    yylval = create_leaf_node(AST_BITWISE_OR, SPLC_YY2LOC_CF_D(yylloc)); 
     splcerror(SPLC_ERR_A, SPLC_YY2LOC_CF_D(yylloc), "unsupported lexeme");
     return BITWISE_OR; 
 }
 
-<INITIAL>"<"  { yylval = create_leaf_node(AST_LT); return LT; }
-<INITIAL>"<=" { yylval = create_leaf_node(AST_LE); return LE; }
-<INITIAL>">"  { yylval = create_leaf_node(AST_GT); return GT; }
-<INITIAL>">=" { yylval = create_leaf_node(AST_GE); return GE; }
-<INITIAL>"!=" { yylval = create_leaf_node(AST_NE); return NE; }
-<INITIAL>"==" { yylval = create_leaf_node(AST_EQ); return EQ; }
-<INITIAL>"."  { yylval = create_leaf_node(AST_DOT); return DOT; }
-<INITIAL>";"  { yylval = create_leaf_node(AST_SEMI); return SEMI; }
-<INITIAL>","  { yylval = create_leaf_node(AST_COMMA); return COMMA; }
-<INITIAL>"+"  { yylval = create_leaf_node(AST_PLUS); return PLUS; }
-<INITIAL>"-"  { yylval = create_leaf_node(AST_MINUS); return MINUS; }
-<INITIAL>"*"  { yylval = create_leaf_node(AST_MUL); return MUL; }
-<INITIAL>"/"  { yylval = create_leaf_node(AST_DIV); return DIV; }
+<INITIAL>"<"  { yylval = create_leaf_node(AST_LT, SPLC_YY2LOC_CF_D(yylloc)); return LT; }
+<INITIAL>"<=" { yylval = create_leaf_node(AST_LE, SPLC_YY2LOC_CF_D(yylloc)); return LE; }
+<INITIAL>">"  { yylval = create_leaf_node(AST_GT, SPLC_YY2LOC_CF_D(yylloc)); return GT; }
+<INITIAL>">=" { yylval = create_leaf_node(AST_GE, SPLC_YY2LOC_CF_D(yylloc)); return GE; }
+<INITIAL>"!=" { yylval = create_leaf_node(AST_NE, SPLC_YY2LOC_CF_D(yylloc)); return NE; }
+<INITIAL>"==" { yylval = create_leaf_node(AST_EQ, SPLC_YY2LOC_CF_D(yylloc)); return EQ; }
+<INITIAL>"."  { yylval = create_leaf_node(AST_DOT, SPLC_YY2LOC_CF_D(yylloc)); return DOT; }
+<INITIAL>";"  { yylval = create_leaf_node(AST_SEMI, SPLC_YY2LOC_CF_D(yylloc)); return SEMI; }
+<INITIAL>","  { yylval = create_leaf_node(AST_COMMA, SPLC_YY2LOC_CF_D(yylloc)); return COMMA; }
+<INITIAL>"+"  { yylval = create_leaf_node(AST_PLUS, SPLC_YY2LOC_CF_D(yylloc)); return PLUS; }
+<INITIAL>"-"  { yylval = create_leaf_node(AST_MINUS, SPLC_YY2LOC_CF_D(yylloc)); return MINUS; }
+<INITIAL>"*"  { yylval = create_leaf_node(AST_MUL, SPLC_YY2LOC_CF_D(yylloc)); return MUL; }
+<INITIAL>"/"  { yylval = create_leaf_node(AST_DIV, SPLC_YY2LOC_CF_D(yylloc)); return DIV; }
 
 
-<INITIAL>"!"  { yylval = create_leaf_node(AST_NOT); return NOT; }
-<INITIAL>"{"  { yylval = create_leaf_node(AST_LC); return LC; }
-<INITIAL>"}"  { yylval = create_leaf_node(AST_RC); return RC; }
-<INITIAL>"("  { yylval = create_leaf_node(AST_LP); return LP; }
-<INITIAL>")"  { yylval = create_leaf_node(AST_RP); return RP; }
-<INITIAL>"["  { yylval = create_leaf_node(AST_LSB); return LSB; }
-<INITIAL>"]"  { yylval = create_leaf_node(AST_RSB); return RSB; }
+<INITIAL>"!"  { yylval = create_leaf_node(AST_NOT, SPLC_YY2LOC_CF_D(yylloc)); return NOT; }
+<INITIAL>"{"  { yylval = create_leaf_node(AST_LC, SPLC_YY2LOC_CF_D(yylloc)); return LC; }
+<INITIAL>"}"  { yylval = create_leaf_node(AST_RC, SPLC_YY2LOC_CF_D(yylloc)); return RC; }
+<INITIAL>"("  { yylval = create_leaf_node(AST_LP, SPLC_YY2LOC_CF_D(yylloc)); return LP; }
+<INITIAL>")"  { yylval = create_leaf_node(AST_RP, SPLC_YY2LOC_CF_D(yylloc)); return RP; }
+<INITIAL>"["  { yylval = create_leaf_node(AST_LSB, SPLC_YY2LOC_CF_D(yylloc)); return LSB; }
+<INITIAL>"]"  { yylval = create_leaf_node(AST_RSB, SPLC_YY2LOC_CF_D(yylloc)); return RSB; }
 
 
 
@@ -322,17 +322,20 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 
     /* =================== SPL: unknown lexemes =================== */
 <INITIAL>. {
-    yylval = create_leaf_node(AST_ID);
+    yylval = create_leaf_node(AST_ID, SPLC_YY2LOC_CF_D(yylloc));
     yylval->val = (void *)strdup(yytext);
     splcerror(SPLC_ERR_A, SPLC_YY2LOC_CF_D(yylloc), "unknown lexeme");
     return ID;
 }
 %%
 
+/* This function defines what to do when EOF has been reached */
 int yywrap()
 {
     int op = splc_exit_file();
     if (op == 0)
+    {
         BEGIN(IN_PPD_INCL);
+    }
     return op;
 }

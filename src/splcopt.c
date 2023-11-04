@@ -14,6 +14,8 @@ const char **splc_incl_dirs = NULL;
 int splc_src_file_cnt = 0;
 const char **splc_src_files = NULL;
 
+
+
 /* From `splcopt.h` */
 
 int splc_opterror = 1;
@@ -74,7 +76,7 @@ int splc_getopt(int nargc, char *nargv[], const char *ostr)
 void splc_process_args(int nargc, char *nargv[])
 {
     int opcode;
-    while ((opcode = splc_getopt(nargc, nargv, "I:v")) != -1)
+    while ((opcode = splc_getopt(nargc, nargv, "I:vt")) != -1)
     {
         switch (opcode)
         {
@@ -114,6 +116,9 @@ void splc_process_args(int nargc, char *nargv[])
                 break;
             case 'v':
                 splc_enable_diag = 1;
+                break;
+            case 't':
+                splc_enable_colored_ast = 1;
                 break;
             default:
                 break;
