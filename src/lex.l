@@ -112,7 +112,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 
 <IN_PPD_INCL>. {
-    splcwarn(SPLC_YY2LOC_CF_1_PNT_E(yylineno, yycolno - 1), "Unrecognized token in #include directive");
+    splcwarn(SPLC_YY2LOC_CF_D(yylloc), "Unrecognized token in #include directive");
 }
 
 <IN_PPD_INCL>\r?\n {
@@ -120,7 +120,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 
 <IN_MACRO_DEF>. {
-    splcwarn(SPLC_YY2LOC_CF_1_PNT_E(yylineno, yycolno - 1), "unsupported preprocessor directive");
+    splcwarn(SPLC_YY2LOC_CF_D(yylloc), "unsupported preprocessor directive");
     BEGIN(INITIAL);
 }
 
