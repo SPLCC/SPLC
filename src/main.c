@@ -44,8 +44,9 @@ int main(int argc, char *argv[])
 
         /* Start parsing */
         yyparse();
-
+#ifndef DEBUG
         if (!err_flag)
+#endif
             print_ast(root);
     }
 

@@ -110,13 +110,14 @@ struct-specifier:
 
 /* Single variable declaration */
 variable-declarator: 
-      pointer direct-declarator { $$ = create_parent_node(SPLT_DIR_DEC, 1, $1); }
+      pointer direct-declarator { $$ = create_parent_node(SPLT_DIR_DEC, 2, $1, $2); }
     | direct-declarator { $$ = create_parent_node(SPLT_DIR_DEC, 1, $1); }
     ;
 
 direct-declarator:
       identifier { $$ = create_parent_node(SPLT_VAR_DEC, 1, $1); }
     | direct-declarator LSB LTR_INT RSB { $$ = create_parent_node(SPLT_VAR_DEC, 4, $1, $2, $3, $4); }
+    | direct-declarator LSB RSB { $$ = create_parent_node(SPLT_VAR_DEC, 3, $1, $2, $3); }
     | direct-declarator LSB LTR_INT error { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_L(@2), "missing closing bracket ']'"); $$ = create_parent_node(SPLT_FUNC_DEC, 0); yyerrok; } 
     | direct-declarator LTR_INT RSB { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_F(@2), "expected '[' here"); $$ = create_parent_node(SPLT_FUNC_DEC, 0); yyerrok; } 
     | direct-declarator RSB { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_F(@2), "expected '[' here"); $$ = create_parent_node(SPLT_FUNC_DEC, 0); yyerrok; } 
@@ -145,8 +146,8 @@ direct-function-declarator:
 
 /* List of variables names */
 variable-list: 
-      parameter-declaration COMMA variable-list { $$ = create_parent_node(SPLT_VAR_LIST, 3, $1, $2, $3); }
-    | parameter-declaration { $$ = create_parent_node(SPLT_VAR_LIST, 1, $1); }
+      parameter-declaration { $$ = create_parent_node(SPLT_VAR_LIST, 1, $1); }
+    | variable-list COMMA parameter-declaration { $$ = create_parent_node(SPLT_VAR_LIST, 3, $1, $2, $3); }
     ;
 
 /* Parameter declaration */ 
@@ -298,6 +299,7 @@ postfix-expression:
       primary-expression
     | postfix-expression LSB expression RSB { $$ = create_parent_node(SPLT_EXPR, 4, $1, $2, $3, $4); }
     | postfix-expression LP argument-list RP { $$ = create_parent_node(SPLT_EXPR, 4, $1, $2, $3, $4); }
+    | postfix-expression LP RP { $$ = create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
     | postfix-expression DOT identifier { $$ = create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
     | postfix-expression RARROW identifier { $$ = create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
     | postfix-expression DPLUS { $$ = create_parent_node(SPLT_EXPR, 2, $1, $2); }
@@ -433,5 +435,7 @@ identifier:
 
 void yyerror(const char *s) {
     // suppressed
-    /* fprintf(stderr, "%s at line %d\n", s, yylloc.first_line); */
+#ifdef DEBUG
+    fprintf(stderr, "%s at line %d\n", s, yylloc.first_line);
+#endif
 }

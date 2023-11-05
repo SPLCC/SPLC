@@ -196,11 +196,11 @@ const char *splc_token2str(splc_token_t type)
     case SPLT_TRANS_UNIT:
         return "Translation Unit";
     case SPLT_EXT_DEF_LIST:
-        return "ExtDefList";
+        return "External DefList";
     case SPLT_EXT_DEF:
-        return "ExtDef";
+        return "External Def";
     case SPLT_EXT_DEC_LIST:
-        return "ExtDecList";
+        return "External DecList";
     case SPLT_TYPE_SPEC:
         return "Specifier";
     case SPLT_STRUCT_SPECIFIER:
@@ -243,21 +243,21 @@ const char *splc_token2str(splc_token_t type)
 
     /* Nonterminals: local definition */
     case SPLT_DEF_LIST:
-        return "DefList";
+        return "Def List";
     case SPLT_DEF:
         return "Def";
     case SPLT_DEC_LIST:
-        return "DecList";
+        return "Dec List";
     case SPLT_DEC:
         return "Dec";
     case SPLT_EXPR:
         return "Exp";
     case SPLT_CONST_EXPR:
-        return "ConstExp";
+        return "Const Expr";
     case SPLT_CONSTANT:
         return "Constant";
     case SPLT_ARG_LIST:
-        return "Args";
+        return "Arg List";
 
     /* Terminal: Keywords */
     case SPLT_STRUCT:
@@ -302,9 +302,9 @@ const char *splc_token2str(splc_token_t type)
     case SPLT_RP:
         return "RP";
     case SPLT_LSB:
-        return "LB";
+        return "LSB";
     case SPLT_RSB:
-        return "RB";
+        return "RSB";
 
     case SPLT_SEMI:
         return "SEMI";
@@ -380,7 +380,7 @@ const char *splc_token2str(splc_token_t type)
     case SPLT_MINUS:
         return "MINUS";
     case SPLT_ASTRK:
-        return "MUL";
+        return "ASTRK";
     case SPLT_DIV:
         return "DIV";
     case SPLT_MOD:
