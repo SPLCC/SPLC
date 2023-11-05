@@ -17,7 +17,7 @@ process_directory() {
             filename=$(basename "$file" .spl)
 
             # Call bin/splc with the input file and redirect the output to a .out file
-            bin/splc "$file" > "$input_directory/tmp_$filename.out" 2>&1
+            bin/splc "$file" > "$input_directory/tmp_$filename.out" 2>&1 
             
             output=$(diff "$input_directory/$filename.out" "$input_directory/tmp_$filename.out")
 
@@ -34,11 +34,11 @@ process_directory() {
                 echo
                 echo "=========> Diff Output"
                 
-                echo $output
+                echo -e $output
                 echo
                 echo "=========> Program Output"
 
-                bin/splc "$file"
+                bin/splc "$file" -v -t
             else
                 echo "An error occurred"
             fi

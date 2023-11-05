@@ -24,7 +24,8 @@ char *splc_loc2str(splc_loc location);
 
 splc_loc splc_concat_loc(splc_loc l, splc_loc r);
 
-#define SPLT_EXPR_OFFSET 0x00000100
+#define SPLT_EXPR_OFFSET 0x00000080
+#define SPLT_STMT_OFFSET 0x00000100
 #define SPLT_KEYWORD_OFFSET 0x00000200
 #define SPLT_PUNCTUATOR_OFFSET 0x00000400
 #define SPLT_OPERATOR_OFFSET 0x00000800
@@ -54,18 +55,20 @@ enum splc_token_type
     SPLT_VAR_LIST,  /* variable list (parameter list) */
     SPLT_PARAM_DEC, /* single parameter declaration */
 
-    SPLT_COMP_STMT,     /* compound statement */
-    SPLT_STMT_LIST,     /* list of statements */
-    SPLT_STMT,          /* single statement */
-    SPLT_EXPR_STMT,     /* expression statement */
-    SPLT_SEL_STMT,      /* conditional statement */
-    SPLT_ITER_STMT,     /* iteration statement */
-    SPLT_FOR_LOOP_BODY, /* body of a for loop */
-    SPLT_LABELED_STMT,  /* labeled statement */
-    SPLT_JUMP_STMT,     /* jump statement */
+    SPLT_STMT = SPLT_STMT_OFFSET, /* single statement */
+    SPLT_GEN_STMT_LIST,           /* general statement list */
+    SPLT_COMP_STMT,               /* compound statement */
+    SPLT_EXPR_STMT,               /* expression statement */
+    SPLT_SEL_STMT,                /* conditional statement */
+    SPLT_ITER_STMT,               /* iteration statement */
+    SPLT_FOR_LOOP_BODY,           /* body of a for loop */
+    SPLT_LABELED_STMT,            /* labeled statement */
+    SPLT_JUMP_STMT,               /* jump statement */
+    // SPLT_STMT_LIST,            /* list of statements */
 
     SPLT_DEF_LIST, /* list of definitions */
-    SPLT_DEF,      /* base for a single definition: list of variable declaration */
+    SPLT_DEF,      /* wrapper for definition with SEMI */
+    SPLT_DIR_DEF,  /* base for a single definition: list of variable declaration */
     SPLT_DEC_LIST, /* list of variable declaration */
     SPLT_DEC,      /* single declarator, one of `var`s in `type var1, var2` */
 
@@ -87,6 +90,7 @@ enum splc_token_type
     SPLT_COND_EXPR,               /* conditional expression, using "?:" */
     SPLT_ASSIGN_EXPR,             /* assignment expression */
     SPLT_CONST_EXPR,              /* constant expression */
+    SPLT_INIT_EXPR,               /* initialization expression, permitted in for-loop */
 
     // SPLT_CONST_EXPR, /* constant expression */
     SPLT_ARG_LIST, /* argument list */
@@ -194,6 +198,7 @@ enum splc_token_type
 };
 
 #define SPLT_IS_EXPR(x) (((x) & SPLT_EXPR_OFFSET) == SPLT_EXPR_OFFSET)
+#define SPLT_IS_STMT(x) (((x) & SPLT_STMT_OFFSET) == SPLT_STMT_OFFSET)
 #define SPLT_IS_KEYWORD(x) (((x) & SPLT_KEYWORD_OFFSET) == SPLT_KEYWORD_OFFSET)
 #define SPLT_IS_PUNCTUATOR(x) (((x) & SPLT_PUNCTUATOR_OFFSET) == SPLT_PUNCTUATOR_OFFSET)
 #define SPLT_IS_OPERATOR(x) (((x) & SPLT_OPERATOR_OFFSET) == SPLT_OPERATOR_OFFSET)
@@ -296,6 +301,14 @@ extern const char *progname;
 
 /* Macros */
 
+#define SPLC_ROOT_LOC (splc_root_loc)
+/* Check if the location is root (i.e., assigned from static global constant) */
+#define SPLC_IS_LOC_ROOT(_loc) ((_loc).fid == -1)
+
+#define SPLC_INVALID_LOC (splc_invalid_loc)
+/* Check if the location is invalid (i.e., assigned from static global constant) */
+#define SPLC_IS_LOC_INVALID(_loc) ((_loc).fid == -1)
+
 /* Make a splc_loc struct with specific fid, lines and columns */
 #define SPLC_MAKE_LOC(_fid, _linebegin, _colbegin, _lineend, _colend)                                                  \
     (splc_loc)                                                                                                         \
@@ -310,16 +323,6 @@ extern const char *progname;
         .fid = splc_file_node_stack->fid, .linebegin = (_linebegin), .colbegin = (_colbegin), .lineend = (_lineend),   \
         .colend = (_colend)                                                                                            \
     }
-
-#define SPLC_ROOT_LOC (splc_root_loc)
-
-/* Check if the location is root (i.e., assigned from static global constant) */
-#define SPLC_IS_LOC_ROOT(_loc) ((_loc).fid == -1)
-
-#define SPLC_INVALID_LOC (splc_invalid_loc)
-
-/* Check if the location is invalid (i.e., assigned from static global constant) */
-#define SPLC_IS_LOC_INVALID(_loc) ((_loc).fid == -1)
 
 #define SPLC_UNPACK_YYLLOC(x) x.first_line, x.first_column, x.last_line, x.last_column
 /* Make a splc_loc struct directly from current file and yylloc */

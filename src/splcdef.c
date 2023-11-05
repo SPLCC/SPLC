@@ -8,7 +8,7 @@ char *splc_loc2str(splc_loc location)
     char *buffer = NULL;
     if (SPLC_IS_LOC_INVALID(location))
     {
-        buffer = strdup("invalid");
+        buffer = strdup("{invalid loc}");
     }
     else
     {
@@ -53,8 +53,10 @@ const char *splc_get_token_color_code(splc_token_t type)
     case SPLT_EXT_DEF:
     case SPLT_EXT_DEC_LIST:
     case SPLT_COMP_STMT:
-    case SPLT_STMT_LIST:
+
     case SPLT_STMT:    
+    case SPLT_GEN_STMT_LIST:
+    // case SPLT_STMT_LIST:
     case SPLT_EXPR_STMT:
     case SPLT_SEL_STMT:
     case SPLT_ITER_STMT:
@@ -64,11 +66,30 @@ const char *splc_get_token_color_code(splc_token_t type)
 
     case SPLT_DEF_LIST:
     case SPLT_DEF:
+    case SPLT_DIR_DEF:
     case SPLT_DEC_LIST:
     case SPLT_DEC:
         return "\033[38;5;27m";
 
     case SPLT_EXPR:
+    case SPLT_PRIM_EXPR:
+    case SPLT_POSTF_EXPR:
+    case SPLT_UNARY_EXPR:
+    case SPLT_CAST_EXPR:
+    case SPLT_MUL_EXPR:
+    case SPLT_ADD_EXPR:
+    case SPLT_SHIFT_EXPR:
+    case SPLT_REL_EXPR:
+    case SPLT_EQ_EXPR:
+    case SPLT_BW_AND_EXPR:
+    case SPLT_BW_XOR_EXPR:
+    case SPLT_BW_OR_EXPR:
+    case SPLT_AND_EXPR:
+    case SPLT_OR_EXPR:
+    case SPLT_COND_EXPR:
+    case SPLT_ASSIGN_EXPR:
+    case SPLT_CONST_EXPR:
+    case SPLT_INIT_EXPR:
         return "\033[38;5;40m";
 
     case SPLT_VAR_DEC:
@@ -192,7 +213,7 @@ const char *splc_token2str(splc_token_t type)
     {
     /* Nonterminals */
     case SPLT_NULL:
-        return "(NULL type)";
+        return "NULL-type";
     case SPLT_TRANS_UNIT:
         return "Translation Unit";
     case SPLT_EXT_DEF_LIST:
@@ -221,12 +242,14 @@ const char *splc_token2str(splc_token_t type)
     case SPLT_PARAM_DEC:
         return "ParamDec";
 
-    case SPLT_COMP_STMT:
-        return "CompStmt";
-    case SPLT_STMT_LIST:
-        return "StmtList";
     case SPLT_STMT:
         return "Stmt";
+    case SPLT_GEN_STMT_LIST:
+        return "General Stmt List";
+    case SPLT_COMP_STMT:
+        return "CompStmt";
+    // case SPLT_STMT_LIST:
+    //     return "StmtList";
     case SPLT_EXPR_STMT:
         return "Expression Stmt";
     case SPLT_SEL_STMT:
@@ -240,22 +263,59 @@ const char *splc_token2str(splc_token_t type)
     case SPLT_JUMP_STMT:
         return "Jump Stmt";
 
-
     /* Nonterminals: local definition */
     case SPLT_DEF_LIST:
         return "Def List";
     case SPLT_DEF:
         return "Def";
+    case SPLT_DIR_DEF:
+        return "Direct Def";
     case SPLT_DEC_LIST:
         return "Dec List";
     case SPLT_DEC:
         return "Dec";
+
     case SPLT_EXPR:
         return "Exp";
+    case SPLT_PRIM_EXPR:
+        return "Primary Expr";
+    case SPLT_POSTF_EXPR:
+        return "Postfix Expr";
+    case SPLT_UNARY_EXPR:
+        return "Unary Expr";
+    case SPLT_CAST_EXPR:
+        return "Cast Expr";
+    case SPLT_MUL_EXPR:
+        return "Mul Expr";
+    case SPLT_ADD_EXPR:
+        return "Add Expr";
+    case SPLT_SHIFT_EXPR:
+        return "Shift Expr";
+    case SPLT_REL_EXPR:
+        return "Relational Expr";
+    case SPLT_EQ_EXPR:
+        return "Equality Expr";
+    case SPLT_BW_AND_EXPR:
+        return "Bitwise AND Expr";
+    case SPLT_BW_XOR_EXPR:
+        return "Bitwise XOR Expr";
+    case SPLT_BW_OR_EXPR:
+        return "Bitwise OR Expr";
+    case SPLT_AND_EXPR:
+        return "Logical AND Expr";
+    case SPLT_OR_EXPR:
+        return "Logical OR Expr";
+    case SPLT_COND_EXPR:
+        return "Conditional Expr";
+    case SPLT_ASSIGN_EXPR:
+        return "Assignment Expr";
     case SPLT_CONST_EXPR:
         return "Const Expr";
+    case SPLT_INIT_EXPR:
+        return "Init Expr";
     case SPLT_CONSTANT:
         return "Constant";
+
     case SPLT_ARG_LIST:
         return "Arg List";
 

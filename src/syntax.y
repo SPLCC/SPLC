@@ -53,6 +53,9 @@
 %right NOT BW_NOT DPLUS DMINUS DEREF ADDROF SIZEOF
 %left LP RP LSB RSB DOT POST_INCR POST_DECR
 
+%precedence COMP_STMT_RC
+%precedence COMP_STMT_LC
+
 %%
 /* Entire translation unit */
 translation-unit: 
@@ -81,6 +84,7 @@ external-definition:
     | type-specifier function-declarator compound-statement { $$ = create_parent_node(SPLT_EXT_DEF, 3, $1, $2, $3); }
     | type-specifier function-declarator SEMI { $$ = create_parent_node(SPLT_EXT_DEF, 3, $1, $2, $3); }
     
+    | type-specifier function-declarator error { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_F(@3), "missing valid function body. Did you forget to put '{'?"); $$ = create_parent_node(SPLT_EXT_DEF, 0); yyerrok; }
     | type-specifier error { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_I(@2), "missing valid identifier"); $$ = create_parent_node(SPLT_EXT_DEF, 0); yyerrok; }
     ;
 
@@ -157,21 +161,29 @@ parameter-declaration:
 
 /* Compound statement: A new scope. */
 compound-statement: 
-      LC definition-list statement-list RC { $$ = create_parent_node(SPLT_COMP_STMT, 4, $1, $2, $3, $4); }
-    | LC definition-list RC { $$ = create_parent_node(SPLT_COMP_STMT, 3, $1, $2, $3); }
-    | LC statement-list RC { $$ = create_parent_node(SPLT_COMP_STMT, 3, $1, $2, $3); }
-    | LC RC { $$ = create_parent_node(SPLT_COMP_STMT, 0); }
+      /* LC general-statement-list RC */
+      LC general-statement-list RC { $$ = create_parent_node(SPLT_COMP_STMT, 3, $1, $2, $3); }
+    | LC general-statement-list error { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_L(@2), "missing closing bracket '}' "); $$ = create_parent_node(SPLT_COMP_STMT, 0); yyerrok; }
+    /* | error RC { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "missing opening bracket '{' "); $$ = create_parent_node(SPLT_COMP_STMT, 0); yyerrok; } */
 
-    | LC definition-list statement-list error { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_L(@3), "missing closing brace '}'"); $$ = create_parent_node(SPLT_COMP_STMT, 0); yyerrok; }
-    | LC definition-list statement-list definition-list error RC { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_I(@3), "cannot interleave definitions with statements. "); $$ = create_parent_node(SPLT_COMP_STMT, 0); }
-    | LC statement-list definition-list statement-list error RC { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_I(@3), "cannot interleave definitions with statements. "); $$ = create_parent_node(SPLT_COMP_STMT, 0); }
+      /* LC RC */
+    | LC RC { $$ = create_parent_node(SPLT_COMP_STMT, 2, $1, $2); }
+    | LC error { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_L(@1), "missing closing bracket '}' "); $$ = create_parent_node(SPLT_COMP_STMT, 0); yyerrok; }
+    ;
+
+/* wrapper for C99 standard for statements */
+general-statement-list: 
+      statement { $$ = create_parent_node(SPLT_GEN_STMT_LIST, 1, $1); }
+    | definition { $$ = create_parent_node(SPLT_GEN_STMT_LIST, 1, $1); }
+    | general-statement-list statement { $$ = add_child($1, $2); }
+    | general-statement-list definition { $$ = add_child($1, $2); }
     ;
 
 /* Statement: List of statements. Recursive definition. */
-statement-list: 
+/* statement-list: 
       statement { $$ = create_parent_node(SPLT_STMT_LIST, 1, $1); }
     | statement-list statement { $$ = create_parent_node(SPLT_STMT_LIST, 2, $1, $2); } 
-    ;
+    ; */
 
 /* Statement: A single statement. */
 statement: 
@@ -200,15 +212,16 @@ selection-statement:
     | IF LP expression error %prec ELSE { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_L(@3), "missing closing parenthesis ')'"); $$ = create_parent_node(SPLT_SEL_STMT, 0); yyerrok; }
     | ELSE statement { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_I(@1), "dangling else is not allowed."); $$ = create_parent_node(SPLT_SEL_STMT, 2, $1, $2); yyerrok; }
     
-    | SWITCH LP expression RP statement {}
-    | SWITCH error RP statement {}
+    | SWITCH LP expression RP statement { $$ = create_parent_node(SPLT_SEL_STMT, 3, $1, $2, $3); }
+    /* | SWITCH LP expression statement { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_L(@3), "missing opening parenthese '('"); $$ = create_parent_node(SPLT_SEL_STMT, 0); yyerrok; } */
+    | SWITCH error RP statement { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_F(@2), "missing opening parenthese '('"); $$ = create_parent_node(SPLT_SEL_STMT, 0); yyerrok; }
     ;
 
 labeled-statement:
       identifier COLON statement { $$ = create_parent_node(SPLT_LABELED_STMT, 3, $1, $2, $3); }
     | CASE constant-expression COLON statement { $$ = create_parent_node(SPLT_LABELED_STMT, 3, $1, $2, $3); }
     | DEFAULT COLON statement { $$ = create_parent_node(SPLT_LABELED_STMT, 3, $1, $2, $3); }
-    | COLON statement { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "missing a label"); $$ = create_parent_node(SPLT_SEL_STMT, 0); yyerrok; }
+    | COLON statement { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "missing a label"); $$ = create_parent_node(SPLT_LABELED_STMT, 0); yyerrok; }
     ;
 
 jump-statement:
@@ -235,19 +248,16 @@ iteration-statement:
     ;
 
 for-loop-body: 
-      definition expression SEMI expression { $$ = create_parent_node(SPLT_FOR_LOOP_BODY, 4, $1, $2, $3, $4); }
-    | expression SEMI expression SEMI expression { $$ = create_parent_node(SPLT_FOR_LOOP_BODY, 5, $1, $2, $3, $4, $5); }
+      initialization-expression SEMI expression SEMI expression { $$ = create_parent_node(SPLT_FOR_LOOP_BODY, 5, $1, $2, $3, $4, $5); }
 
     | SEMI expression SEMI expression { $$ = create_parent_node(SPLT_FOR_LOOP_BODY, 4, $1, $2, $3, $4); }
-    | definition expression SEMI { $$ = create_parent_node(SPLT_FOR_LOOP_BODY, 3, $1, $2, $3); }
-    | expression SEMI expression SEMI { $$ = create_parent_node(SPLT_FOR_LOOP_BODY, 4, $1, $2, $3, $4); }
-    | definition SEMI expression { $$ = create_parent_node(SPLT_FOR_LOOP_BODY, 3, $1, $2, $3); }
-    | expression SEMI SEMI expression { $$ = create_parent_node(SPLT_FOR_LOOP_BODY, 4, $1, $2, $3, $4); }
+    | initialization-expression SEMI expression SEMI { $$ = create_parent_node(SPLT_FOR_LOOP_BODY, 4, $1, $2, $3, $4); }
+    | initialization-expression SEMI SEMI expression { $$ = create_parent_node(SPLT_FOR_LOOP_BODY, 4, $1, $2, $3, $4); }
 
     | SEMI expression SEMI { $$ = create_parent_node(SPLT_FOR_LOOP_BODY, 3, $1, $2, $3); }
     | SEMI SEMI expression { $$ = create_parent_node(SPLT_FOR_LOOP_BODY, 3, $1, $2, $3); }
-    | definition SEMI { $$ = create_parent_node(SPLT_FOR_LOOP_BODY, 2, $1, $2); }
-    | expression SEMI SEMI { $$ = create_parent_node(SPLT_FOR_LOOP_BODY, 3, $1, $2, $3); }
+    /* | definition SEMI { $$ = create_parent_node(SPLT_FOR_LOOP_BODY, 2, $1, $2); } */
+    | initialization-expression SEMI SEMI { $$ = create_parent_node(SPLT_FOR_LOOP_BODY, 3, $1, $2, $3); }
     
     | SEMI SEMI { $$ = create_parent_node(SPLT_FOR_LOOP_BODY, 2, $1, $2); }
     ;
@@ -260,8 +270,12 @@ definition-list:
 
 /* Definition: Base */
 definition: 
-      type-specifier declaration-list SEMI { $$ = create_parent_node(SPLT_DEF, 3, $1, $2, $3); }
-    | type-specifier declaration-list error { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_L(@2), "missing semicolon ';'"); $$ = create_parent_node(SPLT_DEF, 0); yyerrok; }
+      direct-definition SEMI { $$ = create_parent_node(SPLT_DEF, 2, $1, $2); }
+    | direct-definition error { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_L(@1), "missing semicolon ';'"); $$ = create_parent_node(SPLT_DEF, 0); yyerrok; }
+    ;
+
+direct-definition:
+      type-specifier declaration-list { $$ = create_parent_node(SPLT_DIR_DEF, 2, $1, $2); }
     ;
 
 /* Definition: Declaration of multiple variable.  */ 
@@ -294,12 +308,14 @@ primary-expression:
     | constant { $$ = create_parent_node(SPLT_EXPR, 1, $1); }
     | string-literal { $$ = create_parent_node(SPLT_EXPR, 1, $1); }
     | LP expression RP { $$ = create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
+    /* | LP expression { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_L(@2), "missing closing parenthesis ')'"); $$ = create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; } */
     ;
 
 postfix-expression:
       primary-expression
     | postfix-expression LSB expression RSB { $$ = create_parent_node(SPLT_EXPR, 4, $1, $2, $3, $4); }
     | postfix-expression LP argument-list RP { $$ = create_parent_node(SPLT_EXPR, 4, $1, $2, $3, $4); }
+    | postfix-expression LP argument-list error { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_L(@3), "expected ')'"); $$ = create_parent_node(SPLT_EXPR, 3, $1, $2, $3); yyerrok; }
     | postfix-expression LP RP { $$ = create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
     | postfix-expression DOT identifier { $$ = create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
     | postfix-expression RARROW identifier { $$ = create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
@@ -415,6 +431,11 @@ assignment-expression:
 expression: 
       assignment-expression
     | expression COMMA assignment-expression { $$ = create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
+    ;
+  
+initialization-expression:
+      expression { $$ = create_parent_node(SPLT_INIT_EXPR, 1, $1); }
+    | direct-definition { $$ = create_parent_node(SPLT_INIT_EXPR, 1, $1); }
     ;
 
 /* Argument: List of arguments */

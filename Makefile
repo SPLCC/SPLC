@@ -3,7 +3,7 @@ BISON = bison
 CC = gcc
 CCFLAGS = -lfl -ly -Wall
 
-.PHONY: splc debug syntax.y lex.yy.c
+.PHONY: splc debug syntax.y lex.yy.c check_syntax
 
 all: clean splc
 
@@ -36,6 +36,9 @@ bin/splc: $(splc_src_files)
 	@chmod +x bin/$(splc_out)
 
 splc: bin/splc
+
+check_syntax: src/syntax.y
+	$(BISON) -d src/syntax.y -Wcounterexamples -Wcex -v
 
 # ===================== Other =====================
 clean:

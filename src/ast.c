@@ -1,4 +1,5 @@
 #include "ast.h"
+#include "utils.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -10,6 +11,8 @@ int splc_enable_colored_ast = 0;
 ast_node create_empty_node()
 {
     ast_node node = (ast_node)malloc(sizeof(ast_node_struct));
+    if (node == NULL)
+        splcfail("out of memory");
     node->type = SPLT_NULL;
     node->entry = NULL;
     node->children = NULL;
@@ -27,11 +30,14 @@ ast_node create_leaf_node(const splc_token_t type, const splc_loc location)
     return node;
 }
 
-void add_child(ast_node parent, ast_node child)
+ast_node add_child(ast_node parent, ast_node child)
 {
     parent->children = (ast_node *)realloc(parent->children, (parent->num_child + 1) * sizeof(ast_node_struct));
+    if (parent->children == NULL)
+        splcfail("out of memory");
     parent->children[parent->num_child] = child;
     ++(parent->num_child);
+    return parent;
 }
 
 ast_node create_parent_node(const splc_token_t type, size_t num_child, ...)
@@ -39,20 +45,22 @@ ast_node create_parent_node(const splc_token_t type, size_t num_child, ...)
     ast_node node = create_empty_node();
     node->type = type;
     node->location = SPLC_INVALID_LOC;
-
-    va_list args;
-    va_start(args, num_child);
-
-    for (size_t i = 0; i < num_child; ++i)
+    if (num_child > 0) 
     {
-        ast_node child = va_arg(args, ast_node);
-        if (SPLC_IS_LOC_INVALID(node->location))
-            node->location = child->location;
-        if (child == NULL || child->type == SPLT_NULL)
-            continue;
-        add_child(node, child);
+        va_list args;
+        va_start(args, num_child);
+
+        for (size_t i = 0; i < num_child; ++i)
+        {
+            ast_node child = va_arg(args, ast_node);
+            if (SPLC_IS_LOC_INVALID(node->location))
+                node->location = child->location;
+            if (child == NULL || child->type == SPLT_NULL)
+                continue;
+            add_child(node, child);
+        }
+        va_end(args);
     }
-    va_end(args);
     return node;
 }
 
@@ -134,7 +142,15 @@ static void _builtin_print_ast(const ast_node node, const char *prefix)
 
 void print_ast(ast_node root)
 {
-    _builtin_print_single_node(root);
-    printf("\n");
-    _builtin_print_ast(root, "");
+    if (root != NULL)
+    {
+        _builtin_print_single_node(root);
+        printf("\n");
+        _builtin_print_ast(root, "");
+    }
+    else
+    {
+        printf("%s", splc_get_token_color_code(SPLT_NULL));
+        printf("(%s)\033[0m\n", splc_token2str(SPLT_NULL));
+    }
 }

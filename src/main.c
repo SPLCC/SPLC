@@ -20,13 +20,9 @@ int main(int argc, char *argv[])
 
     //===========
 #ifndef SPLC_DISABLE_DIAG
-    for (int i = 0; i < splc_src_file_cnt; ++i)
-    {
-        SPLC_FDIAG("source file: %s", splc_src_files[i]);
-    }
     for (int i = 0; i < splc_incl_dir_cnt; ++i)
     {
-        SPLC_FDIAG("include directory: %s", splc_incl_dirs[i]);
+        SPLC_FDIAG("detected include directory: %s", splc_incl_dirs[i]);
     }
 #endif
     //===========
@@ -39,6 +35,10 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i < splc_src_file_cnt; ++i)
     {
+#ifndef SPLC_DISABLE_DIAG
+        SPLC_FDIAG("reading source file: %s", splc_src_files[i]);
+#endif
+
         if (splc_enter_root(splc_src_files[i]) != 0)
             SPLC_FEXIT_NOLOC("no such file: %s\ncompilation terminated.", splc_src_files[i]);
 
