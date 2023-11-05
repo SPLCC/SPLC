@@ -56,12 +56,8 @@ ast_node create_parent_node(const splc_token_t type, size_t num_child, ...)
     return node;
 }
 
-void builtin_print_ast(const ast_node node, int level)
+static void _builtin_print_single_node(const ast_node node)
 {
-    for (int i = 0; i < level; i++)
-    {
-        printf("  ");
-    }
     if (splc_enable_colored_ast)
         printf("%s", splc_get_token_color_code(node->type));
 
@@ -95,24 +91,50 @@ void builtin_print_ast(const ast_node node, int level)
 
     if (splc_enable_colored_ast && SPLC_IS_LOC_INVALID(node->location))
         printf("\033[33m");
-    if (node->num_child == 0) 
+    if (node->num_child == 0)
     {
         char *location = splc_loc2str(node->location);
         printf(" %s", location);
         free(location);
     }
-    printf("\n");
-
     if (splc_enable_colored_ast && SPLC_IS_LOC_INVALID(node->location))
         printf("\033[0m");
+}
+
+static void _builtin_print_ast(const ast_node node, const char *prefix)
+{
+    const char *indicator = NULL;
+    const char *segment = NULL;
 
     for (int i = 0; i < node->num_child; i++)
     {
-        builtin_print_ast(node->children[i], level + 1);
+        if (i == node->num_child - 1)
+        {
+            indicator = "└── ";
+            segment = "    ";
+        }
+        else
+        {
+            indicator = "├── ";
+            segment = "│   ";
+        }
+        printf("%s%s", prefix, indicator);
+        _builtin_print_single_node(node->children[i]);
+        printf("\n");
+
+        if (node->children[i]->num_child > 0)
+        {
+            char *next_prefix = (char *)malloc((strlen(prefix) + strlen(segment) + 1) * sizeof(char));
+            sprintf(next_prefix, "%s%s", prefix, segment);
+            _builtin_print_ast(node->children[i], next_prefix);
+            free(next_prefix);
+        }
     }
 }
 
 void print_ast(ast_node root)
 {
-    builtin_print_ast(root, 0);
+    _builtin_print_single_node(root);
+    printf("\n");
+    _builtin_print_ast(root, "");
 }

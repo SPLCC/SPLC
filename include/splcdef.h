@@ -24,23 +24,32 @@ char *splc_loc2str(splc_loc location);
 
 splc_loc splc_concat_loc(splc_loc l, splc_loc r);
 
+#define SPLT_EXPR_OFFSET 0x00000100
+#define SPLT_KEYWORD_OFFSET 0x00000200
+#define SPLT_PUNCTUATOR_OFFSET 0x00000400
+#define SPLT_OPERATOR_OFFSET 0x00000800
+#define SPLT_BUILTIN_TYPE_OFFSET 0x00001000
+#define SPLT_ID_OFFSET 0x00002000
+#define SPLT_MACRO_MNTPT_OFFSET 0x00004000
+#define SPLT_LITERAL_OFFSET 0x00008000
+
 typedef enum splc_token_type splc_token_t;
 
 enum splc_token_type
 {
     /* Nonterminals */
-    SPLT_NULL,             /* uninitialized type */
-    SPLT_TRANS_UNIT,       /* translation unit */
-    SPLT_EXT_DEF_LIST,     /* external definition list */
-    SPLT_EXT_DEF,          /* a single external definition: variable/struct/function */
-    SPLT_EXT_DEC_LIST,     /* variable list */
-    SPLT_TYPE_SPEC,        /* specifier */
-    SPLT_STRUCT_SPECIFIER, /* struct specifier */
-    SPLT_VAR_DEC,          /* variable declaration (pointer interface) */
-    SPLT_DIR_DEC,          /* variable declaration (single/array) */
-    SPLT_PTR,              /* pointer */
-    SPLT_FUNC_DEC,         /* function declaration in the form of `foo(type1 var1, type2 var2, ...) */
-    SPLT_DIR_FUNC_DEC,     /* direct function declaration in the form of `foo(type1 var1, type2 var2, ...) */
+    SPLT_NULL = 0x00000000, /* uninitialized type */
+    SPLT_TRANS_UNIT,        /* translation unit */
+    SPLT_EXT_DEF_LIST,      /* external definition list */
+    SPLT_EXT_DEF,           /* a single external definition: variable/struct/function */
+    SPLT_EXT_DEC_LIST,      /* variable list */
+    SPLT_TYPE_SPEC,         /* specifier */
+    SPLT_STRUCT_SPECIFIER,  /* struct specifier */
+    SPLT_VAR_DEC,           /* variable declaration (pointer interface) */
+    SPLT_DIR_DEC,           /* variable declaration (single/array) */
+    SPLT_PTR,               /* pointer */
+    SPLT_FUNC_DEC,          /* function declaration in the form of `foo(type1 var1, type2 var2, ...) */
+    SPLT_DIR_FUNC_DEC,      /* direct function declaration in the form of `foo(type1 var1, type2 var2, ...) */
 
     SPLT_VAR_LIST,  /* variable list (parameter list) */
     SPLT_PARAM_DEC, /* single parameter declaration */
@@ -60,35 +69,35 @@ enum splc_token_type
     SPLT_DEC_LIST, /* list of variable declaration */
     SPLT_DEC,      /* single declarator, one of `var`s in `type var1, var2` */
 
-    SPLT_PRIM_EXPR,   /* primary expression */
-    SPLT_POSTF_EXPR,  /* postfix expression */
-    SPLT_UNARY_EXPR,  /* unary expression */
-    SPLT_CAST_EXPR,   /* unary expression */
-    SPLT_MUL_EXPR,    /* multiplicative expression */
-    SPLT_ADD_EXPR,    /* additive expression */
-    SPLT_SHIFT_EXPR,  /* shift expression */
-    SPLT_REL_EXPR,    /* relational expression */
-    SPLT_EQ_EXPR,     /* equality expression */
-    SPLT_BW_AND_EXPR, /* bitwise AND expression */
-    SPLT_BW_XOR_EXPR, /* bitwise XOR expression */
-    SPLT_BW_OR_EXPR,  /* bitwise OR expression */
-    SPLT_AND_EXPR,    /* logical AND expression */
-    SPLT_OR_EXPR,     /* logical OR expression */
-    SPLT_COND_EXPR,   /* conditional expression, using "?:" */
-    SPLT_ASSIGN_EXPR, /* assignment expression */
-    SPLT_EXPR,        /* expression */
-    SPLT_CONST_EXPR,  /* constant expression */
+    SPLT_EXPR = SPLT_EXPR_OFFSET, /* expression */
+    SPLT_PRIM_EXPR,               /* primary expression */
+    SPLT_POSTF_EXPR,              /* postfix expression */
+    SPLT_UNARY_EXPR,              /* unary expression */
+    SPLT_CAST_EXPR,               /* unary expression */
+    SPLT_MUL_EXPR,                /* multiplicative expression */
+    SPLT_ADD_EXPR,                /* additive expression */
+    SPLT_SHIFT_EXPR,              /* shift expression */
+    SPLT_REL_EXPR,                /* relational expression */
+    SPLT_EQ_EXPR,                 /* equality expression */
+    SPLT_BW_AND_EXPR,             /* bitwise AND expression */
+    SPLT_BW_XOR_EXPR,             /* bitwise XOR expression */
+    SPLT_BW_OR_EXPR,              /* bitwise OR expression */
+    SPLT_AND_EXPR,                /* logical AND expression */
+    SPLT_OR_EXPR,                 /* logical OR expression */
+    SPLT_COND_EXPR,               /* conditional expression, using "?:" */
+    SPLT_ASSIGN_EXPR,             /* assignment expression */
+    SPLT_CONST_EXPR,              /* constant expression */
 
     // SPLT_CONST_EXPR, /* constant expression */
     SPLT_ARG_LIST, /* argument list */
 
     /* Terminal: Keywords */
-    SPLT_STRUCT,  /* keyword: struct */
-    SPLT_UNION,   /* keyword: union */
+    SPLT_STRUCT = SPLT_KEYWORD_OFFSET, /* keyword: struct */
+    SPLT_UNION,                        /* keyword: union */
 
-    SPLT_WHILE,   /* keyword: while */
-    SPLT_FOR,     /* keyword: for */
-    SPLT_DO,      /* keyword: do */
+    SPLT_WHILE, /* keyword: while */
+    SPLT_FOR,   /* keyword: for */
+    SPLT_DO,    /* keyword: do */
 
     SPLT_IF,      /* keyword: if */
     SPLT_ELSE,    /* keyword: else */
@@ -102,15 +111,15 @@ enum splc_token_type
     SPLT_RETURN,   /* keyword: return */
 
     /* Terminals: Punctuators */
-    SPLT_LC,  /* left curly bracket */
-    SPLT_RC,  /* right curly bracket */
-    SPLT_LP,  /* left parenthesis */
-    SPLT_RP,  /* right parenthesis */
-    SPLT_LSB, /* left square bracket */
-    SPLT_RSB, /* right square bracket */
+    SPLT_LC = SPLT_PUNCTUATOR_OFFSET, /* left curly bracket */
+    SPLT_RC,                          /* right curly bracket */
+    SPLT_LP,                          /* left parenthesis */
+    SPLT_RP,                          /* right parenthesis */
+    SPLT_LSB,                         /* left square bracket */
+    SPLT_RSB,                         /* right square bracket */
 
-    SPLT_SEMI,  /* semicolon */
-    SPLT_COMMA, /* comma */
+    SPLT_SEMI,                         /* semicolon */
+    SPLT_COMMA = SPLT_OPERATOR_OFFSET, /* comma */
 
     SPLT_QM,    /* question mark */
     SPLT_COLON, /* colon */
@@ -159,32 +168,39 @@ enum splc_token_type
     SPLT_RARROW, /* right arrow - member access */
 
     /* Terminals: Constant Expressions */
-    SPLT_TYPE_INT,      /* type: int */
-    SPLT_TYPE_FLOAT,    /* type: float */
-    SPLT_TYPE_CHAR,     /* type: char */
+    SPLT_TYPE_INT = SPLT_BUILTIN_TYPE_OFFSET, /* type: int */
+    SPLT_TYPE_FLOAT,                          /* type: float */
+    SPLT_TYPE_CHAR,                           /* type: char */
     // SPLT_TYPE_UNSIGNED, /* type: int */
     // SPLT_TYPE_SIGNED,   /* type: int */
     // SPLT_TYPE_LONG,     /* type: int */
-    SPLT_ID,            /* id literal */
-    SPLT_CONSTANT,      /* constants */
+    SPLT_ID = SPLT_ID_OFFSET, /* id literal */
 
     /* Nonterminals: Macro Expressions */
-    SPLT_MACRO_MNTPT,  /* AST: macro mount point */
-    SPLT_MACRO_ID,     /* macro ID */
-    SPLT_MACRO_DEFINE, /* macro: define */
-    SPLT_MACRO_IFDEF,  /* macro: ifdef */
-    SPLT_MACRO_IFNDEF, /* macro: ifndef */
-    SPLT_MACRO_ENDIF,  /* macro: endif */
+    SPLT_MACRO_MNTPT = SPLT_MACRO_MNTPT_OFFSET, /* AST: macro mount point */
+    SPLT_MACRO_ID,                              /* macro ID */
+    SPLT_MACRO_DEFINE,                          /* macro: define */
+    SPLT_MACRO_IFDEF,                           /* macro: ifdef */
+    SPLT_MACRO_IFNDEF,                          /* macro: ifndef */
+    SPLT_MACRO_ENDIF,                           /* macro: endif */
 
     /* Terminals: Literals */
-    SPLT_LTR_INT,   /* integer literal */
-    SPLT_LTR_FLOAT, /* float literal scientific notation allowed */
-    SPLT_LTR_CHAR,  /* character literal */
-    SPLT_LTR_STR,   /* string literal */
-    SPLT_STR,       /* basic string unit */
+    SPLT_CONSTANT = SPLT_LITERAL_OFFSET, /* constants */
+    SPLT_LTR_INT,                        /* integer literal */
+    SPLT_LTR_FLOAT,                      /* float literal scientific notation allowed */
+    SPLT_LTR_CHAR,                       /* character literal */
+    SPLT_LTR_STR,                        /* string literal */
+    SPLT_STR,                            /* basic string unit */
 };
 
-#define SPLT_IS_BUILTIN_TYPE(x) ((x) == SPLT_TYPE_INT || (x) == SPLT_TYPE_FLOAT || (x) == SPLT_TYPE_CHAR)
+#define SPLT_IS_EXPR(x) (((x) & SPLT_EXPR_OFFSET) == SPLT_EXPR_OFFSET)
+#define SPLT_IS_KEYWORD(x) (((x) & SPLT_KEYWORD_OFFSET) == SPLT_KEYWORD_OFFSET)
+#define SPLT_IS_PUNCTUATOR(x) (((x) & SPLT_PUNCTUATOR_OFFSET) == SPLT_PUNCTUATOR_OFFSET)
+#define SPLT_IS_OPERATOR(x) (((x) & SPLT_OPERATOR_OFFSET) == SPLT_OPERATOR_OFFSET)
+#define SPLT_IS_BUILTIN_TYPE(x) (((x) & SPLT_BUILTIN_TYPE_OFFSET) == SPLT_BUILTIN_TYPE_OFFSET)
+#define SPLT_IS_ID(x) ((x) == SPLT_ID)
+#define SPLT_IS_MACRO(x) (((x) & SPLT_MACRO_MNTPT_OFFSET) == SPLT_MACRO_MNTPT_OFFSET)
+#define SPLT_IS_LITERAL(x) (((x) & SPLT_LITERAL_OFFSET) == SPLT_LITERAL_OFFSET)
 
 /* Convert a token to string. The caller shall not free this string. */
 const char *splc_token2str(splc_token_t type);

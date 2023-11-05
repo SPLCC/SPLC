@@ -91,7 +91,8 @@ external-declaration-list:
     ;
 
 type-specifier: 
-      type-name
+      type-name { $$ = create_parent_node(SPLT_TYPE_SPEC, 1, $1); }
+    /* | identifier { $$ = create_parent_node(SPLT_TYPE_SPEC, 1, $1); } */
     | struct-specifier { $$ = create_parent_node(SPLT_TYPE_SPEC, 1, $1); }
     ;
 
@@ -128,8 +129,8 @@ pointer:
 
 /* Function: Function name and body. */
 function-declarator: 
-      direct-function-declarator { $$ = create_parent_node(SPLT_DIR_FUNC_DEC, 1, $1); }
-    | pointer direct-function-declarator { $$ = create_parent_node(SPLT_DIR_FUNC_DEC, 2, $1, $2); }
+      direct-function-declarator { $$ = create_parent_node(SPLT_FUNC_DEC, 1, $1); }
+    | pointer direct-function-declarator { $$ = create_parent_node(SPLT_FUNC_DEC, 2, $1, $2); }
     ;
 
 direct-function-declarator:

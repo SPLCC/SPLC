@@ -69,7 +69,6 @@ const char *splc_get_token_color_code(splc_token_t type)
         return "\033[38;5;27m";
 
     case SPLT_EXPR:
-    case SPLT_LTR_STR:
         return "\033[38;5;40m";
 
     case SPLT_VAR_DEC:
