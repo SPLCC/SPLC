@@ -5,10 +5,11 @@ CCFLAGS = -lfl -ly -Wall
 
 .PHONY: splc debug syntax.y lex.yy.c
 
-all: splc
+all: clean splc
+
 # ===================== Debug =====================
 debug: CCFLAGS += -DDEBUG -g
-debug: splc
+debug: all
 
 # ================= Dependencies =================
 tmp/syntax.tab.c: src/syntax.y
