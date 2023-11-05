@@ -35,7 +35,8 @@ ast_node create_leaf_node(const splc_token_t type, const splc_loc location);
 /* Add a child to a node. Uses `realloc` to allocate memory. */
 void add_child(ast_node parent, ast_node child);
 
-/* Create a parent node, given a list of child nodes. The location of parent node will be that of the first-encountered child node. */
+/* Create a parent node, given a list of child nodes. The location of parent node will be that of the first-encountered
+ * child node. */
 ast_node create_parent_node(const splc_token_t type, size_t num_child, ...);
 
 /* Release the entire tree */
@@ -49,7 +50,7 @@ ast_node duplicate_tree(ast_node root);
 
 /* Substitute all macro mount points inside the given tree.
    When subsituting macro functions, the following requirement holds:
-   - Once the target macro function has been substituted, it is not possible to substitute again. */
+   - Once the target macro function has been substituted, it is not possible to substitute the outer part again. */
 void invoke_macro_subtitution(ast_node root);
 
 /* Print the Syntax Tree */

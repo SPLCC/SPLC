@@ -1,25 +1,40 @@
-CC=gcc
-FLEX=flex
-BISON=bison
+FLEX = flex
+BISON = bison
+CC = gcc
+CCFLAGS = -lfl -ly -Wall
 
-.PHONY: splc
+.PHONY: splc debug syntax.y lex.yy.c
 
 all: splc
+# ===================== Debug =====================
+debug: CCFLAGS += -DDEBUG -g
+debug: splc
+
+# ================= Dependencies =================
+tmp/syntax.tab.c: src/syntax.y
+	@mkdir -p tmp
+	$(BISON) --header=tmp/syntax.tab.h --output=tmp/syntax.tab.c src/syntax.y --report all
+
+syntax.y: tmp/syntax.tab.c
+
+tmp/lex.yy.c: src/lex.l
+	@mkdir -p tmp
+	$(FLEX) --outfile=tmp/lex.yy.c --header-file=tmp/lex.yy.h src/lex.l
+
+lex.yy.c: tmp/lex.yy.c
 
 # ===================== splc =====================
 splc_out=splc
-splc_src_files := src/main.c src/syntax.y src/lex.l
-splc_compile_files := tmp/lex.yy.c tmp/syntax.tab.c $(wildcard src/*.c)
+splc_src_files := tmp/lex.yy.c tmp/syntax.tab.c $(wildcard src/*.c)
 splc_includes = -Iinclude/ -Itmp/
 
-splc:
+bin/splc: $(splc_src_files)
 	@mkdir -p bin
 	@mkdir -p tmp
-	$(BISON) --header=tmp/syntax.tab.h --output=tmp/syntax.tab.c src/syntax.y --report all
-	$(FLEX) --outfile=tmp/lex.yy.c --header-file=tmp/lex.yy.h src/lex.l
-	$(CC) -o bin/$(splc_out) $(splc_compile_files) $(splc_includes) -lfl -ly -Wall
+	$(CC) -o bin/$(splc_out) $(splc_src_files) $(splc_includes) $(CCFLAGS)
 	@chmod +x bin/$(splc_out)
 
+splc: bin/splc
 
 # ===================== Other =====================
 clean:
