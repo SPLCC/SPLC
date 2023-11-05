@@ -117,7 +117,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 
 <IN_PPD_INCL>. {
-    splcwarn(SPLC_YY2LOC_CF_D(yylloc), "Unrecognized token in #include directive");
+    splcwarn(SPLC_YY2LOC_CF_D(yylloc), "unrecognized token in #include directive");
 }
 
 <IN_PPD_INCL>\r?\n {
