@@ -157,10 +157,11 @@ parameter-declaration:
 
 /* Compound statement: A new scope. */
 compound-statement: 
-      LC RC { $$ = create_parent_node(SPLT_COMP_STMT, 0); }
-    | LC definition-list statement-list RC { $$ = create_parent_node(SPLT_COMP_STMT, 4, $1, $2, $3, $4); }
+      LC definition-list statement-list RC { $$ = create_parent_node(SPLT_COMP_STMT, 4, $1, $2, $3, $4); }
     | LC definition-list RC { $$ = create_parent_node(SPLT_COMP_STMT, 3, $1, $2, $3); }
     | LC statement-list RC { $$ = create_parent_node(SPLT_COMP_STMT, 3, $1, $2, $3); }
+    | LC RC { $$ = create_parent_node(SPLT_COMP_STMT, 0); }
+
     | LC definition-list statement-list error { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_L(@3), "missing closing brace '}'"); $$ = create_parent_node(SPLT_COMP_STMT, 0); yyerrok; }
     | LC definition-list statement-list definition-list error RC { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_I(@3), "cannot interleave definitions with statements. "); $$ = create_parent_node(SPLT_COMP_STMT, 0); }
     | LC statement-list definition-list statement-list error RC { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_I(@3), "cannot interleave definitions with statements. "); $$ = create_parent_node(SPLT_COMP_STMT, 0); }
