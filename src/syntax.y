@@ -56,6 +56,8 @@
 %precedence COMP_STMT_RC
 %precedence COMP_STMT_LC
 
+/* %destructor { destruct_node($$); } <> */
+
 %%
 /* Entire translation unit */
 translation-unit: 
@@ -447,7 +449,7 @@ argument-list:
 /* String intermediate expression. Allowing concatenation of strings. */
 string-literal: 
       STR { $$ = create_parent_node(SPLT_LTR_STR, 1, $1); }
-    | string-literal STR { $$ = create_parent_node(SPLT_LTR_STR, 2, $1, $2); }
+    | string-literal STR { $$ = add_child($1, $2); }
     ;
 
 identifier:

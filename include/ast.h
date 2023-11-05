@@ -29,6 +29,8 @@ typedef struct ast_node_struct
 /* Create an empty node that has all its fields initialized to empty/NULL. */
 ast_node create_empty_node();
 
+void destruct_node(ast_node node);
+
 /* Create a leaf node given type. */
 ast_node create_leaf_node(const splc_token_t type, const splc_loc location);
 
@@ -39,16 +41,16 @@ ast_node add_child(ast_node parent, ast_node child);
  * child node. */
 ast_node create_parent_node(const splc_token_t type, size_t num_child, ...);
 
-/* Release the entire tree */
+/* Release the entire AST */
 void release_tree(ast_node root);
 
 /* Duplicate a single node */
 ast_node duplicate_node(ast_node node);
 
-/* Duplicate the entire tree */
+/* Duplicate the entire AST */
 ast_node duplicate_tree(ast_node root);
 
-/* Substitute all macro mount points inside the given tree.
+/* Substitute all macro mount points inside the given AST.
    When subsituting macro functions, the following requirement holds:
    - Once the target macro function has been substituted, it is not possible to substitute the outer part again. */
 void invoke_macro_subtitution(ast_node root);

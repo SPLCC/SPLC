@@ -22,6 +22,11 @@ ast_node create_empty_node()
     return node;
 }
 
+void destruct_node(ast_node node)
+{
+    free(node);
+}
+
 ast_node create_leaf_node(const splc_token_t type, const splc_loc location)
 {
     ast_node node = create_empty_node();
@@ -138,6 +143,15 @@ static void _builtin_print_ast(const ast_node node, const char *prefix)
             free(next_prefix);
         }
     }
+}
+
+void release_tree(ast_node root)
+{
+    for (int i = 0; i < root->num_child; ++i)
+    {
+        release_tree(root->children[i]);
+    }
+    destruct_node(root);
 }
 
 void print_ast(ast_node root)

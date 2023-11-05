@@ -316,7 +316,7 @@ extern const char *progname;
         .fid = (_fid), .linebegin = (_linebegin), .colbegin = (_colbegin), .lineend = (_lineend), .colend = (_colend)  \
     }
 
-/* Make a splc_loc struct from current file, by specifying line and column numbers */
+/* Make a splc_loc struct from current file, by specifying line and column numbers. */
 #define SPLC_MAKE_LOC_CF(_linebegin, _colbegin, _lineend, _colend)                                                     \
     (splc_loc)                                                                                                         \
     {                                                                                                                  \
@@ -326,19 +326,19 @@ extern const char *progname;
 
 #define SPLC_UNPACK_YYLLOC(x) x.first_line, x.first_column, x.last_line, x.last_column
 /* Make a splc_loc struct directly from current file and yylloc */
-#define SPLC_YY2LOC_CF_D(x) SPLC_MAKE_LOC_CF(x.first_line, x.first_column, x.last_line, x.last_column)
+#define SPLC_YY2LOC_CF_D(x) SPLC_MAKE_LOC_CF((x).first_line, (x).first_column, (x).last_line, (x).last_column)
 /* Make a splc_loc struct explicitly with single point from line number and column number */
 #define SPLC_YY2LOC_CF_1_PNT_E(_lineno, _colno) SPLC_MAKE_LOC_CF((_lineno), (_colno), (_lineno), (_colno))
 
 /* Make a splc_loc struct from _loc from current file by capturing the entire interval */
-#define SPLC_YY2LOC_CF_1_PNT_I(_loc)                                                                                   \
-    SPLC_MAKE_LOC_CF((_loc).first_line, (_loc).first_column, (_loc).last_line, (_loc).last_column)
+#define SPLC_YY2LOC_CF_1_PNT_I(loc)                                                                                   \
+    SPLC_MAKE_LOC_CF((loc).first_line, (loc).first_column, (loc).last_line, (loc).last_column)
 /* Make a splc_loc struct from _loc from current file by capturing the first point */
-#define SPLC_YY2LOC_CF_1_PNT_F(_loc)                                                                                   \
-    SPLC_MAKE_LOC_CF((_loc).first_line, (_loc).first_column, (_loc).first_line, (_loc).first_column)
+#define SPLC_YY2LOC_CF_1_PNT_F(loc)                                                                                   \
+    SPLC_MAKE_LOC_CF((loc).first_line, (loc).first_column, (loc).first_line, (loc).first_column)
 /* Make a splc_loc struct from _loc from current file by capturing the last point */
-#define SPLC_YY2LOC_CF_1_PNT_L(_loc)                                                                                   \
-    SPLC_MAKE_LOC_CF((_loc).last_line, (_loc).last_column, (_loc).last_line, (_loc).last_column)
+#define SPLC_YY2LOC_CF_1_PNT_L(loc)                                                                                   \
+    SPLC_MAKE_LOC_CF((loc).last_line, (loc).last_column, (loc).last_line, (loc).last_column)
 
 /* Make a splc_loc struct from l1, l2 from current file by capturing the interval. F - first_line/column, L -
  * last_line/column */
@@ -356,5 +356,12 @@ extern const char *progname;
  * last_line/column */
 #define SPLC_YY2LOC_CF_2_PNT_LL(l1, l2)                                                                                \
     SPLC_MAKE_LOC_CF((l1).last_line, (l1).last_column, (l2).last_line, (l2).last_column)
+
+/* Convert spl_loc to the first/last point of itself */
+#define SPLC_SPLLOC_TO_1_PNT_F(loc)                                                                                     \
+    SPLC_MAKE_LOC((loc).fid, (loc).first_line, (loc).first_column, (loc).first_line, (loc).first_column)
+/* Convert spl_loc to the first/last point of itself */
+#define SPLC_SPLLOC_TO_1_PNT_L(loc)                                                                                     \
+    SPLC_MAKE_LOC((loc).fid, (loc).last_line, (loc).last_column, (loc).last_line, (loc).last_column)
 
 #endif

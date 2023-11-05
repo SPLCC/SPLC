@@ -79,6 +79,11 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 <IN_CL_COMMENT>"*" {
     // eat the lone star
 }
+
+<IN_CL_COMMENT><<EOF>> {
+    splcerror(SPLC_ERR_UNIV, SPLC_YY2LOC_CF_D(yylloc), "unclosed comment");
+    BEGIN(INITIAL);
+}
     
     /* =================== MACRO =================== */
 <INITIAL># {
@@ -153,6 +158,11 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 
 <IN_STRING>\" {
+    BEGIN(INITIAL);
+}
+
+<IN_STRING><<EOF>> {
+    splcerror(SPLC_ERR_UNIV, SPLC_YY2LOC_CF_D(yylloc), "unclosed string literal");
     BEGIN(INITIAL);
 }
 
@@ -349,6 +359,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     splcerror(SPLC_ERR_A, SPLC_YY2LOC_CF_D(yylloc), "unknown lexeme");
     return ID;
 }
+
 %%
 
 /* This function defines what to do when EOF has been reached */
