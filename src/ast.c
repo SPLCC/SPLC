@@ -24,7 +24,13 @@ ast_node create_empty_node()
 
 void destruct_node(ast_node node)
 {
+    for (int i = 0; i < node->num_child; ++i)
+    {
+        destruct_node(node->children[i]);
+    }
+    free(node->children);
     free(node);
+    return;
 }
 
 ast_node create_leaf_node(const splc_token_t type, const splc_loc location)
@@ -50,7 +56,7 @@ ast_node create_parent_node(const splc_token_t type, size_t num_child, ...)
     ast_node node = create_empty_node();
     node->type = type;
     node->location = SPLC_INVALID_LOC;
-    if (num_child > 0) 
+    if (num_child > 0)
     {
         va_list args;
         va_start(args, num_child);
@@ -59,7 +65,14 @@ ast_node create_parent_node(const splc_token_t type, size_t num_child, ...)
         {
             ast_node child = va_arg(args, ast_node);
             if (SPLC_IS_LOC_INVALID(node->location))
+            {
                 node->location = child->location;
+            }
+            else if (node->location.fid == child->location.fid)
+            {
+                node->location.lineend = child->location.lineend;
+                node->location.colend = child->location.colend;
+            }
             if (child == NULL || child->type == SPLT_NULL)
                 continue;
             add_child(node, child);
@@ -69,10 +82,28 @@ ast_node create_parent_node(const splc_token_t type, size_t num_child, ...)
     return node;
 }
 
+splc_loc get_startloc(const ast_node node)
+{
+    if (node->num_child == 0)
+        return SPLC_MAKE_LOC(node->location.fid, node->location.linebegin, node->location.colbegin,
+                             node->location.linebegin, node->location.colbegin);
+    else
+        return get_startloc(node->children[0]);
+}
+
+splc_loc get_endloc(const ast_node node)
+{
+    if (node->num_child == 0)
+        return SPLC_MAKE_LOC(node->location.fid, node->location.lineend, node->location.colend,
+                             node->location.lineend, node->location.colend);
+    else
+        return get_endloc(node->children[node->num_child - 1]);
+}
+
 static void _builtin_print_single_node(const ast_node node)
 {
     if (splc_enable_colored_ast)
-        printf("%s", splc_get_token_color_code(node->type));
+        printf("%s", splc_get_token_color_code(node->type)); /* do not free this string, as it is a constant */
 
     const char *tokenstr = splc_token2str(node->type); /* do not free this string, as it is a constant */
     printf("%s", tokenstr);

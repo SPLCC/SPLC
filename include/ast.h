@@ -16,7 +16,7 @@ typedef struct ast_node_struct
     ast_node *children; /* Array of children */
     size_t num_child;   /* Number of children */
 
-    splc_loc location; /* Location of this token */
+    splc_loc location; /* Location of this token. This location will cover the consecutive nodes in the first file only. */
 
     union {
         void *val;
@@ -41,6 +41,12 @@ ast_node add_child(ast_node parent, ast_node child);
  * child node. */
 ast_node create_parent_node(const splc_token_t type, size_t num_child, ...);
 
+/* Get the starting location of this node */
+splc_loc get_startloc(const ast_node node);
+
+/* Get the ending location of this node */
+splc_loc get_endloc(const ast_node node);
+
 /* Release the entire AST */
 void release_tree(ast_node root);
 
@@ -57,5 +63,10 @@ void invoke_macro_subtitution(ast_node root);
 
 /* Print the Syntax Tree */
 void print_ast(const ast_node root);
+
+/* Macros */
+
+#define SPLC_AST_GET_STARTLOC(node) (get_startloc(node))
+#define SPLC_AST_GET_ENDLOC(node) (get_endloc(node))
 
 #endif

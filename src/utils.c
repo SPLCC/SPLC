@@ -23,9 +23,11 @@ static char *fetchline(FILE *file, int linebegin)
     char *lineptr = (char *)NULL;
     for (int cur = 0; cur < linebegin; ++cur)
     {
+        free(lineptr);
         lineptr = (char *)NULL;
         size_t n = 0;
-        getline(&lineptr, &n, file);
+        if(getline(&lineptr, &n, file) < 0)
+            break;
     }
     /* Handling newline and EOF */
     size_t linelen = strlen(lineptr);
