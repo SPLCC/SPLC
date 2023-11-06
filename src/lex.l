@@ -154,9 +154,9 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 
 <IN_STRING>\\[abefnrtv\\\'\"\?] {
-    yylval = create_leaf_node(SPLT_STR, SPLC_YY2LOC_CF_D(yylloc));
+    yylval = create_leaf_node(SPLT_STR_UNIT, SPLC_YY2LOC_CF_D(yylloc));
     yylval->val = (void *)strdup(yytext);
-    return STR;
+    return STR_UNIT;
 }
 
 <IN_STRING>\\\r?\n {
@@ -164,9 +164,9 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 
 <IN_STRING>[^\n\r\"\\]+ {
-    yylval = create_leaf_node(SPLT_STR, SPLC_YY2LOC_CF_D(yylloc));
+    yylval = create_leaf_node(SPLT_STR_UNIT, SPLC_YY2LOC_CF_D(yylloc));
     yylval->val = (void *)strdup(yytext);
-    return STR;
+    return STR_UNIT;
 }
 
 <IN_STRING>\" {

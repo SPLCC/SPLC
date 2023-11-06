@@ -18,11 +18,9 @@ typedef struct lut_entry_struct
 {
     splc_entry_t type;              /* Type of this entry */
     char *id;                      /* The name of the entry, if any */
-    size_t pointer_level;          /* Level of pointer */
     struct lut_entry_struct *next; /* Point to the next element in case of Hash Collision */
 
-    int lineno; /* line number */
-    int colno;  /* column number */
+    splc_loc first_occur; /* first occurrence of this token */
 
     ast_node root; /* If this entry is a macro, the root contains the AST of the macro in expanded form */
 

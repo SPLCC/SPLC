@@ -221,7 +221,7 @@ const char *splc_get_token_color_code(splc_token_t type)
     case SPLT_LTR_CHAR:
     case SPLT_LTR_STR:
     case SPLT_CONSTANT:
-    case SPLT_STR:
+    case SPLT_STR_UNIT:
         return "\033[38;5;173m";
 
     default:
@@ -525,7 +525,7 @@ const char *splc_token2str(splc_token_t type)
         return "char literal";
     case SPLT_LTR_STR:
         return "String Literal";
-    case SPLT_STR:
+    case SPLT_STR_UNIT:
         return "Str Unit";
 
     /* Nonterminals: Macro Expressions */

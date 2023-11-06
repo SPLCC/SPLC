@@ -151,7 +151,7 @@ static void _builtin_print_single_node(const ast_node node)
     case SPLT_LTR_CHAR:
         printf(": %s", (char *)node->val);
         break;
-    case SPLT_STR:
+    case SPLT_STR_UNIT:
         printf(": \"%s\"", (char *)node->val);
         break;
 
@@ -208,6 +208,9 @@ void release_tree(ast_node root)
     {
         release_tree(root->children[i]);
     }
+    free(root->children);
+    if (SPLT_REQUIRE_VAL_FREE(root->type))
+        free(root->val);
     destruct_node(root);
 }
 

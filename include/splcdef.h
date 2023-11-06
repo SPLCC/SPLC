@@ -210,7 +210,7 @@ enum splc_token_type
     SPLT_LTR_FLOAT,                      /* float literal scientific notation allowed */
     SPLT_LTR_CHAR,                       /* character literal */
     SPLT_LTR_STR,                        /* string literal */
-    SPLT_STR,                            /* basic string unit */
+    SPLT_STR_UNIT,                       /* basic string unit, requires free(val) */
 };
 
 #define SPLT_IS_EXPR(x) (((x) & SPLT_EXPR_OFFSET) == SPLT_EXPR_OFFSET)
@@ -223,6 +223,8 @@ enum splc_token_type
 #define SPLT_IS_MACRO(x) (((x) & SPLT_MACRO_MNTPT_OFFSET) == SPLT_MACRO_MNTPT_OFFSET)
 #define SPLT_IS_LITERAL(x) (((x) & SPLT_LITERAL_OFFSET) == SPLT_LITERAL_OFFSET)
 
+#define SPLT_REQUIRE_VAL_FREE(x) ((x) == SPLT_STR_UNIT)
+
 /* Convert a token to string. The caller shall not free this string. */
 const char *splc_token2str(splc_token_t type);
 
@@ -234,12 +236,15 @@ typedef enum splc_entry_type splc_entry_t;
 
 enum splc_entry_type
 {
-    SPL_MACRO_VAR,
-    SPL_MACRO_FUNC,
+    SPL_FUNC,
     SPL_STRUCT_DEC,
     SPL_TYPEDEF,
+    SPL_UNION_DEC,
+    SPL_ENUM_DEC,
     SPL_VAR,
-    SPL_FUNC,
+
+    SPL_MACRO_FUNC,
+    SPL_MACRO_VAR,
 };
 
 struct lut_entry_struct;
@@ -309,7 +314,7 @@ extern util_file_node *splc_all_file_nodes;
 extern util_file_node splc_file_node_stack;
 
 /* The roots of ASTs parsed from `yyparse()` on different source files */
-extern ast_node* splc_ast_list;
+extern ast_node *splc_ast_list;
 
 /* The root of AST parsed from call to `yyparse()` */
 extern ast_node root;

@@ -14,7 +14,7 @@
 %locations
 
 %token LTR_INT LTR_FLOAT LTR_CHAR
-%token TYPE_VOID TYPE_INT TYPE_FLOAT TYPE_CHAR STR
+%token TYPE_VOID TYPE_INT TYPE_FLOAT TYPE_CHAR STR_UNIT
 %token KWD_ENUM KWD_STRUCT KWD_UNION ID 
 %token WHILE FOR DO
 %token IF ELSE SWITCH DEFAULT CASE 
@@ -679,8 +679,8 @@ argument-list:
 
 /* String intermediate expression. Allowing concatenation of strings. */
 string-literal: 
-      STR { $$ = create_parent_node(SPLT_LTR_STR, 1, $1); }
-    | string-literal STR { $$ = add_child($1, $2); }
+      STR_UNIT { $$ = create_parent_node(SPLT_LTR_STR, 1, $1); }
+    | string-literal STR_UNIT { $$ = add_child($1, $2); }
     ;
 
 identifier:
