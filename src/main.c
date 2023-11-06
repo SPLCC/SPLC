@@ -14,16 +14,15 @@ ast_node root = NULL;
 
 const char *progname = "splc";
 
+const char *progversion = "0.0.1 alpha";
+
 int main(int argc, char *argv[])
 {
     splc_process_args(argc, argv);
 
     //===========
 #ifndef SPLC_DISABLE_DIAG
-    for (int i = 0; i < splc_incl_dir_cnt; ++i)
-    {
-        SPLC_FDIAG("detected include directory: %s", splc_incl_dirs[i]);
-    }
+    print_prog_diag_info();
 #endif
     //===========
 

@@ -299,6 +299,8 @@ extern int err_flag;
 
 extern const char *progname;
 
+extern const char *progversion;
+
 /* Macros */
 
 #define SPLC_ROOT_LOC (splc_root_loc)

@@ -1,5 +1,5 @@
-#include "splcdef.h"
 #include "splcopt.h"
+#include "splcdef.h"
 #include "utils.h"
 
 #include <stdio.h>
@@ -13,8 +13,6 @@ const char **splc_incl_dirs = NULL;
 
 int splc_src_file_cnt = 0;
 const char **splc_src_files = NULL;
-
-
 
 /* From `splcopt.h` */
 
@@ -76,7 +74,7 @@ int splc_getopt(int nargc, char *nargv[], const char *ostr)
 void splc_process_args(int nargc, char *nargv[])
 {
     int opcode;
-    while ((opcode = splc_getopt(nargc, nargv, "I:vt")) != -1)
+    while ((opcode = splc_getopt(nargc, nargv, "hI:vt")) != -1)
     {
         switch (opcode)
         {
@@ -120,6 +118,9 @@ void splc_process_args(int nargc, char *nargv[])
             case 't':
                 splc_enable_colored_ast = 1;
                 break;
+            case 'h':
+                usage();
+                exit(0);
             default:
                 break;
             }
@@ -128,5 +129,27 @@ void splc_process_args(int nargc, char *nargv[])
         default:
             break;
         }
+    }
+}
+
+// clang-format off
+void usage()
+{
+    printf("usage: %s [options] [file ...]\n%s%s%s%s", progname,
+           "  -h                       print this usage and exit\n",
+           "  -v                       print diagnostic information\n",
+           "  -t                       color the output AST\n",
+           "  -I[{include-directory}]  specify extra directory for #include search\n");
+}
+// clang-format on
+
+void print_prog_diag_info()
+{
+    SPLC_FDIAG("%s %s", progname, progversion);
+    SPLC_FDIAG("enable_diag=%d", splc_enable_diag);
+    SPLC_FDIAG("enable_colored_ast=%d", splc_enable_colored_ast);
+    for (int i = 0; i < splc_incl_dir_cnt; ++i)
+    {
+        SPLC_FDIAG("detected include directory: %s", splc_incl_dirs[i]);
     }
 }

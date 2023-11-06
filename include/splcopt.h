@@ -43,4 +43,8 @@ int splc_getopt(int nargc, char *nargv[], const char *ostr);
   */
 void splc_process_args(int nargc, char *nargv[]);
 
+void usage();
+
+void print_prog_diag_info();
+
 #endif
