@@ -14,7 +14,7 @@
 %locations
 
 %token LTR_INT LTR_FLOAT LTR_CHAR
-%token TYPE_INT TYPE_FLOAT TYPE_CHAR STR
+%token TYPE_VOID TYPE_INT TYPE_FLOAT TYPE_CHAR STR
 %token STRUCT UNION ID TYPE 
 %token WHILE FOR DO
 %token IF ELSE SWITCH DEFAULT CASE 
@@ -70,7 +70,7 @@ translation-unit:
 /* External definition list: Recursive definition */
 external-definition-list: 
       external-definition { $$ = create_parent_node(SPLT_EXT_DEF_LIST, 1, $1); }
-    | external-definition-list external-definition { $$ = create_parent_node(SPLT_EXT_DEF_LIST, 2, $1, $2); }
+    | external-definition-list external-definition { $$ = add_child($1, $2); }
     ;
 
 /* External definition list: A single unit of one of {variables, structs, functions}. */
@@ -83,10 +83,11 @@ external-definition:
     
     | type-specifier SEMI { $$ = create_parent_node(SPLT_EXT_DEF, 2, $1, $2); } // Allowing structure definitions
 
-    | type-specifier type-specifier function-declarator compound-statement { splcerror(SPLC_ERR_B, $2->location, "function has mutliple specifiers"); $$ = create_parent_node(SPLT_EXT_DEF, 0); yyerrok; }
     | type-specifier function-declarator compound-statement { $$ = create_parent_node(SPLT_EXT_DEF, 3, $1, $2, $3); }
-    | function-declarator compound-statement { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($1), "function is missing a specifier"); $$ = create_parent_node(SPLT_EXT_DEF, 0); yyerrok; } 
     | type-specifier function-declarator SEMI { $$ = create_parent_node(SPLT_EXT_DEF, 3, $1, $2, $3); }
+
+    | function-declarator compound-statement { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($1), "function is missing a specifier"); $$ = create_parent_node(SPLT_EXT_DEF, 0); yyerrok; } 
+    | type-specifier type-specifier function-declarator compound-statement { splcerror(SPLC_ERR_B, $2->location, "function has mutliple specifiers"); $$ = create_parent_node(SPLT_EXT_DEF, 0); yyerrok; }
 
     | type-specifier type-specifier error { splcerror(SPLC_ERR_B, $2->location, "two or more data types in declaration specifiers"); $$ = create_parent_node(SPLT_EXT_DEF, 0); yyerrok; }
     | type-specifier type-specifier function-declarator error { splcerror(SPLC_ERR_B, $2->location, "function has mutliple specifiers"); $$ = create_parent_node(SPLT_EXT_DEF, 0); yyerrok; }
@@ -95,24 +96,49 @@ external-definition:
 
 /* External declaration list: Multiple variable definition of a single type. */
 external-declaration-list: 
-      variable-declarator { $$ = create_parent_node(SPLT_EXT_DEC_LIST, 1, $1); }
-    | variable-declarator COMMA external-declaration-list { $$ = create_parent_node(SPLT_EXT_DEC_LIST, 3, $1, $2, $3); }
+      external-variable-declarator { $$ = create_parent_node(SPLT_EXT_DEC_LIST, 1, $1); }
+    | external-variable-declarator COMMA external-declaration-list { $$ = create_parent_node(SPLT_EXT_DEC_LIST, 3, $1, $2, $3); }
 
-    | variable-declarator COMMA { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_L(@2), "expected declarator"); $$ = create_parent_node(SPLT_EXT_DEC_LIST, 2, $1, $2); yyerrok; }
+    | external-variable-declarator COMMA { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_L(@2), "expected declarator"); $$ = create_parent_node(SPLT_EXT_DEC_LIST, 2, $1, $2); yyerrok; }
     | COMMA external-declaration-list{ splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "expected declarator"); $$ = create_parent_node(SPLT_EXT_DEC_LIST, 2, $1, $2); yyerrok; }
     | COMMA { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "expected declarator"); $$ = create_parent_node(SPLT_EXT_DEC_LIST, 1, $1); yyerrok; }
     ;
 
+external-variable-declarator:
+      variable-declarator { $$ = create_parent_node(SPLT_EXT_VAR_DEC, 1, $1); }
+    | variable-declarator ASSIGN constant-expression { $$ = create_parent_node(SPLT_EXT_VAR_DEC, 3, $1, $2, $3); }
+
+    | variable-declarator ASSIGN error { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($2), "invalid initialization"); $$ = create_parent_node(SPLT_EXT_VAR_DEC, 0); yyerrok; }
+    ;
+
 type-specifier: 
-      type-name { $$ = create_parent_node(SPLT_TYPE_SPEC, 1, $1); }
+      builtin-type-specifier { $$ = create_parent_node(SPLT_TYPE_SPEC, 1, $1); }
     /* | identifier { $$ = create_parent_node(SPLT_TYPE_SPEC, 1, $1); } */
     | struct-specifier { $$ = create_parent_node(SPLT_TYPE_SPEC, 1, $1); }
     ;
-
+      
 type-name:
-      TYPE_INT
+      builtin-type-specifier { $$ = create_parent_node(SPLT_TYPENAME, 1, $1); }
+    | builtin-type-specifier abstract-declarator { $$ = create_parent_node(SPLT_TYPENAME, 2, $1, $2); }
+    ;
+
+builtin-type-specifier:
+      TYPE_VOID
+    | TYPE_INT
     | TYPE_FLOAT
     | TYPE_CHAR
+    ;
+
+abstract-declarator:
+      pointer { $$ = create_parent_node(SPLT_ABS_DEC, 1, $1); }
+    | pointer direct-abstract-declarator { $$ = create_parent_node(SPLT_ABS_DEC, 2, $1, $2); }
+    ;
+
+direct-abstract-declarator:
+      LP abstract-declarator RP { $$ = create_parent_node(SPLT_DIR_ABS_DEC, 3, $1, $2, $3); }
+    | direct-abstract-declarator LSB RSB { $$ = create_parent_node(SPLT_DIR_ABS_DEC, 3, $1, $2, $3); }
+    | direct-abstract-declarator LSB error { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($2), "expected ']' here"); $$ = create_parent_node(SPLT_DIR_ABS_DEC, 2, $1, $2); yyerrok; }
+    | direct-abstract-declarator RSB { splcerror(SPLC_ERR_B, SPLC_AST_GET_STARTLOC($2), "expected '[' here"); $$ = create_parent_node(SPLT_DIR_ABS_DEC, 2, $1, $2); yyerrok; } 
     ;
 
 /* Specify a structure */
@@ -131,9 +157,10 @@ direct-declarator:
       identifier { $$ = create_parent_node(SPLT_VAR_DEC, 1, $1); }
     | direct-declarator LSB LTR_INT RSB { $$ = create_parent_node(SPLT_VAR_DEC, 4, $1, $2, $3, $4); }
     | direct-declarator LSB RSB { $$ = create_parent_node(SPLT_VAR_DEC, 3, $1, $2, $3); }
-    | direct-declarator LSB LTR_INT error { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($2), "missing closing bracket ']'"); $$ = create_parent_node(SPLT_FUNC_DEC, 0); yyerrok; } 
-    | direct-declarator LTR_INT RSB { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_F(@2), "expected '[' here"); $$ = create_parent_node(SPLT_FUNC_DEC, 0); yyerrok; } 
-    | direct-declarator RSB { splcerror(SPLC_ERR_B, SPLC_AST_GET_STARTLOC($2), "expected '[' here"); $$ = create_parent_node(SPLT_FUNC_DEC, 0); yyerrok; } 
+
+    | direct-declarator LSB LTR_INT error { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($2), "missing closing bracket ']'"); $$ = create_parent_node(SPLT_VAR_DEC, 0); yyerrok; } 
+    | direct-declarator LTR_INT RSB { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_F(@2), "expected '[' here"); $$ = create_parent_node(SPLT_VAR_DEC, 0); yyerrok; } 
+    | direct-declarator RSB { splcerror(SPLC_ERR_B, SPLC_AST_GET_STARTLOC($2), "expected '[' here"); $$ = create_parent_node(SPLT_VAR_DEC, 0); yyerrok; } 
     ;
 
 pointer:
@@ -237,7 +264,7 @@ selection-statement:
     | IF LP expression error %prec ELSE { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_L(@3), "missing closing parenthesis ')'"); $$ = create_parent_node(SPLT_SEL_STMT, 0); yyerrok; }
     | ELSE statement { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_I(@1), "dangling else is not allowed"); $$ = create_parent_node(SPLT_SEL_STMT, 2, $1, $2); yyerrok; }
 
-    | SWITCH LP expression RP statement { $$ = create_parent_node(SPLT_SEL_STMT, 3, $1, $2, $3); }
+    | SWITCH LP expression RP statement { $$ = create_parent_node(SPLT_SEL_STMT, 4, $1, $2, $3, $4); }
     /* | SWITCH LP expression statement { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_L(@3), "missing opening parenthese '('"); $$ = create_parent_node(SPLT_SEL_STMT, 0); yyerrok; } */
     | SWITCH error RP statement { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_F(@2), "missing opening parenthese '('"); $$ = create_parent_node(SPLT_SEL_STMT, 0); yyerrok; }
     ;
@@ -246,6 +273,7 @@ labeled-statement:
       identifier COLON statement { $$ = create_parent_node(SPLT_LABELED_STMT, 3, $1, $2, $3); }
     | CASE constant-expression COLON statement { $$ = create_parent_node(SPLT_LABELED_STMT, 3, $1, $2, $3); }
     | DEFAULT COLON statement { $$ = create_parent_node(SPLT_LABELED_STMT, 3, $1, $2, $3); }
+
     | COLON statement { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "missing a label"); $$ = create_parent_node(SPLT_LABELED_STMT, 0); yyerrok; }
     ;
 
@@ -256,6 +284,7 @@ jump-statement:
     | RETURN expression SEMI { $$ = create_parent_node(SPLT_JUMP_STMT, 3, $1, $2, $3); }
     | RETURN expression error { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($2), "missing semicolon ';'"); $$ = create_parent_node(SPLT_JUMP_STMT, 2, $1, $2); yyerrok; }
     | RETURN SEMI { $$ = create_parent_node(SPLT_JUMP_STMT, 2, $1, $2); }
+
     | RETURN error { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($1), "missing expression in return statement"); $$ = create_parent_node(SPLT_JUMP_STMT, 2, $1, $2); yyerrok; }
     ;
 
@@ -368,10 +397,11 @@ unary-expression:
     | DMINUS unary-expression { $$ = create_parent_node(SPLT_EXPR, 2, $1, $2); }
     | unary-operator cast-expression %prec UPLUS { $$ = create_parent_node(SPLT_EXPR, 2, $1, $2); }
     | SIZEOF unary-expression { $$ = create_parent_node(SPLT_EXPR, 2, $1, $2); }
+    | SIZEOF LP type-name RP { $$ = create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
 
     | DPLUS error { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($1), "expected an operand"); $$ = create_parent_node(SPLT_EXPR, 1, $1); yyerrok; }
     | DMINUS error { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($1), "expected an operand"); $$ = create_parent_node(SPLT_EXPR, 1, $1); yyerrok; }
-    | SIZEOF { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "expected an operand"); $$ = create_parent_node(SPLT_EXPR, 1, $1); yyerrok; }
+    | SIZEOF error { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "expected an operand"); $$ = create_parent_node(SPLT_EXPR, 1, $1); yyerrok; }
     /* | SIZEOF LP unary-expression RP {} */
     ;
 
@@ -386,6 +416,10 @@ unary-operator: /* Take the default behavior, that is, `$$ = $1` */
 
 cast-expression:
       unary-expression
+    | LP type-name RP cast-expression { $$ = create_parent_node(SPLT_CAST_EXPR, 4, $1, $2, $3, $4); }
+
+    | LP type-name RP error { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($3), "expected an expression"); $$ = create_parent_node(SPLT_CAST_EXPR, 3, $1, $2, $3); yyerrok; }
+    | LP type-name error { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($2), "expected ')'"); $$ = create_parent_node(SPLT_CAST_EXPR, 2, $1, $2); yyerrok; }
     ;
 
 multiplicative-expression:

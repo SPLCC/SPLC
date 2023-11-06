@@ -44,7 +44,9 @@ enum splc_token_type
     SPLT_EXT_DEF_LIST,      /* external definition list */
     SPLT_EXT_DEF,           /* a single external definition: variable/struct/function */
     SPLT_EXT_DEC_LIST,      /* variable list */
-    SPLT_TYPE_SPEC,         /* specifier */
+    SPLT_EXT_VAR_DEC,       /* external variable declarator */
+    SPLT_TYPE_SPEC,         /* type specifier */
+    SPLT_TYPENAME,          /* direct abstract declarator */
     SPLT_STRUCT_SPECIFIER,  /* struct specifier */
     SPLT_VAR_DEC,           /* variable declaration (pointer interface) */
     SPLT_DIR_DEC,           /* variable declaration (single/array) */
@@ -66,11 +68,13 @@ enum splc_token_type
     SPLT_JUMP_STMT,               /* jump statement */
     // SPLT_STMT_LIST,            /* list of statements */
 
-    SPLT_DEF_LIST, /* list of definitions */
-    SPLT_DEF,      /* wrapper for definition with SEMI */
-    SPLT_DIR_DEF,  /* base for a single definition: list of variable declaration */
-    SPLT_DEC_LIST, /* list of variable declaration */
-    SPLT_DEC,      /* single declarator, one of `var`s in `type var1, var2` */
+    SPLT_DEF_LIST,    /* list of definitions */
+    SPLT_DEF,         /* wrapper for definition with SEMI */
+    SPLT_DIR_DEF,     /* base for a single definition: list of variable declaration */
+    SPLT_DEC_LIST,    /* list of variable declaration */
+    SPLT_DEC,         /* single declarator, one of `var`s in `type var1, var2` */
+    SPLT_ABS_DEC,     /* typename */
+    SPLT_DIR_ABS_DEC, /* direct abstract declarator */
 
     SPLT_EXPR = SPLT_EXPR_OFFSET, /* expression */
     SPLT_PRIM_EXPR,               /* primary expression */
@@ -172,9 +176,10 @@ enum splc_token_type
     SPLT_RARROW, /* right arrow - member access */
 
     /* Terminals: Constant Expressions */
-    SPLT_TYPE_INT = SPLT_BUILTIN_TYPE_OFFSET, /* type: int */
-    SPLT_TYPE_FLOAT,                          /* type: float */
-    SPLT_TYPE_CHAR,                           /* type: char */
+    SPLT_TYPE_VOID = SPLT_BUILTIN_TYPE_OFFSET, /* type: void */
+    SPLT_TYPE_INT,                             /* type: int */
+    SPLT_TYPE_FLOAT,                           /* type: float */
+    SPLT_TYPE_CHAR,                            /* type: char */
     // SPLT_TYPE_UNSIGNED, /* type: int */
     // SPLT_TYPE_SIGNED,   /* type: int */
     // SPLT_TYPE_LONG,     /* type: int */
@@ -333,13 +338,13 @@ extern const char *progversion;
 #define SPLC_YY2LOC_CF_1_PNT_E(_lineno, _colno) SPLC_MAKE_LOC_CF((_lineno), (_colno), (_lineno), (_colno))
 
 /* Make a splc_loc struct from _loc from current file by capturing the entire interval */
-#define SPLC_YY2LOC_CF_1_PNT_I(loc)                                                                                   \
+#define SPLC_YY2LOC_CF_1_PNT_I(loc)                                                                                    \
     SPLC_MAKE_LOC_CF((loc).first_line, (loc).first_column, (loc).last_line, (loc).last_column)
 /* Make a splc_loc struct from _loc from current file by capturing the first point */
-#define SPLC_YY2LOC_CF_1_PNT_F(loc)                                                                                   \
+#define SPLC_YY2LOC_CF_1_PNT_F(loc)                                                                                    \
     SPLC_MAKE_LOC_CF((loc).first_line, (loc).first_column, (loc).first_line, (loc).first_column)
 /* Make a splc_loc struct from _loc from current file by capturing the last point */
-#define SPLC_YY2LOC_CF_1_PNT_L(loc)                                                                                   \
+#define SPLC_YY2LOC_CF_1_PNT_L(loc)                                                                                    \
     SPLC_MAKE_LOC_CF((loc).last_line, (loc).last_column, (loc).last_line, (loc).last_column)
 
 /* Make a splc_loc struct from l1, l2 from current file by capturing the interval. F - first_line/column, L -
@@ -360,10 +365,10 @@ extern const char *progversion;
     SPLC_MAKE_LOC_CF((l1).last_line, (l1).last_column, (l2).last_line, (l2).last_column)
 
 /* Convert spl_loc to the first/last point of itself */
-#define SPLC_SPLLOC_TO_1_PNT_F(loc)                                                                                     \
+#define SPLC_SPLLOC_TO_1_PNT_F(loc)                                                                                    \
     SPLC_MAKE_LOC((loc).fid, (loc).first_line, (loc).first_column, (loc).first_line, (loc).first_column)
 /* Convert spl_loc to the first/last point of itself */
-#define SPLC_SPLLOC_TO_1_PNT_L(loc)                                                                                     \
+#define SPLC_SPLLOC_TO_1_PNT_L(loc)                                                                                    \
     SPLC_MAKE_LOC((loc).fid, (loc).last_line, (loc).last_column, (loc).last_line, (loc).last_column)
 
 #endif

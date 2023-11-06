@@ -278,12 +278,6 @@ static void splc_handle_msg(error_t type, const splc_loc *const location, const 
     return;
 }
 
-void splcerror_noloc(error_t type, const char *msg)
-{
-    set_error_flag(1);
-    splc_handle_msg(type, NULL, msg);
-}
-
 static void _builtin_splcerror(error_t type, const splc_loc *const location, const char *msg)
 {
     set_error_flag(1);
@@ -336,10 +330,22 @@ void splcerror(error_t type, const splc_loc location, const char *msg)
     _builtin_splcerror(type, &location, msg);
 }
 
+void splcerror_noloc(error_t type, const char *msg)
+{
+    set_error_flag(1);
+    _builtin_splcerror(type, NULL, msg);
+}
+
 void splcwarn(const splc_loc location, const char *msg)
 {
     print_trace();
     _builtin_splcwarn(&location, msg);
+}
+
+void splcwarn_noloc(const char *msg)
+{
+    print_trace();
+    _builtin_splcwarn(NULL, msg);
 }
 
 void splcnote(const splc_loc location, const char *msg)

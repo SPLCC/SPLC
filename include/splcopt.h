@@ -12,6 +12,7 @@
 extern int splc_opterror; /* If set to 1, produce warnings upon error during parsing */
 extern int splc_optind;   /* current index in the argument vector */
 extern char splc_optopt;  /* the parsed option */
+extern char *splc_optfull; /* full argument */
 extern char *splc_optarg; /* the argument for the option */
 
 /* The main procedure to get options by spl.
@@ -33,7 +34,8 @@ extern char *splc_optarg; /* the argument for the option */
    ------
    - `-1`, if no more arguments can be parsed.
    - `0`, if a direct argument to the program has been found.
-   - `1`, if a known argument is present.
+   - `1`, if a known option is present.
+   - `2`, if a full option is found
    - other `char` values, representing errors.
 
   */

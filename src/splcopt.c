@@ -19,6 +19,7 @@ const char **splc_src_files = NULL;
 int splc_opterror = 1;
 int splc_optind = 1;
 char splc_optopt = '\0';
+char *splc_optfull = NULL;
 char *splc_optarg = NULL;
 
 int splc_getopt(int nargc, char *nargv[], const char *ostr)
@@ -27,6 +28,7 @@ int splc_getopt(int nargc, char *nargv[], const char *ostr)
         return -1;
 
     splc_optopt = '\0';
+    splc_optfull = NULL;
     splc_optarg = NULL;
 
     char *arg = nargv[splc_optind];
@@ -43,9 +45,11 @@ int splc_getopt(int nargc, char *nargv[], const char *ostr)
     if (splc_optopt == '-') /* no support for '--option' type */
     {
         if (splc_opterror)
-            fprintf(stderr, "Unsupported option format: %s\n", nargv[splc_optind]);
+            SPLC_FWARN_NOLOC("unsupported option format: %s\n", nargv[splc_optind]);
+
+        splc_optfull = ++arg;
         ++splc_optind;
-        return SPL_OPT_BADCH;
+        return 2;
     }
     optr = strchr(ostr, splc_optopt);
     if (optr == NULL) /* if this option does not exist */
@@ -122,10 +126,17 @@ void splc_process_args(int nargc, char *nargv[])
                 usage();
                 exit(0);
             default:
-                break;
+                usage();
+                SPLC_FEXIT_NOLOC("unsupported option: %c", splc_optopt);
             }
+            break;
         }
-        break;
+        case 2: {
+#ifndef SPLC_DISABLE_DIAG
+            SPLC_FDIAG("received option: %s", splc_optfull);
+#endif
+            break;
+        }
         default:
             break;
         }

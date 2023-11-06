@@ -36,8 +36,6 @@ enum trace_type
  * display source file. */
 void splctrace(trace_t type, int show_source, const char *name);
 
-/* Print an error without position */
-void splcerror_noloc(error_t type, const char *msg);
 
 void splcfail(const char *msg);
 
@@ -48,7 +46,13 @@ void splcfail(const char *msg);
  */
 void splcerror(error_t type, const splc_loc location, const char *msg);
 
+/* Print an error without location */
+void splcerror_noloc(error_t type, const char *msg);
+
 void splcwarn(const splc_loc location, const char *msg);
+
+/* Print a warning without location */
+void splcwarn_noloc(const char *msg);
 
 void splcnote(const splc_loc location, const char *msg);
 
@@ -112,6 +116,19 @@ extern int splc_enable_diag;
         free(buffer);                                                                                                  \
     } while (0)
 
+/* Call this to print a formatted error without location */
+#define SPLC_FERROR_NOLOC(type, _msg, ...)                                                                                   \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        size_t needed = snprintf(NULL, 0, _msg, __VA_ARGS__) + 1;                                                      \
+        char *buffer = (char *)malloc(needed);                                                                         \
+        if (buffer == NULL)                                                                                            \
+            splcfail("cannot allocate memory for printing error");                                                     \
+        sprintf(buffer, _msg, __VA_ARGS__);                                                                            \
+        splcerror_noloc(type, buffer);                                                                                 \
+        free(buffer);                                                                                                  \
+    } while (0)
+
 /* Call this to print a formatted warning */
 #define SPLC_FWARN(_location, _msg, ...)                                                                               \
     do                                                                                                                 \
@@ -122,6 +139,19 @@ extern int splc_enable_diag;
             splcfail("cannot allocate memory for printing error");                                                     \
         sprintf(buffer, _msg, __VA_ARGS__);                                                                            \
         splcwarn(_location, buffer);                                                                                   \
+        free(buffer);                                                                                                  \
+    } while (0)
+
+/* Call this to print a formatted warning */
+#define SPLC_FWARN_NOLOC(_msg, ...)                                                                                          \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        size_t needed = snprintf(NULL, 0, _msg, __VA_ARGS__) + 1;                                                      \
+        char *buffer = (char *)malloc(needed);                                                                         \
+        if (buffer == NULL)                                                                                            \
+            splcfail("cannot allocate memory for printing error");                                                     \
+        sprintf(buffer, _msg, __VA_ARGS__);                                                                            \
+        splcwarn_noloc(buffer);                                                                                        \
         free(buffer);                                                                                                  \
     } while (0)
 

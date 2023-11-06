@@ -52,6 +52,7 @@ const char *splc_get_token_color_code(splc_token_t type)
     case SPLT_EXT_DEF_LIST:
     case SPLT_EXT_DEF:
     case SPLT_EXT_DEC_LIST:
+    case SPLT_EXT_VAR_DEC:
     case SPLT_COMP_STMT:
 
     case SPLT_STMT:    
@@ -69,6 +70,8 @@ const char *splc_get_token_color_code(splc_token_t type)
     case SPLT_DIR_DEF:
     case SPLT_DEC_LIST:
     case SPLT_DEC:
+    case SPLT_ABS_DEC:
+    case SPLT_DIR_ABS_DEC:
         return "\033[38;5;27m";
 
     case SPLT_EXPR:
@@ -121,6 +124,7 @@ const char *splc_get_token_color_code(splc_token_t type)
         return "\033[38;5;164m";
 
     /* Terminal: built-in types */
+    case SPLT_TYPE_VOID:
     case SPLT_TYPE_INT:
     case SPLT_TYPE_FLOAT:
     case SPLT_TYPE_CHAR:
@@ -131,6 +135,7 @@ const char *splc_get_token_color_code(splc_token_t type)
         return "\033[38;5;81m";
         
     case SPLT_TYPE_SPEC:
+    case SPLT_TYPENAME:
     case SPLT_STRUCT_SPECIFIER:
     case SPLT_MACRO_ID:
         return "\033[38;5;33m";
@@ -199,11 +204,13 @@ const char *splc_get_token_color_code(splc_token_t type)
     case SPLT_LTR_INT:
     case SPLT_LTR_FLOAT:
     case SPLT_LTR_CHAR:
+    case SPLT_LTR_STR:
+    case SPLT_CONSTANT:
     case SPLT_STR:
         return "\033[38;5;173m";
 
     default:
-        return "\033[0m";
+        return "\033[31m";
     }
 }
 
@@ -222,8 +229,12 @@ const char *splc_token2str(splc_token_t type)
         return "External Def";
     case SPLT_EXT_DEC_LIST:
         return "External DecList";
+    case SPLT_EXT_VAR_DEC:
+        return "External Dec";
     case SPLT_TYPE_SPEC:
         return "Specifier";
+    case SPLT_TYPENAME:
+        return "typename";
     case SPLT_STRUCT_SPECIFIER:
         return "Struct Specifier";
     case SPLT_VAR_DEC:
@@ -274,6 +285,10 @@ const char *splc_token2str(splc_token_t type)
         return "Dec List";
     case SPLT_DEC:
         return "Dec";
+    case SPLT_ABS_DEC:
+        return "Abstract Dec";
+    case SPLT_DIR_ABS_DEC:
+        return "Direct Abstract Dec";
 
     case SPLT_EXPR:
         return "Exp";
@@ -451,6 +466,8 @@ const char *splc_token2str(splc_token_t type)
     case SPLT_RARROW:
         return "RARROW";
 
+    case SPLT_TYPE_VOID:
+        return "type: void";
     case SPLT_TYPE_INT:
         return "type: int";
     case SPLT_TYPE_FLOAT:
@@ -482,6 +499,6 @@ const char *splc_token2str(splc_token_t type)
         return "AST Macro ID";
 
     default:
-        return "UNRECOGNIZED";
+        return "unspecified name";
     }
 }
