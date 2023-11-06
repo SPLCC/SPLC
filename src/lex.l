@@ -179,10 +179,10 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 
     /* =================== SPL: keywords =================== */
-<INITIAL>"void"  { yylval = create_leaf_node(SPLT_TYPE_VOID, SPLC_YY2LOC_CF_D(yylloc)); return TYPE_VOID; }
-<INITIAL>"int"   { yylval = create_leaf_node(SPLT_TYPE_INT, SPLC_YY2LOC_CF_D(yylloc)); return TYPE_INT; }
-<INITIAL>"float" { yylval = create_leaf_node(SPLT_TYPE_FLOAT, SPLC_YY2LOC_CF_D(yylloc)); return TYPE_FLOAT; }
-<INITIAL>"char"  { yylval = create_leaf_node(SPLT_TYPE_CHAR, SPLC_YY2LOC_CF_D(yylloc)); return TYPE_CHAR; }
+<INITIAL>"void"     { yylval = create_leaf_node(SPLT_TYPE_VOID, SPLC_YY2LOC_CF_D(yylloc)); return TYPE_VOID; }
+<INITIAL>"int"      { yylval = create_leaf_node(SPLT_TYPE_INT, SPLC_YY2LOC_CF_D(yylloc)); return TYPE_INT; }
+<INITIAL>"float"    { yylval = create_leaf_node(SPLT_TYPE_FLOAT, SPLC_YY2LOC_CF_D(yylloc)); return TYPE_FLOAT; }
+<INITIAL>"char"     { yylval = create_leaf_node(SPLT_TYPE_CHAR, SPLC_YY2LOC_CF_D(yylloc)); return TYPE_CHAR; }
 
 <INITIAL>"struct"   { yylval = create_leaf_node(SPLT_STRUCT, SPLC_YY2LOC_CF_D(yylloc)); return STRUCT; }
 <INITIAL>"union"    { yylval = create_leaf_node(SPLT_UNION, SPLC_YY2LOC_CF_D(yylloc)); return UNION; }
@@ -194,7 +194,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 <INITIAL>"else"     { yylval = create_leaf_node(SPLT_ELSE, SPLC_YY2LOC_CF_D(yylloc)); return ELSE; }
 <INITIAL>"switch"   { yylval = create_leaf_node(SPLT_SWITCH, SPLC_YY2LOC_CF_D(yylloc)); return SWITCH; }
 <INITIAL>"default"  { yylval = create_leaf_node(SPLT_DEFAULT, SPLC_YY2LOC_CF_D(yylloc)); return DEFAULT; }
-<INITIAL>"case"  { yylval = create_leaf_node(SPLT_CASE, SPLC_YY2LOC_CF_D(yylloc)); return CASE; }
+<INITIAL>"case"     { yylval = create_leaf_node(SPLT_CASE, SPLC_YY2LOC_CF_D(yylloc)); return CASE; }
 
 <INITIAL>"goto"     { yylval = create_leaf_node(SPLT_GOTO, SPLC_YY2LOC_CF_D(yylloc)); return GOTO; }
 <INITIAL>"continue" { yylval = create_leaf_node(SPLT_CONTINUE, SPLC_YY2LOC_CF_D(yylloc)); return CONTINUE; }
