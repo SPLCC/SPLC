@@ -10,6 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+ast_node* splc_ast_list = NULL;
+
 ast_node root = NULL;
 
 const char *progname = "splc";
@@ -31,6 +33,9 @@ int main(int argc, char *argv[])
         splcerror_noloc(SPLC_ERR_CRIT, "no input file\ncompilation terminated.");
         exit(1);
     }
+
+    splc_ast_list = (ast_node *)malloc(splc_src_file_cnt * sizeof(ast_node));
+    SPLC_ALLOC_PTR_CHECK(splc_ast_list, "out of memory");
 
     for (int i = 0; i < splc_src_file_cnt; ++i)
     {

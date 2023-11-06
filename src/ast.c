@@ -11,8 +11,7 @@ int splc_enable_colored_ast = 0;
 ast_node create_empty_node()
 {
     ast_node node = (ast_node)malloc(sizeof(ast_node_struct));
-    if (node == NULL)
-        splcfail("out of memory");
+    SPLC_ALLOC_PTR_CHECK(node, "out of memory");
     node->type = SPLT_NULL;
     node->entry = NULL;
     node->children = NULL;
@@ -44,8 +43,7 @@ ast_node create_leaf_node(const splc_token_t type, const splc_loc location)
 ast_node add_child(ast_node parent, ast_node child)
 {
     parent->children = (ast_node *)realloc(parent->children, (parent->num_child + 1) * sizeof(ast_node_struct));
-    if (parent->children == NULL)
-        splcfail("out of memory");
+    SPLC_ALLOC_PTR_CHECK(parent->children, "out of memory");
     parent->children[parent->num_child] = child;
     ++(parent->num_child);
     return parent;

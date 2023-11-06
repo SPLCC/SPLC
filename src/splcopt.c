@@ -86,8 +86,7 @@ void splc_process_args(int nargc, char *nargv[])
             /* Save file names */
             ++splc_src_file_cnt;
             const char **new_filev = (const char **)realloc(splc_src_files, splc_src_file_cnt * sizeof(char *));
-            if (new_filev == NULL)
-                SPLC_FFAIL("Failed to reallocate source file array: %s\n", nargv[splc_optind]);
+            SPLC_ALLOC_PTR_CHECK(new_filev, "failed to allocate array for storing source filenames")
             splc_src_files = new_filev;
             splc_src_files[splc_src_file_cnt - 1] = splc_optarg;
             break;
@@ -99,16 +98,14 @@ void splc_process_args(int nargc, char *nargv[])
                 /* Save include directories */
                 ++splc_incl_dir_cnt;
                 const char **new_filev = (const char **)realloc(splc_incl_dirs, splc_incl_dir_cnt * sizeof(char *));
-                if (new_filev == NULL)
-                    SPLC_FFAIL("Failed to reallocate include file array: %s\n", nargv[splc_optind]);
+                SPLC_ALLOC_PTR_CHECK(new_filev, "failed to allocate array for storing include directories")
 
                 char *target = splc_optarg;
                 size_t dirlen = strlen(splc_optarg);
                 if (dirlen > 0 && splc_optarg[dirlen - 1] != SPL_SYS_DIR_SEPARATOR)
                 {
                     target = (char *)malloc((dirlen + 1) * sizeof(char));
-                    if (target == NULL)
-                        SPLC_FFAIL("Failed to allocate new file name: %s\n", nargv[splc_optind]);
+                    SPLC_ALLOC_PTR_CHECK(target, "failed to allocate buffer for include directory name")
                     memcpy(target, splc_optarg, dirlen);
                     target[dirlen] = SPL_SYS_DIR_SEPARATOR;
                     target[dirlen + 1] = '\0';

@@ -394,11 +394,7 @@ static int _builtin_splc_enter_file(const char *restrict _filename, const splc_l
     splc_file_node_stack = node;
 
     splc_all_file_nodes = (util_file_node *)realloc(splc_all_file_nodes, splc_file_node_cnt * sizeof(util_file_node));
-    if (splc_all_file_nodes == NULL)
-    {
-        splcerror_noloc(SPLC_ERR_CRIT, "out of memory when opening file");
-        exit(1);
-    }
+    SPLC_ALLOC_PTR_CHECK(splc_all_file_nodes, "out of memory when opening files");
     splc_all_file_nodes[splc_file_node_cnt - 1] = node;
 
     yy_switch_to_buffer(node->file_buffer);

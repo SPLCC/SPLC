@@ -36,7 +36,6 @@ enum trace_type
  * display source file. */
 void splctrace(trace_t type, int show_source, const char *name);
 
-
 void splcfail(const char *msg);
 
 /* This method prints the corresponding colored message, and outputs the corresponding line in the file.
@@ -89,14 +88,18 @@ extern int splc_enable_diag;
         abort();                                                                                                       \
     } while (0)
 
+/* Check if pointer is NULL. If fail, print a message and exit. */
+#define SPLC_ALLOC_PTR_CHECK(x, _msg)                                                                                  \
+    if ((x) == NULL)                                                                                                   \
+        splcfail(_msg);
+
 /* Print a formatted message without location and exit splc(1) */
 #define SPLC_FEXIT_NOLOC(_msg, ...)                                                                                    \
     do                                                                                                                 \
     {                                                                                                                  \
         size_t needed = snprintf(NULL, 0, _msg, __VA_ARGS__) + 1;                                                      \
         char *buffer = (char *)malloc(needed);                                                                         \
-        if (buffer == NULL)                                                                                            \
-            splcfail("cannot allocate memory for printing error");                                                     \
+        SPLC_ALLOC_PTR_CHECK(buffer, "cannot allocate memory for printing error");                                     \
         sprintf(buffer, _msg, __VA_ARGS__);                                                                            \
         splcerror_noloc(SPLC_ERR_CRIT, buffer);                                                                        \
         free(buffer);                                                                                                  \
@@ -109,21 +112,19 @@ extern int splc_enable_diag;
     {                                                                                                                  \
         size_t needed = snprintf(NULL, 0, _msg, __VA_ARGS__) + 1;                                                      \
         char *buffer = (char *)malloc(needed);                                                                         \
-        if (buffer == NULL)                                                                                            \
-            splcfail("cannot allocate memory for printing error");                                                     \
+        SPLC_ALLOC_PTR_CHECK(buffer, "cannot allocate memory for printing error");                                     \
         sprintf(buffer, _msg, __VA_ARGS__);                                                                            \
         splcerror(type, _location, buffer);                                                                            \
         free(buffer);                                                                                                  \
     } while (0)
 
 /* Call this to print a formatted error without location */
-#define SPLC_FERROR_NOLOC(type, _msg, ...)                                                                                   \
+#define SPLC_FERROR_NOLOC(type, _msg, ...)                                                                             \
     do                                                                                                                 \
     {                                                                                                                  \
         size_t needed = snprintf(NULL, 0, _msg, __VA_ARGS__) + 1;                                                      \
         char *buffer = (char *)malloc(needed);                                                                         \
-        if (buffer == NULL)                                                                                            \
-            splcfail("cannot allocate memory for printing error");                                                     \
+        SPLC_ALLOC_PTR_CHECK(buffer, "cannot allocate memory for printing error");                                     \
         sprintf(buffer, _msg, __VA_ARGS__);                                                                            \
         splcerror_noloc(type, buffer);                                                                                 \
         free(buffer);                                                                                                  \
@@ -135,21 +136,19 @@ extern int splc_enable_diag;
     {                                                                                                                  \
         size_t needed = snprintf(NULL, 0, _msg, __VA_ARGS__) + 1;                                                      \
         char *buffer = (char *)malloc(needed);                                                                         \
-        if (buffer == NULL)                                                                                            \
-            splcfail("cannot allocate memory for printing error");                                                     \
+        SPLC_ALLOC_PTR_CHECK(buffer, "cannot allocate memory for printing error");                                     \
         sprintf(buffer, _msg, __VA_ARGS__);                                                                            \
         splcwarn(_location, buffer);                                                                                   \
         free(buffer);                                                                                                  \
     } while (0)
 
 /* Call this to print a formatted warning */
-#define SPLC_FWARN_NOLOC(_msg, ...)                                                                                          \
+#define SPLC_FWARN_NOLOC(_msg, ...)                                                                                    \
     do                                                                                                                 \
     {                                                                                                                  \
         size_t needed = snprintf(NULL, 0, _msg, __VA_ARGS__) + 1;                                                      \
         char *buffer = (char *)malloc(needed);                                                                         \
-        if (buffer == NULL)                                                                                            \
-            splcfail("cannot allocate memory for printing error");                                                     \
+        SPLC_ALLOC_PTR_CHECK(buffer, "cannot allocate memory for printing error");                                     \
         sprintf(buffer, _msg, __VA_ARGS__);                                                                            \
         splcwarn_noloc(buffer);                                                                                        \
         free(buffer);                                                                                                  \
@@ -161,8 +160,7 @@ extern int splc_enable_diag;
     {                                                                                                                  \
         size_t needed = snprintf(NULL, 0, _msg, __VA_ARGS__) + 1;                                                      \
         char *buffer = (char *)malloc(needed);                                                                         \
-        if (buffer == NULL)                                                                                            \
-            splcfail("cannot allocate memory for printing error");                                                     \
+        SPLC_ALLOC_PTR_CHECK(buffer, "cannot allocate memory for printing error");                                     \
         sprintf(buffer, _msg, __VA_ARGS__);                                                                            \
         splcdiag(buffer);                                                                                              \
         free(buffer);                                                                                                  \

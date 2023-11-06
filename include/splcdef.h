@@ -308,6 +308,9 @@ extern util_file_node *splc_all_file_nodes;
 /* The root of linked list files. The root marks the previous file. */
 extern util_file_node splc_file_node_stack;
 
+/* The roots of ASTs parsed from `yyparse()` on different source files */
+extern ast_node* splc_ast_list;
+
 /* The root of AST parsed from call to `yyparse()` */
 extern ast_node root;
 
