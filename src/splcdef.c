@@ -49,10 +49,8 @@ const char *splc_get_token_color_code(splc_token_t type)
         return "\033[38;5;229m";
 
     /* Nonterminals: statements */
-    case SPLT_EXT_DEF_LIST:
-    case SPLT_EXT_DEF:
-    case SPLT_EXT_DEC_LIST:
-    case SPLT_EXT_VAR_DEC:
+    case SPLT_EXT_DECLTN_LIST:
+    case SPLT_EXT_DECLTN:
     case SPLT_COMP_STMT:
 
     case SPLT_STMT:    
@@ -65,11 +63,10 @@ const char *splc_get_token_color_code(splc_token_t type)
     case SPLT_LABELED_STMT:
     case SPLT_JUMP_STMT:
 
-    case SPLT_DEF_LIST:
-    case SPLT_DEF:
-    case SPLT_DIR_DEF:
-    case SPLT_DEC_LIST:
-    case SPLT_DEC:
+    case SPLT_DECLTN_LIST:
+    case SPLT_DECLTN:
+    case SPLT_INIT_DEC_LIST:
+    case SPLT_INIT_DEC:
     case SPLT_ABS_DEC:
     case SPLT_DIR_ABS_DEC:
         return "\033[38;5;27m";
@@ -95,7 +92,7 @@ const char *splc_get_token_color_code(splc_token_t type)
     case SPLT_INIT_EXPR:
         return "\033[38;5;40m";
 
-    case SPLT_VAR_DEC:
+    case SPLT_DEC:
     case SPLT_DIR_DEC:
     case SPLT_PTR:
     case SPLT_PARAM_DEC:
@@ -223,22 +220,18 @@ const char *splc_token2str(splc_token_t type)
         return "NULL-type";
     case SPLT_TRANS_UNIT:
         return "Translation Unit";
-    case SPLT_EXT_DEF_LIST:
-        return "External DefList";
-    case SPLT_EXT_DEF:
-        return "External Def";
-    case SPLT_EXT_DEC_LIST:
-        return "External DecList";
-    case SPLT_EXT_VAR_DEC:
-        return "External Dec";
+    case SPLT_EXT_DECLTN_LIST:
+        return "External Declaration List";
+    case SPLT_EXT_DECLTN:
+        return "External Declaration";
     case SPLT_TYPE_SPEC:
         return "Specifier";
     case SPLT_TYPENAME:
         return "typename";
     case SPLT_STRUCT_SPECIFIER:
         return "Struct Specifier";
-    case SPLT_VAR_DEC:
-        return "VarDec";
+    case SPLT_DEC:
+        return "Declarator";
     case SPLT_DIR_DEC:
         return "Direct VarDec";
     case SPLT_PTR:
@@ -275,16 +268,14 @@ const char *splc_token2str(splc_token_t type)
         return "Jump Stmt";
 
     /* Nonterminals: local definition */
-    case SPLT_DEF_LIST:
-        return "Def List";
-    case SPLT_DEF:
-        return "Def";
-    case SPLT_DIR_DEF:
-        return "Direct Def";
-    case SPLT_DEC_LIST:
-        return "Dec List";
-    case SPLT_DEC:
-        return "Dec";
+    case SPLT_DECLTN_LIST:
+        return "Declaration List";
+    case SPLT_DECLTN:
+        return "Declaration";
+    case SPLT_INIT_DEC_LIST:
+        return "Init Declarator List";
+    case SPLT_INIT_DEC:
+        return "Init Declarator";
     case SPLT_ABS_DEC:
         return "Abstract Dec";
     case SPLT_DIR_ABS_DEC:

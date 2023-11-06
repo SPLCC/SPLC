@@ -41,14 +41,12 @@ enum splc_token_type
     /* Nonterminals */
     SPLT_NULL = 0x00000000, /* uninitialized type */
     SPLT_TRANS_UNIT,        /* translation unit */
-    SPLT_EXT_DEF_LIST,      /* external definition list */
-    SPLT_EXT_DEF,           /* a single external definition: variable/struct/function */
-    SPLT_EXT_DEC_LIST,      /* variable list */
-    SPLT_EXT_VAR_DEC,       /* external variable declarator */
+    SPLT_EXT_DECLTN_LIST,   /* external declaration list */
+    SPLT_EXT_DECLTN,        /* a single declaration definition: variable/struct/function */
     SPLT_TYPE_SPEC,         /* type specifier */
-    SPLT_TYPENAME,          /* direct abstract declarator */
+    SPLT_TYPENAME,          /* typename */
     SPLT_STRUCT_SPECIFIER,  /* struct specifier */
-    SPLT_VAR_DEC,           /* variable declaration (pointer interface) */
+    SPLT_DEC,               /* variable declaration (pointer interface) */
     SPLT_DIR_DEC,           /* variable declaration (single/array) */
     SPLT_PTR,               /* pointer */
     SPLT_FUNC_DEC,          /* function declaration in the form of `foo(type1 var1, type2 var2, ...) */
@@ -68,13 +66,12 @@ enum splc_token_type
     SPLT_JUMP_STMT,               /* jump statement */
     // SPLT_STMT_LIST,            /* list of statements */
 
-    SPLT_DEF_LIST,    /* list of definitions */
-    SPLT_DEF,         /* wrapper for definition with SEMI */
-    SPLT_DIR_DEF,     /* base for a single definition: list of variable declaration */
-    SPLT_DEC_LIST,    /* list of variable declaration */
-    SPLT_DEC,         /* single declarator, one of `var`s in `type var1, var2` */
-    SPLT_ABS_DEC,     /* typename */
-    SPLT_DIR_ABS_DEC, /* direct abstract declarator */
+    SPLT_DECLTN_LIST,   /* list of declarations */
+    SPLT_DECLTN,        /* wrapper for declaration with SEMI */
+    SPLT_INIT_DEC_LIST, /* list of variable declaration */
+    SPLT_INIT_DEC,      /* single declarator, one of `var`s in `type var1, var2` */
+    SPLT_ABS_DEC,       /* typename */
+    SPLT_DIR_ABS_DEC,   /* direct abstract declarator */
 
     SPLT_EXPR = SPLT_EXPR_OFFSET, /* expression */
     SPLT_PRIM_EXPR,               /* primary expression */
