@@ -338,6 +338,7 @@ primary-expression:
     | constant { $$ = create_parent_node(SPLT_EXPR, 1, $1); }
     | string-literal { $$ = create_parent_node(SPLT_EXPR, 1, $1); }
     | LP expression RP { $$ = create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
+    | LP expression error { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($2), "expected ')'"); $$ = create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
     /* | LP expression { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_L(@2), "missing closing parenthesis ')'"); $$ = create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; } */
     ;
 
