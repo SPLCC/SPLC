@@ -39,21 +39,28 @@ typedef enum splc_token_type splc_token_t;
 enum splc_token_type
 {
     /* Nonterminals */
-    SPLT_NULL = 0x00000000, /* uninitialized type */
-    SPLT_TRANS_UNIT,        /* translation unit */
-    SPLT_EXT_DECLTN_LIST,   /* external declaration list */
-    SPLT_EXT_DECLTN,        /* a single declaration definition: variable/struct/function */
-    SPLT_TYPE_SPEC,         /* type specifier */
-    SPLT_TYPENAME,          /* typename */
-    SPLT_STRUCT_SPECIFIER,  /* struct specifier */
-    SPLT_DEC,               /* variable declaration (pointer interface) */
-    SPLT_DIR_DEC,           /* variable declaration (single/array) */
-    SPLT_PTR,               /* pointer */
-    SPLT_FUNC_DEC,          /* function declaration in the form of `foo(type1 var1, type2 var2, ...) */
-    SPLT_DIR_FUNC_DEC,      /* direct function declaration in the form of `foo(type1 var1, type2 var2, ...) */
+    SPLT_NULL = 0x00000000,  /* uninitialized type */
+    SPLT_TRANS_UNIT,         /* translation unit */
+    SPLT_EXT_DECLTN_LIST,    /* external declaration list */
+    SPLT_EXT_DECLTN,         /* a single declaration definition: variable/struct/function */
+    SPLT_TYPE_SPEC,          /* type specifier */
+    SPLT_TYPENAME,           /* typename */
+    SPLT_STRUCT_UNION_SPEC,  /* struct or union specifier */
+    SPLT_STRUCT_DECLTN_LIST, /* struct declaration list */
+    SPLT_STRUCT_DECLTN,      /* struct declaration */
+    SPLT_STRUCT_DEC_LIST,    /* struct declarator list */
+    SPLT_STRUCT_DEC,         /* struct declarator */
+    SPLT_ENUM_SPEC,          /* enum specifier */
+    SPLT_ENUM_LIST,          /* enum list */
+    SPLT_ENUM,               /* a single enum */
+    SPLT_DEC,                /* variable declaration (pointer interface) */
+    SPLT_DIR_DEC,            /* variable declaration (single/array) */
+    SPLT_PTR,                /* pointer */
+    SPLT_FUNC_DEC,           /* function declaration in the form of `foo(type1 var1, type2 var2, ...) */
+    SPLT_DIR_FUNC_DEC,       /* direct function declaration in the form of `foo(type1 var1, type2 var2, ...) */
 
-    SPLT_VAR_LIST,  /* variable list (parameter list) */
-    SPLT_PARAM_DEC, /* single parameter declaration */
+    SPLT_PARAM_TYPE_LIST, /* variable list (parameter list) */
+    SPLT_PARAM_DEC,       /* single parameter declaration */
 
     SPLT_STMT = SPLT_STMT_OFFSET, /* single statement */
     SPLT_GEN_STMT_LIST,           /* general statement list */
@@ -72,9 +79,9 @@ enum splc_token_type
     SPLT_INIT_DEC,      /* single declarator, one of `var`s in `type var1, var2` */
     SPLT_INIT,          /* initializer */
     SPLT_INIT_LIST,     /* initializer list */
-    SPLT_DESGTN,          /* designation */
-    SPLT_DESG_LIST,   /* designator list */
-    SPLT_DESG,        /* designator */
+    SPLT_DESGTN,        /* designation */
+    SPLT_DESG_LIST,     /* designator list */
+    SPLT_DESG,          /* designator */
     SPLT_ABS_DEC,       /* typename */
     SPLT_DIR_ABS_DEC,   /* direct abstract declarator */
 
@@ -102,8 +109,9 @@ enum splc_token_type
     SPLT_ARG_LIST, /* argument list */
 
     /* Terminal: Keywords */
-    SPLT_STRUCT = SPLT_KEYWORD_OFFSET, /* keyword: struct */
-    SPLT_UNION,                        /* keyword: union */
+    SPLT_KWD_STRUCT = SPLT_KEYWORD_OFFSET, /* keyword: struct */
+    SPLT_KWD_ENUM,                         /* keyword: enum */
+    SPLT_KWD_UNION,                        /* keyword: union */
 
     SPLT_WHILE, /* keyword: while */
     SPLT_FOR,   /* keyword: for */

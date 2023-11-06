@@ -184,8 +184,9 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 <INITIAL>"float"    { yylval = create_leaf_node(SPLT_TYPE_FLOAT, SPLC_YY2LOC_CF_D(yylloc)); return TYPE_FLOAT; }
 <INITIAL>"char"     { yylval = create_leaf_node(SPLT_TYPE_CHAR, SPLC_YY2LOC_CF_D(yylloc)); return TYPE_CHAR; }
 
-<INITIAL>"struct"   { yylval = create_leaf_node(SPLT_STRUCT, SPLC_YY2LOC_CF_D(yylloc)); return STRUCT; }
-<INITIAL>"union"    { yylval = create_leaf_node(SPLT_UNION, SPLC_YY2LOC_CF_D(yylloc)); return UNION; }
+<INITIAL>"enum"     { yylval = create_leaf_node(SPLT_KWD_ENUM, SPLC_YY2LOC_CF_D(yylloc)); return KWD_ENUM; }
+<INITIAL>"struct"   { yylval = create_leaf_node(SPLT_KWD_STRUCT, SPLC_YY2LOC_CF_D(yylloc)); return KWD_STRUCT; }
+<INITIAL>"union"    { yylval = create_leaf_node(SPLT_KWD_UNION, SPLC_YY2LOC_CF_D(yylloc)); return KWD_UNION; }
 <INITIAL>"while"    { yylval = create_leaf_node(SPLT_WHILE, SPLC_YY2LOC_CF_D(yylloc)); return WHILE; }
 <INITIAL>"for"      { yylval = create_leaf_node(SPLT_FOR, SPLC_YY2LOC_CF_D(yylloc)); return FOR; }
 <INITIAL>"do"       { yylval = create_leaf_node(SPLT_DO, SPLC_YY2LOC_CF_D(yylloc)); return DO; }

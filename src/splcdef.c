@@ -49,7 +49,14 @@ const char *splc_get_token_color_code(splc_token_t type)
         return "\033[38;5;229m";
 
     /* Nonterminals: statements */
+    case SPLT_DECLTN_LIST:
+    case SPLT_ENUM_LIST:
     case SPLT_EXT_DECLTN_LIST:
+    case SPLT_STRUCT_DECLTN_LIST:
+    case SPLT_STRUCT_DEC_LIST:
+    case SPLT_INIT_DEC_LIST:
+        return "\033[38;5;178m";
+
     case SPLT_EXT_DECLTN:
     case SPLT_COMP_STMT:
 
@@ -62,14 +69,12 @@ const char *splc_get_token_color_code(splc_token_t type)
     case SPLT_FOR_LOOP_BODY:
     case SPLT_LABELED_STMT:
     case SPLT_JUMP_STMT:
+        return "\033[38;5;30m";
 
-    case SPLT_DECLTN_LIST:
     case SPLT_DECLTN:
-    case SPLT_INIT_DEC_LIST:
-    case SPLT_INIT_DEC:
     case SPLT_ABS_DEC:
     case SPLT_DIR_ABS_DEC:
-        return "\033[38;5;27m";
+        return "\033[38;5;81m";
 
     case SPLT_EXPR:
     case SPLT_PRIM_EXPR:
@@ -90,20 +95,20 @@ const char *splc_get_token_color_code(splc_token_t type)
     case SPLT_ASSIGN_EXPR:
     case SPLT_CONST_EXPR:
     case SPLT_INIT_EXPR:
+    case SPLT_INIT:
+    case SPLT_INIT_LIST:
+    case SPLT_DESGTN:
         return "\033[38;5;40m";
 
     case SPLT_DEC:
     case SPLT_DIR_DEC:
     case SPLT_PTR:
     case SPLT_PARAM_DEC:
-    case SPLT_VAR_LIST:
+    case SPLT_PARAM_TYPE_LIST:
     case SPLT_ARG_LIST:
         return "\033[38;5;81m";
 
     /* Terminal: control keywords */
-    case SPLT_STRUCT:
-    case SPLT_UNION:
-
     case SPLT_WHILE:
     case SPLT_FOR:
     case SPLT_DO:
@@ -125,18 +130,30 @@ const char *splc_get_token_color_code(splc_token_t type)
     case SPLT_TYPE_INT:
     case SPLT_TYPE_FLOAT:
     case SPLT_TYPE_CHAR:
+    case SPLT_KWD_STRUCT:
+    case SPLT_KWD_ENUM:
+    case SPLT_KWD_UNION:
         return "\033[38;5;27m";
 
     /* Terminals: IDs */
+    case SPLT_STRUCT_DEC:
+    case SPLT_INIT_DEC:
+        return "\033[38;5;38m";
+    case SPLT_ENUM:
+    case SPLT_DESG_LIST:
+    case SPLT_DESG:
     case SPLT_ID:
         return "\033[38;5;81m";
         
     case SPLT_TYPE_SPEC:
-    case SPLT_TYPENAME:
-    case SPLT_STRUCT_SPECIFIER:
+    case SPLT_STRUCT_UNION_SPEC:
+    case SPLT_ENUM_SPEC:
     case SPLT_MACRO_ID:
         return "\033[38;5;33m";
 
+    case SPLT_STRUCT_DECLTN:
+    case SPLT_TYPENAME:
+        return "\033[38;5;47m";
         
     /* Terminals: punctuators */
     case SPLT_LC:
@@ -228,8 +245,22 @@ const char *splc_token2str(splc_token_t type)
         return "Specifier";
     case SPLT_TYPENAME:
         return "typename";
-    case SPLT_STRUCT_SPECIFIER:
-        return "Struct Specifier";
+    case SPLT_STRUCT_UNION_SPEC:
+        return "Struct/Union Specifier";
+    case SPLT_STRUCT_DECLTN_LIST:
+        return "Struct/Union Declaration List";
+    case SPLT_STRUCT_DECLTN:
+        return "Struct/Union Declaration";
+    case SPLT_STRUCT_DEC_LIST:
+        return "Struct/Union Declarator List";
+    case SPLT_STRUCT_DEC:
+        return "Struct/Union Declarator";
+    case SPLT_ENUM_SPEC:
+        return "enum specifier";
+    case SPLT_ENUM_LIST:
+        return "enum list";
+    case SPLT_ENUM:
+        return "enumerator";
     case SPLT_DEC:
         return "Declarator";
     case SPLT_DIR_DEC:
@@ -241,8 +272,8 @@ const char *splc_token2str(splc_token_t type)
     case SPLT_DIR_FUNC_DEC:
         return "Direct FunDec";
 
-    case SPLT_VAR_LIST:
-        return "VarList";
+    case SPLT_PARAM_TYPE_LIST:
+        return "Parameter Type List";
     case SPLT_PARAM_DEC:
         return "ParamDec";
 
@@ -276,6 +307,16 @@ const char *splc_token2str(splc_token_t type)
         return "Init Declarator List";
     case SPLT_INIT_DEC:
         return "Init Declarator";
+    case SPLT_INIT:
+        return "Initializer";
+    case SPLT_INIT_LIST:
+        return "Initializer List";
+    case SPLT_DESGTN:
+        return "Designation";
+    case SPLT_DESG_LIST:
+        return "Designator List";
+    case SPLT_DESG:
+        return "Designator";
     case SPLT_ABS_DEC:
         return "Abstract Dec";
     case SPLT_DIR_ABS_DEC:
@@ -326,9 +367,11 @@ const char *splc_token2str(splc_token_t type)
         return "Arg List";
 
     /* Terminal: Keywords */
-    case SPLT_STRUCT:
+    case SPLT_KWD_STRUCT:
         return "struct";
-    case SPLT_UNION:
+    case SPLT_KWD_ENUM:
+        return "enum";
+    case SPLT_KWD_UNION:
         return "union";
 
     case SPLT_WHILE:
