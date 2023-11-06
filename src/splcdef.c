@@ -291,7 +291,7 @@ const char *splc_token2str(splc_token_t type)
         return "Direct Abstract Dec";
 
     case SPLT_EXPR:
-        return "Exp";
+        return "Expr";
     case SPLT_PRIM_EXPR:
         return "Primary Expr";
     case SPLT_POSTF_EXPR:
