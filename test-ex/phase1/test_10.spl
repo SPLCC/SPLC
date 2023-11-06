@@ -1,0 +1,10 @@
+int main()
+{
+    struct loc {
+        int id;
+        int q;
+        int f;
+    } q = {.id = 3, .q=1};
+    char *test8 = "hihihi";
+    char **test7 = {"hi", "hello", "thank you."};
+}

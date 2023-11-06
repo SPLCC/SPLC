@@ -37,6 +37,9 @@ ast_node create_leaf_node(const splc_token_t type, const splc_loc location);
 /* Add a child to a node. Uses `realloc` to allocate memory. */
 ast_node add_child(ast_node parent, ast_node child);
 
+/* Add a child to a node. Uses `realloc` to allocate memory. */
+ast_node add_children(ast_node parent, size_t num_child, ...);
+
 /* Create a parent node, given a list of child nodes. The location of parent node will be that of the first-encountered
  * child node. */
 ast_node create_parent_node(const splc_token_t type, size_t num_child, ...);

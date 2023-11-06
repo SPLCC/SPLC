@@ -146,7 +146,7 @@ direct-declarator:
 
 pointer:
       ASTRK { $$ = create_parent_node(SPLT_PTR, 1, $1); }
-    | pointer ASTRK { $$ = create_parent_node(SPLT_PTR, 2, $1, $2); }
+    | pointer ASTRK { $$ = add_child($1, $2); }
     ;
 
 /* Definition: List of definitions. Recursive definition. */
@@ -178,8 +178,41 @@ init-declarator-list:
 /* Definition: Single declaration unit. */
 init-declarator: 
       declarator { $$ = create_parent_node(SPLT_INIT_DEC, 1, $1); }
-    | declarator ASSIGN assignment-expression { $$ = create_parent_node(SPLT_INIT_DEC, 3, $1, $2, $3); }
+    | declarator ASSIGN initializer { $$ = create_parent_node(SPLT_INIT_DEC, 3, $1, $2, $3); }
     | declarator ASSIGN error { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($2), "invalid initialization"); $$ = create_parent_node(SPLT_INIT_DEC, 0); yyerrok; }
+    ;
+
+initializer:
+      assignment-expression
+    | LC initializer-list RC
+    | LC initializer-list COMMA RC
+    ;
+
+initializer-list:
+      initializer { $$ = create_parent_node(SPLT_INIT_LIST, 1, $1); }
+    | designation initializer { $$ = create_parent_node(SPLT_INIT_LIST, 2, $1, $2); }
+    | initializer-list COMMA designation initializer { $$ = add_children($1, 3, $2, $3, $4); }
+    | initializer-list COMMA initializer { $$ = add_children($1, 2, $2, $3); }
+
+    | designation error { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($1), "expected initializer"); $$ = create_parent_node(SPLT_INIT_LIST, 1, $1); yyerrok; }
+    | initializer-list COMMA error { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($2), "expected initializer"); $$ = create_parent_node(SPLT_INIT_LIST, 2, $1, $2); }
+    ;
+
+designation:
+      designator-list ASSIGN { $$ = create_parent_node(SPLT_DESGTN, 2, $1, $2); }
+    ;
+
+designator-list:
+      designator { $$ = create_parent_node(SPLT_DESG_LIST, 1, $1); }
+    | designator-list designator { $$ = add_child($1, $2); }
+    ;
+
+designator:
+      LSB constant-expression RSB { $$ = create_parent_node(SPLT_DESG, 3, $1, $2, $3); }
+    | DOT identifier { $$ = create_parent_node(SPLT_DESG, 2, $1, $2); }
+
+    | LSB constant-expression error { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($2), "expected ']'"); $$ = create_parent_node(SPLT_DESG, 2, $1, $2); yyerrok; }
+    | DOT error { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($1), "expected valid identifier"); $$ = create_parent_node(SPLT_DESG, 1, $1); yyerrok; }
     ;
 
 /* Function: Function name and body. */
@@ -360,7 +393,7 @@ postfix-expression:
     | postfix-expression LSB expression error { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($3), "expected ']'"); $$ = create_parent_node(SPLT_EXPR, 3, $1, $2, $3); yyerrok; }
     | postfix-expression LP argument-list error { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($3), "expected ')'"); $$ = create_parent_node(SPLT_EXPR, 3, $1, $2, $3); yyerrok; }
     | postfix-expression member-access-operator { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_L(@2), "expected an identifier"); $$ = create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
-    | member-access-operator identifier { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "expected an operand"); $$ = create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
+    | RARROW identifier { splcerror(SPLC_ERR_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "expected an operand"); $$ = create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
     ;
 
 member-access-operator:

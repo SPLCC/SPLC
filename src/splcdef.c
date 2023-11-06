@@ -233,7 +233,7 @@ const char *splc_token2str(splc_token_t type)
     case SPLT_DEC:
         return "Declarator";
     case SPLT_DIR_DEC:
-        return "Direct VarDec";
+        return "Direct Declarator";
     case SPLT_PTR:
         return "Pointer";
     case SPLT_FUNC_DEC:

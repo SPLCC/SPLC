@@ -70,6 +70,11 @@ enum splc_token_type
     SPLT_DECLTN,        /* wrapper for declaration with SEMI */
     SPLT_INIT_DEC_LIST, /* list of variable declaration */
     SPLT_INIT_DEC,      /* single declarator, one of `var`s in `type var1, var2` */
+    SPLT_INIT,          /* initializer */
+    SPLT_INIT_LIST,     /* initializer list */
+    SPLT_DESGTN,          /* designation */
+    SPLT_DESG_LIST,   /* designator list */
+    SPLT_DESG,        /* designator */
     SPLT_ABS_DEC,       /* typename */
     SPLT_DIR_ABS_DEC,   /* direct abstract declarator */
 

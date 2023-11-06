@@ -51,6 +51,34 @@ ast_node add_child(ast_node parent, ast_node child)
     return parent;
 }
 
+ast_node add_children(ast_node parent, size_t num_child, ...)
+{
+    if (num_child > 0)
+    {
+        va_list args;
+        va_start(args, num_child);
+
+        for (size_t i = 0; i < num_child; ++i)
+        {
+            ast_node child = va_arg(args, ast_node);
+            if (SPLC_IS_LOC_INVALID(parent->location))
+            {
+                parent->location = child->location;
+            }
+            else if (parent->location.fid == child->location.fid)
+            {
+                parent->location.lineend = child->location.lineend;
+                parent->location.colend = child->location.colend;
+            }
+            if (child == NULL || child->type == SPLT_NULL)
+                continue;
+            add_child(parent, child);
+        }
+        va_end(args);
+    }
+    return parent;
+}
+
 ast_node create_parent_node(const splc_token_t type, size_t num_child, ...)
 {
     ast_node node = create_empty_node();
