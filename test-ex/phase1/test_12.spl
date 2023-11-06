@@ -1,0 +1,26 @@
+
+
+int main()
+{
+    struct loc {
+        int id;
+        int q;
+        int f;
+    } strt = {.id = 3, .q=1, .f=7};
+
+    strt = (struct loc) {.id=3, .q=1, .f=7};
+
+    enum k {
+        SPLT_TEST,
+        SPLT_NULL,
+        SPLT_TRANS_UNIT,
+    } test;
+
+    test = SPLT_NULL;
+
+    union u3 {
+
+    } k;
+
+    (&strt)->id = 8;
+}

@@ -126,9 +126,11 @@ direct-abstract-declarator:
 /* Specify a structure */
 struct-or-union-specifier: 
       struct-or-union identifier { $$ = create_parent_node(SPLT_STRUCT_UNION_SPEC, 2, $1, $2); }
+    | struct-or-union identifier LC RC { $$ = create_parent_node(SPLT_STRUCT_UNION_SPEC, 4, $1, $2, $3, $4); }
     | struct-or-union identifier LC struct-declaration-list RC { $$ = create_parent_node(SPLT_STRUCT_UNION_SPEC, 5, $1, $2, $3, $4, $5); }
 
-    | struct-or-union identifier LC struct-declaration-list error { $$ = create_parent_node(SPLT_STRUCT_UNION_SPEC, 5, $1, $2, $3, $4, $5); }
+    | struct-or-union identifier LC error { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($3), "expected token '}'"); $$ = create_parent_node(SPLT_STRUCT_UNION_SPEC, 3, $1, $2, $3, $4); yyerrok; }
+    | struct-or-union identifier LC struct-declaration-list error { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($4), "expected token '}'"); $$ = create_parent_node(SPLT_STRUCT_UNION_SPEC, 4, $1, $2, $3, $4); yyerrok; }
     ;
 
 struct-or-union:
@@ -167,10 +169,12 @@ struct-declarator:
 
 enum-specifier:
       KWD_ENUM identifier { $$ = create_parent_node(SPLT_ENUM_SPEC, 2, $1, $2); }
+    | KWD_ENUM identifier LC RC { $$ = create_parent_node(SPLT_ENUM_SPEC, 4, $1, $2, $3, $4); }
     | KWD_ENUM identifier LC enumerator-list RC { $$ = create_parent_node(SPLT_ENUM_SPEC, 5, $1, $2, $3, $4, $5); }
     | KWD_ENUM identifier LC enumerator-list COMMA RC { $$ = create_parent_node(SPLT_ENUM_SPEC, 6, $1, $2, $3, $4, $5, $6); }
     
-    | KWD_ENUM error { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($1), "expected identifier here"); $$ = create_parent_node(SPLT_ENUM_SPEC, 2, $1, $2); yyerrok; }
+    | KWD_ENUM error { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($1), "expected identifier here"); $$ = create_parent_node(SPLT_ENUM_SPEC, 1, $1); yyerrok; }
+    | KWD_ENUM identifier LC error { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($3), "expected token ',' or '}'"); $$ = create_parent_node(SPLT_ENUM_SPEC, 3, $1, $2, $3); yyerrok; }
     | KWD_ENUM identifier LC enumerator-list error { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($4), "expected token ',' or '}'"); $$ = create_parent_node(SPLT_ENUM_SPEC, 4, $1, $2, $3, $4); yyerrok; }
     ;
 
