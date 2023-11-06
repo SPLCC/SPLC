@@ -72,6 +72,7 @@ const char *splc_get_token_color_code(splc_token_t type)
         return "\033[38;5;30m";
 
     case SPLT_DECLTN:
+    case SPLT_DIR_DECLTN:
     case SPLT_ABS_DEC:
     case SPLT_DIR_ABS_DEC:
         return "\033[38;5;81m";
@@ -303,6 +304,8 @@ const char *splc_token2str(splc_token_t type)
         return "Declaration List";
     case SPLT_DECLTN:
         return "Declaration";
+    case SPLT_DIR_DECLTN:
+        return "Direct Declaration";
     case SPLT_INIT_DEC_LIST:
         return "Init Declarator List";
     case SPLT_INIT_DEC:
