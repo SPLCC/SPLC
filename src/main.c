@@ -32,15 +32,10 @@ int main(int argc, char *argv[])
 {
     splc_process_args(argc, argv);
 
-    //===========
     print_prog_diag_info();
-    //===========
 
     if (splc_src_file_cnt == 0)
-    {
-        splcerror_noloc(SPLC_ERR_CRIT, "no input file\ncompilation terminated.");
-        exit(1);
-    }
+        splcfail("no input file\ncompilation terminated.");
 
     splc_trans_unit_list = (splc_trans_unit *)malloc(splc_src_file_cnt * sizeof(splc_trans_unit));
     SPLC_ALLOC_PTR_CHECK(splc_trans_unit_list, "out of memory");
