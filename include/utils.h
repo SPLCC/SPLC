@@ -71,6 +71,9 @@ int splc_enter_file(const char *restrict _filename, const splc_loc location);
    the information of entry preserved. */
 int splc_exit_file();
 
+/* Return the filename of the node. This string shall not be freed. */
+const char* const splc_get_node_filename(int fid);
+
 void set_error_flag(int val);
 
 /* Global variables */

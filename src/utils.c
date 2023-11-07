@@ -449,6 +449,11 @@ int splc_exit_file()
     return _builtin_splc_exit_file();
 }
 
+const char* const splc_get_node_filename(int fid)
+{
+    return splc_all_file_nodes[fid]->filename;
+}
+
 void set_error_flag(int val)
 {
     err_flag = val;

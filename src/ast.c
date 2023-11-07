@@ -162,6 +162,9 @@ static void _builtin_print_single_node(const ast_node node)
 
     switch (node->type)
     {
+    case SPLT_TRANS_UNIT:
+        printf(" (%s)", splc_get_node_filename(node->location.fid));
+        break;
     case SPLT_ID:
         printf(": %s", (char *)node->val);
         break;
