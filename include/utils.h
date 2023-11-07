@@ -154,6 +154,7 @@ extern int splc_enable_diag;
         free(buffer);                                                                                                  \
     } while (0)
 
+#ifndef SPLC_DISABLE_DIAG
 /* Call this to print a formatted diagnostic message */
 #define SPLC_FDIAG(_msg, ...)                                                                                          \
     do                                                                                                                 \
@@ -165,5 +166,8 @@ extern int splc_enable_diag;
         splcdiag(buffer);                                                                                              \
         free(buffer);                                                                                                  \
     } while (0)
+#else
+#define SPLC_FDIAG(_msg, ...)
+#endif // SPLC_DISABLE_DIAG
 
-#endif
+#endif // UTILS_H

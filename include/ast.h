@@ -53,6 +53,9 @@ splc_loc get_endloc(const ast_node node);
 /* Release the entire AST */
 void release_tree(ast_node root);
 
+/* Preprocess an AST by eliminating all punctuators */
+void preprocess_ast(ast_node root);
+
 /* Duplicate a single node */
 ast_node duplicate_node(ast_node node);
 
@@ -71,5 +74,7 @@ void print_ast(const ast_node root);
 
 #define SPLC_AST_GET_STARTLOC(node) (get_startloc(node))
 #define SPLC_AST_GET_ENDLOC(node) (get_endloc(node))
+#define SPLC_AST_IGNORE_NODE(node) ((node) == NULL || (node)->type == SPLT_NULL || (!splc_enable_ast_punctuators && SPLT_IS_PUNCTUATOR((node)->type)))
+#define SPLT_AST_REQUIRE_VAL_FREE(x) SPLT_IS_VAL_ALLOCATED(x)
 
 #endif

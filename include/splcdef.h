@@ -223,7 +223,7 @@ enum splc_token_type
 #define SPLT_IS_MACRO(x) (((x) & SPLT_MACRO_MNTPT_OFFSET) == SPLT_MACRO_MNTPT_OFFSET)
 #define SPLT_IS_LITERAL(x) (((x) & SPLT_LITERAL_OFFSET) == SPLT_LITERAL_OFFSET)
 
-#define SPLT_REQUIRE_VAL_FREE(x) ((x) == SPLT_STR_UNIT)
+#define SPLT_IS_VAL_ALLOCATED(x) ((x) == SPLT_STR_UNIT)
 
 /* Convert a token to string. The caller shall not free this string. */
 const char *splc_token2str(splc_token_t type);
@@ -286,6 +286,21 @@ typedef struct util_file_node_struct
     struct util_file_node_struct *next;
 } util_file_node_struct;
 
+/* Translation Unit */
+typedef struct splc_trans_unit_struct *splc_trans_unit;
+
+typedef struct splc_trans_unit_struct
+{
+    lut_table symbol_table; /* symbol table of this translation unit */
+    ast_node root;          /* root of this translation unit */
+    int err_flag;
+} splc_trans_unit_struct;
+
+/* create an empty translation unit with all fields initialized to 0/NULL. */
+splc_trans_unit splc_create_empty_trans_unit();
+
+splc_trans_unit splc_link_trans_units();
+
 /* Passed splc arguments */
 
 extern int splc_incl_dir_cnt; /* Number of include directories. */
@@ -301,7 +316,11 @@ extern const char **splc_src_files; /* Source files */
 
 extern int splc_enable_diag;
 
+extern int splc_enable_ast_punctuators;
+
 extern int splc_enable_colored_ast;
+
+#define SPLC_OPT_REQUIRE_AST_PREP (splc_enable_ast_punctuators)
 
 /* splc internal global variables */
 
@@ -313,10 +332,12 @@ extern util_file_node *splc_all_file_nodes;
 /* The root of linked list files. The root marks the previous file. */
 extern util_file_node splc_file_node_stack;
 
-/* The roots of ASTs parsed from `yyparse()` on different source files */
-extern ast_node *splc_ast_list;
+/* Translation units parsed from `yyparse()` on different source files */
+extern splc_trans_unit *splc_trans_unit_list;
 
-/* The root of AST parsed from call to `yyparse()` */
+extern lut_table global_symbol_table;
+
+/* The root of the AST that is being parsed currently */
 extern ast_node root;
 
 extern int err_flag;

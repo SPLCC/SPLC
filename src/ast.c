@@ -8,6 +8,8 @@
 
 int splc_enable_colored_ast = 0;
 
+int splc_enable_ast_punctuators = 0;
+
 ast_node create_empty_node()
 {
     ast_node node = (ast_node)malloc(sizeof(ast_node_struct));
@@ -42,6 +44,9 @@ ast_node create_leaf_node(const splc_token_t type, const splc_loc location)
 
 ast_node add_child(ast_node parent, ast_node child)
 {
+    if (SPLC_AST_IGNORE_NODE(child))
+        return parent;
+    
     parent->children = (ast_node *)realloc(parent->children, (parent->num_child + 1) * sizeof(ast_node_struct));
     SPLC_ALLOC_PTR_CHECK(parent->children, "out of memory");
     parent->children[parent->num_child] = child;
@@ -68,7 +73,7 @@ ast_node add_children(ast_node parent, size_t num_child, ...)
                 parent->location.lineend = child->location.lineend;
                 parent->location.colend = child->location.colend;
             }
-            if (child == NULL || child->type == SPLT_NULL)
+            if (SPLC_AST_IGNORE_NODE(child))
                 continue;
             add_child(parent, child);
         }
@@ -99,7 +104,7 @@ ast_node create_parent_node(const splc_token_t type, size_t num_child, ...)
                 node->location.lineend = child->location.lineend;
                 node->location.colend = child->location.colend;
             }
-            if (child == NULL || child->type == SPLT_NULL)
+            if (SPLC_AST_IGNORE_NODE(child))
                 continue;
             add_child(node, child);
         }
@@ -124,6 +129,24 @@ splc_loc get_endloc(const ast_node node)
                              node->location.lineend, node->location.colend);
     else
         return get_endloc(node->children[node->num_child - 1]);
+}
+
+void release_tree(ast_node root)
+{
+    for (int i = 0; i < root->num_child; ++i)
+    {
+        release_tree(root->children[i]);
+    }
+    free(root->children);
+    if (SPLT_AST_REQUIRE_VAL_FREE(root->type))
+        free(root->val);
+    destruct_node(root);
+}
+
+void preprocess_ast(ast_node node)
+{
+    // TODO: remove all punctuators
+    
 }
 
 static void _builtin_print_single_node(const ast_node node)
@@ -200,18 +223,6 @@ static void _builtin_print_ast(const ast_node node, const char *prefix)
             free(next_prefix);
         }
     }
-}
-
-void release_tree(ast_node root)
-{
-    for (int i = 0; i < root->num_child; ++i)
-    {
-        release_tree(root->children[i]);
-    }
-    free(root->children);
-    if (SPLT_REQUIRE_VAL_FREE(root->type))
-        free(root->val);
-    destruct_node(root);
 }
 
 void print_ast(ast_node root)

@@ -18,9 +18,10 @@ typedef struct lut_entry_struct
 {
     splc_entry_t type;              /* Type of this entry */
     char *id;                      /* The name of the entry, if any */
-    struct lut_entry_struct *next; /* Point to the next element in case of Hash Collision */
+    struct lut_entry_struct *next; /* `lut_entry_struct` internal variable: point to the next element in case of hash collision */
 
     splc_loc first_occur; /* first occurrence of this token */
+    ast_node ast_scope_root; /* root of scope */
 
     ast_node root; /* If this entry is a macro, the root contains the AST of the macro in expanded form */
 
@@ -41,15 +42,13 @@ typedef struct lut_table_struct
     size_t capacity;    /* Capacity of this lut_table */
 } lut_table_struct;
 
-extern lut_table global_symbol_table;
-
-void init_global_lut(void);
-
 lut_table lut_new_table(void);
 
 void lut_free_table(lut_table *table);
 
-lut_entry lut_find(lut_table table, const char *name);
+int lut_exists(const lut_table table, const char *name);
+
+lut_entry lut_find(const lut_table table, const char *name);
 
 lut_entry lut_insert(lut_table table, const char *name);
 

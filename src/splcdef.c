@@ -539,3 +539,13 @@ const char *splc_token2str(splc_token_t type)
         return "unspecified name";
     }
 }
+
+splc_trans_unit splc_create_empty_trans_unit()
+{
+    splc_trans_unit unit = (splc_trans_unit)malloc(sizeof(splc_trans_unit_struct));
+    SPLC_ALLOC_PTR_CHECK(unit, "out of memory when creating translation unit");
+    unit->symbol_table = NULL;
+    unit->root = NULL;
+    unit->err_flag = 0;
+    return unit;
+}

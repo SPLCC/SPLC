@@ -78,7 +78,7 @@ int splc_getopt(int nargc, char *nargv[], const char *ostr)
 void splc_process_args(int nargc, char *nargv[])
 {
     int opcode;
-    while ((opcode = splc_getopt(nargc, nargv, "hI:vt")) != -1)
+    while ((opcode = splc_getopt(nargc, nargv, "hI:vtp")) != -1)
     {
         switch (opcode)
         {
@@ -119,6 +119,9 @@ void splc_process_args(int nargc, char *nargv[])
             case 't':
                 splc_enable_colored_ast = 1;
                 break;
+            case 'p':
+                splc_enable_ast_punctuators = 1;
+                break;
             case 'h':
                 usage();
                 exit(0);
@@ -129,9 +132,7 @@ void splc_process_args(int nargc, char *nargv[])
             break;
         }
         case 2: {
-#ifndef SPLC_DISABLE_DIAG
             SPLC_FDIAG("received option: %s", splc_optfull);
-#endif
             break;
         }
         default:
@@ -143,9 +144,10 @@ void splc_process_args(int nargc, char *nargv[])
 // clang-format off
 void usage()
 {
-    printf("usage: %s [options] [file ...]\n%s%s%s%s", progname,
+    printf("usage: %s [options] [file ...]\n%s%s%s%s%s", progname,
            "  -h                       print this usage and exit\n",
            "  -v                       print diagnostic information\n",
+           "  -p                       append punctuators in AST\n",
            "  -t                       color the output AST\n",
            "  -I[{include-directory}]  specify extra directory for #include search\n");
 }
@@ -155,7 +157,9 @@ void print_prog_diag_info()
 {
     SPLC_FDIAG("%s %s", progname, progversion);
     SPLC_FDIAG("enable_diag=%d", splc_enable_diag);
+    SPLC_FDIAG("enable_ast_punctuators=%d", splc_enable_ast_punctuators);
     SPLC_FDIAG("enable_colored_ast=%d", splc_enable_colored_ast);
+    SPLC_FDIAG("opt_require_AST_preprocessing=%d", SPLC_OPT_REQUIRE_AST_PREP);
     for (int i = 0; i < splc_incl_dir_cnt; ++i)
     {
         SPLC_FDIAG("detected include directory: %s", splc_incl_dirs[i]);
