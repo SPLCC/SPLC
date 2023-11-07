@@ -38,7 +38,7 @@ bin/splc: $(splc_src_files)
 splc: bin/splc
 
 check_syntax: src/syntax.y
-	$(BISON) -d src/syntax.y -Wcounterexamples -Wcex -v
+	$(BISON) -d src/syntax.y -Wcex -v
 
 # ===================== Other =====================
 clean:
