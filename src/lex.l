@@ -156,21 +156,39 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 
 <INITIAL>\"\" {
     yylval = ast_create_leaf_node(SPLT_STR_UNIT, SPLC_YY2LOC_CF_D(yylloc));
-    yylval->val = (void *)strdup("");
+    char *text = (char *)malloc(sizeof(char));
+    text[0] = '\0';
+    yylval->val = text;
     return STR_UNIT;
 }
-
+    // Match escape characters
 <IN_STRING>\\[abefnrtv\\\'\"\?] {
     yylval = ast_create_leaf_node(SPLT_STR_UNIT, SPLC_YY2LOC_CF_D(yylloc));
     yylval->val = (void *)strdup(yytext);
     return STR_UNIT;
 }
 
+    // Allow line break
 <IN_STRING>\\\r?\n {
     /* by std C definition, skip this and the newline character */
 }
 
+    // Match line break
 <IN_STRING>[^\n\r\"\\]+ {
+    yylval = ast_create_leaf_node(SPLT_STR_UNIT, SPLC_YY2LOC_CF_D(yylloc));
+    yylval->val = (void *)strdup(yytext);
+    return STR_UNIT;
+}
+
+    // Match escape characters
+<IN_STRING>\\[0-9]{1,3} {
+    yylval = ast_create_leaf_node(SPLT_STR_UNIT, SPLC_YY2LOC_CF_D(yylloc));
+    yylval->val = (void *)strdup(yytext);
+    return STR_UNIT;
+}
+
+    // Match escape characters
+<IN_STRING>\\x[0-9a-fA-F]{2,3} {
     yylval = ast_create_leaf_node(SPLT_STR_UNIT, SPLC_YY2LOC_CF_D(yylloc));
     yylval->val = (void *)strdup(yytext);
     return STR_UNIT;
@@ -312,7 +330,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     // EXPERIMENTAL
     if (sem_test_typedef_name(textcopy))
     {
-        yylval = ast_create_leaf_node(TYPEDEF_NAME, SPLC_YY2LOC_CF_D(yylloc));
+        yylval = ast_create_leaf_node(SPLT_TYPEDEF_NAME, SPLC_YY2LOC_CF_D(yylloc));
         yylval->val = textcopy;
         return TYPEDEF_NAME;
     }
