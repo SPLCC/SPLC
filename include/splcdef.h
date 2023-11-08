@@ -43,7 +43,13 @@ enum splc_token_type
     SPLT_TRANS_UNIT,         /* translation unit */
     SPLT_EXT_DECLTN_LIST,    /* external declaration list */
     SPLT_EXT_DECLTN,         /* a single declaration definition: variable/struct/function */
+    SPLT_DECLTN_SPEC,        /* declaration specifier */
     SPLT_TYPE_SPEC,          /* type specifier */
+    SPLT_STRG_SPEC,          /* storage class specifier */
+    SPLT_TYPE_QUAL_LIST,     /* type qualifier list */
+    SPLT_TYPE_QUAL,          /* type qualifier */
+    SPLT_FUNC_SPEC,          /* function specifier */
+    SPLT_SPEC_QUAL_LIST,     /* specifier-qualifier-list */
     SPLT_TYPENAME,           /* typename */
     SPLT_STRUCT_UNION_SPEC,  /* struct or union specifier */
     SPLT_STRUCT_DECLTN_LIST, /* struct declaration list */
@@ -56,22 +62,9 @@ enum splc_token_type
     SPLT_DEC,                /* variable declaration (pointer interface) */
     SPLT_DIR_DEC,            /* variable declaration (single/array) */
     SPLT_PTR,                /* pointer */
-    SPLT_FUNC_DEC,           /* function declaration in the form of `foo(type1 var1, type2 var2, ...) */
-    SPLT_DIR_FUNC_DEC,       /* direct function declaration in the form of `foo(type1 var1, type2 var2, ...) */
-
-    SPLT_PARAM_TYPE_LIST, /* variable list (parameter list) */
-    SPLT_PARAM_DEC,       /* single parameter declaration */
-
-    SPLT_STMT = SPLT_STMT_OFFSET, /* single statement */
-    SPLT_GEN_STMT_LIST,           /* general statement list */
-    SPLT_COMP_STMT,               /* compound statement */
-    SPLT_EXPR_STMT,               /* expression statement */
-    SPLT_SEL_STMT,                /* conditional statement */
-    SPLT_ITER_STMT,               /* iteration statement */
-    SPLT_FOR_LOOP_BODY,           /* body of a for loop */
-    SPLT_LABELED_STMT,            /* labeled statement */
-    SPLT_JUMP_STMT,               /* jump statement */
-    // SPLT_STMT_LIST,            /* list of statements */
+    SPLT_FUNC_DEF,           /* function definition */
+    SPLT_FUNC_DEC,           /* function declarator in the form of `*foo(type1 var1, type2 var2, ...) */
+    SPLT_DIR_FUNC_DEC,       /* direct function declarator in the form of `foo(type1 var1, type2 var2, ...) */
 
     SPLT_DECLTN_LIST,   /* list of declarations */
     SPLT_DECLTN,        /* wrapper for declaration with SEMI */
@@ -85,6 +78,21 @@ enum splc_token_type
     SPLT_DESG,          /* designator */
     SPLT_ABS_DEC,       /* typename */
     SPLT_DIR_ABS_DEC,   /* direct abstract declarator */
+
+    SPLT_PARAM_TYPE_LIST, /* parameter-type-list which allows VAR_ARG dots */
+    SPLT_PARAM_LIST,      /* parameter list */
+    SPLT_PARAM_DEC,       /* single parameter declaration */
+
+    SPLT_STMT = SPLT_STMT_OFFSET, /* single statement */
+    SPLT_GEN_STMT_LIST,           /* general statement list */
+    SPLT_COMP_STMT,               /* compound statement */
+    SPLT_EXPR_STMT,               /* expression statement */
+    SPLT_SEL_STMT,                /* conditional statement */
+    SPLT_ITER_STMT,               /* iteration statement */
+    SPLT_FOR_LOOP_BODY,           /* body of a for loop */
+    SPLT_LABELED_STMT,            /* labeled statement */
+    SPLT_JUMP_STMT,               /* jump statement */
+    // SPLT_STMT_LIST,            /* list of statements */
 
     SPLT_EXPR = SPLT_EXPR_OFFSET, /* expression */
     SPLT_PRIM_EXPR,               /* primary expression */
@@ -114,6 +122,20 @@ enum splc_token_type
     SPLT_KWD_ENUM,                         /* keyword: enum */
     SPLT_KWD_UNION,                        /* keyword: union */
 
+    SPLT_AUTO,     /* keyword: auto */
+    SPLT_EXTERN,   /* keyword: extern */
+    SPLT_REGISTER, /* keyword: register */
+    SPLT_STATIC,   /* keyword: static */
+    SPLT_TYPEDEF,  /* keyword: typedef */
+
+    SPLT_KWD_CONST, /* keyword: const */
+    SPLT_RESTRICT,  /* keyword: restrict */
+    SPLT_VOLATILE,  /* keyword: volatile */
+
+    SPLT_PARAM_DOTS, /* keyword: dots for var args */
+
+    SPLT_INLINE, /* keyword: inline */
+
     SPLT_WHILE, /* keyword: while */
     SPLT_FOR,   /* keyword: for */
     SPLT_DO,    /* keyword: do */
@@ -134,14 +156,15 @@ enum splc_token_type
     SPLT_RC,                          /* right curly bracket */
     SPLT_LP,                          /* left parenthesis */
     SPLT_RP,                          /* right parenthesis */
-    SPLT_LSB,                         /* left square bracket */
-    SPLT_RSB,                         /* right square bracket */
 
-    SPLT_SEMI,                         /* semicolon */
-    SPLT_COMMA = SPLT_OPERATOR_OFFSET, /* comma */
+    SPLT_SEMI,  /* semicolon */
+    SPLT_COMMA, /* comma */
 
-    SPLT_QM,    /* question mark */
-    SPLT_COLON, /* colon */
+    SPLT_QM = SPLT_OPERATOR_OFFSET, /* question mark */
+    SPLT_COLON,                     /* colon */
+
+    SPLT_LSB, /* left square bracket */
+    SPLT_RSB, /* right square bracket */
 
     /* Assignment Operators */
     SPLT_ASSIGN,        /* assign */
@@ -189,12 +212,16 @@ enum splc_token_type
     /* Terminals: Constant Expressions */
     SPLT_TYPE_VOID = SPLT_BUILTIN_TYPE_OFFSET, /* type: void */
     SPLT_TYPE_INT,                             /* type: int */
+    SPLT_TYPE_SIGNED,                          /* type: signed */
+    SPLT_TYPE_UNSIGNED,                        /* type: unsigned */
+    SPLT_TYPE_LONG,                            /* type: long */
     SPLT_TYPE_FLOAT,                           /* type: float */
     SPLT_TYPE_CHAR,                            /* type: char */
     // SPLT_TYPE_UNSIGNED, /* type: int */
     // SPLT_TYPE_SIGNED,   /* type: int */
     // SPLT_TYPE_LONG,     /* type: int */
     SPLT_ID = SPLT_ID_OFFSET, /* id literal */
+    SPLT_TYPEDEF_NAME,        /* type name through typedef declaration */
 
     /* Nonterminals: Macro Expressions */
     SPLT_MACRO_MNTPT = SPLT_MACRO_MNTPT_OFFSET, /* AST: macro mount point */
@@ -236,15 +263,16 @@ typedef enum splc_entry_type splc_entry_t;
 
 enum splc_entry_type
 {
-    SPL_FUNC,
-    SPL_STRUCT_DEC,
-    SPL_TYPEDEF,
-    SPL_UNION_DEC,
-    SPL_ENUM_DEC,
-    SPL_VAR,
+    SPLE_NULL,
+    SPLE_FUNC,
+    SPLE_STRUCT_DEC,
+    SPLE_TYPEDEF,
+    SPLE_UNION_DEC,
+    SPLE_ENUM_DEC,
+    SPLE_VAR,
 
-    SPL_MACRO_FUNC,
-    SPL_MACRO_VAR,
+    SPLE_MACRO_FUNC,
+    SPLE_MACRO_VAR,
 };
 
 struct lut_entry_struct;
@@ -299,6 +327,9 @@ typedef struct splc_trans_unit_struct
 /* create an empty translation unit with all fields initialized to 0/NULL. */
 splc_trans_unit splc_create_empty_trans_unit();
 
+/* create an empty translation unit but initialize the symbol table. */
+splc_trans_unit splc_create_trans_unit();
+
 splc_trans_unit splc_link_trans_units();
 
 /* Passed splc arguments */
@@ -335,10 +366,8 @@ extern util_file_node splc_file_node_stack;
 /* Translation units parsed from `yyparse()` on different source files */
 extern splc_trans_unit *splc_trans_unit_list;
 
-extern lut_table global_symbol_table;
-
-/* The root of the AST that is being parsed currently */
-extern ast_node root;
+/* The translation unit that is being parsed currently */
+extern splc_trans_unit current_trans_unit;
 
 extern int err_flag;
 
@@ -347,6 +376,8 @@ extern const char *progname;
 extern const char *progversion;
 
 /* Macros */
+
+#define SPLC_GET_CURRENT_FID (splc_file_node_stack[0].fid)
 
 #define SPLC_ROOT_LOC (splc_root_loc)
 /* Check if the location is root (i.e., assigned from static global constant) */

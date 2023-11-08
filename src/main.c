@@ -20,9 +20,7 @@
 
 splc_trans_unit *splc_trans_unit_list = NULL;
 
-lut_table symbol_table = NULL;
-
-ast_node root = NULL;
+splc_trans_unit current_trans_unit = NULL;
 
 const char *progname = "splc";
 
@@ -42,7 +40,7 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i < splc_src_file_cnt; ++i)
     {
-        splc_trans_unit_list[i] = splc_create_empty_trans_unit();
+        splc_trans_unit_list[i] = NULL;
     }
 
     for (int i = 0; i < splc_src_file_cnt; ++i)
@@ -52,30 +50,29 @@ int main(int argc, char *argv[])
         if (splc_enter_root(splc_src_files[i]) != 0)
             SPLC_FEXIT_NOLOC("no such file: %s\ncompilation terminated.", splc_src_files[i]);
 
+        current_trans_unit = splc_create_trans_unit();
+
         /* Start parsing */
         yyparse();
 
 #ifndef DEBUG
         if (!err_flag)
 #endif
-            print_ast(root);
+            ast_print(current_trans_unit->root);
 
         if (SPLC_OPT_REQUIRE_AST_PREP)
-            preprocess_ast(root);
+            ast_preprocess(current_trans_unit->root);
 
         /* TODO: semantic analysis on AST */
         if (!err_flag)
         {
-            analyze_semantics(symbol_table, root);
+            sem_analyze(current_trans_unit->symbol_table, current_trans_unit->root);
         }
 
         /* clear and store translation unit */
-        splc_trans_unit_list[i]->root = root;
-        splc_trans_unit_list[i]->symbol_table = symbol_table;
-        splc_trans_unit_list[i]->err_flag = err_flag;
+        current_trans_unit->err_flag = err_flag;
+        splc_trans_unit_list[i] = current_trans_unit;
 
-        root = NULL;
-        symbol_table = NULL;
         err_flag = 0;
     }
 

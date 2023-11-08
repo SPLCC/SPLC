@@ -20,60 +20,55 @@ typedef struct ast_node_struct
 
     union {
         void *val;
-        unsigned long ulong_val; /* Interpret the value as integer */
+        unsigned long long ull_val; /* Interpret the value as integer */
         float float_val;         /* Interpret the value as float  */
     };
 } ast_node_struct;
 
 /* Function definitions */
 /* Create an empty node that has all its fields initialized to empty/NULL. */
-ast_node create_empty_node();
-
-void destruct_node(ast_node node);
+ast_node ast_create_empty_node();
 
 /* Create a leaf node given type. */
-ast_node create_leaf_node(const splc_token_t type, const splc_loc location);
+ast_node ast_create_leaf_node(const splc_token_t type, const splc_loc location);
 
 /* Add a child to a node. Uses `realloc` to allocate memory. */
-ast_node add_child(ast_node parent, ast_node child);
+ast_node ast_add_child(ast_node parent, ast_node child);
 
-/* Add a child to a node. Uses `realloc` to allocate memory. */
-ast_node add_children(ast_node parent, size_t num_child, ...);
+/* Add a child to a node. Interally, this is done by calling `ast_add_child`. */
+ast_node ast_add_children(ast_node parent, size_t num_child, ...);
 
 /* Create a parent node, given a list of child nodes. The location of parent node will be that of the first-encountered
- * child node. */
-ast_node create_parent_node(const splc_token_t type, size_t num_child, ...);
+ * child node. Interally, this is done by calling `ast_add_child`. */
+ast_node ast_create_parent_node(const splc_token_t type, size_t num_child, ...);
 
 /* Get the starting location of this node */
-splc_loc get_startloc(const ast_node node);
+splc_loc ast_get_startloc(const ast_node node);
 
 /* Get the ending location of this node */
-splc_loc get_endloc(const ast_node node);
+splc_loc ast_get_endloc(const ast_node node);
 
 /* Release the entire AST */
-void release_tree(ast_node root);
+void ast_release_node(ast_node *root);
 
 /* Preprocess an AST by eliminating all punctuators */
-void preprocess_ast(ast_node root);
+void ast_preprocess(ast_node root);
 
-/* Duplicate a single node */
-ast_node duplicate_node(ast_node node);
-
-/* Duplicate the entire AST */
-ast_node duplicate_tree(ast_node root);
+/* Deep copy a single node */
+ast_node ast_deep_copy(ast_node node);
 
 /* Substitute all macro mount points inside the given AST.
    When subsituting macro functions, the following requirement holds:
    - Once the target macro function has been substituted, it is not possible to substitute the outer part again. */
-void invoke_macro_subtitution(ast_node root);
+void ast_invoke_macro_subtitution(ast_node root);
 
 /* Print the Syntax Tree */
-void print_ast(const ast_node root);
+void ast_print(const ast_node root);
 
 /* Macros */
 
-#define SPLC_AST_GET_STARTLOC(node) (get_startloc(node))
-#define SPLC_AST_GET_ENDLOC(node) (get_endloc(node))
+#define SPLC_AST_GET_STARTLOC(node) (ast_get_startloc(node))
+#define SPLC_AST_GET_ENDLOC(node) (ast_get_endloc(node))
 #define SPLC_AST_IGNORE_NODE(node) ((node) == NULL || (node)->type == SPLT_NULL || (!splc_enable_ast_punctuators && SPLT_IS_PUNCTUATOR((node)->type)))
 #define SPLT_AST_REQUIRE_VAL_FREE(x) SPLT_IS_VAL_ALLOCATED(x)
 

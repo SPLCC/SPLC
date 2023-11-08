@@ -72,7 +72,7 @@ int splc_enter_file(const char *restrict _filename, const splc_loc location);
 int splc_exit_file();
 
 /* Return the filename of the node. This string shall not be freed. */
-const char* const splc_get_node_filename(int fid);
+const char *const splc_get_node_filename(int fid);
 
 void set_error_flag(int val);
 
@@ -93,8 +93,14 @@ extern int splc_enable_diag;
 
 /* Check if pointer is NULL. If fail, print a message and exit. */
 #define SPLC_ALLOC_PTR_CHECK(x, _msg)                                                                                  \
-    if ((x) == NULL)                                                                                                   \
-        splcfail(_msg);
+    do                                                                                                                 \
+    {                                                                                                                  \
+        if ((x) == NULL)                                                                                               \
+        {                                                                                                              \
+            fprintf(stderr, "%s: \033[31mfatal error\033[0m: %s\n", progname, _msg);                                   \
+            abort();                                                                                                   \
+        }                                                                                                              \
+    } while (0)
 
 /* Print a formatted message without location and exit splc(1) */
 #define SPLC_FEXIT_NOLOC(_msg, ...)                                                                                    \
