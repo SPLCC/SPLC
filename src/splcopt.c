@@ -144,7 +144,7 @@ void splc_process_args(int nargc, char *nargv[])
 // clang-format off
 void usage()
 {
-    printf("usage: %s [options] [file ...]\n%s%s%s%s%s", progname,
+    printf("usage: \033[1m%s\033[0m [options] [file ...]\n%s%s%s%s%s", progname,
            "  -h                       print this usage and exit\n",
            "  -v                       print diagnostic information\n",
            "  -p                       append punctuators in AST\n",

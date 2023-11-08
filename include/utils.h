@@ -87,7 +87,7 @@ extern int splc_enable_diag;
 #define SPLC_FFAIL(_msg, ...)                                                                                          \
     do                                                                                                                 \
     {                                                                                                                  \
-        fprintf(stderr, "%s: \033[31mfatal error\033[0m:" _msg "\n", progname, __VA_ARGS__);                           \
+        fprintf(stderr, "\033[1m%s\033[0m: \033[31mfatal error\033[0m:" _msg "\n", progname, __VA_ARGS__);                           \
         abort();                                                                                                       \
     } while (0)
 
@@ -97,7 +97,7 @@ extern int splc_enable_diag;
     {                                                                                                                  \
         if ((x) == NULL)                                                                                               \
         {                                                                                                              \
-            fprintf(stderr, "%s: \033[31mfatal error\033[0m: %s\n", progname, _msg);                                   \
+            fprintf(stderr, "\033[1m%s\033[0m: \033[31mfatal error\033[0m: %s\n", progname, _msg);                                   \
             abort();                                                                                                   \
         }                                                                                                              \
     } while (0)
