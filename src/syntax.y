@@ -61,6 +61,9 @@
 
 /* %destructor { destruct_node($$); } <> */
 
+/* Reference: https://learn.microsoft.com/en-us/cpp/c-language/ */
+/* Many of the C language features are not implemented here. */
+
 %%
 /* Entire translation unit */
 translation-unit: 
