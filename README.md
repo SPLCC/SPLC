@@ -10,10 +10,10 @@
     - **Parser**:
       - *(Done) Pointer/Address-Of Support*
       - *(Done) Support All C operators*
-      - Support type-qualifiers
+      - *(Done) Support type-qualifiers*
   - LUT (Look-Up Table)
+      - *(Experimental) Done*
   - AST
-    - Recursive macro expansion and substitution
     - *(Done) Mark the source of function precisely*
   - Utilities
     - `util_file_node`
