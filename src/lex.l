@@ -154,6 +154,12 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     BEGIN(IN_STRING);
 }
 
+<INITIAL>\"\" {
+    yylval = ast_create_leaf_node(SPLT_STR_UNIT, SPLC_YY2LOC_CF_D(yylloc));
+    yylval->val = (void *)strdup("");
+    return STR_UNIT;
+}
+
 <IN_STRING>\\[abefnrtv\\\'\"\?] {
     yylval = ast_create_leaf_node(SPLT_STR_UNIT, SPLC_YY2LOC_CF_D(yylloc));
     yylval->val = (void *)strdup(yytext);
