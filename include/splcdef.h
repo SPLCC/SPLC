@@ -132,7 +132,7 @@ enum splc_token_type
     SPLT_RESTRICT,  /* keyword: restrict */
     SPLT_VOLATILE,  /* keyword: volatile */
 
-    SPLT_PARAM_DOTS, /* keyword: dots for var args */
+    SPLT_ELLIPSIS, /* keyword: dots for var args */
 
     SPLT_INLINE, /* keyword: inline */
 

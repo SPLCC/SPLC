@@ -18,7 +18,7 @@
 %token TYPE_VOID TYPE_INT TYPE_SIGNED TYPE_UNSIGNED TYPE_LONG TYPE_FLOAT TYPE_CHAR STR_UNIT
 %token AUTO EXTERN REGISTER STATIC TYPEDEF
 %token KWD_CONST RESTRICT VOLATILE
-%token PARAM_DOTS
+%token ELLIPSIS
 %token INLINE
 %token KWD_ENUM KWD_STRUCT KWD_UNION
 %token ID TYPEDEF_NAME 
@@ -389,7 +389,7 @@ direct-function-declarator:
 /* List of variables names */
 parameter-type-list: 
       parameter-list { $$ = ast_create_parent_node(SPLT_PARAM_TYPE_LIST, 1, $1); }
-    | parameter-list COMMA PARAM_DOTS { $$ = ast_create_parent_node(SPLT_PARAM_TYPE_LIST, 3, $1, $2, $3); }
+    | parameter-list COMMA ELLIPSIS { $$ = ast_create_parent_node(SPLT_PARAM_TYPE_LIST, 3, $1, $2, $3); }
     ;
 
 parameter-list:

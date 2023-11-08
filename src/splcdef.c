@@ -107,7 +107,7 @@ const char *splc_get_token_color_code(splc_token_t type)
     case SPLT_DIR_DEC:
     case SPLT_PTR:
     case SPLT_PARAM_DEC:
-    case SPLT_PARAM_DOTS:
+    case SPLT_ELLIPSIS:
     case SPLT_PARAM_TYPE_LIST:
     case SPLT_PARAM_LIST:
     case SPLT_ARG_LIST:
@@ -439,8 +439,8 @@ const char *splc_token2str(splc_token_t type)
         return "restrict";
     case SPLT_VOLATILE:
         return "volatile";
-    case SPLT_PARAM_DOTS:
-        return "VAR_ARG dots";
+    case SPLT_ELLIPSIS:
+        return "VAR_ARG ellipsis";
 
     case SPLT_INLINE:
         return "inline";

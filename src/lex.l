@@ -161,33 +161,34 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     yylval->val = text;
     return STR_UNIT;
 }
-    // Match escape characters
+
+    /* Match escape characters */
 <IN_STRING>\\[abefnrtv\\\'\"\?] {
     yylval = ast_create_leaf_node(SPLT_STR_UNIT, SPLC_YY2LOC_CF_D(yylloc));
     yylval->val = (void *)strdup(yytext);
     return STR_UNIT;
 }
 
-    // Allow line break
+    /* Allow line break */
 <IN_STRING>\\\r?\n {
     /* by std C definition, skip this and the newline character */
 }
 
-    // Match line break
+    /* Match line break */
 <IN_STRING>[^\n\r\"\\]+ {
     yylval = ast_create_leaf_node(SPLT_STR_UNIT, SPLC_YY2LOC_CF_D(yylloc));
     yylval->val = (void *)strdup(yytext);
     return STR_UNIT;
 }
 
-    // Match escape characters
+    /* Match line break */
 <IN_STRING>\\[0-9]{1,3} {
     yylval = ast_create_leaf_node(SPLT_STR_UNIT, SPLC_YY2LOC_CF_D(yylloc));
     yylval->val = (void *)strdup(yytext);
     return STR_UNIT;
 }
 
-    // Match escape characters
+    /* Match escape characters */
 <IN_STRING>\\x[0-9a-fA-F]{2,3} {
     yylval = ast_create_leaf_node(SPLT_STR_UNIT, SPLC_YY2LOC_CF_D(yylloc));
     yylval->val = (void *)strdup(yytext);
@@ -218,7 +219,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 <INITIAL>"restrict" { yylval = ast_create_leaf_node(SPLT_RESTRICT, SPLC_YY2LOC_CF_D(yylloc)); return RESTRICT; }
 <INITIAL>"volatile" { yylval = ast_create_leaf_node(SPLT_VOLATILE, SPLC_YY2LOC_CF_D(yylloc)); return VOLATILE; }
 
-<INITIAL>"..."      { yylval = ast_create_leaf_node(SPLT_PARAM_DOTS, SPLC_YY2LOC_CF_D(yylloc)); return PARAM_DOTS; }
+<INITIAL>"..."      { yylval = ast_create_leaf_node(SPLT_ELLIPSIS, SPLC_YY2LOC_CF_D(yylloc)); return ELLIPSIS; }
 
 <INITIAL>"while"    { yylval = ast_create_leaf_node(SPLT_WHILE, SPLC_YY2LOC_CF_D(yylloc)); return WHILE; }
 <INITIAL>"for"      { yylval = ast_create_leaf_node(SPLT_FOR, SPLC_YY2LOC_CF_D(yylloc)); return FOR; }
