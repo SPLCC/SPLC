@@ -217,9 +217,7 @@ enum splc_token_type
     SPLT_TYPE_LONG,                            /* type: long */
     SPLT_TYPE_FLOAT,                           /* type: float */
     SPLT_TYPE_CHAR,                            /* type: char */
-    // SPLT_TYPE_UNSIGNED, /* type: int */
-    // SPLT_TYPE_SIGNED,   /* type: int */
-    // SPLT_TYPE_LONG,     /* type: int */
+    
     SPLT_ID = SPLT_ID_OFFSET, /* id literal */
     SPLT_TYPEDEF_NAME,        /* type name through typedef declaration */
 
