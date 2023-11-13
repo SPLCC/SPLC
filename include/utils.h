@@ -14,7 +14,7 @@ enum error_type
     SPLC_MACRO_ERROR,
     SPLC_MACRO_WARN,
 
-    SPLC_ERR_CRIT = 0x1000,
+    SPLC_ERR_FATAL = 0x1000,
     SPLC_ERR_UNIV, /* splc: universal error */
     SPLC_ERR_A,
     SPLC_ERR_B,
@@ -112,7 +112,7 @@ extern int splc_enable_diag;
         char *buffer = (char *)malloc(needed);                                                                         \
         SPLC_ALLOC_PTR_CHECK(buffer, "cannot allocate memory for printing error");                                     \
         sprintf(buffer, _msg, __VA_ARGS__);                                                                            \
-        splcerror_noloc(SPLC_ERR_CRIT, buffer);                                                                        \
+        splcerror_noloc(SPLC_ERR_FATAL, buffer);                                                                        \
         free(buffer);                                                                                                  \
         exit(1);                                                                                                       \
     } while (0)

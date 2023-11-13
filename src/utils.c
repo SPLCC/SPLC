@@ -49,7 +49,7 @@ static const char *get_splc_error_color_code(error_t type)
     const char *color_code = "\033[31m";
     switch (type)
     {
-    case SPLC_ERR_CRIT:
+    case SPLC_ERR_FATAL:
     case SPLC_ERR_UNIV:
     case SPLC_ERR_A:
     case SPLC_ERR_B:
@@ -140,8 +140,8 @@ static char *splc_get_msg_type_prefix(error_t type)
     const char *type_name = "undefined message";
     switch (type)
     {
-    case SPLC_ERR_CRIT:
-        type_name = "critical error";
+    case SPLC_ERR_FATAL:
+        type_name = "fatal error";
         break;
     case SPLC_ERR_UNIV:
     case SPLC_ERR_A:
@@ -175,7 +175,7 @@ static char *splc_get_msg_type_suffix(error_t type)
     char *type_suffix = NULL;
     switch (type)
     {
-    case SPLC_ERR_CRIT:
+    case SPLC_ERR_FATAL:
         type_suffix = NULL;
         break;
     case SPLC_ERR_UNIV:
@@ -247,7 +247,7 @@ static void _builtin_splc_handle_msg(error_t type, const splc_loc *const locatio
     FILE *file = NULL;
     if ((file = fopen(orig_file, "r")) == NULL)
     {
-        SPLC_FERROR_NOLOC(SPLC_ERR_CRIT, "file no longer exists: %s\n", orig_file);
+        SPLC_FERROR_NOLOC(SPLC_ERR_FATAL, "file no longer exists: %s\n", orig_file);
         return;
     }
     char *line = fetchline(file, location->linebegin);
@@ -321,7 +321,7 @@ static void print_trace()
 
 void splcfail(const char *msg)
 {
-    splcerror_noloc(SPLC_ERR_CRIT, msg);
+    splcerror_noloc(SPLC_ERR_FATAL, msg);
     abort();
 }
 
@@ -370,13 +370,13 @@ static int _builtin_splc_enter_file(const char *restrict _filename, const splc_l
     {
         if (location != NULL)
         {
-            splcerror(SPLC_ERR_CRIT, *location,
+            splcerror(SPLC_ERR_FATAL, *location,
                       "failed to include file. Please check whether the path exists or this program has access right.");
         }
         else
         {
             splcerror_noloc(
-                SPLC_ERR_CRIT,
+                SPLC_ERR_FATAL,
                 "failed to include file. Please check whether the path exists or this program has access right.");
         }
         return -1;
