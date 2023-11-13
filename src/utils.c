@@ -280,12 +280,13 @@ static void splc_handle_msg(error_t type, const splc_loc *const location, const 
 
 static void _builtin_splcerror(error_t type, const splc_loc *const location, const char *msg)
 {
-    set_error_flag(1);
+    update_error(1);
     splc_handle_msg(type, location, msg);
 }
 
 static void _builtin_splcwarn(const splc_loc *const location, const char *msg)
 {
+    update_warning(1);
     splc_handle_msg(SPLC_WARN, location, msg);
 }
 
@@ -332,7 +333,7 @@ void splcerror(error_t type, const splc_loc location, const char *msg)
 
 void splcerror_noloc(error_t type, const char *msg)
 {
-    set_error_flag(1);
+    update_error(1);
     _builtin_splcerror(type, NULL, msg);
 }
 
@@ -454,7 +455,12 @@ const char* const splc_get_node_filename(int fid)
     return splc_all_file_nodes[fid]->filename;
 }
 
-void set_error_flag(int val)
+void update_error(int val)
 {
-    err_flag = val;
+    err_count += val;
+}
+
+void update_warning(int val)
+{
+    warn_count += val;
 }

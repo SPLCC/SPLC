@@ -278,7 +278,7 @@ type-qualifier-list:
 /* Definition: Base */
 declaration: 
       direct-declaration SEMI { $$ = ast_create_parent_node(SPLT_DECLTN, 2, $1, $2); }
-    | direct-declaration error { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($2), "missing semicolon ';'"); $$ = ast_create_parent_node(SPLT_DECLTN, 1, $1); yyerrok; }
+    | direct-declaration error { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($1), "missing semicolon ';'"); $$ = ast_create_parent_node(SPLT_DECLTN, 1, $1); yyerrok; }
     ;
 
 direct-declaration:

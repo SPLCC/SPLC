@@ -2,7 +2,8 @@
 #include "lut.h"
 #include "utils.h"
 
-int err_flag = 0;
+int err_count = 0;
+int warn_count = 0;
 
 char *splc_loc2str(splc_loc location)
 {
@@ -624,7 +625,8 @@ splc_trans_unit splc_create_empty_trans_unit()
     SPLC_ALLOC_PTR_CHECK(unit, "out of memory when creating translation unit");
     unit->symbol_table = NULL;
     unit->root = NULL;
-    unit->err_flag = 0;
+    unit->err_count = 0;
+    unit->warn_count = 0;
     return unit;
 }
 

@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
         yyparse();
 
 #ifndef DEBUG
-        if (!err_flag)
+        if (!err_count)
 #endif
             ast_print(current_trans_unit->root);
 
@@ -64,21 +64,26 @@ int main(int argc, char *argv[])
             ast_preprocess(current_trans_unit->root);
 
         /* TODO: semantic analysis on AST */
-        if (!err_flag)
+        if (!err_count)
         {
             sem_analyze(current_trans_unit->symbol_table, current_trans_unit->root);
         }
 
         /* clear and store translation unit */
-        current_trans_unit->err_flag = err_flag;
+        current_trans_unit->err_count = err_count;
+        current_trans_unit->warn_count = warn_count;
         splc_trans_unit_list[i] = current_trans_unit;
 
-        err_flag = 0;
+        /* output error information */
+        SPLC_FDIAG("%d warning and %d errors generated.\n", current_trans_unit->warn_count, current_trans_unit->err_count);
+
+        err_count = 0;
+        warn_count = 0;
     }
 
     int all_err = 0;
     for (int i = 0; i < splc_src_file_cnt; ++i)
-        all_err = all_err || splc_trans_unit_list[i]->err_flag;
+        all_err += splc_trans_unit_list[i]->err_count;
 
     if (all_err)
         return 1;

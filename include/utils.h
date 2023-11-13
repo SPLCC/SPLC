@@ -74,7 +74,9 @@ int splc_exit_file();
 /* Return the filename of the node. This string shall not be freed. */
 const char *const splc_get_node_filename(int fid);
 
-void set_error_flag(int val);
+void update_error(int val);
+
+void update_warning(int val);
 
 /* Global variables */
 

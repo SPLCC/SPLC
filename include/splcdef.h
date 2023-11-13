@@ -319,7 +319,8 @@ typedef struct splc_trans_unit_struct
 {
     lut_table symbol_table; /* symbol table of this translation unit */
     ast_node root;          /* root of this translation unit */
-    int err_flag;
+    int err_count;
+    int warn_count;
 } splc_trans_unit_struct;
 
 /* create an empty translation unit with all fields initialized to 0/NULL. */
@@ -367,7 +368,9 @@ extern splc_trans_unit *splc_trans_unit_list;
 /* The translation unit that is being parsed currently */
 extern splc_trans_unit current_trans_unit;
 
-extern int err_flag;
+extern int err_count;
+
+extern int warn_count;
 
 extern const char *progname;
 
