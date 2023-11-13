@@ -211,7 +211,7 @@ static void _builtin_print_single_node(const ast_node node)
     
     // Print node content
     if (splc_enable_colored_ast)
-        printf("\033[32m");
+        printf("\033[96m");
     
     switch (node->type)
     {
