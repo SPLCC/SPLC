@@ -109,7 +109,7 @@ const char *splc_get_token_color_code(splc_token_t type)
     case SPLT_PARAM_TYPE_LIST:
     case SPLT_PARAM_LIST:
     case SPLT_ARG_LIST:
-        return "\033[94m";
+        return "\033[92m";
 
     /* Terminal: control keywords */
     case SPLT_WHILE:
