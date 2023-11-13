@@ -57,6 +57,9 @@ const char *splc_get_token_color_code(splc_token_t type)
     case SPLT_STRUCT_DECLTN_LIST:
     case SPLT_STRUCT_DEC_LIST:
     case SPLT_INIT_DEC_LIST:
+    case SPLT_STRUCT_DECLTN:
+    case SPLT_STRUCT_DEC:
+    case SPLT_INIT_DEC:
         return "\033[32m";
 
     /* Nonterminals: statements */
@@ -154,9 +157,6 @@ const char *splc_get_token_color_code(splc_token_t type)
         return "\033[38;5;27m";
 
     /* Terminals: IDs */
-    case SPLT_STRUCT_DEC:
-    case SPLT_INIT_DEC:
-        return "\033[38;5;38m";
     case SPLT_ENUM:
     case SPLT_DESG_LIST:
     case SPLT_DESG:
@@ -177,7 +177,6 @@ const char *splc_get_token_color_code(splc_token_t type)
     case SPLT_MACRO_ID:
         return "\033[38;5;33m";
 
-    case SPLT_STRUCT_DECLTN:
     case SPLT_TYPENAME:
         return "\033[38;5;47m";
 
