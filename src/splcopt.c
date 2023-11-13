@@ -159,15 +159,15 @@ void usage()
 // clang-format on
 
 #ifdef DEBUG
-#define SPLT_DEBUG_VAL 1
+#define SPLC_BUILD_DEBUG_VAL 1
 #else
-#define SPLT_DEBUG_VAL 0
+#define SPLC_BUILD_DEBUG_VAL 0
 #endif
 
 void print_prog_diag_info()
 {
     SPLC_FDIAG("%s %s", progname, progversion);
-    SPLC_FDIAG("DEBUG=%d", SPLT_DEBUG_VAL);
+    SPLC_FDIAG("DEBUG=%d", SPLC_BUILD_DEBUG_VAL);
     SPLC_FDIAG("enable_diag=%d", splc_enable_diag);
     SPLC_FDIAG("ast_dump=%d", splc_ast_dump);
     SPLC_FDIAG("enable_ast_punctuators=%d", splc_enable_ast_punctuators);

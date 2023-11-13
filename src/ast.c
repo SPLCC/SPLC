@@ -234,14 +234,15 @@ static void _builtin_print_single_node(const ast_node node)
     switch (node->type)
     {
     case SPLT_TRANS_UNIT:
-        printf(" '%s'", splc_get_node_filename(node->location.fid));
+        printf("  <%s>", splc_get_node_filename(node->location.fid));
         break;
     case SPLT_ID:
-        printf("  '%s'", (char *)node->val);
+        printf("  %s", (char *)node->val);
         break;
     case SPLT_TYPEDEF_NAME:
-        printf("  '%s'", (char *)node->val);
+        printf("  %s", (char *)node->val);
         break;
+
     case SPLT_LTR_INT:
         printf("  '%llu'", node->ull_val);
         break;

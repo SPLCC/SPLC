@@ -164,7 +164,7 @@ static char *splc_get_msg_type_prefix(error_t type)
         type_name = "warning";
         break;
     default:
-        type_name = "critical error";
+        type_name = "fatal error";
         break;
     }
     return strdup(type_name);
