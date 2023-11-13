@@ -50,7 +50,6 @@ const char *splc_get_token_color_code(splc_token_t type)
     case SPLT_DIR_FUNC_DEC:
         return "\033[38;5;229m";
 
-    /* Nonterminals: statements */
     case SPLT_DECLTN_LIST:
     case SPLT_ENUM_LIST:
     case SPLT_EXT_DECLTN_LIST:
@@ -58,8 +57,9 @@ const char *splc_get_token_color_code(splc_token_t type)
     case SPLT_STRUCT_DECLTN_LIST:
     case SPLT_STRUCT_DEC_LIST:
     case SPLT_INIT_DEC_LIST:
-        return "\033[94m";
+        return "\033[32m";
 
+    /* Nonterminals: statements */
     case SPLT_COMP_STMT:
     case SPLT_STMT:
     case SPLT_GEN_STMT_LIST:
