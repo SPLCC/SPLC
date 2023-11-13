@@ -54,14 +54,13 @@ const char *splc_get_token_color_code(splc_token_t type)
     case SPLT_DECLTN_LIST:
     case SPLT_ENUM_LIST:
     case SPLT_EXT_DECLTN_LIST:
+    case SPLT_EXT_DECLTN:
     case SPLT_STRUCT_DECLTN_LIST:
     case SPLT_STRUCT_DEC_LIST:
     case SPLT_INIT_DEC_LIST:
         return "\033[94m";
 
-    case SPLT_EXT_DECLTN:
     case SPLT_COMP_STMT:
-
     case SPLT_STMT:
     case SPLT_GEN_STMT_LIST:
     // case SPLT_STMT_LIST:
