@@ -16,12 +16,13 @@ typedef struct ast_node_struct
     ast_node *children; /* Array of children */
     size_t num_child;   /* Number of children */
 
-    splc_loc location; /* Location of this token. This location will cover the consecutive nodes in the first file only. */
+    splc_loc
+        location; /* Location of this token. This location will cover the consecutive nodes in the first file only. */
 
     union {
         void *val;
         unsigned long long ull_val; /* Interpret the value as integer */
-        float float_val;         /* Interpret the value as float  */
+        float float_val;            /* Interpret the value as float  */
     };
 } ast_node_struct;
 
@@ -67,9 +68,17 @@ void ast_print(const ast_node root);
 
 /* Macros */
 
+#define SPLC_AST_PRINT_COLORED(x)                                                                                      \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        if (splc_enable_colored_ast)                                                                                   \
+            printf("%s", x);                                                                                           \
+    } while (0)
+
 #define SPLC_AST_GET_STARTLOC(node) (ast_get_startloc(node))
 #define SPLC_AST_GET_ENDLOC(node) (ast_get_endloc(node))
-#define SPLC_AST_IGNORE_NODE(node) ((node) == NULL || (node)->type == SPLT_NULL || (!splc_enable_ast_punctuators && SPLT_IS_PUNCTUATOR((node)->type)))
+#define SPLC_AST_IGNORE_NODE(node)                                                                                     \
+    ((node) == NULL || (node)->type == SPLT_NULL || (!splc_enable_ast_punctuators && SPLT_IS_PUNCTUATOR((node)->type)))
 #define SPLT_AST_REQUIRE_VAL_FREE(x) SPLT_IS_VAL_ALLOCATED(x)
 
 #endif

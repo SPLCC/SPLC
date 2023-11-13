@@ -184,14 +184,13 @@ ast_node ast_deep_copy(ast_node node)
 static void _builtin_print_single_node(const ast_node node)
 {
     // print node type
-    if (splc_enable_colored_ast)
-        printf("%s", splc_get_token_color_code(node->type)); /* do not free this string, as it is a constant */
+    SPLC_AST_PRINT_COLORED("\033[1m");
+    SPLC_AST_PRINT_COLORED(splc_get_token_color_code(node->type));
 
     const char *tokenstr = splc_token2str(node->type); /* do not free this string, as it is a constant */
     printf("%s", tokenstr);
 
-    if (splc_enable_colored_ast)
-        printf("\033[0m");
+    SPLC_AST_PRINT_COLORED("\033[0m");
 
     // print node location
     if (splc_enable_colored_ast)
@@ -206,13 +205,30 @@ static void _builtin_print_single_node(const ast_node node)
     printf(" %s", location);
     free(location);
 
-    if (splc_enable_colored_ast)
-        printf("\033[0m");
-    
+    SPLC_AST_PRINT_COLORED("\033[0m");
+
     // Print node content
-    if (splc_enable_colored_ast)
-        printf("\033[96m");
-    
+
+    const char *ast_color_construct = "\033[96m";
+    const char *ast_color_constant = "\033[32m";
+
+    switch (node->type)
+    {
+    case SPLT_TRANS_UNIT:
+    case SPLT_ID:
+    case SPLT_TYPEDEF_NAME:
+        SPLC_AST_PRINT_COLORED(ast_color_construct);
+        break;
+    case SPLT_LTR_INT:
+    case SPLT_LTR_FLOAT:
+    case SPLT_LTR_CHAR:
+    case SPLT_STR_UNIT:
+        SPLC_AST_PRINT_COLORED(ast_color_constant);
+        break;
+    default:
+        break;
+    }
+
     switch (node->type)
     {
     case SPLT_TRANS_UNIT:
@@ -240,8 +256,7 @@ static void _builtin_print_single_node(const ast_node node)
     default:
         break;
     }
-    if (splc_enable_colored_ast)
-        printf("\033[0m");
+    SPLC_AST_PRINT_COLORED("\033[0m");
 }
 
 static void _builtin_ast_print(const ast_node node, const char *prefix)
@@ -262,11 +277,9 @@ static void _builtin_ast_print(const ast_node node, const char *prefix)
             segment = "| ";
         }
 
-        if (splc_enable_colored_ast)
-            printf("\033[34m");
+        SPLC_AST_PRINT_COLORED("\033[34m");
         printf("%s%s", prefix, indicator);
-        if (splc_enable_colored_ast)
-            printf("\033[0m");
+        SPLC_AST_PRINT_COLORED("\033[0m");
 
         _builtin_print_single_node(node->children[i]);
         printf("\n");
