@@ -183,6 +183,7 @@ ast_node ast_deep_copy(ast_node node)
 
 static void _builtin_print_single_node(const ast_node node)
 {
+    // print node type
     if (splc_enable_colored_ast)
         printf("%s", splc_get_token_color_code(node->type)); /* do not free this string, as it is a constant */
 
@@ -192,24 +193,23 @@ static void _builtin_print_single_node(const ast_node node)
     if (splc_enable_colored_ast)
         printf("\033[0m");
 
-    if (node->num_child == 0)
+    // print node location
+    if (splc_enable_colored_ast)
     {
-        if (splc_enable_colored_ast)
-        {
-            if (SPLC_IS_LOC_INVALID(node->location))
-                printf("\033[31m");
-            else
-                printf("\033[33m");
-        }
-
-        char *location = splc_loc2str(node->location);
-        printf(" %s", location);
-        free(location);
-
-        if (splc_enable_colored_ast)
-            printf("\033[0m");
+        if (SPLC_IS_LOC_INVALID(node->location))
+            printf("\033[31m");
+        else
+            printf("\033[33m");
     }
 
+    char *location = splc_loc2str(node->location);
+    printf(" %s", location);
+    free(location);
+
+    if (splc_enable_colored_ast)
+        printf("\033[0m");
+    
+    // Print node content
     if (splc_enable_colored_ast)
         printf("\033[32m");
     
@@ -263,7 +263,7 @@ static void _builtin_ast_print(const ast_node node, const char *prefix)
         }
 
         if (splc_enable_colored_ast)
-            printf("\033[38;5;20m");
+            printf("\033[34m");
         printf("%s%s", prefix, indicator);
         if (splc_enable_colored_ast)
             printf("\033[0m");

@@ -35,7 +35,7 @@ const char *splc_get_token_color_code(splc_token_t type)
     {
     /* Nonterminals */
     case SPLT_NULL:
-        return "\033[31m";
+        return "\033[34m";
 
     case SPLT_TRANS_UNIT:
         return "\033[38;5;51m";
