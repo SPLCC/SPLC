@@ -57,7 +57,7 @@ const char *splc_get_token_color_code(splc_token_t type)
     case SPLT_STRUCT_DECLTN_LIST:
     case SPLT_STRUCT_DEC_LIST:
     case SPLT_INIT_DEC_LIST:
-        return "\033[38;5;178m";
+        return "\033[94m";
 
     case SPLT_EXT_DECLTN:
     case SPLT_COMP_STMT:
@@ -71,13 +71,6 @@ const char *splc_get_token_color_code(splc_token_t type)
     case SPLT_FOR_LOOP_BODY:
     case SPLT_LABELED_STMT:
     case SPLT_JUMP_STMT:
-        return "\033[38;5;30m";
-
-    case SPLT_DECLTN:
-    case SPLT_DIR_DECLTN:
-    case SPLT_ABS_DEC:
-    case SPLT_DIR_ABS_DEC:
-        return "\033[38;5;81m";
 
     case SPLT_EXPR:
     case SPLT_PRIM_EXPR:
@@ -101,7 +94,12 @@ const char *splc_get_token_color_code(splc_token_t type)
     case SPLT_INIT:
     case SPLT_INIT_LIST:
     case SPLT_DESGTN:
-        return "\033[38;5;40m";
+        return "\033[95m";
+    
+    case SPLT_DECLTN:
+    case SPLT_DIR_DECLTN:
+    case SPLT_ABS_DEC:
+    case SPLT_DIR_ABS_DEC:
 
     case SPLT_DEC:
     case SPLT_DIR_DEC:
@@ -111,7 +109,7 @@ const char *splc_get_token_color_code(splc_token_t type)
     case SPLT_PARAM_TYPE_LIST:
     case SPLT_PARAM_LIST:
     case SPLT_ARG_LIST:
-        return "\033[38;5;81m";
+        return "\033[94m";
 
     /* Terminal: control keywords */
     case SPLT_WHILE:
@@ -266,153 +264,153 @@ const char *splc_token2str(splc_token_t type)
     case SPLT_NULL:
         return "NULL-type";
     case SPLT_TRANS_UNIT:
-        return "Translation Unit";
+        return "TranslationUnitDecl";
     case SPLT_EXT_DECLTN_LIST:
-        return "External Declaration List";
+        return "ExternalDeclList";
     case SPLT_EXT_DECLTN:
-        return "External Declaration";
+        return "ExternalDecl";
     case SPLT_DECLTN_SPEC:
-        return "Declaration Specifier";
+        return "DeclSpec";
     case SPLT_TYPE_SPEC:
-        return "Type Specifier";
+        return "TypeSpec";
     case SPLT_STRG_SPEC:
-        return "Storage Specifier";
+        return "StorageSpec";
     case SPLT_TYPE_QUAL_LIST:
-        return "Type Qualifier List";
+        return "TypeQualList";
     case SPLT_TYPE_QUAL:
-        return "Type Qualifier";
+        return "TypeQual";
     case SPLT_FUNC_SPEC:
-        return "Function Specifier";
+        return "FunctionSpec";
     case SPLT_SPEC_QUAL_LIST:
-        return "Specifier-Qualifier List";
+        return "Spec-QualList";
     case SPLT_TYPENAME:
         return "typename";
     case SPLT_STRUCT_UNION_SPEC:
-        return "Struct/Union Specifier";
+        return "Struct/Union-Spec";
     case SPLT_STRUCT_DECLTN_LIST:
-        return "Struct/Union Declaration List";
+        return "Struct/Union-DeclList";
     case SPLT_STRUCT_DECLTN:
-        return "Struct/Union Declaration";
+        return "Struct/Union-Decl";
     case SPLT_STRUCT_DEC_LIST:
-        return "Struct/Union Declarator List";
+        return "Struct/Union-DecltrList";
     case SPLT_STRUCT_DEC:
-        return "Struct/Union Declarator";
+        return "Struct/Union-Decltr";
     case SPLT_ENUM_SPEC:
-        return "enum specifier";
+        return "EnumSpec";
     case SPLT_ENUM_LIST:
-        return "enum list";
+        return "EnumList";
     case SPLT_ENUM:
-        return "enumerator";
+        return "Enum";
     case SPLT_DEC:
-        return "Declarator";
+        return "Decltr";
     case SPLT_DIR_DEC:
-        return "Direct Declarator";
+        return "DirectDecltr";
     case SPLT_PTR:
-        return "Pointer";
+        return "Ptr";
     case SPLT_FUNC_DEF:
-        return "Function Definition";
+        return "FunctionDef";
     case SPLT_FUNC_DEC:
-        return "Function Declarator";
+        return "FunctionDecltr";
     case SPLT_DIR_FUNC_DEC:
-        return "Direct Function Declarator";
+        return "DirectFunctionDecltr";
 
     case SPLT_PARAM_TYPE_LIST:
-        return "Parameter Type List";
+        return "ParamTypeList";
     case SPLT_PARAM_LIST:
-        return "Parameter List";
+        return "ParamList";
     case SPLT_PARAM_DEC:
-        return "ParamDec";
+        return "ParamDecltr";
 
     case SPLT_STMT:
         return "Stmt";
     case SPLT_GEN_STMT_LIST:
-        return "General Stmt List";
+        return "GeneralStmtList";
     case SPLT_COMP_STMT:
-        return "Compound Stmt";
+        return "CompoundStmt";
     // case SPLT_STMT_LIST:
     //     return "StmtList";
     case SPLT_EXPR_STMT:
-        return "Expression Stmt";
+        return "ExprStmt";
     case SPLT_SEL_STMT:
-        return "Selection Stmt";
+        return "SelectionStmt";
     case SPLT_ITER_STMT:
-        return "Iteration Stmt";
+        return "IterationStmt";
     case SPLT_FOR_LOOP_BODY:
-        return "For Loop Body";
+        return "ForLoopBody";
     case SPLT_LABELED_STMT:
-        return "Labeled Stmt";
+        return "LabeledStmt";
     case SPLT_JUMP_STMT:
-        return "Jump Stmt";
+        return "JumpStmt";
 
     /* Nonterminals: local definition */
     case SPLT_DECLTN_LIST:
-        return "Declaration List";
+        return "DeclList";
     case SPLT_DECLTN:
-        return "Declaration";
+        return "Decl";
     case SPLT_DIR_DECLTN:
-        return "Direct Declaration";
+        return "DirectDecl";
     case SPLT_INIT_DEC_LIST:
-        return "Init Declarator List";
+        return "InitDecltrList";
     case SPLT_INIT_DEC:
-        return "Init Declarator";
+        return "InitDecl";
     case SPLT_INIT:
         return "Initializer";
     case SPLT_INIT_LIST:
-        return "Initializer List";
+        return "InitializerList";
     case SPLT_DESGTN:
         return "Designation";
     case SPLT_DESG_LIST:
-        return "Designator List";
+        return "DesignatorList";
     case SPLT_DESG:
         return "Designator";
     case SPLT_ABS_DEC:
-        return "Abstract Dec";
+        return "AbstractDecltr";
     case SPLT_DIR_ABS_DEC:
-        return "Direct Abstract Dec";
+        return "DirectAbstractDecltr";
 
     case SPLT_EXPR:
         return "Expr";
     case SPLT_PRIM_EXPR:
-        return "Primary Expr";
+        return "PrimaryExpr";
     case SPLT_POSTF_EXPR:
-        return "Postfix Expr";
+        return "PostfixExpr";
     case SPLT_UNARY_EXPR:
-        return "Unary Expr";
+        return "UnaryExpr";
     case SPLT_CAST_EXPR:
-        return "Cast Expr";
+        return "ExplicitCastExpr";
     case SPLT_MUL_EXPR:
-        return "Mul Expr";
+        return "MulExpr";
     case SPLT_ADD_EXPR:
-        return "Add Expr";
+        return "AddExpr";
     case SPLT_SHIFT_EXPR:
-        return "Shift Expr";
+        return "ShiftExpr";
     case SPLT_REL_EXPR:
-        return "Relational Expr";
+        return "RelationalExpr";
     case SPLT_EQ_EXPR:
-        return "Equality Expr";
+        return "EqualityExpr";
     case SPLT_BW_AND_EXPR:
-        return "Bitwise AND Expr";
+        return "BitwiseANDExpr";
     case SPLT_BW_XOR_EXPR:
-        return "Bitwise XOR Expr";
+        return "BitwiseXORExpr";
     case SPLT_BW_OR_EXPR:
-        return "Bitwise OR Expr";
+        return "BitwiseORExpr";
     case SPLT_AND_EXPR:
-        return "Logical AND Expr";
+        return "LogicalANDExpr";
     case SPLT_OR_EXPR:
-        return "Logical OR Expr";
+        return "LogicalORExpr";
     case SPLT_COND_EXPR:
-        return "Conditional Expr";
+        return "ConditionalExpr";
     case SPLT_ASSIGN_EXPR:
-        return "Assignment Expr";
+        return "AssignmentExpr";
     case SPLT_CONST_EXPR:
-        return "Const Expr";
+        return "ConstExpr";
     case SPLT_INIT_EXPR:
-        return "Init Expr";
+        return "InitExpr";
     case SPLT_CONSTANT:
         return "Constant";
 
     case SPLT_ARG_LIST:
-        return "Arg List";
+        return "ArgList";
 
     /* Terminal: Keywords */
     case SPLT_KWD_STRUCT:
@@ -483,15 +481,15 @@ const char *splc_token2str(splc_token_t type)
         return "RP";
 
     case SPLT_SEMI:
-        return "SEMI";
+        return "Semi";
     case SPLT_COMMA:
-        return "COMMA";
+        return "Comma";
 
     /* Operators */
     case SPLT_QM:
-        return "QUESTION MARK";
+        return "QuestionMark";
     case SPLT_COLON:
-        return "COLON";
+        return "Colon";
 
     case SPLT_LSB:
         return "LSB";
@@ -499,46 +497,46 @@ const char *splc_token2str(splc_token_t type)
         return "RSB";
 
     case SPLT_ASSIGN:
-        return "ASSIGN";
+        return "Assign";
     case SPLT_MUL_ASSIGN:
-        return "MUL_ASSIGN";
+        return "MulAssign";
     case SPLT_DIV_ASSIGN:
-        return "DIV_ASSIGN";
+        return "DivAssign";
     case SPLT_MOD_ASSIGN:
-        return "MOD_ASSIGN";
+        return "ModAssign";
     case SPLT_PLUS_ASSIGN:
-        return "PLUS_ASSIGN";
+        return "PlusAssign";
     case SPLT_MINUS_ASSIGN:
-        return "MINUS_ASSIGN";
+        return "MinusAssign";
     case SPLT_LSHIFT_ASSIGN:
-        return "LSHIFT_ASSIGN";
+        return "LShiftAssign";
     case SPLT_RSHIFT_ASSIGN:
-        return "RSHIFT_ASSIGN";
+        return "RShiftAssign";
     case SPLT_BW_AND_ASSIGN:
-        return "BW_AND_ASSIGN";
+        return "BwAndAssign";
     case SPLT_BW_XOR_ASSIGN:
-        return "BW_XOR_ASSIGN";
+        return "BwXorAssign";
     case SPLT_BW_OR_ASSIGN:
-        return "BW_OR_ASSIGN";
+        return "BwOrAssign";
 
     case SPLT_LSHIFT:
-        return "LSHIFT";
+        return "LShift";
     case SPLT_RSHIFT:
-        return "RSHIFT";
+        return "RShift";
     case SPLT_BW_AND:
-        return "bitwise AND";
+        return "BwAnd";
     case SPLT_BW_OR:
-        return "bitwise OR";
+        return "BwOr";
     case SPLT_BW_XOR:
-        return "bitwise XOR";
+        return "BwXor";
     case SPLT_BW_NOT:
-        return "bitwise NOT";
+        return "BwNot";
     case SPLT_AND:
-        return "AND";
+        return "And";
     case SPLT_OR:
-        return "OR";
+        return "Or";
     case SPLT_NOT:
-        return "NOT";
+        return "Not";
 
     case SPLT_SIZEOF:
         return "sizeof";
@@ -557,67 +555,67 @@ const char *splc_token2str(splc_token_t type)
         return "EQ";
 
     case SPLT_DPLUS:
-        return "DOUBLE PLUS";
+        return "DoublePlus";
     case SPLT_DMINUS:
-        return "DOUBLE MINUS";
+        return "DoubleMinus";
     case SPLT_PLUS:
-        return "PLUS";
+        return "Plus";
     case SPLT_MINUS:
-        return "MINUS";
+        return "Minus";
     case SPLT_ASTRK:
-        return "ASTERISK";
+        return "Asterisk";
     case SPLT_DIV:
-        return "DIV";
+        return "Div";
     case SPLT_MOD:
-        return "MOD";
+        return "Mod";
 
     case SPLT_DOT:
-        return "DOT";
+        return "Dot";
     case SPLT_RARROW:
-        return "RARROW";
+        return "RArrow";
 
     case SPLT_TYPE_VOID:
-        return "type: void";
+        return "VoidType";
     case SPLT_TYPE_INT:
-        return "type: int";
+        return "IntType";
     case SPLT_TYPE_SIGNED:
-        return "type: signed";
+        return "SignedType";
     case SPLT_TYPE_UNSIGNED:
-        return "type: unsigned";
+        return "UnsignedType";
     case SPLT_TYPE_LONG:
-        return "type: long";
+        return "LongType";
     case SPLT_TYPE_FLOAT:
-        return "type: float";
+        return "FloatType";
     case SPLT_TYPE_CHAR:
-        return "type: char";
+        return "CharType";
 
     case SPLT_ID:
         return "ID";
     case SPLT_TYPEDEF_NAME:
-        return "typedef name";
+        return "TypedefName";
 
         /* Terminals: literals */
 
     case SPLT_LTR_INT:
-        return "integer literal";
+        return "IntLiteral";
     case SPLT_LTR_FLOAT:
-        return "float literal";
+        return "FloatLiteral";
     case SPLT_LTR_CHAR:
-        return "char literal";
+        return "CharLiteral";
     case SPLT_LTR_STR:
-        return "String Literal";
+        return "StringLiteral";
     case SPLT_STR_UNIT:
-        return "Str Unit";
+        return "StringUnit";
 
     /* Nonterminals: Macro Expressions */
     case SPLT_MACRO_MNTPT:
-        return "AST Macro Mountpoint";
+        return "ASTMacroMountpoint";
 
     case SPLT_MACRO_ID:
-        return "AST Macro ID";
+        return "ASTMacroID";
 
     default:
-        return "unspecified name";
+        return "InvalidName";
     }
 }
 

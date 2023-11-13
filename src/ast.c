@@ -35,7 +35,7 @@ ast_node ast_add_child(ast_node parent, ast_node child)
 {
     if (SPLC_AST_IGNORE_NODE(child))
         return parent;
-    
+
     parent->children = (ast_node *)realloc(parent->children, (parent->num_child + 1) * sizeof(ast_node_struct));
     SPLC_ALLOC_PTR_CHECK(parent->children, "out of memory");
     parent->children[parent->num_child] = child;
@@ -114,8 +114,8 @@ splc_loc ast_get_startloc(const ast_node node)
 splc_loc ast_get_endloc(const ast_node node)
 {
     if (node->num_child == 0)
-        return SPLC_MAKE_LOC(node->location.fid, node->location.lineend, node->location.colend,
-                             node->location.lineend, node->location.colend);
+        return SPLC_MAKE_LOC(node->location.fid, node->location.lineend, node->location.colend, node->location.lineend,
+                             node->location.colend);
     else
         return ast_get_endloc(node->children[node->num_child - 1]);
 }
@@ -138,14 +138,13 @@ void ast_release_node(ast_node *root)
 void ast_preprocess(ast_node node)
 {
     // TODO: remove all punctuators
-    
 }
 
 ast_node ast_deep_copy(ast_node node)
 {
     if (node == NULL)
         return NULL;
-    
+
     ast_node result = ast_create_empty_node();
     result->type = node->type;
     result->entry = node->entry;
@@ -162,14 +161,15 @@ ast_node ast_deep_copy(ast_node node)
     }
     if (SPLT_IS_VAL_ALLOCATED(node->type))
     {
-        switch(node->type)
+        switch (node->type)
         {
         case SPLT_STR_UNIT:
             result->val = (void *)strdup((char *)node->val);
             SPLC_ALLOC_PTR_CHECK(result->val, "failed to copy string to another node");
             break;
         default:
-            SPLC_FWARN_NOLOC("AST value cannot be copied due to undefined behavior on node type: %s", splc_token2str(node->type));
+            SPLC_FWARN_NOLOC("AST value cannot be copied due to undefined behavior on node type: %s",
+                             splc_token2str(node->type));
             break;
         }
     }
@@ -241,15 +241,21 @@ static void _builtin_ast_print(const ast_node node, const char *prefix)
     {
         if (i == node->num_child - 1)
         {
-            indicator = "└── ";
-            segment = "    ";
+            indicator = "`-";
+            segment = "  ";
         }
         else
         {
-            indicator = "├── ";
-            segment = "│   ";
+            indicator = "|-";
+            segment = "| ";
         }
+
+        if (splc_enable_colored_ast)
+            printf("\033[38;5;20m");
         printf("%s%s", prefix, indicator);
+        if (splc_enable_colored_ast)
+            printf("\033[0m");
+
         _builtin_print_single_node(node->children[i]);
         printf("\n");
 
