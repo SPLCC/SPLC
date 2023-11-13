@@ -192,43 +192,55 @@ static void _builtin_print_single_node(const ast_node node)
     if (splc_enable_colored_ast)
         printf("\033[0m");
 
+    if (node->num_child == 0)
+    {
+        if (splc_enable_colored_ast)
+        {
+            if (SPLC_IS_LOC_INVALID(node->location))
+                printf("\033[31m");
+            else
+                printf("\033[33m");
+        }
+
+        char *location = splc_loc2str(node->location);
+        printf(" %s", location);
+        free(location);
+
+        if (splc_enable_colored_ast)
+            printf("\033[0m");
+    }
+
+    if (splc_enable_colored_ast)
+        printf("\033[32m");
+    
     switch (node->type)
     {
     case SPLT_TRANS_UNIT:
-        printf(" (%s)", splc_get_node_filename(node->location.fid));
+        printf(" '%s'", splc_get_node_filename(node->location.fid));
         break;
     case SPLT_ID:
-        printf(": %s", (char *)node->val);
+        printf("  '%s'", (char *)node->val);
         break;
     case SPLT_TYPEDEF_NAME:
-        printf(": %s", (char *)node->val);
+        printf("  '%s'", (char *)node->val);
         break;
     case SPLT_LTR_INT:
-        printf(": %llu", node->ull_val);
+        printf("  '%llu'", node->ull_val);
         break;
     case SPLT_LTR_FLOAT:
-        printf(": %g", node->float_val);
+        printf("  '%g'", node->float_val);
         break;
     case SPLT_LTR_CHAR:
-        printf(": %s", (char *)node->val);
+        printf("  '%s'", (char *)node->val);
         break;
     case SPLT_STR_UNIT:
-        printf(": \"%s\"", (char *)node->val);
+        printf("  \"%s\"", (char *)node->val);
         break;
 
     default:
         break;
     }
-
-    if (splc_enable_colored_ast && SPLC_IS_LOC_INVALID(node->location))
-        printf("\033[33m");
-    if (node->num_child == 0)
-    {
-        char *location = splc_loc2str(node->location);
-        printf(" %s", location);
-        free(location);
-    }
-    if (splc_enable_colored_ast && SPLC_IS_LOC_INVALID(node->location))
+    if (splc_enable_colored_ast)
         printf("\033[0m");
 }
 

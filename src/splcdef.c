@@ -13,13 +13,12 @@ char *splc_loc2str(splc_loc location)
     }
     else
     {
-        size_t needed = 1 + snprintf(NULL, 0, "{%d, (%d, %d)->(%d, %d)}", location.fid, location.linebegin,
-                                     location.colbegin, location.lineend, location.colend);
+        const char *locstr = "<fid:%d, line:%d:%d, line:%d:%d>";
+        size_t needed = 1 + snprintf(NULL, 0, locstr, location.fid, location.linebegin, location.colbegin,
+                                     location.lineend, location.colend);
         buffer = (char *)malloc(needed * sizeof(char));
-        if (buffer == NULL)
-            splcfail("cannot allocate memory for location printing");
-        sprintf(buffer, "{%d, (%d, %d)->(%d, %d)}", location.fid, location.linebegin, location.colbegin,
-                location.lineend, location.colend);
+        SPLC_ALLOC_PTR_CHECK(buffer, "cannot allocate memory for location printing)");
+        sprintf(buffer, locstr, location.fid, location.linebegin, location.colbegin, location.lineend, location.colend);
     }
 
     return buffer;
@@ -95,7 +94,7 @@ const char *splc_get_token_color_code(splc_token_t type)
     case SPLT_INIT_LIST:
     case SPLT_DESGTN:
         return "\033[95m";
-    
+
     case SPLT_DECLTN:
     case SPLT_DIR_DECLTN:
     case SPLT_ABS_DEC:
