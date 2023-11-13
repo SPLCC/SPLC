@@ -500,7 +500,8 @@ iteration-statement:
     | WHILE LP expression RP error { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($4), "while loop requires at least one statement to be executed"); $$ = ast_create_parent_node(SPLT_ITER_STMT, 0); yyerrok; }
     | WHILE LP expression error { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($3), "missing closing parenthesis ')'"); $$ = ast_create_parent_node(SPLT_ITER_STMT, 0); yyerrok;  }
     
-    | DO WHILE LP expression RP SEMI { $$ = ast_create_parent_node(SPLT_ITER_STMT, 6, $1, $2, $3, $4, $5, $6); }
+    | DO statement WHILE LP expression RP SEMI { $$ = ast_create_parent_node(SPLT_ITER_STMT, 7, $1, $2, $3, $4, $5, $6, $7); }
+    | DO statement WHILE LP error SEMI { splcerror(SPLC_ERR_B, SPLC_AST_GET_STARTLOC($6), "missing closing parenthesis ')'"); $$ = ast_create_parent_node(SPLT_ITER_STMT, 5, $1, $2, $3, $4, $6); yyerrok;  }
 
     | FOR LP for-loop-body RP statement { $$ = ast_create_parent_node(SPLT_ITER_STMT, 5, $1, $2, $3, $4, $5); }
     | FOR LP for-loop-body RP error { splcerror(SPLC_ERR_B, SPLC_AST_GET_ENDLOC($4), "for loop requires at least one statement to be executed"); $$ = ast_create_parent_node(SPLT_ITER_STMT, 0); yyerrok; }
