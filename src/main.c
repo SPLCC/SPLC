@@ -55,9 +55,7 @@ int main(int argc, char *argv[])
         /* Start parsing */
         yyparse();
 
-#ifndef DEBUG
-        if (!err_count)
-#endif
+        if (splc_ast_dump)
             ast_print(current_trans_unit->root);
 
         if (SPLC_OPT_REQUIRE_AST_PREP)

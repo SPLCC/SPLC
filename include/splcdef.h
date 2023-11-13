@@ -344,11 +344,13 @@ extern int splc_src_file_cnt; /* Number of source files. */
 
 extern const char **splc_src_files; /* Source files */
 
-extern int splc_enable_diag;
+extern int splc_enable_diag; /* if set to 1, enable diagnostic outputs */
 
-extern int splc_enable_ast_punctuators;
+extern int splc_ast_dump; /* if set to 1, dump AST */
 
-extern int splc_enable_colored_ast;
+extern int splc_enable_ast_punctuators; /* if set to 1, convert AST to the concrete by appending punctuators */
+
+extern int splc_enable_colored_ast; /* if set to 1, color the output AST */
 
 #define SPLC_OPT_REQUIRE_AST_PREP (splc_enable_ast_punctuators)
 

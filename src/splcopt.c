@@ -44,9 +44,6 @@ int splc_getopt(int nargc, char *nargv[], const char *ostr)
     splc_optopt = *++arg;
     if (splc_optopt == '-') /* no support for '--option' type */
     {
-        if (splc_opterror)
-            SPLC_FWARN_NOLOC("unsupported option format: %s\n", nargv[splc_optind]);
-
         splc_optfull = ++arg;
         ++splc_optind;
         return 2;
@@ -55,7 +52,7 @@ int splc_getopt(int nargc, char *nargv[], const char *ostr)
     if (optr == NULL) /* if this option does not exist */
     {
         if (splc_opterror)
-            fprintf(stderr, "Unsupported option: %s\n", nargv[splc_optind]);
+            SPLC_FWARN_NOLOC("Unsupported option: %s", nargv[splc_optind]);
         ++splc_optind;
         return SPL_OPT_BADCH;
     }
@@ -65,7 +62,7 @@ int splc_getopt(int nargc, char *nargv[], const char *ostr)
         if (*splc_optarg == '\0')
         {
             if (splc_opterror)
-                fprintf(stderr, "This option requires an argument: %s\n", nargv[splc_optind]);
+                SPLC_FWARN_NOLOC("This option requires an argument: %s", nargv[splc_optind]);
             ++splc_optind;
             return SPL_OPT_BADCH;
         }
@@ -132,7 +129,14 @@ void splc_process_args(int nargc, char *nargv[])
             break;
         }
         case 2: {
-            SPLC_FDIAG("received option: %s", splc_optfull);
+            if (strcmp(splc_optfull, "ast-dump") == 0)
+            {
+                splc_ast_dump = 1;
+            }
+            else
+            {
+                SPLC_FDIAG("received option but unrecognized: %s", splc_optfull);
+            }
             break;
         }
         default:
@@ -144,9 +148,10 @@ void splc_process_args(int nargc, char *nargv[])
 // clang-format off
 void usage()
 {
-    printf("usage: \033[1m%s\033[0m [options] [file ...]\n%s%s%s%s%s", progname,
+    printf("usage: \033[1m%s\033[0m [options] [file ...]\n%s%s%s%s%s%s", progname,
            "  -h                       print this usage and exit\n",
            "  -v                       print diagnostic information\n",
+           "  --ast-dump               dump generated AST to stdout\n",
            "  -p                       append punctuators in AST\n",
            "  -t                       color the output AST\n",
            "  -I[{include-directory}]  specify extra directory for #include search\n");
@@ -164,6 +169,7 @@ void print_prog_diag_info()
     SPLC_FDIAG("%s %s", progname, progversion);
     SPLC_FDIAG("DEBUG=%d", SPLT_DEBUG_VAL);
     SPLC_FDIAG("enable_diag=%d", splc_enable_diag);
+    SPLC_FDIAG("ast_dump=%d", splc_ast_dump);
     SPLC_FDIAG("enable_ast_punctuators=%d", splc_enable_ast_punctuators);
     SPLC_FDIAG("enable_colored_ast=%d", splc_enable_colored_ast);
     SPLC_FDIAG("opt_require_AST_preprocessing=%d", SPLC_OPT_REQUIRE_AST_PREP);

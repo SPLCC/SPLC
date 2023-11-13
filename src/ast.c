@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+int splc_ast_dump = 0;
+
 int splc_enable_colored_ast = 0;
 
 int splc_enable_ast_punctuators = 0;
