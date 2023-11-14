@@ -61,6 +61,13 @@ int splc_getopt(int nargc, char *nargv[], const char *ostr)
             return SPL_OPT_BADCH;
         }
     }
+    else if (*(arg + 1) != '\0')
+    {
+        if (splc_opterror)
+            SPLC_FWARN_NOLOC("Unrecognized option: %s", nargv[splc_optind]);
+        ++splc_optind;
+        return SPL_OPT_BADCH;
+    }
 
     ++splc_optind;
     return 1;
