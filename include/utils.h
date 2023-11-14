@@ -181,4 +181,4 @@ extern int splc_enable_diag;
 #define SPLC_FDIAG(_msg, ...)
 #endif // SPLC_DISABLE_DIAG
 
-#endif // UTILS_H
+#endif /* UTILS_H */

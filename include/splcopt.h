@@ -1,13 +1,13 @@
-#ifndef SPLOPT_H
-#define SPLOPT_H
+#ifndef SPLCOPT_H
+#define SPLCOPT_H
 /* This file defines spl's option module, which helps splc parse include directories and other stuff. */
 
 #include "splcdef.h"
 
 /* Bad characters will not be used. */
-#define SPL_OPT_BADCH '?'
+#define SPLC_OPT_BADCH '?'
 
-#define SPL_SYS_DIR_SEPARATOR '/'
+#define SPLC_SYS_DIR_SEPARATOR '/'
 
 extern int splc_opterror; /* If set to 1, produce warnings upon error during parsing */
 extern int splc_optind;   /* current index in the argument vector */
@@ -49,4 +49,4 @@ void usage();
 
 void print_prog_diag_info();
 
-#endif
+#endif /* SPLCOPT_H */

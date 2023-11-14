@@ -1,5 +1,5 @@
-#ifndef SEMANTIC_H
-#define SEMANTIC_H
+#ifndef SEMANTICS_H
+#define SEMANTICS_H
 
 #include "splcdef.h"
 #include "ast.h"
@@ -21,4 +21,4 @@ void sem_track_scope_root(ast_node node);
 
 void sem_analyze(lut_table symbol_table, ast_node root);
 
-#endif // SEMANTIC_H
+#endif /* SEMANTICS_H */

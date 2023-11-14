@@ -81,4 +81,4 @@ void ast_print(const ast_node root);
     ((node) == NULL || (node)->type == SPLT_NULL || (!splc_enable_ast_punctuators && SPLT_IS_PUNCTUATOR((node)->type)))
 #define SPLT_AST_REQUIRE_VAL_FREE(x) SPLT_IS_VAL_ALLOCATED(x)
 
-#endif
+#endif /* AST_H */

@@ -64,4 +64,4 @@ void lut_delete(lut_table table, const char *name);
 /* Reset a hashtable. */
 void lut_reset_all(lut_table table);
 
-#endif
+#endif /* LUT_H */

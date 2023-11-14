@@ -49,7 +49,7 @@ int splc_getopt(int nargc, char *nargv[], char *ostr)
         if (splc_opterror)
             fprintf(stderr, "Unsupported option: %s\n", nargv[splc_optind]);
         ++splc_optind;
-        return SPL_OPT_BADCH;
+        return SPLC_OPT_BADCH;
     }
     if (*(optr + 1) == ':') /* If the option requires an argument */
     {
@@ -59,7 +59,7 @@ int splc_getopt(int nargc, char *nargv[], char *ostr)
             if (splc_opterror)
                 fprintf(stderr, "This option requires an argument: %s\n", nargv[splc_optind]);
             ++splc_optind;
-            return SPL_OPT_BADCH;
+            return SPLC_OPT_BADCH;
         }
     }
 
@@ -96,13 +96,13 @@ void splc_process_args(int nargc, char *nargv[])
 
                 char *target = splc_optarg;
                 int dirlen = strlen(splc_optarg);
-                if (dirlen > 0 && splc_optarg[dirlen - 1] != SPL_SYS_DIR_SEPARATOR)
+                if (dirlen > 0 && splc_optarg[dirlen - 1] != SPLC_SYS_DIR_SEPARATOR)
                 {
                     target = (char *)malloc((dirlen + 1) * sizeof(char));
                     if (target == NULL)
                         SPLC_FFAIL("Failed to allocate new file name: %s\n", nargv[splc_optind]);
                     memcpy(target, splc_optarg, dirlen);
-                    target[dirlen] = SPL_SYS_DIR_SEPARATOR;
+                    target[dirlen] = SPLC_SYS_DIR_SEPARATOR;
                     target[dirlen + 1] = '\0';
                 }
                 splc_incl_dirs = new_filev;

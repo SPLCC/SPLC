@@ -1,6 +1,6 @@
 /* This file defines tokens of AST. */
-#ifndef SPLDEFS_H
-#define SPLDEFS_H
+#ifndef SPLCDEF_H
+#define SPLCDEF_H
 
 #include <stddef.h>
 #include <stdio.h>
@@ -445,4 +445,4 @@ extern const char *progversion;
 #define SPLC_SPLLOC_TO_1_PNT_L(loc)                                                                                    \
     SPLC_MAKE_LOC((loc).fid, (loc).last_line, (loc).last_column, (loc).last_line, (loc).last_column)
 
-#endif
+#endif /* SPLCDEF_H */

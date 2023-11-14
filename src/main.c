@@ -73,7 +73,8 @@ int main(int argc, char *argv[])
         splc_trans_unit_list[i] = current_trans_unit;
 
         /* output error information */
-        SPLC_FDIAG("%d warning and %d errors generated.", current_trans_unit->warn_count, current_trans_unit->err_count);
+        if (current_trans_unit->warn_count || current_trans_unit->err_count)
+            printf("%d warning and %d errors generated.\n", current_trans_unit->warn_count, current_trans_unit->err_count);
 
         err_count = 0;
         warn_count = 0;

@@ -5,4 +5,4 @@
 
 splc_trans_unit splc_link(int num_unit, ...);
 
-#endif // SPLC_LINK_H
+#endif /* SPLC_LINK_H */

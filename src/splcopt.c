@@ -58,7 +58,7 @@ int splc_getopt(int nargc, char *nargv[], const char *ostr)
             if (splc_opterror)
                 SPLC_FWARN_NOLOC("This option requires an argument: %s", nargv[splc_optind]);
             ++splc_optind;
-            return SPL_OPT_BADCH;
+            return SPLC_OPT_BADCH;
         }
     }
     else if (*(arg + 1) != '\0')
@@ -66,7 +66,7 @@ int splc_getopt(int nargc, char *nargv[], const char *ostr)
         if (splc_opterror)
             SPLC_FWARN_NOLOC("Unrecognized option: %s", nargv[splc_optind]);
         ++splc_optind;
-        return SPL_OPT_BADCH;
+        return SPLC_OPT_BADCH;
     }
 
     ++splc_optind;
@@ -100,12 +100,12 @@ void splc_process_args(int nargc, char *nargv[])
 
                 char *target = splc_optarg;
                 size_t dirlen = strlen(splc_optarg);
-                if (dirlen > 0 && splc_optarg[dirlen - 1] != SPL_SYS_DIR_SEPARATOR)
+                if (dirlen > 0 && splc_optarg[dirlen - 1] != SPLC_SYS_DIR_SEPARATOR)
                 {
                     target = (char *)malloc((dirlen + 1) * sizeof(char));
                     SPLC_ALLOC_PTR_CHECK(target, "failed to allocate buffer for include directory name");
                     memcpy(target, splc_optarg, dirlen);
-                    target[dirlen] = SPL_SYS_DIR_SEPARATOR;
+                    target[dirlen] = SPLC_SYS_DIR_SEPARATOR;
                     target[dirlen + 1] = '\0';
                 }
                 splc_incl_dirs = new_filev;
