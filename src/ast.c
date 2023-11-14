@@ -195,6 +195,7 @@ static void _builtin_print_single_node(const ast_node node)
     SPLC_AST_PRINT_COLORED("\033[0m");
 
     // print node location
+    printf(" <");
     if (splc_enable_colored_ast)
     {
         if (SPLC_IS_LOC_INVALID(node->location))
@@ -204,10 +205,11 @@ static void _builtin_print_single_node(const ast_node node)
     }
 
     char *location = splc_loc2str(node->location);
-    printf(" %s", location);
+    printf("%s", location);
     free(location);
 
     SPLC_AST_PRINT_COLORED("\033[0m");
+    printf(">");
 
     // Print node content
 

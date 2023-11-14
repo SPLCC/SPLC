@@ -15,8 +15,8 @@ extern char splc_optopt;  /* the parsed option */
 extern char *splc_optfull; /* full argument */
 extern char *splc_optarg; /* the argument for the option */
 
-/* The main procedure to get options by spl.
-   When called, this function try to parse an option from the argument vector.
+/* The main function for splc to get options.
+   When called, this function tries to parse an option from the argument vector.
    The argument for an option will be stored in the memory pointed by `splc_optarg`. The user
    is not expected to modify this, since it is entirely managed by `splcopt.c`.
    This function warns if `optarg` is empty.

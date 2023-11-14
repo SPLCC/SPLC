@@ -14,7 +14,7 @@ char *splc_loc2str(splc_loc location)
     }
     else
     {
-        const char *locstr = "<fid:%d, line:%d:%d, line:%d:%d>";
+        const char *locstr = "fid:%d, line:%d:%d, line:%d:%d";
         size_t needed = 1 + snprintf(NULL, 0, locstr, location.fid, location.linebegin, location.colbegin,
                                      location.lineend, location.colend);
         buffer = (char *)malloc(needed * sizeof(char));
