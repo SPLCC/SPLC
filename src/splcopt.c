@@ -138,7 +138,7 @@ void splc_process_args(int nargc, char *nargv[])
             }
             else
             {
-                SPLC_FDIAG("received option but unrecognized: %s", splc_optfull);
+                SPLC_FWARN_NOLOC("unrecognized option: %s", splc_optfull);
             }
             break;
         }
