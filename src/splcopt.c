@@ -42,19 +42,13 @@ int splc_getopt(int nargc, char *nargv[], const char *ostr)
         return 0;
     }
     splc_optopt = *++arg;
-    if (splc_optopt == '-') /* no support for '--option' type */
-    {
-        splc_optfull = ++arg;
-        ++splc_optind;
-        return 2;
-    }
     optr = strchr(ostr, splc_optopt);
     if (optr == NULL) /* if this option does not exist */
     {
-        if (splc_opterror)
-            SPLC_FWARN_NOLOC("Unsupported option: %s", nargv[splc_optind]);
+        /* let the caller determine whether it should be used */
+        splc_optfull = arg;
         ++splc_optind;
-        return SPL_OPT_BADCH;
+        return 2;
     }
     if (*(optr + 1) == ':') /* If the option requires an argument */
     {
@@ -124,7 +118,9 @@ void splc_process_args(int nargc, char *nargv[])
                 exit(0);
             default:
                 usage();
-                SPLC_FEXIT_NOLOC("unsupported option: %c", splc_optopt);
+                if (splc_opterror)
+                    SPLC_FWARN_NOLOC("Unsupported option: %c", splc_optopt);
+                break;
             }
             break;
         }
@@ -151,7 +147,7 @@ void usage()
     printf("usage: \033[1m%s\033[0m [options] [file ...]\n%s%s%s%s%s%s", progname,
            "  -h                       print this usage and exit\n",
            "  -v                       print diagnostic information\n",
-           "  --ast-dump               dump generated AST to stdout\n",
+           "  -ast-dump                dump generated AST to stdout\n",
            "  -p                       append punctuators in AST\n",
            "  -t                       color the output AST\n",
            "  -I[{include-directory}]  specify extra directory for #include search\n");
