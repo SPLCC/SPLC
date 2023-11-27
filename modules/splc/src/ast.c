@@ -6,11 +6,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-int splc_ast_dump = 0;
+int splcf_ast_dump = 0;
 
-int splc_enable_colored_ast = 0;
+int splcf_enable_colored_ast = 0;
 
-int splc_enable_ast_punctuators = 0;
+int splcf_enable_ast_punctuators = 0;
 
 ast_node ast_create_empty_node()
 {
@@ -196,7 +196,7 @@ static void _builtin_print_single_node(const ast_node node)
 
     // print node location
     printf(" <");
-    if (splc_enable_colored_ast)
+    if (splcf_enable_colored_ast)
     {
         if (SPLC_IS_LOC_INVALID(node->location))
             printf("\033[31m");

@@ -9,7 +9,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-int splc_enable_diag = 0;
+int splcf_enable_diag = 0;
+
+int splcf_no_diagnostics_color = 0;
+
+#define SPLC_COLORED_DIAG (splcf_no_diagnostics_color == 0)
 
 int splc_file_node_cnt = 0;
 
@@ -372,7 +376,7 @@ void splcnote(const splc_loc location, const char *msg)
 
 void splcdiag(const char *msg)
 {
-    if (splc_enable_diag)
+    if (splcf_enable_diag)
         _builtin_splcdiag(msg);
 }
 

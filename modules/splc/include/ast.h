@@ -71,14 +71,14 @@ void ast_print(const ast_node root);
 #define SPLC_AST_PRINT_COLORED(x)                                                                                      \
     do                                                                                                                 \
     {                                                                                                                  \
-        if (splc_enable_colored_ast)                                                                                   \
+        if (splcf_enable_colored_ast)                                                                                   \
             printf("%s", x);                                                                                           \
     } while (0)
 
 #define SPLC_AST_GET_STARTLOC(node) (ast_get_startloc(node))
 #define SPLC_AST_GET_ENDLOC(node) (ast_get_endloc(node))
 #define SPLC_AST_IGNORE_NODE(node)                                                                                     \
-    ((node) == NULL || (node)->type == SPLT_NULL || (!splc_enable_ast_punctuators && SPLT_IS_PUNCTUATOR((node)->type)))
+    ((node) == NULL || (node)->type == SPLT_NULL || (!splcf_enable_ast_punctuators && SPLT_IS_PUNCTUATOR((node)->type)))
 #define SPLT_AST_REQUIRE_VAL_FREE(x) SPLT_IS_VAL_ALLOCATED(x)
 
 #endif /* AST_H */

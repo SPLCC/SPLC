@@ -22,6 +22,36 @@ char splc_optopt = '\0';
 char *splc_optfull = NULL;
 char *splc_optarg = NULL;
 
+/* Own definitions */
+typedef struct option {
+    int *const target_opt;
+    const int opt_abbr;
+    const char *opt_name;
+} option;
+
+#define OPT_CNT 5
+static const option options[OPT_CNT] = {
+    {&splcf_enable_diag, -1, "fdiag-all"},
+    {&splcf_no_diagnostics_color, -1, "fno-diagnostics-color"},
+    {&splcf_ast_dump, -1, "ast-dump"},
+    {&splcf_enable_ast_punctuators, -1, "fenable-ast-punctuators"},
+    {&splcf_enable_colored_ast, -1, "fcolor-ast"},
+};
+
+// clang-format off
+void usage()
+{
+    printf("usage: \033[1m%s\033[0m [options] [file ...]\n%s%s%s%s%s%s%s", progname,
+           "  -h                          print this usage and exit\n",
+           "  -fdiag-all                  print all available diagnostic information\n",
+           "  -fno-diagnostics-color      do not color diagnostic information\n",
+           "  -ast-dump                   dump generated AST to stdout\n",
+           "  -fenable-ast-punctuators    append punctuators in AST\n",
+           "  -fcolor-ast                 color the output AST\n",
+           "  -I<include-directory>       specify extra directory for #include search\n");
+}
+// clang-format on
+
 int splc_getopt(int nargc, char *nargv[], const char *ostr)
 {
     if (splc_optind >= nargc)
@@ -76,11 +106,11 @@ int splc_getopt(int nargc, char *nargv[], const char *ostr)
 void splc_process_args(int nargc, char *nargv[])
 {
     int opcode;
-    while ((opcode = splc_getopt(nargc, nargv, "hI:vtp")) != -1)
+    while ((opcode = splc_getopt(nargc, nargv, "I:h")) != -1)
     {
         switch (opcode)
         {
-        case 0: {
+        case 0: { /* a direct argument is present */
             /* Save file names */
             ++splc_src_file_cnt;
             const char **new_filev = (const char **)realloc(splc_src_files, splc_src_file_cnt * sizeof(char *));
@@ -89,7 +119,7 @@ void splc_process_args(int nargc, char *nargv[])
             splc_src_files[splc_src_file_cnt - 1] = splc_optarg;
             break;
         }
-        case 1: {
+        case 1: { /* A known abbreviated option is present */
             switch (splc_optopt)
             {
             case 'I':
@@ -111,32 +141,42 @@ void splc_process_args(int nargc, char *nargv[])
                 splc_incl_dirs = new_filev;
                 splc_incl_dirs[splc_incl_dir_cnt - 1] = target;
                 break;
-            case 'v':
-                splc_enable_diag = 1;
-                break;
-            case 't':
-                splc_enable_colored_ast = 1;
-                break;
-            case 'p':
-                splc_enable_ast_punctuators = 1;
-                break;
             case 'h':
                 usage();
                 exit(0);
+            case SPLC_OPT_BADCH:
+                break;
             default:
-                usage();
-                if (splc_opterror)
-                    SPLC_FWARN_NOLOC("Unsupported option: %c", splc_optopt);
+                int flag = 0;
+                for (size_t i = 0; i < OPT_CNT; ++i)
+                {
+                    if (options[i].opt_abbr != -1 && options[i].opt_abbr == splc_optopt)
+                    {
+                        *(options[i].target_opt) = 1;
+                        flag = 1;
+                    }
+                }
+                if (!flag)
+                {
+                    usage();
+                    if (splc_opterror)
+                        SPLC_FWARN_NOLOC("Unsupported option: %c", splc_optopt);
+                }
                 break;
             }
             break;
         }
-        case 2: {
-            if (strcmp(splc_optfull, "ast-dump") == 0)
+        case 2: { /* a full argument is present */
+            int flag = 0;
+            for (size_t i = 0; i < OPT_CNT; ++i)
             {
-                splc_ast_dump = 1;
+                if (strcmp(splc_optfull, options[i].opt_name) == 0)
+                {
+                    *(options[i].target_opt) = 1;
+                    flag = 1;
+                }
             }
-            else
+            if (!flag)
             {
                 SPLC_FWARN_NOLOC("unrecognized option: %s", splc_optfull);
             }
@@ -148,19 +188,6 @@ void splc_process_args(int nargc, char *nargv[])
     }
 }
 
-// clang-format off
-void usage()
-{
-    printf("usage: \033[1m%s\033[0m [options] [file ...]\n%s%s%s%s%s%s", progname,
-           "  -h                       print this usage and exit\n",
-           "  -v                       print diagnostic information\n",
-           "  -ast-dump                dump generated AST to stdout\n",
-           "  -p                       append punctuators in AST\n",
-           "  -t                       color the output AST\n",
-           "  -I[{include-directory}]  specify extra directory for #include search\n");
-}
-// clang-format on
-
 #ifdef DEBUG
 #define SPLC_BUILD_DEBUG_VAL 1
 #else
@@ -169,12 +196,12 @@ void usage()
 
 void print_prog_diag_info()
 {
-    SPLC_FDIAG("%s %s", progname, progversion);
+    SPLC_FDIAG("%s %s, (built %s at %s)", progname, progversion, __DATE__, __TIME__);
     SPLC_FDIAG("DEBUG=%d", SPLC_BUILD_DEBUG_VAL);
-    SPLC_FDIAG("enable_diag=%d", splc_enable_diag);
-    SPLC_FDIAG("ast_dump=%d", splc_ast_dump);
-    SPLC_FDIAG("enable_ast_punctuators=%d", splc_enable_ast_punctuators);
-    SPLC_FDIAG("enable_colored_ast=%d", splc_enable_colored_ast);
+    for (size_t i = 0; i < OPT_CNT; ++i)
+    {
+        SPLC_FDIAG("%s=%d", options[i].opt_name, *(options[i].target_opt));
+    }
     SPLC_FDIAG("opt_require_AST_preprocessing=%d", SPLC_OPT_REQUIRE_AST_PREP);
     for (int i = 0; i < splc_incl_dir_cnt; ++i)
     {

@@ -33,7 +33,10 @@ int main(int argc, char *argv[])
     print_prog_diag_info();
 
     if (splc_src_file_cnt == 0)
-        splcfail("no input file\ncompilation terminated.");
+    {
+        splcerror_noloc(SPLC_ERR_FATAL, "no input file\ncompilation terminated.");
+        exit(1);
+    }
 
     splc_trans_unit_list = (splc_trans_unit *)malloc(splc_src_file_cnt * sizeof(splc_trans_unit));
     SPLC_ALLOC_PTR_CHECK(splc_trans_unit_list, "out of memory");
@@ -55,7 +58,7 @@ int main(int argc, char *argv[])
         /* Start parsing */
         yyparse();
 
-        if (splc_ast_dump)
+        if (splcf_ast_dump)
             ast_print(current_trans_unit->root);
 
         if (SPLC_OPT_REQUIRE_AST_PREP)

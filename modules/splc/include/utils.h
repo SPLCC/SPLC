@@ -80,8 +80,9 @@ void update_warning(int val);
 
 /* Global variables */
 
-/* If 1, enable diagnostic output. */
-extern int splc_enable_diag;
+extern int splcf_enable_diag;
+
+extern int splcf_no_diagnostics_color;
 
 /* Macros */
 
