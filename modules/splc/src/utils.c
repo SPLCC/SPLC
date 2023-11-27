@@ -188,7 +188,7 @@ static void _builtin_splc_handle_msg_noloc(error_t type, const char *msg)
     char *type_name = splc_get_msg_type_prefix(type);
     char *type_suffix = splc_get_msg_type_suffix(type);
     const char *filename = (splc_file_node_stack != NULL) ? splc_file_node_stack->filename : progname;
-    fprintf(stderr, "\033[1m%s\033[0m: %s%s:\033[0m %s", filename, color_code, type_name, msg);
+    fprintf(stderr, "\033[1m%s:\033[0m %s%s:\033[0m %s", filename, color_code, type_name, msg);
     if (type_suffix != NULL)
     {
         fprintf(stderr, " [%s%s\033[0m]", color_code, type_suffix);
@@ -208,7 +208,7 @@ static void _builtin_splc_handle_msg(error_t type, const splc_loc *const locatio
     char *type_name = splc_get_msg_type_prefix(type);
     char *type_suffix = splc_get_msg_type_suffix(type);
     const char *const orig_file = splc_all_file_nodes[location->fid]->filename;
-    fprintf(stderr, "\033[1m%s\033[0m:%d:%d: %s%s:\033[0m %s", orig_file, location->linebegin, location->colbegin,
+    fprintf(stderr, "\033[1m%s:%d:%d:\033[0m %s%s:\033[0m %s", orig_file, location->linebegin, location->colbegin,
             color_code, type_name, msg);
     if (type_suffix != NULL)
     {
