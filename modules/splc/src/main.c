@@ -2,7 +2,7 @@
 #include "lex.yy.h"
 #include "lut.h"
 #include "semantics.h"
-#include "splc_link.h"
+#include "splclink.h"
 #include "splcdef.h"
 #include "splcopt.h"
 #include "syntax.tab.h"
