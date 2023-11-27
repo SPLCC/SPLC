@@ -89,7 +89,7 @@ extern int splc_enable_diag;
 #define SPLC_FFAIL(_msg, ...)                                                                                          \
     do                                                                                                                 \
     {                                                                                                                  \
-        fprintf(stderr, "\033[1m%s\033[0m: \033[31mfatal error\033[0m:" _msg "\n", progname, __VA_ARGS__);                           \
+        fprintf(stderr, "\033[1m%s\033[0m: \033[31mfatal error\033[0m:" _msg "\n", progname, __VA_ARGS__);             \
         abort();                                                                                                       \
     } while (0)
 
@@ -99,7 +99,7 @@ extern int splc_enable_diag;
     {                                                                                                                  \
         if ((x) == NULL)                                                                                               \
         {                                                                                                              \
-            fprintf(stderr, "\033[1m%s\033[0m: \033[31mfatal error\033[0m: %s\n", progname, _msg);                                   \
+            fprintf(stderr, "\033[1m%s\033[0m: \033[31mfatal error\033[0m: %s\n", progname, _msg);                     \
             abort();                                                                                                   \
         }                                                                                                              \
     } while (0)
@@ -112,7 +112,7 @@ extern int splc_enable_diag;
         char *buffer = (char *)malloc(needed);                                                                         \
         SPLC_ALLOC_PTR_CHECK(buffer, "cannot allocate memory for printing error");                                     \
         sprintf(buffer, _msg, __VA_ARGS__);                                                                            \
-        splcerror_noloc(SPLC_ERR_FATAL, buffer);                                                                        \
+        splcerror_noloc(SPLC_ERR_FATAL, buffer);                                                                       \
         free(buffer);                                                                                                  \
         exit(1);                                                                                                       \
     } while (0)
@@ -180,5 +180,14 @@ extern int splc_enable_diag;
 #else
 #define SPLC_FDIAG(_msg, ...)
 #endif // SPLC_DISABLE_DIAG
+
+#define SPLC_ASSERT(cond)                                                                                              \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        if (!(cond))                                                                                                   \
+        {                                                                                                              \
+            SPLC_FFAIL("splc assertion failed on " #cond " from %s, line %d", __FILE__, __LINE__);                     \
+        }                                                                                                              \
+    } while (0)
 
 #endif /* UTILS_H */
