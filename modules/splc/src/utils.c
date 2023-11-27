@@ -384,7 +384,13 @@ static int _builtin_splc_enter_file(const char *restrict _filename, const splc_l
     if ((filename = splc_search_incl_dirs(_filename)) == NULL || (new_file = fopen(filename, "r")) == NULL)
     {
         const char *msg = "failed to include file. Please check whether the path exists or this program has access right.";
-        splcerror(SPLC_ERR_FATAL, *location, msg);
+        if (location != NULL) {
+            splcerror(SPLC_ERR_FATAL, *location, msg);
+        }
+        else
+        {
+            splcerror_noloc(SPLC_ERR_FATAL, msg);
+        }
         return -1;
     }
     SPLC_FDIAG("the included file has been identified: %s", filename);
