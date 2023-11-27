@@ -279,7 +279,7 @@ static const char *splc_get_trace_string(trace_t type)
 void splctrace(trace_t type, int show_source, const char *name)
 {
     const char *type_str = splc_get_trace_string(type);
-    fprintf(stderr, "%s%sIn %s \033[1m'%s'\033[0m:%d:\n", show_source != 0 ? splc_file_node_stack->filename : "",
+    fprintf(stderr, "%s%sIn %s \033[1m'%s':%d\033[0m:\n", show_source != 0 ? splc_file_node_stack->filename : "",
             show_source != 0 ? ": " : "", type_str, name, splc_file_node_stack->yylineno);
     return;
 }
@@ -315,13 +315,13 @@ static void _builtin_print_file_trace(util_file_node node)
     SPLC_ASSERT(node->next->next != NULL);
     util_file_node top = node;
     const char *suffix = (top->next->next == NULL) ? ":\n" : ",\n";
-    fprintf(stderr, "In file included from \033[1m%s\033[0m:%d%s", top->next->filename, top->yylineno, suffix);
+    fprintf(stderr, "In file included from \033[1m%s:%d\033[0m%s", top->next->filename, top->yylineno, suffix);
     top = top->next;
     while (top && !SPLC_IS_LOC_ROOT(top->location))
     {
         SPLC_ASSERT(top->next != NULL);
         suffix = (top->next->next == NULL) ? ":\n" : ",\n";
-        fprintf(stderr, "                 from \033[1m%s\033[0m:%d%s", top->next->filename, top->yylineno, suffix);
+        fprintf(stderr, "                 from \033[1m%s:%d\033[0m%s", top->next->filename, top->yylineno, suffix);
         top = top->next;
     }
 }
