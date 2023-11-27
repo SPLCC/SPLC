@@ -15,7 +15,7 @@ if(NOT FLEX_FOUND)
   message(FATAL_ERROR "FATAL: Flex not found.")
 endif()
 
-find_package(BISON REQUIRED)
+find_package(BISON 3.6)
 
 if(NOT BISON_FOUND)
   message(FATAL_ERROR "FATAL: Bison not found.")
