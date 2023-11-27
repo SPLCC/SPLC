@@ -315,13 +315,13 @@ static void _builtin_print_file_trace(util_file_node node)
     SPLC_ASSERT(node->next->next != NULL);
     util_file_node top = node;
     const char *suffix = (top->next->next == NULL) ? ":\n" : ",\n";
-    fprintf(stderr, "In file included from \033[1m`%s`\033[0m:%d%s", top->next->filename, top->yycolno, suffix);
+    fprintf(stderr, "In file included from \033[1m%s\033[0m:%d%s", top->next->filename, top->yycolno, suffix);
     top = top->next;
     while (top && !SPLC_IS_LOC_ROOT(top->location))
     {
         SPLC_ASSERT(top->next != NULL);
         suffix = (top->next->next == NULL) ? ":\n" : ",\n";
-        fprintf(stderr, "                 from \033[1m`%s`\033[0m:%d%s", top->next->filename, top->yycolno, suffix);
+        fprintf(stderr, "                 from \033[1m%s\033[0m:%d%s", top->next->filename, top->yycolno, suffix);
         top = top->next;
     }
 }
