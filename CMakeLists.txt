@@ -28,8 +28,6 @@ file(MAKE_DIRECTORY ${GENERATED_INCL_DIR})
 
 FLEX_TARGET(SPLC_Lexer src/lex.l ${GENERATED_SRC_DIR}/lex.yy.c COMPILE_FLAGS --header-file=${GENERATED_INCL_DIR}/lex.yy.h)
 
-message(STATUS "Generated flex target: ${}")
-
 BISON_TARGET(SPLC_Parser src/syntax.y ${GENERATED_SRC_DIR}/syntax.tab.c COMPILE_FLAGS --report=all DEFINES_FILE ${GENERATED_INCL_DIR}/syntax.tab.h)
 
 include_directories(include ${GENERATED_INCL_DIR})
