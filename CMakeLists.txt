@@ -11,4 +11,4 @@ project(SPLCC)
 
 # Include the subdirectories containing other CMakeLists.txt files.
 add_subdirectory(modules/splc)
-add_subdirectory(modules/spllibc)
+add_subdirectory(modules/libspl)
