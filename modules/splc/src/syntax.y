@@ -8,6 +8,8 @@
     #include <stdio.h>
     #include <stdlib.h>
     #include <string.h>
+
+    extern int yylex (void);
     void yyerror(const char*);
 }
 %define parse.error detailed
