@@ -1,9 +1,7 @@
 .vscode
 
 # Project related
-bin/
-tmp/
-obj/
+build/
 test.spl
 
 a.out
@@ -15,6 +13,3 @@ basic_test.sh
 syntax.tab.h
 syntax.tab.c
 syntax.output
-
-./*.c
-./*.h
