@@ -18,7 +18,7 @@ endif()
 find_package(BISON 3.6)
 
 if(NOT BISON_FOUND)
-  message(FATAL_ERROR "FATAL: Bison not found.")
+  message(FATAL_ERROR "FATAL: Bison not found. At least version 3.6 is required.")
 endif()
 
 set(GENERATED_SRC_DIR ${CMAKE_CURRENT_BINARY_DIR}/src)
