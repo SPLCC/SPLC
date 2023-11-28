@@ -54,7 +54,8 @@ splc_loc ast_get_endloc(const ast_node node);
 /* Release the entire AST */
 void ast_release_node(ast_node *root);
 
-/* Preprocess an AST by eliminating all punctuators */
+/* Preprocess an AST:
+   - Eliminate all punctuators. The root node would not be eliminated. */
 void ast_preprocess(ast_node root);
 
 /* Recusively copy a single tree rooted at `node`. The underlying symbol table will get a shallow copy. */

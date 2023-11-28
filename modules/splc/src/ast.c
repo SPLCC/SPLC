@@ -38,7 +38,7 @@ ast_node ast_add_child(ast_node parent, ast_node child)
     if (SPLC_AST_IGNORE_NODE(child))
         return parent;
 
-    parent->children = (ast_node *)realloc(parent->children, (parent->num_child + 1) * sizeof(ast_node_struct));
+    parent->children = (ast_node *)realloc(parent->children, (parent->num_child + 1) * sizeof(ast_node));
     SPLC_ALLOC_PTR_CHECK(parent->children, "out of memory");
     parent->children[parent->num_child] = child;
     ++(parent->num_child);
@@ -138,9 +138,29 @@ void ast_release_node(ast_node *root)
     *root = NULL;
 }
 
-void ast_preprocess(ast_node node)
+void ast_preprocess(ast_node root)
 {
     // TODO: remove all punctuators
+    SPLC_ASSERT(root != NULL);
+    size_t new_nchild = 0;
+    for (int i = 0; i < root->num_child; ++i)
+    {
+        if (SPLT_IS_PUNCTUATOR(root->children[i]->type))
+        {
+            ast_release_node(&root->children[i]);
+        }
+        else
+        {
+            if (new_nchild != i)
+                root->children[new_nchild] = root->children[i];
+            new_nchild++;
+        }
+    }
+    free(root->children);
+    root->num_child = new_nchild;
+    ast_node *newarray = (ast_node *)realloc(root->children, root->num_child * sizeof(ast_node));
+    SPLC_ALLOC_PTR_CHECK(newarray, "failed to preprocess node: out of memory");
+    root->children = newarray;
 }
 
 ast_node ast_deep_copy(ast_node node)
@@ -155,7 +175,7 @@ ast_node ast_deep_copy(ast_node node)
     if (node->num_child > 0)
     {
         result->num_child = node->num_child;
-        result->children = (ast_node *)malloc(result->num_child * sizeof(ast_node_struct));
+        result->children = (ast_node *)malloc(result->num_child * sizeof(ast_node));
         SPLC_ALLOC_PTR_CHECK(result->children, "failed to copy node: out of memory");
         for (int i = 0; i < result->num_child; ++i)
         {

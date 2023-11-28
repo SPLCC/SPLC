@@ -201,7 +201,7 @@ void splc_process_args(int nargc, char *nargv[])
 
 void print_prog_diag_info()
 {
-    SPLC_FDIAG("%s %s, (built %s at %s)", progname, progversion, __DATE__, __TIME__);
+    SPLC_FDIAG("%s %s (built %s at %s)", progname, progversion, __DATE__, __TIME__);
     SPLC_FDIAG("DEBUG=%d", SPLC_BUILD_DEBUG_VAL);
     for (size_t i = 0; i < OPT_CNT; ++i)
     {

@@ -187,7 +187,7 @@ extern int splcf_no_diagnostics_color;
     {                                                                                                                  \
         if (!(cond))                                                                                                   \
         {                                                                                                              \
-            SPLC_FFAIL("splc assertion failed on " #cond " from %s, line %d", __FILE__, __LINE__);                     \
+            SPLC_FFAIL("on \033[1m%s:%d\033[0m, " #cond "\nassertion failed", __FILE__, __LINE__);                     \
         }                                                                                                              \
     } while (0)
 
