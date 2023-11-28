@@ -134,7 +134,7 @@ void ast_release_node(ast_node *root)
     lut_free_table(&((*root)->symtable));
     if (SPLT_AST_REQUIRE_VAL_FREE((*root)->type))
         free((*root)->val);
-    free(root);
+    free(*root);
     *root = NULL;
 }
 
@@ -143,7 +143,7 @@ void ast_preprocess(ast_node root)
     // TODO: remove all punctuators
     SPLC_ASSERT(root != NULL);
     size_t new_nchild = 0;
-    for (int i = 0; i < root->num_child; ++i)
+    for (size_t i = 0; i < root->num_child; ++i)
     {
         if (SPLT_IS_PUNCTUATOR(root->children[i]->type))
         {
@@ -153,14 +153,14 @@ void ast_preprocess(ast_node root)
         {
             if (new_nchild != i)
                 root->children[new_nchild] = root->children[i];
+            ast_preprocess(root->children[i]);
             new_nchild++;
         }
     }
-    free(root->children);
-    root->num_child = new_nchild;
-    ast_node *newarray = (ast_node *)realloc(root->children, root->num_child * sizeof(ast_node));
+    ast_node *newarray = (ast_node *)realloc(root->children, new_nchild * sizeof(ast_node));
     SPLC_ALLOC_PTR_CHECK(newarray, "failed to preprocess node: out of memory");
     root->children = newarray;
+    root->num_child = new_nchild;
 }
 
 ast_node ast_deep_copy(ast_node node)

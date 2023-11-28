@@ -65,10 +65,11 @@ int main(int argc, char *argv[])
         {
             printf("Generating parsed tree...\n");
             ast_print(current_trans_unit->root);
+            printf("Parsed tree generated.\n");
             ast_preprocess(current_trans_unit->root);
         }
             
-        SPLC_ASSERT(!SPLC_OPT_REQUIRE_AST_PREP);
+        // SPLC_ASSERT(!SPLC_OPT_REQUIRE_AST_PREP); // Preprocessing is done.
 
         /* TODO: semantic analysis on AST */
         if (!err_count)
@@ -80,16 +81,15 @@ int main(int argc, char *argv[])
         current_trans_unit->err_count = err_count;
         current_trans_unit->warn_count = warn_count;
         splc_trans_unit_list[i] = current_trans_unit;
-
-        /* output error information */
-        if (current_trans_unit->warn_count || current_trans_unit->err_count)
-            printf("%d warning and %d errors generated.\n", current_trans_unit->warn_count, current_trans_unit->err_count);
+        err_count = 0;
+        warn_count = 0;
 
         if (splcf_ast_dump)
             ast_print(current_trans_unit->root);
-        
-        err_count = 0;
-        warn_count = 0;
+
+        /* output error information */
+        if (current_trans_unit->warn_count || current_trans_unit->err_count)
+            printf("%d warnings and %d errors generated.\n", current_trans_unit->warn_count, current_trans_unit->err_count);
     }
 
     int all_err = 0;
