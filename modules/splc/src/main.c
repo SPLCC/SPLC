@@ -61,9 +61,14 @@ int main(int argc, char *argv[])
         /* append the global symbol table to AST's root */
         current_trans_unit->root->symtable = lut_copy_table(current_trans_unit->global_symtable);
 
-        SPLC_ASSERT(!SPLC_OPT_REQUIRE_AST_PREP);
         if (SPLC_OPT_REQUIRE_AST_PREP)
+        {
+            printf("Generating parsed tree...\n");
+            ast_print(current_trans_unit->root);
             ast_preprocess(current_trans_unit->root);
+        }
+            
+        SPLC_ASSERT(!SPLC_OPT_REQUIRE_AST_PREP);
 
         /* TODO: semantic analysis on AST */
         if (!err_count)
