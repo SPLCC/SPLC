@@ -317,8 +317,12 @@ typedef struct splc_trans_unit_struct *splc_trans_unit;
 
 typedef struct splc_trans_unit_struct
 {
-    lut_table symbol_table; /* symbol table of this translation unit */
-    ast_node root;          /* root of this translation unit */
+    lut_table global_symtable; /* symbol table of this translation unit */
+    ast_node root;             /* root of this translation unit */
+
+    lut_table *envs; /* environment stack of this translation unit */
+    size_t nenvs;    /* current number of environments */            
+
     int err_count;
     int warn_count;
 } splc_trans_unit_struct;
@@ -326,8 +330,16 @@ typedef struct splc_trans_unit_struct
 /* create an empty translation unit with all fields initialized to 0/NULL. */
 splc_trans_unit splc_create_empty_trans_unit();
 
-/* create an empty translation unit but initialize the symbol table. */
+/* create an empty translation unit and initialize the symbol table. */
 splc_trans_unit splc_create_trans_unit();
+
+/* push an empty symbol table into the environment of this translation unit */
+lut_table splc_push_symtable(splc_trans_unit tunit, int scope);
+
+/* pop and return the symbol table at the top of the environment of this translation unit.
+   This function manages the internal stack state.
+   This function will NOT free the underlying symbol table. */
+lut_table splc_pop_symtable(splc_trans_unit tunit);
 
 splc_trans_unit splc_link_trans_units();
 

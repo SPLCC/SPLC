@@ -3,6 +3,7 @@
 #define AST_H
 
 #include "splcdef.h"
+#include "lut.h"
 
 /* Struct definitions */
 
@@ -10,14 +11,15 @@ typedef struct ast_node_struct *ast_node;
 
 typedef struct ast_node_struct
 {
-    splc_token_t type; /* Type of this node */
-    lut_entry entry; /* The entry of this ID, if possible. Else NULL. AST has no control of this entry, and thus cannot
-                        free it. */
+    splc_token_t type;  /* Type of this node */
+    lut_table symtable; /* If this is a function declaration/definition, or a compound statement, 
+                           `symtable` stores the underlying symbol table. */
+
     ast_node *children; /* Array of children */
     size_t num_child;   /* Number of children */
 
-    splc_loc
-        location; /* Location of this token. This location will cover the consecutive nodes in the first file only. */
+    splc_loc location; /* Location of this token. This location will cover 
+                          the consecutive nodes in the first file only. */
 
     union {
         void *val;
@@ -55,7 +57,7 @@ void ast_release_node(ast_node *root);
 /* Preprocess an AST by eliminating all punctuators */
 void ast_preprocess(ast_node root);
 
-/* Deep copy a single node */
+/* Recusively copy a single tree rooted at `node`. The underlying symbol table will get a shallow copy. */
 ast_node ast_deep_copy(ast_node node);
 
 /* Substitute all macro mount points inside the given AST.
@@ -71,8 +73,8 @@ void ast_print(const ast_node root);
 #define SPLC_AST_PRINT_COLORED(x)                                                                                      \
     do                                                                                                                 \
     {                                                                                                                  \
-        if (splcf_enable_colored_ast)                                                                                   \
-            printf("%s", x);                                                                                           \
+        if (splcf_enable_colored_ast)                                                                                  \
+            printf("%s", (x));                                                                                         \
     } while (0)
 
 #define SPLC_AST_GET_STARTLOC(node) (ast_get_startloc(node))

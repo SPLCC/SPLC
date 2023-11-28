@@ -621,8 +621,10 @@ splc_trans_unit splc_create_empty_trans_unit()
 {
     splc_trans_unit unit = (splc_trans_unit)malloc(sizeof(splc_trans_unit_struct));
     SPLC_ALLOC_PTR_CHECK(unit, "out of memory when creating translation unit");
-    unit->symbol_table = NULL;
+    unit->global_symtable = NULL;
     unit->root = NULL;
+    unit->envs = NULL;
+    unit->nenvs = 0;
     unit->err_count = 0;
     unit->warn_count = 0;
     return unit;
@@ -631,6 +633,26 @@ splc_trans_unit splc_create_empty_trans_unit()
 splc_trans_unit splc_create_trans_unit()
 {
     splc_trans_unit unit = splc_create_empty_trans_unit();
-    unit->symbol_table = lut_new_table();
+    unit->global_symtable = lut_new_table(0);
     return unit;
+}
+
+lut_table splc_push_symtable(splc_trans_unit tunit, int scope)
+{
+    lut_table *newarr = (lut_table *)realloc(tunit->envs, (tunit->nenvs + 1) * sizeof(lut_table));
+    SPLC_ALLOC_PTR_CHECK(newarr, "cannot allocate new symbol table for internal scope");
+    newarr[tunit->nenvs] = lut_new_table(scope);
+    tunit->nenvs++;
+    return newarr[tunit->nenvs - 1];
+}
+
+lut_table splc_pop_symtable(splc_trans_unit tunit)
+{
+    if (tunit->nenvs == 0)
+        return NULL;
+    lut_table result = tunit->envs[tunit->nenvs - 1];
+    lut_table *newarr = (lut_table *)realloc(tunit->envs, (tunit->nenvs - 1) * sizeof(lut_table));
+    SPLC_ALLOC_PTR_CHECK(newarr, "cannot deallocate symbol table for internal scope");
+    tunit->nenvs--;
+    return result;
 }

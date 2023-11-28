@@ -17,7 +17,7 @@ ast_node ast_create_empty_node()
     ast_node node = (ast_node)malloc(sizeof(ast_node_struct));
     SPLC_ALLOC_PTR_CHECK(node, "out of memory");
     node->type = SPLT_NULL;
-    node->entry = NULL;
+    node->symtable = NULL;
     node->children = NULL;
     node->num_child = 0;
     memset(&node->location, 0, sizeof(splc_loc));
@@ -131,6 +131,7 @@ void ast_release_node(ast_node *root)
         ast_release_node(&(*root)->children[i]);
     }
     free((*root)->children);
+    lut_free_table(&((*root)->symtable));
     if (SPLT_AST_REQUIRE_VAL_FREE((*root)->type))
         free((*root)->val);
     free(root);
@@ -149,7 +150,7 @@ ast_node ast_deep_copy(ast_node node)
 
     ast_node result = ast_create_empty_node();
     result->type = node->type;
-    result->entry = node->entry;
+    result->symtable = lut_copy_table(node->symtable);
     result->location = node->location;
     if (node->num_child > 0)
     {
@@ -196,13 +197,7 @@ static void _builtin_print_single_node(const ast_node node)
 
     // print node location
     printf(" <");
-    if (splcf_enable_colored_ast)
-    {
-        if (SPLC_IS_LOC_INVALID(node->location))
-            printf("\033[31m");
-        else
-            printf("\033[33m");
-    }
+    SPLC_AST_PRINT_COLORED(SPLC_IS_LOC_INVALID(node->location) ? "\033[31m" : "\033[33m");
 
     char *location = splc_loc2str(node->location);
     printf("%s", location);
@@ -212,7 +207,20 @@ static void _builtin_print_single_node(const ast_node node)
     printf(">");
 
     // Print node content
+    
+    // Print node symbol table state
+    if (node->symtable != NULL)
+    {
+        printf(" <");
+        SPLC_AST_PRINT_COLORED("\033[36m");
+        char *symstr = lut_get_info_string(node->symtable);
+        printf("%s", symstr);
+        free(symstr);
+        SPLC_AST_PRINT_COLORED("\033[0m");
+        printf(">");
+    }
 
+    // Print node value based on its type
     const char *ast_color_construct = "\033[96m";
     const char *ast_color_constant = "\033[32m";
 
@@ -235,29 +243,34 @@ static void _builtin_print_single_node(const ast_node node)
 
     switch (node->type)
     {
-    case SPLT_TRANS_UNIT:
+    case SPLT_TRANS_UNIT: {
         printf("  <%s>", splc_get_node_filename(node->location.fid));
         break;
-    case SPLT_ID:
+    }
+    case SPLT_ID: {
         printf("  %s", (char *)node->val);
         break;
-    case SPLT_TYPEDEF_NAME:
+    }
+    case SPLT_TYPEDEF_NAME: {
         printf("  %s", (char *)node->val);
         break;
-
-    case SPLT_LTR_INT:
+    }
+    case SPLT_LTR_INT: {
         printf("  '%llu'", node->ull_val);
         break;
-    case SPLT_LTR_FLOAT:
+    }
+    case SPLT_LTR_FLOAT: {
         printf("  '%g'", node->float_val);
         break;
-    case SPLT_LTR_CHAR:
+    }
+    case SPLT_LTR_CHAR: {
         printf("  '%s'", (char *)node->val);
         break;
-    case SPLT_STR_UNIT:
+    }
+    case SPLT_STR_UNIT: {
         printf("  \"%s\"", (char *)node->val);
         break;
-
+    }
     default:
         break;
     }

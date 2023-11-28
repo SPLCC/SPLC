@@ -58,16 +58,18 @@ int main(int argc, char *argv[])
         /* Start parsing */
         yyparse();
 
-        if (splcf_ast_dump)
-            ast_print(current_trans_unit->root);
+        /* append the global symbol table to AST's root */
+        current_trans_unit->root->symtable = lut_copy_table(current_trans_unit->global_symtable);
 
+#ifdef SPLC_SHOW_PUNCTUATORS
         if (SPLC_OPT_REQUIRE_AST_PREP)
             ast_preprocess(current_trans_unit->root);
+#endif
 
         /* TODO: semantic analysis on AST */
         if (!err_count)
         {
-            sem_analyze(current_trans_unit->symbol_table, current_trans_unit->root);
+            sem_analyze(current_trans_unit);
         }
 
         /* clear and store translation unit */
@@ -79,6 +81,9 @@ int main(int argc, char *argv[])
         if (current_trans_unit->warn_count || current_trans_unit->err_count)
             printf("%d warning and %d errors generated.\n", current_trans_unit->warn_count, current_trans_unit->err_count);
 
+        if (splcf_ast_dump)
+            ast_print(current_trans_unit->root);
+        
         err_count = 0;
         warn_count = 0;
     }

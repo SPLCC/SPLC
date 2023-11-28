@@ -17,7 +17,7 @@ typedef struct lut_entry_struct *lut_entry;
 typedef struct lut_entry_struct
 {
     splc_entry_t type;             /* Type of this entry */
-    char *id;                /* The name of the entry, if any */
+    char *id;                      /* The name of the entry, if any */
     struct lut_entry_struct *next; /* `lut_entry_struct` internal variable:
                                       point to the next element in case of hash collision */
 
@@ -37,10 +37,15 @@ typedef struct lut_table_struct
 {
     lut_entry *entries; /* Pointer to the start of array of pointer to entries */
     size_t capacity;    /* Capacity of this lut_table */
+    int ref_count;      /* Number of references to this lut. */
+    int scope;          /* Scope of this symbol table. 0 represents the global scope. */
 } lut_table_struct;
 
 /* Initialize a new LUT table. */
-lut_table lut_new_table(void);
+lut_table lut_new_table(int scope);
+
+/* Accepts NULL parameter. Does a shallow copy on the table, maintaing the internal reference count. */
+lut_table lut_copy_table(lut_table table);
 
 /* Free a hashtable and all its related resources. */
 void lut_free_table(lut_table *table);
@@ -63,5 +68,13 @@ void lut_delete(lut_table table, const char *name);
 
 /* Reset a hashtable. */
 void lut_reset_all(lut_table table);
+
+/* This method guarantees that a string will be generated regardless of the table pointer. */
+char *lut_get_info_string(lut_table table);
+
+void lut_debug_print(FILE stream, lut_table table);
+
+/* Macros */
+#define SPLC_LUT_IS_GLOBAL_SCOPE(x) ((x)->scope == 0)
 
 #endif /* LUT_H */

@@ -19,6 +19,6 @@ int sem_test_typedef_name(const char *name);
 
 void sem_track_scope_root(ast_node node);
 
-void sem_analyze(lut_table symbol_table, ast_node root);
+void sem_analyze(splc_trans_unit tunit);
 
 #endif /* SEMANTICS_H */
