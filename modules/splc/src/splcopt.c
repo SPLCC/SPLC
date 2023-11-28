@@ -23,7 +23,8 @@ char *splc_optfull = NULL;
 char *splc_optarg = NULL;
 
 /* Own definitions */
-typedef struct option {
+typedef struct option
+{
     int *const target_opt;
     const int opt_abbr;
     const char *opt_name;
@@ -122,7 +123,7 @@ void splc_process_args(int nargc, char *nargv[])
         case 1: { /* A known abbreviated option is present */
             switch (splc_optopt)
             {
-            case 'I':
+            case 'I': {
                 /* Save include directories */
                 ++splc_incl_dir_cnt;
                 const char **new_filev = (const char **)realloc(splc_incl_dirs, splc_incl_dir_cnt * sizeof(char *));
@@ -141,12 +142,15 @@ void splc_process_args(int nargc, char *nargv[])
                 splc_incl_dirs = new_filev;
                 splc_incl_dirs[splc_incl_dir_cnt - 1] = target;
                 break;
-            case 'h':
+            }
+            case 'h': {
                 usage();
                 exit(0);
-            case SPLC_OPT_BADCH:
+            }
+            case SPLC_OPT_BADCH: {
                 break;
-            default:
+            }
+            default: {
                 int flag = 0;
                 for (size_t i = 0; i < OPT_CNT; ++i)
                 {
@@ -163,6 +167,7 @@ void splc_process_args(int nargc, char *nargv[])
                         SPLC_FWARN_NOLOC("Unsupported option: %c", splc_optopt);
                 }
                 break;
+            }
             }
             break;
         }
