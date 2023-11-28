@@ -61,10 +61,9 @@ int main(int argc, char *argv[])
         /* append the global symbol table to AST's root */
         current_trans_unit->root->symtable = lut_copy_table(current_trans_unit->global_symtable);
 
-#ifdef SPLC_SHOW_PUNCTUATORS
+        SPLC_ASSERT(!SPLC_OPT_REQUIRE_AST_PREP);
         if (SPLC_OPT_REQUIRE_AST_PREP)
             ast_preprocess(current_trans_unit->root);
-#endif
 
         /* TODO: semantic analysis on AST */
         if (!err_count)

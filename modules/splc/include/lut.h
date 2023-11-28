@@ -44,7 +44,7 @@ typedef struct lut_table_struct
 /* Initialize a new LUT table. */
 lut_table lut_new_table(int scope);
 
-/* Accepts NULL parameter. Does a shallow copy on the table, maintaing the internal reference count. */
+/* Accepts NULL parameter. Do a shallow copy on the table, maintaining the internal reference count. */
 lut_table lut_copy_table(lut_table table);
 
 /* Free a hashtable and all its related resources. */

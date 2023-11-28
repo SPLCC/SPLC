@@ -90,7 +90,7 @@ extern int splcf_no_diagnostics_color;
 #define SPLC_FFAIL(_msg, ...)                                                                                          \
     do                                                                                                                 \
     {                                                                                                                  \
-        fprintf(stderr, "\033[1m%s\033[0m: \033[31mfatal error\033[0m:" _msg "\n", progname, __VA_ARGS__);             \
+        fprintf(stderr, "\033[1m%s\033[0m: \033[31mfatal error\033[0m: " _msg "\n", progname, __VA_ARGS__);             \
         abort();                                                                                                       \
     } while (0)
 
