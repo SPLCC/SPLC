@@ -80,7 +80,7 @@ void update_warning(int val);
 
 /* Global variables */
 
-extern int splcf_enable_diag;
+extern int splcf_verbose;
 
 extern int splcf_no_diagnostics_color;
 

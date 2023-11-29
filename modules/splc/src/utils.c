@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-int splcf_enable_diag = 0;
+int splcf_verbose = 0;
 
 int splcf_no_diagnostics_color = 0;
 
@@ -376,7 +376,7 @@ void splcnote(const splc_loc location, const char *msg)
 
 void splcdiag(const char *msg)
 {
-    if (splcf_enable_diag)
+    if (splcf_verbose)
         _builtin_splcdiag(msg);
 }
 

@@ -2,9 +2,10 @@
 #include "lex.yy.h"
 #include "lut.h"
 #include "semantics.h"
-#include "splclink.h"
 #include "splcdef.h"
+#include "splclink.h"
 #include "splcopt.h"
+#include "splcpass.h"
 #include "syntax.tab.h"
 #include "utils.h"
 
@@ -46,6 +47,11 @@ int main(int argc, char *argv[])
         splc_trans_unit_list[i] = NULL;
     }
 
+    splc_single_pass single_passes[] = {
+        &sem_analyze, /* TODO: semantic analysis on AST */
+        NULL,
+    };
+
     for (int i = 0; i < splc_src_file_cnt; ++i)
     {
         SPLC_FDIAG("reading source file: %s", splc_src_files[i]);
@@ -61,20 +67,19 @@ int main(int argc, char *argv[])
         /* append the global symbol table to AST's root */
         current_trans_unit->root->symtable = lut_copy_table(current_trans_unit->global_symtable);
 
-        if (SPLC_OPT_REQUIRE_AST_PREP)
-        {
-            printf("Generating parsed tree...\n");
-            ast_print(current_trans_unit->root);
-            printf("Parsed tree generated.\n");
-            ast_preprocess(current_trans_unit->root);
-        }
-            
-        // SPLC_ASSERT(!SPLC_OPT_REQUIRE_AST_PREP); // Preprocessing is done.
-
-        /* TODO: semantic analysis on AST */
         if (!err_count)
         {
-            sem_analyze(current_trans_unit);
+            if (SPLC_OPT_REQUIRE_AST_PREP)
+            {
+                printf("Generating parsed tree...\n");
+                ast_print(current_trans_unit->root);
+                printf("Parsed tree generated.\n");
+                ast_preprocess(current_trans_unit->root);
+            }
+
+            // SPLC_ASSERT(!SPLC_OPT_REQUIRE_AST_PREP); // Preprocessing is done.
+
+            splc_run_single_passes(single_passes, current_trans_unit);
         }
 
         /* clear and store translation unit */
@@ -89,7 +94,8 @@ int main(int argc, char *argv[])
 
         /* output error information */
         if (current_trans_unit->warn_count || current_trans_unit->err_count)
-            printf("%d warnings and %d errors generated.\n", current_trans_unit->warn_count, current_trans_unit->err_count);
+            printf("%d warnings and %d errors generated.\n", current_trans_unit->warn_count,
+                   current_trans_unit->err_count);
     }
 
     int all_err = 0;

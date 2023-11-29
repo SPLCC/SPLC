@@ -32,7 +32,7 @@ typedef struct option
 
 #define OPT_CNT 5
 static const option options[OPT_CNT] = {
-    {&splcf_enable_diag, -1, "fdiag-all"},
+    {&splcf_verbose, -1, "fverbose"},
     {&splcf_no_diagnostics_color, -1, "fno-diagnostics-color"},
     {&splcf_ast_dump, -1, "ast-dump"},
     {&splcf_enable_ast_punctuators, -1, "fenable-ast-punctuators"},

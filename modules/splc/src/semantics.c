@@ -70,5 +70,6 @@ int sem_test_typedef_name(const char *name)
 
 void sem_analyze(splc_trans_unit tunit)
 {
-    // TODO:
+    // TODO(semantics): finish semantic analysis part
+    splcdiag("Semantic Analysis should be performed there.\n");
 }

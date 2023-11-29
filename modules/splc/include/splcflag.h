@@ -1,7 +1,7 @@
 #ifndef SPLCFLAG_H
 #define SPLCFLAG_H
 
-extern int splcf_enable_diag; /* if set to 1, enable diagnostic outputs */
+extern int splcf_verbose; /* if set to 1, enable diagnostic outputs */
 
 extern int splcf_no_diagnostics_color; /* If 1, disable diagnostic colors */
 
