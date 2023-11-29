@@ -305,7 +305,7 @@ extern int yynewfile;
 #elif defined (_WIN32) || defined (_WIN64) || defined (__CYGWIN__)
 #define SYSTEM_PATH_SEPARATOR '\\'
 #else
-#error "Unidentifier platform should support their system path separator here"
+#error "Unidentified platform should support their system path separator here"
 #endif
 
 typedef struct util_file_node_struct *util_file_node;
