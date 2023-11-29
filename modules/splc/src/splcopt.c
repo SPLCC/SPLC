@@ -44,7 +44,7 @@ void usage()
 {
     printf("usage: \033[1m%s\033[0m [options] [file ...]\n%s%s%s%s%s%s%s", progname,
            "  -h                          print this usage and exit\n",
-           "  -fdiag-all                  print all available diagnostic information\n",
+           "  -fverbose                   print all available diagnostic information\n",
            "  -fno-diagnostics-color      do not color diagnostic information\n",
            "  -ast-dump                   dump generated AST to stdout\n",
            "  -fenable-ast-punctuators    append punctuators in AST\n",
