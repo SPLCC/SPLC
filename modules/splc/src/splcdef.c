@@ -641,9 +641,10 @@ lut_table splc_push_symtable(splc_trans_unit tunit, int scope)
 {
     lut_table *newarr = (lut_table *)realloc(tunit->envs, (tunit->nenvs + 1) * sizeof(lut_table));
     SPLC_ALLOC_PTR_CHECK(newarr, "cannot allocate new symbol table for internal scope");
-    newarr[tunit->nenvs] = lut_new_table(scope);
+    tunit->envs = newarr;
+    tunit->envs[tunit->nenvs] = lut_new_table(scope);
     tunit->nenvs++;
-    return newarr[tunit->nenvs - 1];
+    return tunit->envs[tunit->nenvs - 1];
 }
 
 lut_table splc_pop_symtable(splc_trans_unit tunit)
