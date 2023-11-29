@@ -71,5 +71,5 @@ int sem_test_typedef_name(const char *name)
 void sem_analyze(splc_trans_unit tunit)
 {
     // TODO(semantics): finish semantic analysis part
-    splcwarn_noloc("Semantic Analysis should be performed there.");
+    SPLC_FWARN_NOLOC("%s at %d: Semantic Analysis should be performed there.", __FILE__, __LINE__);
 }
