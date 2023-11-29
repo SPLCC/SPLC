@@ -19,8 +19,8 @@ const char **splc_src_files = NULL;
 int splc_opterror = 1;
 int splc_optind = 1;
 char splc_optopt = '\0';
-char *splc_optfull = NULL;
-char *splc_optarg = NULL;
+const char *splc_optfull = NULL;
+const char *splc_optarg = NULL;
 
 /* Own definitions */
 typedef struct option
@@ -53,7 +53,7 @@ void usage()
 }
 // clang-format on
 
-int splc_getopt(int nargc, char *nargv[], const char *ostr)
+int splc_getopt(const int nargc, const char *const nargv[], const char *ostr)
 {
     if (splc_optind >= nargc)
         return -1;
@@ -62,7 +62,7 @@ int splc_getopt(int nargc, char *nargv[], const char *ostr)
     splc_optfull = NULL;
     splc_optarg = NULL;
 
-    char *arg = nargv[splc_optind];
+    const char *arg = nargv[splc_optind];
     char *optr = NULL;
 
     /* Check if it is an option */
@@ -104,7 +104,38 @@ int splc_getopt(int nargc, char *nargv[], const char *ostr)
     return 1;
 }
 
-void splc_process_args(int nargc, char *nargv[])
+static void add_source_file(const char *const file)
+{
+    ++splc_src_file_cnt;
+    const char **new_filev = (const char **)realloc(splc_src_files, splc_src_file_cnt * sizeof(char *));
+    SPLC_ALLOC_PTR_CHECK(new_filev, "failed to allocate array for storing source filenames");
+    splc_src_files = new_filev;
+    const char *filename = strdup(file);
+    SPLC_ALLOC_PTR_CHECK(filename, "failed to allocate array for storing source filenames");
+    splc_src_files[splc_src_file_cnt - 1] = filename;
+}
+
+static void add_include_directory(const char *const dir)
+{
+    ++splc_incl_dir_cnt;
+    const char **new_filev = (const char **)realloc(splc_incl_dirs, splc_incl_dir_cnt * sizeof(char *));
+    SPLC_ALLOC_PTR_CHECK(new_filev, "failed to allocate array for storing include directories");
+
+    char *target = strdup(dir);
+    size_t dirlen = strlen(dir);
+    if (dirlen > 0 && dir[dirlen - 1] != SYSTEM_PATH_SEPARATOR)
+    {
+        target = (char *)malloc((dirlen + 2) * sizeof(char));
+        SPLC_ALLOC_PTR_CHECK(target, "failed to allocate buffer for include directory name");
+        memcpy(target, dir, dirlen);
+        target[dirlen] = SYSTEM_PATH_SEPARATOR;
+        target[dirlen + 1] = '\0';
+    }
+    splc_incl_dirs = new_filev;
+    splc_incl_dirs[splc_incl_dir_cnt - 1] = target;
+}
+
+void splc_process_args(const int nargc, const char *nargv[])
 {
     int opcode;
     while ((opcode = splc_getopt(nargc, nargv, "I:h")) != -1)
@@ -112,12 +143,24 @@ void splc_process_args(int nargc, char *nargv[])
         switch (opcode)
         {
         case 0: { /* a direct argument is present */
-            /* Save file names */
-            ++splc_src_file_cnt;
-            const char **new_filev = (const char **)realloc(splc_src_files, splc_src_file_cnt * sizeof(char *));
-            SPLC_ALLOC_PTR_CHECK(new_filev, "failed to allocate array for storing source filenames");
-            splc_src_files = new_filev;
-            splc_src_files[splc_src_file_cnt - 1] = splc_optarg;
+            /* Save file name */
+            add_source_file(splc_optarg);
+            /* Save the directory of file */
+            /* Check if there a slash. */
+            int dir_present_flag = 0;
+            const char *ptr = splc_optarg;
+            ptr += strlen(splc_optarg);
+            while (*(ptr) != SYSTEM_PATH_SEPARATOR && ptr >= splc_optarg)
+                --ptr;
+            if (ptr >= splc_optarg) /* found the path separator */
+            {
+                size_t len = ptr - splc_optarg + 1;
+                char *buffer = malloc(len + 1);
+                memcpy(buffer, splc_optarg, len);
+                buffer[len] = '\0';
+                add_include_directory(buffer);
+                free(buffer);
+            }
             break;
         }
         case 1: { /* A known abbreviated option is present */
@@ -125,22 +168,7 @@ void splc_process_args(int nargc, char *nargv[])
             {
             case 'I': {
                 /* Save include directories */
-                ++splc_incl_dir_cnt;
-                const char **new_filev = (const char **)realloc(splc_incl_dirs, splc_incl_dir_cnt * sizeof(char *));
-                SPLC_ALLOC_PTR_CHECK(new_filev, "failed to allocate array for storing include directories");
-
-                char *target = splc_optarg;
-                size_t dirlen = strlen(splc_optarg);
-                if (dirlen > 0 && splc_optarg[dirlen - 1] != SPLC_SYS_DIR_SEPARATOR)
-                {
-                    target = (char *)malloc((dirlen + 1) * sizeof(char));
-                    SPLC_ALLOC_PTR_CHECK(target, "failed to allocate buffer for include directory name");
-                    memcpy(target, splc_optarg, dirlen);
-                    target[dirlen] = SPLC_SYS_DIR_SEPARATOR;
-                    target[dirlen + 1] = '\0';
-                }
-                splc_incl_dirs = new_filev;
-                splc_incl_dirs[splc_incl_dir_cnt - 1] = target;
+                add_include_directory(splc_optarg);
                 break;
             }
             case 'h': {

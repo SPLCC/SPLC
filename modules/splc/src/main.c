@@ -29,7 +29,7 @@ const char *progversion = "0.0.1 alpha";
 
 int main(int argc, char *argv[])
 {
-    splc_process_args(argc, argv);
+    splc_process_args(argc, (const char **)argv);
 
     print_prog_diag_info();
 

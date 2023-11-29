@@ -298,6 +298,16 @@ extern int yynewfile;
 
 /* Parsing and error tracking */
 
+#if defined (__unix__) || defined (unix) || defined (__unix) || \
+    defined (__APPLE__) || defined (__MACH__) || \
+    defined (__linux) || defined (linux) || defined (__linux__)
+#define SYSTEM_PATH_SEPARATOR '/'
+#elif defined (_WIN32) || defined (_WIN64) || defined (__CYGWIN__)
+#define SYSTEM_PATH_SEPARATOR '\\'
+#else
+#error "Unidentifier platform should support their system path separator here"
+#endif
+
 typedef struct util_file_node_struct *util_file_node;
 
 typedef struct util_file_node_struct
