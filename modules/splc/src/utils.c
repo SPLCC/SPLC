@@ -9,7 +9,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-int splc_enable_diag = 0;
+int splcf_verbose = 0;
+
+int splcf_no_diagnostics_color = 0;
+
+#define SPLC_COLORED_DIAG (splcf_no_diagnostics_color == 0)
 
 int splc_file_node_cnt = 0;
 
@@ -26,7 +30,7 @@ static char *fetchline(FILE *file, int linebegin)
         free(lineptr);
         lineptr = (char *)NULL;
         size_t n = 0;
-        if(getline(&lineptr, &n, file) < 0)
+        if (getline(&lineptr, &n, file) < 0)
             break;
     }
     /* Handling newline and EOF */
@@ -109,32 +113,6 @@ static void print_indicator(error_t type, int colbegin, int colend)
     return;
 }
 
-void splctrace(trace_t type, int show_source, const char *name)
-{
-    const char *type_str = "UNDEFINED";
-    switch (type)
-    {
-    case SPLTR_MACRO:
-        type_str = "macro";
-        break;
-    case SPLTR_FILE_INCL:
-        type_str = "file included ";
-        break;
-    case SPLTR_FUNCTION:
-        type_str = "function";
-        break;
-    case SPLTR_STRUCT:
-        type_str = "struct";
-        break;
-    default:
-        type_str = "unknown structure";
-        break;
-    }
-    fprintf(stderr, "%s%sIn %s `%s`:\n", show_source != 0 ? splc_file_node_stack->filename : "",
-            show_source != 0 ? ": " : "", type_str, name);
-    return;
-}
-
 static char *splc_get_msg_type_prefix(error_t type)
 {
     const char *type_name = "undefined message";
@@ -214,7 +192,7 @@ static void _builtin_splc_handle_msg_noloc(error_t type, const char *msg)
     char *type_name = splc_get_msg_type_prefix(type);
     char *type_suffix = splc_get_msg_type_suffix(type);
     const char *filename = (splc_file_node_stack != NULL) ? splc_file_node_stack->filename : progname;
-    fprintf(stderr, "\033[1m%s\033[0m: %s%s:\033[0m %s", filename, color_code, type_name, msg);
+    fprintf(stderr, "\033[1m%s:\033[0m %s%s:\033[0m %s", filename, color_code, type_name, msg);
     if (type_suffix != NULL)
     {
         fprintf(stderr, " [%s%s\033[0m]", color_code, type_suffix);
@@ -234,8 +212,8 @@ static void _builtin_splc_handle_msg(error_t type, const splc_loc *const locatio
     char *type_name = splc_get_msg_type_prefix(type);
     char *type_suffix = splc_get_msg_type_suffix(type);
     const char *const orig_file = splc_all_file_nodes[location->fid]->filename;
-    fprintf(stderr, "\033[1m%s\033[0m:%d:%d: %s%s:\033[0m %s", orig_file, location->linebegin, location->colbegin, color_code,
-            type_name, msg);
+    fprintf(stderr, "\033[1m%s:%d:%d:\033[0m %s%s:\033[0m %s", orig_file, location->linebegin, location->colbegin,
+            color_code, type_name, msg);
     if (type_suffix != NULL)
     {
         fprintf(stderr, " [%s%s\033[0m]", color_code, type_suffix);
@@ -278,6 +256,38 @@ static void splc_handle_msg(error_t type, const splc_loc *const location, const 
     return;
 }
 
+static const char *splc_get_trace_string(trace_t type)
+{
+    const char *type_str = "UNDEFINED";
+    switch (type)
+    {
+    case SPLTR_MACRO:
+        type_str = "macro";
+        break;
+    case SPLTR_FILE_INCL:
+        type_str = "file included ";
+        break;
+    case SPLTR_FUNCTION:
+        type_str = "function";
+        break;
+    case SPLTR_STRUCT:
+        type_str = "struct";
+        break;
+    default:
+        type_str = "unknown structure";
+        break;
+    }
+    return type_str;
+}
+
+void splctrace(trace_t type, int show_source, const char *name)
+{
+    const char *type_str = splc_get_trace_string(type);
+    fprintf(stderr, "%s%sIn %s \033[1m'%s':%d\033[0m:\n", show_source != 0 ? splc_file_node_stack->filename : "",
+            show_source != 0 ? ": " : "", type_str, name, splc_file_node_stack->yylineno);
+    return;
+}
+
 static void _builtin_splcerror(error_t type, const splc_loc *const location, const char *msg)
 {
     update_error(1);
@@ -300,23 +310,32 @@ void _builtin_splcdiag(const char *msg)
     splc_handle_msg(SPLC_DIAG, NULL, msg);
 }
 
-static void _builtin_print_trace(util_file_node node)
+static void _builtin_print_file_trace(util_file_node node)
 {
-    if (node == NULL)
-        return;
-    if (!SPLC_IS_LOC_ROOT(node->location))
+    if (node == NULL || SPLC_IS_LOC_ROOT(node->location))
     {
-        _builtin_print_trace(node->next);
-        splctrace(SPLTR_FILE_INCL, 0, node->filename);
-        _builtin_splcnote(&node->location, "file included here");
-        // printf("Current node %s, last_node: %p, %s\n", node->filename, node->next, (node->next != NULL) ?
-        // node->next->filename : "");
+        return;
+    }
+    SPLC_ASSERT(node->next->next != NULL);
+    util_file_node top = node;
+    const char *suffix = (top->next->next == NULL) ? ":\n" : ",\n";
+    fprintf(stderr, "In file included from \033[1m%s:%d\033[0m%s", top->next->filename, top->yylineno, suffix);
+    top = top->next;
+    while (top && !SPLC_IS_LOC_ROOT(top->location))
+    {
+        SPLC_ASSERT(top->next != NULL);
+        suffix = (top->next->next == NULL) ? ":\n" : ",\n";
+        fprintf(stderr, "                 from \033[1m%s:%d\033[0m%s", top->next->filename, top->yylineno, suffix);
+        top = top->next;
     }
 }
 
-static void print_trace()
+static inline void print_file_trace(util_file_node node)
 {
-    _builtin_print_trace(splc_file_node_stack);
+    if (node == NULL)
+        _builtin_print_file_trace(splc_file_node_stack);
+    else
+        _builtin_print_file_trace(node);
 }
 
 void splcfail(const char *msg)
@@ -327,7 +346,7 @@ void splcfail(const char *msg)
 
 void splcerror(error_t type, const splc_loc location, const char *msg)
 {
-    print_trace();
+    print_file_trace(splc_all_file_nodes[location.fid]);
     _builtin_splcerror(type, &location, msg);
 }
 
@@ -339,25 +358,25 @@ void splcerror_noloc(error_t type, const char *msg)
 
 void splcwarn(const splc_loc location, const char *msg)
 {
-    print_trace();
+    print_file_trace(splc_all_file_nodes[location.fid]);
     _builtin_splcwarn(&location, msg);
 }
 
 void splcwarn_noloc(const char *msg)
 {
-    print_trace();
+    print_file_trace(NULL);
     _builtin_splcwarn(NULL, msg);
 }
 
 void splcnote(const splc_loc location, const char *msg)
 {
-    print_trace();
+    print_file_trace(splc_all_file_nodes[location.fid]);
     _builtin_splcnote(&location, msg);
 }
 
 void splcdiag(const char *msg)
 {
-    if (splc_enable_diag)
+    if (splcf_verbose)
         _builtin_splcdiag(msg);
 }
 
@@ -368,16 +387,13 @@ static int _builtin_splc_enter_file(const char *restrict _filename, const splc_l
                               is no need to free it, as it will be directly placed in the file node. */
     if ((filename = splc_search_incl_dirs(_filename)) == NULL || (new_file = fopen(filename, "r")) == NULL)
     {
-        if (location != NULL)
-        {
-            splcerror(SPLC_ERR_FATAL, *location,
-                      "failed to include file. Please check whether the path exists or this program has access right.");
+        const char *msg = "failed to include file. Please check whether the path exists or this program has access right.";
+        if (location != NULL) {
+            splcerror(SPLC_ERR_FATAL, *location, msg);
         }
         else
         {
-            splcerror_noloc(
-                SPLC_ERR_FATAL,
-                "failed to include file. Please check whether the path exists or this program has access right.");
+            splcerror_noloc(SPLC_ERR_FATAL, msg);
         }
         return -1;
     }

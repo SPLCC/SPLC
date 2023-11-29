@@ -6,18 +6,18 @@
 #include <stdlib.h>
 #include <string.h>
 
-int splc_ast_dump = 0;
+int splcf_ast_dump = 0;
 
-int splc_enable_colored_ast = 0;
+int splcf_enable_colored_ast = 0;
 
-int splc_enable_ast_punctuators = 0;
+int splcf_enable_ast_punctuators = 0;
 
 ast_node ast_create_empty_node()
 {
     ast_node node = (ast_node)malloc(sizeof(ast_node_struct));
     SPLC_ALLOC_PTR_CHECK(node, "out of memory");
     node->type = SPLT_NULL;
-    node->entry = NULL;
+    node->symtable = NULL;
     node->children = NULL;
     node->num_child = 0;
     memset(&node->location, 0, sizeof(splc_loc));
@@ -38,7 +38,7 @@ ast_node ast_add_child(ast_node parent, ast_node child)
     if (SPLC_AST_IGNORE_NODE(child))
         return parent;
 
-    parent->children = (ast_node *)realloc(parent->children, (parent->num_child + 1) * sizeof(ast_node_struct));
+    parent->children = (ast_node *)realloc(parent->children, (parent->num_child + 1) * sizeof(ast_node));
     SPLC_ALLOC_PTR_CHECK(parent->children, "out of memory");
     parent->children[parent->num_child] = child;
     ++(parent->num_child);
@@ -131,15 +131,36 @@ void ast_release_node(ast_node *root)
         ast_release_node(&(*root)->children[i]);
     }
     free((*root)->children);
+    lut_free_table(&((*root)->symtable));
     if (SPLT_AST_REQUIRE_VAL_FREE((*root)->type))
         free((*root)->val);
-    free(root);
+    free(*root);
     *root = NULL;
 }
 
-void ast_preprocess(ast_node node)
+void ast_preprocess(ast_node root)
 {
     // TODO: remove all punctuators
+    SPLC_ASSERT(root != NULL);
+    size_t new_nchild = 0;
+    for (size_t i = 0; i < root->num_child; ++i)
+    {
+        if (SPLT_IS_PUNCTUATOR(root->children[i]->type))
+        {
+            ast_release_node(&root->children[i]);
+        }
+        else
+        {
+            if (new_nchild != i)
+                root->children[new_nchild] = root->children[i];
+            ast_preprocess(root->children[i]);
+            new_nchild++;
+        }
+    }
+    ast_node *newarray = (ast_node *)realloc(root->children, new_nchild * sizeof(ast_node));
+    SPLC_ALLOC_PTR_CHECK(newarray, "failed to preprocess node: out of memory");
+    root->children = newarray;
+    root->num_child = new_nchild;
 }
 
 ast_node ast_deep_copy(ast_node node)
@@ -149,12 +170,12 @@ ast_node ast_deep_copy(ast_node node)
 
     ast_node result = ast_create_empty_node();
     result->type = node->type;
-    result->entry = node->entry;
+    result->symtable = lut_copy_table(node->symtable);
     result->location = node->location;
     if (node->num_child > 0)
     {
         result->num_child = node->num_child;
-        result->children = (ast_node *)malloc(result->num_child * sizeof(ast_node_struct));
+        result->children = (ast_node *)malloc(result->num_child * sizeof(ast_node));
         SPLC_ALLOC_PTR_CHECK(result->children, "failed to copy node: out of memory");
         for (int i = 0; i < result->num_child; ++i)
         {
@@ -196,13 +217,7 @@ static void _builtin_print_single_node(const ast_node node)
 
     // print node location
     printf(" <");
-    if (splc_enable_colored_ast)
-    {
-        if (SPLC_IS_LOC_INVALID(node->location))
-            printf("\033[31m");
-        else
-            printf("\033[33m");
-    }
+    SPLC_AST_PRINT_COLORED(SPLC_IS_LOC_INVALID(node->location) ? "\033[31m" : "\033[33m");
 
     char *location = splc_loc2str(node->location);
     printf("%s", location);
@@ -212,7 +227,20 @@ static void _builtin_print_single_node(const ast_node node)
     printf(">");
 
     // Print node content
+    
+    // Print node symbol table state
+    if (node->symtable != NULL)
+    {
+        printf(" <");
+        SPLC_AST_PRINT_COLORED("\033[36m");
+        char *symstr = lut_get_info_string(node->symtable);
+        printf("%s", symstr);
+        free(symstr);
+        SPLC_AST_PRINT_COLORED("\033[0m");
+        printf(">");
+    }
 
+    // Print node value based on its type
     const char *ast_color_construct = "\033[96m";
     const char *ast_color_constant = "\033[32m";
 
@@ -235,29 +263,34 @@ static void _builtin_print_single_node(const ast_node node)
 
     switch (node->type)
     {
-    case SPLT_TRANS_UNIT:
+    case SPLT_TRANS_UNIT: {
         printf("  <%s>", splc_get_node_filename(node->location.fid));
         break;
-    case SPLT_ID:
+    }
+    case SPLT_ID: {
         printf("  %s", (char *)node->val);
         break;
-    case SPLT_TYPEDEF_NAME:
+    }
+    case SPLT_TYPEDEF_NAME: {
         printf("  %s", (char *)node->val);
         break;
-
-    case SPLT_LTR_INT:
+    }
+    case SPLT_LTR_INT: {
         printf("  '%llu'", node->ull_val);
         break;
-    case SPLT_LTR_FLOAT:
+    }
+    case SPLT_LTR_FLOAT: {
         printf("  '%g'", node->float_val);
         break;
-    case SPLT_LTR_CHAR:
+    }
+    case SPLT_LTR_CHAR: {
         printf("  '%s'", (char *)node->val);
         break;
-    case SPLT_STR_UNIT:
+    }
+    case SPLT_STR_UNIT: {
         printf("  \"%s\"", (char *)node->val);
         break;
-
+    }
     default:
         break;
     }
@@ -311,5 +344,42 @@ void ast_print(ast_node root)
     {
         printf("%s", splc_get_token_color_code(SPLT_NULL));
         printf("(%s)\033[0m\n", splc_token2str(SPLT_NULL));
+    }
+}
+
+void ast_sem_search(ast_node node, splc_trans_unit tunit, int new_sym_table)
+{
+    // new table construction
+    int find_stmt = 0;
+    if(node->type == SPLT_STRUCT_UNION_SPEC || node->type == SPLT_FUNC_DEF)
+        new_sym_table = 1;
+    if(new_sym_table)
+        splc_push_symtable(tunit, 0);
+        
+    int copy_new_sym_table = new_sym_table;
+    if(node->type == SPLT_SEL_STMT || node->type == SPLT_ITER_STMT)
+        find_stmt = 1;
+        
+    for(int i = 0; i < node->num_child; i++)
+    {
+        // get new_sym_table
+        ast_node child = node->children[i];
+        if(child->type == SPLT_STMT && find_stmt){
+            new_sym_table = 1;
+            find_stmt = 0;
+        }
+        else{
+            new_sym_table = 0;
+        }
+        
+        //iteration
+        ast_sem_search(child, tunit, new_sym_table);
+    }
+
+    // pop symbol table and link it to the node
+    if(copy_new_sym_table)
+    {
+        lut_table top_sym_table = splc_pop_symtable(tunit);
+        node->symtable = top_sym_table;
     }
 }

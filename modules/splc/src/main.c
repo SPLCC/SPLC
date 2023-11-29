@@ -2,9 +2,10 @@
 #include "lex.yy.h"
 #include "lut.h"
 #include "semantics.h"
-#include "splc_link.h"
 #include "splcdef.h"
+#include "splclink.h"
 #include "splcopt.h"
+#include "splcpass.h"
 #include "syntax.tab.h"
 #include "utils.h"
 
@@ -33,7 +34,10 @@ int main(int argc, char *argv[])
     print_prog_diag_info();
 
     if (splc_src_file_cnt == 0)
-        splcfail("no input file\ncompilation terminated.");
+    {
+        splcerror_noloc(SPLC_ERR_FATAL, "no input file\ncompilation terminated.");
+        exit(1);
+    }
 
     splc_trans_unit_list = (splc_trans_unit *)malloc(splc_src_file_cnt * sizeof(splc_trans_unit));
     SPLC_ALLOC_PTR_CHECK(splc_trans_unit_list, "out of memory");
@@ -42,6 +46,11 @@ int main(int argc, char *argv[])
     {
         splc_trans_unit_list[i] = NULL;
     }
+
+    splc_single_pass single_passes[] = {
+        &sem_analyze, /* TODO: semantic analysis on AST */
+        NULL,
+    };
 
     for (int i = 0; i < splc_src_file_cnt; ++i)
     {
@@ -55,29 +64,38 @@ int main(int argc, char *argv[])
         /* Start parsing */
         yyparse();
 
-        if (splc_ast_dump)
-            ast_print(current_trans_unit->root);
+        /* append the global symbol table to AST's root */
+        current_trans_unit->root->symtable = lut_copy_table(current_trans_unit->global_symtable);
 
-        if (SPLC_OPT_REQUIRE_AST_PREP)
-            ast_preprocess(current_trans_unit->root);
-
-        /* TODO: semantic analysis on AST */
         if (!err_count)
         {
-            sem_analyze(current_trans_unit->symbol_table, current_trans_unit->root);
+            if (SPLC_OPT_REQUIRE_AST_PREP)
+            {
+                printf("Generating parsed tree...\n");
+                ast_print(current_trans_unit->root);
+                printf("Parsed tree generated.\n");
+                ast_preprocess(current_trans_unit->root);
+            }
+
+            // SPLC_ASSERT(!SPLC_OPT_REQUIRE_AST_PREP); // Preprocessing is done.
+
+            splc_run_single_passes(single_passes, current_trans_unit);
         }
 
         /* clear and store translation unit */
         current_trans_unit->err_count = err_count;
         current_trans_unit->warn_count = warn_count;
         splc_trans_unit_list[i] = current_trans_unit;
+        err_count = 0;
+        warn_count = 0;
+
+        if (splcf_ast_dump)
+            ast_print(current_trans_unit->root);
 
         /* output error information */
         if (current_trans_unit->warn_count || current_trans_unit->err_count)
-            printf("%d warning and %d errors generated.\n", current_trans_unit->warn_count, current_trans_unit->err_count);
-
-        err_count = 0;
-        warn_count = 0;
+            printf("%d warnings and %d errors generated.\n", current_trans_unit->warn_count,
+                   current_trans_unit->err_count);
     }
 
     int all_err = 0;

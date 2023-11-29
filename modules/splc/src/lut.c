@@ -66,7 +66,7 @@ static void lut_free_entry(lut_entry *entry)
     *entry = NULL;
 }
 
-lut_table lut_new_table(void)
+lut_table lut_new_table(int scope)
 {
     lut_table result = (lut_table)malloc(sizeof(lut_table_struct));
     SPLC_ALLOC_PTR_CHECK(result, "out of memory when constructing lut_table");
@@ -78,27 +78,44 @@ lut_table lut_new_table(void)
 
     /* Set capacity. */
     result->capacity = LUT_DEFAULT_CAPACITY;
+    result->ref_count = 1;
+    result->scope = scope;
     return result;
+}
+
+lut_table lut_copy_table(lut_table table)
+{
+    if (table == NULL)
+        return NULL;
+    
+    table->ref_count++;
+    return table;
 }
 
 void lut_free_table(lut_table *table)
 {
     if (table == NULL || *table == NULL)
         return;
-
-    for (int i = 0; i < (*table)->capacity; ++i)
-        if ((*table)->entries[i] != NULL)
-        {
-            lut_entry target = (*table)->entries[i], next = NULL;
-            do
+    
+    SPLC_ASSERT((*table)->ref_count >= 1);
+    (*table)->ref_count--;
+    
+    if ((*table)->ref_count == 0)
+    {
+        for (int i = 0; i < (*table)->capacity; ++i)
+            if ((*table)->entries[i] != NULL)
             {
-                next = target->next;
-                lut_free_entry(&target);
-                target = next;
-            } while (target != NULL);
-        }
-    free((*table)->entries);
-    free(*table);
+                lut_entry target = (*table)->entries[i], next = NULL;
+                do
+                {
+                    next = target->next;
+                    lut_free_entry(&target);
+                    target = next;
+                } while (target != NULL);
+            }
+        free((*table)->entries);
+        free(*table);
+    }
     *table = NULL;
 }
 
@@ -198,4 +215,33 @@ void lut_reset_all(lut_table table)
             } while (target != NULL);
         }
     memset(table->entries, 0, table->capacity * sizeof(lut_entry)); /* Set all entries to NULL. */
+}
+
+char *lut_get_info_string(lut_table table)
+{
+    const char* msg = NULL;
+    char *buffer = NULL;
+    size_t needed = 0;
+    if (table == NULL)
+    {
+        msg = "symbol table, NULL";
+        needed = strlen(msg) + 1;
+        buffer = (char *)malloc(needed);
+        SPLC_ALLOC_PTR_CHECK(buffer, "cannot allocate memory for printing error");
+        memcpy(buffer, msg, needed);
+    }
+    else
+    {
+        msg = "SymTable(Cap:%zu):%d";
+        needed = snprintf(NULL, 0, msg, table->capacity, table->scope) + 1;
+        buffer = (char *)malloc(needed);
+        SPLC_ALLOC_PTR_CHECK(buffer, "cannot allocate memory for printing error");
+        sprintf(buffer, msg, table->capacity, table->scope);
+    }
+    return buffer;
+}
+
+void lut_debug_print(FILE stream, lut_table table)
+{
+    // TODO(lut): print debug information
 }
