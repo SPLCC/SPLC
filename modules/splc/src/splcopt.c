@@ -87,7 +87,7 @@ int splc_getopt(const int nargc, const char *const nargv[], const char *ostr)
         if (*splc_optarg == '\0')
         {
             if (splc_opterror)
-                SPLC_FWARN_NOLOC("This option requires an argument: %s", nargv[splc_optind]);
+                SPLC_FWARN_NOLOC(SPLM_ERR_UNIV, "This option requires an argument: %s", nargv[splc_optind]);
             ++splc_optind;
             return SPLC_OPT_BADCH;
         }
@@ -95,7 +95,7 @@ int splc_getopt(const int nargc, const char *const nargv[], const char *ostr)
     else if (*(arg + 1) != '\0')
     {
         if (splc_opterror)
-            SPLC_FWARN_NOLOC("Unrecognized option: %s", nargv[splc_optind]);
+            SPLC_FWARN_NOLOC(SPLM_ERR_UNIV, "Unrecognized option: %s", nargv[splc_optind]);
         ++splc_optind;
         return SPLC_OPT_BADCH;
     }
@@ -192,7 +192,7 @@ void splc_process_args(const int nargc, const char *nargv[])
                 {
                     usage();
                     if (splc_opterror)
-                        SPLC_FWARN_NOLOC("Unsupported option: %c", splc_optopt);
+                        SPLC_FWARN_NOLOC(SPLM_ERR_UNIV, "Unsupported option: %c", splc_optopt);
                 }
                 break;
             }
@@ -211,7 +211,7 @@ void splc_process_args(const int nargc, const char *nargv[])
             }
             if (!flag)
             {
-                SPLC_FWARN_NOLOC("unrecognized option: %s", splc_optfull);
+                SPLC_FWARN_NOLOC(SPLM_ERR_UNIV, "unrecognized option: %s", splc_optfull);
             }
             break;
         }

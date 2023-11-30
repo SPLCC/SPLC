@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 
     if (splc_src_file_cnt == 0)
     {
-        splcerror_noloc(SPLC_ERR_FATAL, "no input file\ncompilation terminated.");
+        SPLC_ERROR_NOLOC(SPLM_ERR_FATAL, "no input file\ncompilation terminated.");
         exit(1);
     }
 

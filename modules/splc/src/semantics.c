@@ -212,7 +212,7 @@ void sem_ast_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
         }
         if(func_is_redefined)
         {
-            SPLC_FERROR(SPLC_ERR_UNIV, node->location, "error type 4: redefinition of %s\n", func_name);
+            SPLC_FERROR(SPLM_ERR_UNIV, node->location, "error type 4: redefinition of %s\n", func_name);
         }
         else{
             printf("function: %s %d %d %s\n",func_name, decl_entry_type, decl_extra_type, decl_spec_type);
