@@ -32,7 +32,7 @@ static void register_typedef(const ast_node node)
 {
     if (node->type == SPLT_ID)
     {
-        lut_insert(current_trans_unit->global_symtable, (const char *)node->val, SPLE_TYPEDEF, node, node->location);
+        lut_insert(current_trans_unit->global_symtable, (const char *)node->val, SPLE_TYPEDEF, NULL, node, node->location);
     }
     for (int i = 0; i < node->num_child; ++i)
     {
@@ -47,7 +47,7 @@ static void register_typedef(const ast_node node)
             register_typedef(node->children[i]);
             break;
         case SPLT_ID:
-            lut_insert(current_trans_unit->global_symtable, (const char *)node->children[i]->val, SPLE_TYPEDEF, node, node->location);
+            lut_insert(current_trans_unit->global_symtable, (const char *)node->children[i]->val, SPLE_TYPEDEF, NULL, node, node->location);
             break;
         default:
             break;
@@ -72,5 +72,5 @@ void sem_analyze(splc_trans_unit tunit)
 {
     // TODO(semantics): finish semantic analysis part
     // splcdiag("Semantic Analysis should be performed there.\n");
-    ast_sem_search(tunit->root, tunit, 0);
+    ast_sem_search(tunit->root, tunit, 0, SPLE_NULL, NULL);
 }
