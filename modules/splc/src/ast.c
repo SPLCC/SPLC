@@ -348,7 +348,7 @@ void ast_print(ast_node root)
     }
 }
 
-void ast_sem_search(ast_node node, splc_trans_unit tunit, int new_sym_table, splc_entry_t decl_entry_type, const char* decl_spec_type)
+void ast_sem_search(ast_node node, splc_trans_unit tunit, int new_sym_table, splc_entry_t decl_entry_type, splc_entry_t decl_extra_type, const char* decl_spec_type)
 {
     // new table construction
     int find_stmt = 0;
@@ -356,7 +356,7 @@ void ast_sem_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
         new_sym_table = 1;
     if(new_sym_table)
         splc_push_symtable(tunit, 0);
-        
+
     int copy_new_sym_table = new_sym_table;
     if(node->type == SPLT_SEL_STMT || node->type == SPLT_ITER_STMT)
         find_stmt = 1;
@@ -374,11 +374,12 @@ void ast_sem_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
         }
         char* struct_union_name = (char*)(id_children->val); // name of struct/union
         //TODO: check if there is a struct(or function) with the same name
-        lut_insert(tunit->envs[(tunit->nenvs)-1], struct_union_name, tmp_decl_entry_type, NULL, node, node->location);
+        lut_insert(tunit->envs[(tunit->nenvs)-1], struct_union_name, tmp_decl_entry_type, SPLE_NULL, NULL, node, node->location);
     }
         // definition in struct/union
     if(node->type == SPLT_STRUCT_DECLTN) // Struct/Union-Decl
     {
+        decl_extra_type = SPLE_NULL;
         ast_node typespec_child_node = ((node->children[0])->children[0])->children[0]; // son of TypeSpec
         if(typespec_child_node->num_child == 0)  // variable type
         {
@@ -396,19 +397,67 @@ void ast_sem_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
             decl_spec_type = (char*)(id_children->val);
 
             // insert into table if it is a new struct
+            // TODO: check the name and type
             if(typespec_child_node->num_child == 3)
             {
-                lut_insert(tunit->envs[(tunit->nenvs)-1], decl_spec_type, decl_entry_type, NULL, typespec_child_node, typespec_child_node -> location);
+                lut_insert(tunit->envs[(tunit->nenvs)-1], decl_spec_type, decl_entry_type, SPLE_NULL, NULL, typespec_child_node, typespec_child_node -> location);
             }
         }
     }
+    
         // definition of function
     if(node->type == SPLT_FUNC_DEF)  //FunctionDef
     {
-        ast_node typespec_child_node = (((node->children[0])->children[0])->children);
-        
+        decl_entry_type = SPLE_FUNC;
+        ast_node typespec_child_node = (((node->children[0])->children[0])->children[0]); //Typespec's child
+        if(typespec_child_node->num_child == 0) // variable type
+        {
+            decl_extra_type = SPLE_VAR;
+            decl_spec_type = splc_token2str(typespec_child_node->type);
+        }
+        else{ // struct/union type
+            ast_node type_children = typespec_child_node->children[0];
+            ast_node id_children = typespec_child_node->children[1];
+            if(type_children->type == SPLT_KWD_STRUCT)  decl_extra_type = SPLE_STRUCT_DEC;
+            else{
+                decl_extra_type = SPLE_UNION_DEC;
+            }
+            decl_spec_type = (char*)(id_children->val);
+        }
+        // passing the params to the declaration below
     }
     
+        // definition in function
+    if(node->type == SPLT_PARAM_DEC||node->type == SPLT_DIR_DECLTN) // ParamDecltr(for each parameter of function) / DirectDecl(declaration in the functionbody)
+    {
+        decl_extra_type = SPLE_NULL;
+        ast_node typespec_child_node = (((node->children[0])->children[0])->children[0]);
+        if(typespec_child_node->num_child == 0) // variable type
+        {
+            decl_entry_type = SPLE_VAR;
+            decl_spec_type = splc_token2str(typespec_child_node->type);
+        }
+        else{ // struct/union type
+            ast_node type_children = typespec_child_node->children[0];
+            ast_node id_children = typespec_child_node->children[1];
+            if(type_children->type == SPLT_KWD_STRUCT)  decl_entry_type = SPLE_STRUCT_DEC;
+            else{
+                decl_entry_type = SPLE_UNION_DEC;
+            }
+            decl_spec_type = (char*)(id_children->val);
+        }
+        // pass the two params to the declaration below
+    }
+    
+    // add declare variables into table:
+    if(node->type == SPLT_DIR_DEC) //DirectDecltr
+    {
+        char* var_name = (char*)((node->children[0])->val);
+        printf("%s %d %d %s\n",var_name, decl_entry_type, decl_extra_type, decl_spec_type);
+        lut_insert(tunit->envs[(tunit->nenvs)-1], var_name, decl_entry_type,decl_extra_type, decl_spec_type, node, node->location);
+        return;
+    }
+
     // search children
     for(int i = 0; i < node->num_child; i++)
     {
@@ -423,7 +472,7 @@ void ast_sem_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
         }
         
         //iteration
-        ast_sem_search(child, tunit, new_sym_table, decl_entry_type, decl_spec_type);
+        ast_sem_search(child, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type);
     }
 
     // pop symbol table and link it to the node

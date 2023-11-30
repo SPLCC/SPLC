@@ -17,6 +17,7 @@ typedef struct lut_entry_struct *lut_entry;
 typedef struct lut_entry_struct
 {
     splc_entry_t type;             /* Type of this entry */
+    splc_entry_t extra_type;        /* Extra Type of this entry*/
     const char* spec_type;               /* Specific Type of this entry*/
     char *id;                      /* The name of the entry, if any */
     struct lut_entry_struct *next; /* `lut_entry_struct` internal variable:
@@ -62,7 +63,7 @@ lut_entry lut_find(const lut_table table, const char *name);
 /* Insert a value to hashtable. If the name already correspond to an entry, overwrite it.
    Name will be copied.
    This method will also deep copy the root, so that the original root won't be affected when the entry gets modified. */
-lut_entry lut_insert(lut_table table, const char *name, const splc_entry_t type, const char* spec_type, const ast_node root, const splc_loc first_occur);
+lut_entry lut_insert(lut_table table, const char *name, const splc_entry_t type, const splc_entry_t extra_type, const char* spec_type, const ast_node root, const splc_loc first_occur);
 
 /* Delete a value from hashtable. Accept NULL key, and allows nonexisting entry to be deleted. */
 void lut_delete(lut_table table, const char *name);

@@ -139,7 +139,7 @@ lut_entry lut_find(const lut_table table, const char *name)
     return target;
 }
 
-lut_entry lut_insert(lut_table table, const char *name, const splc_entry_t type,const char* spec_type, const ast_node root, const splc_loc first_occur)
+lut_entry lut_insert(lut_table table, const char *name, const splc_entry_t type,const splc_entry_t extra_type, const char* spec_type, const ast_node root, const splc_loc first_occur)
 {
     unsigned int key0 = hash(name) % (table->capacity);
     lut_entry target = *(table->entries + key0), prev = NULL, next = NULL;
@@ -161,6 +161,7 @@ lut_entry lut_insert(lut_table table, const char *name, const splc_entry_t type,
 
     target = lut_new_entry(name);
     target->type = type;
+    target->extra_type = extra_type;
     target->spec_type = spec_type;
     target->first_occur = first_occur;
     target->root = ast_deep_copy(root);
