@@ -120,7 +120,7 @@ void lut_free_table(lut_table *table)
     *table = NULL;
 }
 
-lut_entry lut_find(const lut_table table, const char *name, const splc_token_t type)
+lut_entry lut_find(const lut_table table, const char *name, const splc_entry_t type)
 {
     unsigned int key0 = hash(name) % (table->capacity);
     lut_entry target = *(table->entries + key0);
@@ -150,7 +150,7 @@ lut_entry lut_find_name_first(const lut_table table, const char *name)
     return target;
 }
 
-int lut_exists(const lut_table table, const char *name, const splc_token_t type)
+int lut_exists(const lut_table table, const char *name, const splc_entry_t type)
 {
     return lut_find(table, name, type) != NULL;
 }
@@ -199,7 +199,7 @@ lut_entry lut_insert(lut_table table, const char *name, const splc_entry_t type,
     return target;
 }
 
-void lut_delete(lut_table table, const char *name, const splc_token_t type)
+void lut_delete(lut_table table, const char *name, const splc_entry_t type)
 {
     if (name == NULL)
         return;
