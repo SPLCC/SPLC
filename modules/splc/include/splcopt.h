@@ -7,13 +7,11 @@
 /* Bad characters will not be used. */
 #define SPLC_OPT_BADCH '?'
 
-#define SPLC_SYS_DIR_SEPARATOR '/'
-
 extern int splc_opterror; /* If set to 1, produce warnings upon error during parsing */
 extern int splc_optind;   /* current index in the argument vector */
 extern char splc_optopt;  /* the parsed option */
-extern char *splc_optfull; /* full argument */
-extern char *splc_optarg; /* the argument for the option */
+extern const char *splc_optfull; /* full argument */
+extern const char *splc_optarg; /* the argument for the option */
 
 /* The main function for splc to get options.
    When called, this function tries to parse an option from the argument vector.
@@ -39,11 +37,11 @@ extern char *splc_optarg; /* the argument for the option */
    - other `char` values, representing errors.
 
   */
-int splc_getopt(int nargc, char *nargv[], const char *ostr);
+int splc_getopt(const int nargc, const char *const nargv[], const char *ostr);
 
 /* Parse all arguments for spl, and prepare for further processing. 
   */
-void splc_process_args(int nargc, char *nargv[]);
+void splc_process_args(const int nargc, const char *nargv[]);
 
 void usage();
 
