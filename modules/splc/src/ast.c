@@ -353,7 +353,7 @@ void ast_sem_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
 {
     // new table construction
     int find_stmt = 0;
-    if((node->type == SPLT_STRUCT_UNION_SPEC && node->num_child == 3) || node->type == SPLT_FUNC_DEF)
+    if((node->type == SPLT_STRUCT_UNION_SPEC && node->num_child == 3) || node->type == SPLT_FUNC_DEF || node->type == SPLT_TRANS_UNIT)
         new_sym_table = 1;
     if(new_sym_table)
         splc_push_symtable(tunit, 0);
