@@ -80,7 +80,7 @@ static const char *get_splc_error_color_code(error_t type)
 static void print_colored_line(error_t type, const char *line, int linebegin, int colbegin, int colend)
 {
     const char *color_code = get_splc_error_color_code(type);
-    fprintf(stderr, "%8d |", linebegin);
+    fprintf(stderr, "%8d | ", linebegin);
 
     for (int i = 0; i < colbegin - 1; ++i)
         fprintf(stderr, "%c", line[i]);
@@ -100,7 +100,7 @@ static void print_indicator(error_t type, int colbegin, int colend)
     // fprintf(stderr, "Accepted parameters: %d %d\n", colbegin, colend);
     const char *color_code = get_splc_error_color_code(type);
 
-    fprintf(stderr, "         |");
+    fprintf(stderr, "         | ");
 
     for (int i = 1; i < colbegin; ++i)
         fprintf(stderr, " ");
