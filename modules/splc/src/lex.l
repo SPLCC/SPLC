@@ -276,7 +276,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     if (errno == ERANGE || yylval->ull_val > (unsigned long)(-(long)INT_MIN))
     {
         errno = 0;
-        SPLC_WARN(SPLM_Wuniv, SPLC_YY2LOC_CF_D(yylloc), "overflow in integer constant");
+        SPLC_WARN(SPLM_Woverflow, SPLC_YY2LOC_CF_D(yylloc), "overflow in integer constant");
     }
     return LTR_INT;
 }
@@ -291,7 +291,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     if (errno == ERANGE)
     {
         errno = 0;
-        SPLC_WARN(SPLM_Wuniv, SPLC_YY2LOC_CF_D(yylloc), "overflow in integer constant");
+        SPLC_WARN(SPLM_Woverflow, SPLC_YY2LOC_CF_D(yylloc), "overflow in integer constant");
     }
     return LTR_INT;
 }

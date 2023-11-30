@@ -122,19 +122,23 @@ static void print_indicator(splc_msg_t type, int colbegin, int colend)
 static char *splc_get_msg_type_prefix(splc_msg_t type)
 {
     const char *type_name = "undefined message";
+    if (SPLC_IS_MSG_WARNING(type))
+    {
+        type_name = "warning";
+        return strdup(type_name);
+    }
+    else if (type == SPLM_ERR_FATAL)
+    {
+        type_name = "fatal error";
+        return strdup(type_name);
+    }
+    else if (SPLC_IS_MSG_ERROR(type))
+    {
+        type_name = "error";
+        return strdup(type_name);
+    }
     switch (type)
     {
-    case SPLM_ERR_FATAL:
-        type_name = "fatal error";
-        break;
-    case SPLM_ERR_UNIV:
-    case SPLM_ERR_A:
-    case SPLM_ERR_B:
-        type_name = "error";
-        break;
-    case SPLM_Wuniv:
-        type_name = "warning";
-        break;
     case SPLM_NOTE:
         type_name = "note";
         break;
@@ -207,7 +211,7 @@ static void _builtin_splc_handle_msg_noloc(splc_msg_t type, const char *msg)
     fprintf(stderr, "\033[1m%s:\033[0m %s%s:\033[0m %s", filename, color_code, type_name, msg);
     if (type_suffix != NULL)
     {
-        fprintf(stderr, " [%s%s\033[0m]", color_code, type_suffix);
+        fprintf(stderr, " [\033[1m%s%s\033[0m]", color_code, type_suffix);
     }
     fprintf(stderr, "\n");
     free(type_name);
@@ -228,7 +232,7 @@ static void _builtin_splc_handle_msg(splc_msg_t type, const splc_loc *const loca
             color_code, type_name, msg);
     if (type_suffix != NULL)
     {
-        fprintf(stderr, " [%s%s\033[0m]", color_code, type_suffix);
+        fprintf(stderr, " [\033[1m%s%s\033[0m]", color_code, type_suffix);
     }
     fprintf(stderr, "\n");
     free(type_name);
