@@ -349,7 +349,7 @@ void ast_print(ast_node root)
     }
 }
 
-void ast_sem_search(ast_node node, splc_trans_unit tunit, int new_sym_table, splc_entry_t decl_entry_type, splc_entry_t decl_extra_type, const char* decl_spec_type, int first_struct)
+void ast_sem_search(ast_node node, splc_trans_unit tunit, int new_sym_table, splc_entry_t decl_entry_type, splc_entry_t decl_extra_type, const char* decl_spec_type)
 {
     // new table construction
     int find_stmt = 0;
@@ -387,11 +387,7 @@ void ast_sem_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
         }
         printf("struct: %s %d\n",struct_union_name, tmp_decl_entry_type);
         lut_insert(tunit->envs[(tunit->nenvs)-1], struct_union_name, tmp_decl_entry_type, SPLE_NULL, NULL, node, node->location);
-        if(first_struct) // check if the global struct(whether insert into envs[0])
-        {
-            first_struct = 0;
-            lut_insert(tunit->envs[0], struct_union_name, tmp_decl_entry_type, SPLE_NULL, NULL, node, node->location);
-        }
+        lut_insert(tunit->envs[(tunit->nenvs)-2], struct_union_name, tmp_decl_entry_type, SPLE_NULL, NULL, node, node->location);
     }
         // definition in struct/union
     if(node->type == SPLT_STRUCT_DECLTN) // Struct/Union-Decl
@@ -501,7 +497,7 @@ void ast_sem_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
             lut_insert(tunit->envs[0], func_name, decl_entry_type, decl_extra_type, decl_spec_type, node, node->location);
         }
         if(node->num_child == 2)
-            ast_sem_search(node->children[1], tunit, 0, decl_entry_type, decl_extra_type, decl_spec_type, first_struct);
+            ast_sem_search(node->children[1], tunit, 0, decl_entry_type, decl_extra_type, decl_spec_type);
         return;
     }
 
@@ -519,7 +515,7 @@ void ast_sem_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
         }
         
         //iteration
-        ast_sem_search(child, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type, first_struct);
+        ast_sem_search(child, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type);
     }
 
     // pop symbol table and link it to the node
