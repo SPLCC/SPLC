@@ -451,11 +451,20 @@ void ast_sem_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
     }
     
     // add declare variables into table:
-    if(node->type == SPLT_DIR_DEC) //DirectDecltr
+    if(node->type == SPLT_DIR_DEC) //DirectDecltr (for variables)
     {
         char* var_name = (char*)((node->children[0])->val);
         printf("%s %d %d %s\n",var_name, decl_entry_type, decl_extra_type, decl_spec_type);
         lut_insert(tunit->envs[(tunit->nenvs)-1], var_name, decl_entry_type,decl_extra_type, decl_spec_type, node, node->location);
+        return;
+    }
+    if(node->type == SPLT_DIR_FUNC_DEC) //DirectFunctionDecltr (for functions)
+    {
+        char* func_name = (char*)(((node->children[0])->children[0])->val);
+        lut_insert(tunit->envs[(tunit->nenvs)-1], func_name, decl_entry_type, decl_extra_type, decl_spec_type, node, node->location);
+        printf("%s %d %d %s\n",func_name, decl_entry_type, decl_extra_type, decl_spec_type);
+        if(node->num_child == 2)
+            ast_sem_search(node->children[1], tunit, 0, decl_entry_type, decl_extra_type, decl_spec_type);
         return;
     }
 
