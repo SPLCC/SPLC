@@ -158,7 +158,8 @@ void ast_preprocess(ast_node root)
         }
     }
     ast_node *newarray = (ast_node *)realloc(root->children, new_nchild * sizeof(ast_node));
-    SPLC_ALLOC_PTR_CHECK(newarray, "failed to preprocess node: out of memory");
+    if (new_nchild >= 1)
+        SPLC_ALLOC_PTR_CHECK(newarray, "failed to preprocess node: out of memory");
     root->children = newarray;
     root->num_child = new_nchild;
 }
