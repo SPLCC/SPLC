@@ -306,9 +306,9 @@ void splctrace(const trace_t type, int show_source, const char *name)
 void splc_update_log_status(const splc_msg_t type)
 {
     if (SPLC_IS_MSG_WARNING(type))
-        update_error(1);
-    if (SPLC_IS_MSG_WARNING(type))
         update_warning(1);
+    if (SPLC_IS_MSG_ERROR(type))
+        update_error(1);
 }
 
 static void _builtin_print_file_trace(util_file_node node)
