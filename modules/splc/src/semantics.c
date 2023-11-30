@@ -72,6 +72,4 @@ void sem_analyze(splc_trans_unit tunit)
 {
     // TODO(semantics): finish semantic analysis part
     SPLC_FWARN_NOLOC("%s at line %d: Semantic Analysis should be performed there.", __FILE__, __LINE__);
-    splc_push_symtable(tunit, 0);
-    splc_pop_symtable(tunit);
 }
