@@ -349,7 +349,7 @@ void ast_print(ast_node root)
     }
 }
 
-void ast_sem_search(ast_node node, splc_trans_unit tunit, int new_sym_table, splc_entry_t decl_entry_type, splc_entry_t decl_extra_type, const char* decl_spec_type)
+void ast_sem_search(ast_node node, splc_trans_unit tunit, int new_sym_table, splc_entry_t decl_entry_type, splc_entry_t decl_extra_type, const char* decl_spec_type, int first_struct)
 {
     // new table construction
     int find_stmt = 0;
@@ -375,7 +375,23 @@ void ast_sem_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
         }
         char* struct_union_name = (char*)(id_children->val); // name of struct/union
         //TODO: check if there is a struct(or function) with the same name
+        int struct_union_undefined = 0;
+        for(int i = 0; i < tunit->nenvs; i++)
+        {
+            if(lut_find(tunit->envs[i], struct_union_name))
+                struct_union_undefined = 1;
+        }
+        if(struct_union_undefined)
+        {
+            printf("Error type 15 at line %d: redefinition of %s\n", node->location.linebegin, struct_union_name);
+        }
+        printf("struct: %s %d\n",struct_union_name, tmp_decl_entry_type);
         lut_insert(tunit->envs[(tunit->nenvs)-1], struct_union_name, tmp_decl_entry_type, SPLE_NULL, NULL, node, node->location);
+        if(first_struct) // check if the global struct(whether insert into envs[0])
+        {
+            first_struct = 0;
+            lut_insert(tunit->envs[0], struct_union_name, tmp_decl_entry_type, SPLE_NULL, NULL, node, node->location);
+        }
     }
         // definition in struct/union
     if(node->type == SPLT_STRUCT_DECLTN) // Struct/Union-Decl
@@ -396,13 +412,6 @@ void ast_sem_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
                 decl_entry_type = SPLE_UNION_DEC;
             }
             decl_spec_type = (char*)(id_children->val);
-
-            // insert into table if it is a new struct
-            // TODO: check the name and type
-            if(typespec_child_node->num_child == 3)
-            {
-                lut_insert(tunit->envs[(tunit->nenvs)-1], decl_spec_type, decl_entry_type, SPLE_NULL, NULL, typespec_child_node, typespec_child_node -> location);
-            }
         }
     }
     
@@ -437,6 +446,7 @@ void ast_sem_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
         {
             decl_entry_type = SPLE_VAR;
             decl_spec_type = splc_token2str(typespec_child_node->type);
+
         }
         else{ // struct/union type
             ast_node type_children = typespec_child_node->children[0];
@@ -454,17 +464,44 @@ void ast_sem_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
     if(node->type == SPLT_DIR_DEC) //DirectDecltr (for variables)
     {
         char* var_name = (char*)((node->children[0])->val);
-        printf("%s %d %d %s\n",var_name, decl_entry_type, decl_extra_type, decl_spec_type);
-        lut_insert(tunit->envs[(tunit->nenvs)-1], var_name, decl_entry_type,decl_extra_type, decl_spec_type, node, node->location);
+        //printf("%s %d %d %s\n",var_name, decl_entry_type, decl_extra_type, decl_spec_type);
+        // Type 3 --- redefined variable
+        int var_is_redefined = 0;
+        for(int i = 0; i < tunit->nenvs; i++)
+        {
+            if(lut_find(tunit->envs[i], var_name))
+                var_is_redefined = 1;
+        }
+        if(var_is_redefined)
+        {
+            printf("Error type 3 at line %d: redefinition of %s\n", node->location.linebegin, var_name);
+        }
+        else{
+            printf("variable: %s %d %d %s\n",var_name, decl_entry_type, decl_extra_type, decl_spec_type);
+            lut_insert(tunit->envs[(tunit->nenvs)-1], var_name, decl_entry_type,decl_extra_type, decl_spec_type, node, node->location);
+        }
         return;
     }
     if(node->type == SPLT_DIR_FUNC_DEC) //DirectFunctionDecltr (for functions)
     {
         char* func_name = (char*)(((node->children[0])->children[0])->val);
-        lut_insert(tunit->envs[(tunit->nenvs)-1], func_name, decl_entry_type, decl_extra_type, decl_spec_type, node, node->location);
-        printf("%s %d %d %s\n",func_name, decl_entry_type, decl_extra_type, decl_spec_type);
+        int func_is_redefined = 0;
+        for(int i = 0; i < tunit->nenvs; i++)
+        {
+            if(lut_find(tunit->envs[i], func_name))
+                func_is_redefined = 1;
+        }
+        if(func_is_redefined)
+        {
+            printf("Error type 4 at line %d: redefinition of %s\n", node->location.linebegin, func_name);
+        }
+        else{
+            printf("function: %s %d %d %s\n",func_name, decl_entry_type, decl_extra_type, decl_spec_type);
+            lut_insert(tunit->envs[(tunit->nenvs)-1], func_name, decl_entry_type, decl_extra_type, decl_spec_type, node, node->location);
+            lut_insert(tunit->envs[0], func_name, decl_entry_type, decl_extra_type, decl_spec_type, node, node->location);
+        }
         if(node->num_child == 2)
-            ast_sem_search(node->children[1], tunit, 0, decl_entry_type, decl_extra_type, decl_spec_type);
+            ast_sem_search(node->children[1], tunit, 0, decl_entry_type, decl_extra_type, decl_spec_type, first_struct);
         return;
     }
 
@@ -482,7 +519,7 @@ void ast_sem_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
         }
         
         //iteration
-        ast_sem_search(child, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type);
+        ast_sem_search(child, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type, first_struct);
     }
 
     // pop symbol table and link it to the node

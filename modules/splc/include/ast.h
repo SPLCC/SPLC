@@ -66,7 +66,7 @@ ast_node ast_deep_copy(ast_node node);
    - Once the target macro function has been substituted, it is not possible to substitute the outer part again. */
 void ast_invoke_macro_subtitution(ast_node root);
 
-void ast_sem_search(ast_node node, splc_trans_unit tunit, int new_sym_table, splc_entry_t decl_entry_type, splc_entry_t decl_extra_type, const char* decl_spec_type);
+void ast_sem_search(ast_node node, splc_trans_unit tunit, int new_sym_table, splc_entry_t decl_entry_type, splc_entry_t decl_extra_type, const char* decl_spec_type, int first_struct);
 
 /* Print the Syntax Tree */
 void ast_print(const ast_node root);
