@@ -654,6 +654,7 @@ lut_table splc_pop_symtable(splc_trans_unit tunit)
     lut_table result = tunit->envs[tunit->nenvs - 1];
     lut_table *newarr = (lut_table *)realloc(tunit->envs, (tunit->nenvs - 1) * sizeof(lut_table));
     SPLC_ALLOC_PTR_CHECK(newarr, "cannot deallocate symbol table for internal scope");
+    tunit->envs = newarr;
     tunit->nenvs--;
     return result;
 }
