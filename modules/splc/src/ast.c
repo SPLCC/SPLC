@@ -369,7 +369,7 @@ void ast_sem_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
         ast_node type_children = node->children[0];
         ast_node id_children = node->children[1];
         splc_entry_t tmp_decl_entry_type;
-        if(type_children->type == SPLT_KWD_STRUCT)  tmp_decl_entry_type = SPLE_STRUCT_DEC;
+        if (type_children->type == SPLT_KWD_STRUCT)  tmp_decl_entry_type = SPLE_STRUCT_DEC;
         else{
             tmp_decl_entry_type = SPLE_UNION_DEC;
         }
@@ -490,5 +490,59 @@ void ast_sem_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
     {
         lut_table top_sym_table = splc_pop_symtable(tunit);
         node->symtable = top_sym_table;
+
+        lut_entry entry = *(top_sym_table->entries);
+        if (entry)
+            printf("%s\n", splc_token2str(entry->type));
     }
+}
+
+void print_splc_trans_unit(ast_node node, splc_trans_unit tunit) {
+    // if (node->type == SPLT_DIR_DEC) //DirectDecltr (for variables)
+    // {
+    //     char* var_name = (char*)((node->children[0])->val);
+    //     printf("%s\n",var_name);
+    //     return;
+    // }
+
+    // if (node->type == SPLT_DIR_FUNC_DEC) //DirectFunctionDecltr (for functions)
+    // {
+    //     char* func_name = (char*)(((node->children[0])->children[0])->val);
+    //     printf("%s\n",func_name);
+    //     if(node->num_child == 2)
+    //         print_splc_trans_unit(node->children[1], tunit);
+    //     return;
+    // }
+    if (node->symtable)
+    {
+        // printf("%s\n", splc_token2str(node->type));
+        lut_entry entry = *(node->symtable->entries);
+        if (entry) 
+            // printf("%s\n", splc_token2str(entry->type));
+        while (entry) 
+        {
+            printf("2\n");
+            printf("%s\n", entry->spec_type);
+            entry = entry->next;
+        }
+    }
+    // search children
+    for(int i = 0; i < node->num_child; i++)
+    {
+        //iteration
+        // printf("%s\n", splc_token2str(node->type));
+        print_splc_trans_unit(node->children[i], tunit);
+    }
+}
+
+void ast_sem_expr(ast_node node, splc_trans_unit tunit) {
+    print_splc_trans_unit(node, tunit);
+    
+    // if (node->type == SPLT_EXPR) {
+    //     if (node->num_child == 2) {
+    //         // unary
+    //         ast_node id_node = node->children[0]->type == SPLT_ID ? node->children[0] : node->children[1];
+            
+    //     }
+    // }
 }
