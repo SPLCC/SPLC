@@ -633,7 +633,7 @@ splc_trans_unit splc_create_empty_trans_unit()
 splc_trans_unit splc_create_trans_unit()
 {
     splc_trans_unit unit = splc_create_empty_trans_unit();
-    unit->global_symtable = lut_new_table(0);
+    unit->global_symtable = splc_push_symtable(unit, 0);
     return unit;
 }
 

@@ -353,6 +353,9 @@ lut_table splc_pop_symtable(splc_trans_unit tunit);
 
 splc_trans_unit splc_link_trans_units();
 
+#define SPLC_TRANS_UNIT_ENV_TOP(tunit) \
+    (tunit)->envs[(tunit)->nenvs - 1]
+
 /* Passed splc arguments */
 
 extern int splc_incl_dir_cnt; /* Number of include directories. */
