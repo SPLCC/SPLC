@@ -206,7 +206,7 @@ ast_node ast_deep_copy(ast_node node)
     return result;
 }
 
-static void _builtin_print_single_node(const ast_node node)
+void print_single_node(const ast_node node)
 {
     // print node type
     SPLC_AST_PRINT_COLORED("\033[1m");
@@ -321,7 +321,7 @@ static void _builtin_ast_print(const ast_node node, const char *prefix)
         printf("%s%s", prefix, indicator);
         SPLC_AST_PRINT_COLORED("\033[0m");
 
-        _builtin_print_single_node(node->children[i]);
+        print_single_node(node->children[i]);
         printf("\n");
 
         if (node->children[i]->num_child > 0)
@@ -338,7 +338,7 @@ void ast_print(ast_node root)
 {
     if (root != NULL)
     {
-        _builtin_print_single_node(root);
+        print_single_node(root);
         printf("\n");
         _builtin_ast_print(root, "");
     }
