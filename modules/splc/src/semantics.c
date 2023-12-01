@@ -202,7 +202,7 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
         }
         if(var_is_redefined)
         {
-            SPLC_FERROR(SPLM_ERR_SEM_3, node->location, "Redefinition of variable `%s`\n", var_name);
+            SPLC_FERROR(SPLM_ERR_SEM_3, node->location, "redefinition of variable `%s`", var_name);
         }
         else{
             printf("variable: %s %d %d %s\n",var_name, decl_entry_type, decl_extra_type, decl_spec_type);
