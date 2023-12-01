@@ -106,7 +106,7 @@ void sem_ast_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
         }
         if(struct_union_undefined)
         {
-            SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 15: redefinition of struct/union %s\n", struct_union_name);
+            SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 15: redefinition of struct/union %s", struct_union_name);
             //printf("Error type 15 at line %d: redefinition of %s\n", node->location.linebegin, struct_union_name);
         }
         printf("struct: %s %d\n",struct_union_name, tmp_decl_entry_type);
