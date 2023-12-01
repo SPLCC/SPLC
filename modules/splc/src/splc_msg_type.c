@@ -6,31 +6,31 @@ const char *get_splc_msg_color_code(splc_msg_t type)
     const char *color_code = "\033[31m";
     if (SPLC_IS_MSG_WARNING(type))
     {
-        color_code = "\033[95m";
+        color_code = "\033[1;95m";
         return color_code;
     }
     else if (SPLC_IS_MSG_ERROR(type))
     {
-        color_code = "\033[91m";
+        color_code = "\033[1;91m";
         return color_code;
     }
 
     switch (type)
     {
     case SPLM_MACRO_ERROR:
-        color_code = "\033[91m";
+        color_code = "\033[1;91m";
         break;
     case SPLM_MACRO_WARN:
-        color_code = "\033[95m";
+        color_code = "\033[1;95m";
         break;
     case SPLM_NOTE:
-        color_code = "\033[96m";
+        color_code = "\033[1;96m";
         break;
     case SPLM_DIAG:
-        color_code = "\033[93m";
+        color_code = "\033[1;93m";
         break;
     default:
-        color_code = "\033[96m";
+        color_code = "\033[1;96m";
         break;
     }
     return color_code;
