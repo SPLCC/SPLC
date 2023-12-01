@@ -52,8 +52,10 @@ const char *splc_get_token_color_code(splc_token_t type)
 
     case SPLT_DECLTN_LIST:
     case SPLT_ENUM_LIST:
+    case SPLT_ENUM_BODY:
     case SPLT_EXT_DECLTN_LIST:
     case SPLT_EXT_DECLTN:
+    case SPLT_STRUCT_DECLTN_BODY:
     case SPLT_STRUCT_DECLTN_LIST:
     case SPLT_STRUCT_DEC_LIST:
     case SPLT_INIT_DEC_LIST:
@@ -286,6 +288,8 @@ const char *splc_token2str(splc_token_t type)
         return "typename";
     case SPLT_STRUCT_UNION_SPEC:
         return "Struct/Union-Spec";
+    case SPLT_STRUCT_DECLTN_BODY:
+        return "Struct/Union-DeclBody";
     case SPLT_STRUCT_DECLTN_LIST:
         return "Struct/Union-DeclList";
     case SPLT_STRUCT_DECLTN:
@@ -296,6 +300,8 @@ const char *splc_token2str(splc_token_t type)
         return "Struct/Union-Decltr";
     case SPLT_ENUM_SPEC:
         return "EnumSpec";
+    case SPLT_ENUM_BODY:
+        return "EnumBody";
     case SPLT_ENUM_LIST:
         return "EnumList";
     case SPLT_ENUM:

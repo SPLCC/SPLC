@@ -163,20 +163,21 @@ direct-abstract-declarator:
 /* Specify a structure */
 struct-or-union-specifier: 
       struct-or-union identifier { $$ = ast_create_parent_node(SPLT_STRUCT_UNION_SPEC, 2, $1, $2); }
-    | struct-or-union LC RC { $$ = ast_create_parent_node(SPLT_STRUCT_UNION_SPEC, 3, $1, $2, $3); }
-    | struct-or-union identifier LC RC { $$ = ast_create_parent_node(SPLT_STRUCT_UNION_SPEC, 4, $1, $2, $3, $4); }
-    | struct-or-union LC struct-declaration-list RC { $$ = ast_create_parent_node(SPLT_STRUCT_UNION_SPEC, 4, $1, $2, $3, $4); }
-    | struct-or-union identifier LC struct-declaration-list RC { $$ = ast_create_parent_node(SPLT_STRUCT_UNION_SPEC, 5, $1, $2, $3, $4, $5); }
-
-    | struct-or-union LC error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect token '}'"); $$ = ast_create_parent_node(SPLT_STRUCT_UNION_SPEC, 2, $1, $2); yyerrok; }
-    | struct-or-union identifier LC error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($3), "expect token '}'"); $$ = ast_create_parent_node(SPLT_STRUCT_UNION_SPEC, 3, $1, $2, $3); yyerrok; }
-    | struct-or-union LC struct-declaration-list error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($3), "expect token '}'"); $$ = ast_create_parent_node(SPLT_STRUCT_UNION_SPEC, 3, $1, $2, $3); yyerrok; }
-    | struct-or-union identifier LC struct-declaration-list error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($4), "expect token '}'"); $$ = ast_create_parent_node(SPLT_STRUCT_UNION_SPEC, 4, $1, $2, $3, $4); yyerrok; }
+    | struct-or-union struct-declaration-body { $$ = ast_create_parent_node(SPLT_STRUCT_UNION_SPEC, 2, $1, $2); }
+    | struct-or-union identifier struct-declaration-body { $$ = ast_create_parent_node(SPLT_STRUCT_UNION_SPEC, 3, $1, $2, $3); }
     ;
 
 struct-or-union:
       KWD_STRUCT
     | KWD_UNION
+    ;
+
+struct-declaration-body:
+      LC RC {$$ = ast_create_parent_node(SPLT_STRUCT_DECLTN_BODY, 2, $1, $2); }
+    | LC struct-declaration-list RC {$$ = ast_create_parent_node(SPLT_STRUCT_DECLTN_BODY, 3, $1, $2, $3); }
+
+    | LC error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($1), "expect token '}'"); $$ = ast_create_parent_node(SPLT_STRUCT_DECLTN_BODY, 1, $1); yyerrok; }
+    | LC struct-declaration-list error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect token '}'"); $$ = ast_create_parent_node(SPLT_STRUCT_DECLTN_BODY, 2, $1, $2); yyerrok; }
     ;
 
 struct-declaration-list:
@@ -210,18 +211,19 @@ struct-declarator:
 
 enum-specifier:
       KWD_ENUM identifier { $$ = ast_create_parent_node(SPLT_ENUM_SPEC, 2, $1, $2); }
-    | KWD_ENUM LC RC { $$ = ast_create_parent_node(SPLT_ENUM_SPEC, 3, $1, $2, $3); }
-    | KWD_ENUM identifier LC RC { $$ = ast_create_parent_node(SPLT_ENUM_SPEC, 4, $1, $2, $3, $4); }
-    | KWD_ENUM LC enumerator-list RC { $$ = ast_create_parent_node(SPLT_ENUM_SPEC, 4, $1, $2, $3, $4); }
-    | KWD_ENUM identifier LC enumerator-list RC { $$ = ast_create_parent_node(SPLT_ENUM_SPEC, 5, $1, $2, $3, $4, $5); }
-    | KWD_ENUM LC enumerator-list COMMA RC { $$ = ast_create_parent_node(SPLT_ENUM_SPEC, 5, $1, $2, $3, $4, $5); }
-    | KWD_ENUM identifier LC enumerator-list COMMA RC { $$ = ast_create_parent_node(SPLT_ENUM_SPEC, 6, $1, $2, $3, $4, $5, $6); }
+    | KWD_ENUM enumerator-body { $$ = ast_create_parent_node(SPLT_ENUM_SPEC, 2, $1, $2); }
+    | KWD_ENUM identifier enumerator-body { $$ = ast_create_parent_node(SPLT_ENUM_SPEC, 3, $1, $2, $3); }
     
     | KWD_ENUM error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($1), "expect identifier here"); $$ = ast_create_parent_node(SPLT_ENUM_SPEC, 1, $1); yyerrok; }
-    | KWD_ENUM LC error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect token ',' or '}'"); $$ = ast_create_parent_node(SPLT_ENUM_SPEC, 2, $1, $2); yyerrok; }
-    | KWD_ENUM identifier LC error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($3), "expect token ',' or '}'"); $$ = ast_create_parent_node(SPLT_ENUM_SPEC, 3, $1, $2, $3); yyerrok; }
-    | KWD_ENUM LC enumerator-list error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($3), "expect token ',' or '}'"); $$ = ast_create_parent_node(SPLT_ENUM_SPEC, 3, $1, $2, $3); yyerrok; }
-    | KWD_ENUM identifier LC enumerator-list error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($4), "expect token ',' or '}'"); $$ = ast_create_parent_node(SPLT_ENUM_SPEC, 4, $1, $2, $3, $4); yyerrok; }
+    ;
+
+enumerator-body:
+      LC RC { $$ = ast_create_parent_node(SPLT_ENUM_BODY, 2, $1, $2); }
+    | LC enumerator-list RC { $$ = ast_create_parent_node(SPLT_ENUM_BODY, 3, $1, $2, $3); }
+    | LC enumerator-list COMMA RC { $$ = ast_create_parent_node(SPLT_ENUM_BODY, 4, $1, $2, $3, $4); }
+
+    | LC error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($1), "expect token ',' or '}'"); $$ = ast_create_parent_node(SPLT_ENUM_BODY, 1, $1); yyerrok; }
+    | LC enumerator-list error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect token ',' or '}'"); $$ = ast_create_parent_node(SPLT_ENUM_BODY, 2, $1, $2); yyerrok; }
     ;
 
 enumerator-list:
