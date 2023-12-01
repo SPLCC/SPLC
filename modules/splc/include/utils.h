@@ -18,6 +18,23 @@ enum error_type
     SPLC_ERR_UNIV, /* splc: universal error */
     SPLC_ERR_A,
     SPLC_ERR_B,
+
+    /* semantic error */
+    SPLC_SEM_ERR_1,
+    SPLC_SEM_ERR_2,
+    SPLC_SEM_ERR_3,
+    SPLC_SEM_ERR_4,
+    SPLC_SEM_ERR_5,
+    SPLC_SEM_ERR_6,
+    SPLC_SEM_ERR_7,
+    SPLC_SEM_ERR_8,
+    SPLC_SEM_ERR_9,
+    SPLC_SEM_ERR_10,
+    SPLC_SEM_ERR_11,
+    SPLC_SEM_ERR_12,
+    SPLC_SEM_ERR_13,
+    SPLC_SEM_ERR_14,
+    SPLC_SEM_ERR_15
 };
 
 #define SPLC_ERR_MASK 0x1000

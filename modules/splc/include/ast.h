@@ -28,6 +28,16 @@ typedef struct ast_node_struct
     };
 } ast_node_struct;
 
+/* expression type enum */
+typedef enum sem_expr_type sem_expr_t;
+enum sem_expr_type 
+{
+    EXPR_NULL = 0x00000000,
+    EXPR_INT,
+    EXPR_FLOAT,
+    EXPR_CHAR
+};
+
 /* Function definitions */
 /* Create an empty node that has all its fields initialized to empty/NULL. */
 ast_node ast_create_empty_node();
@@ -66,8 +76,8 @@ ast_node ast_deep_copy(ast_node node);
    - Once the target macro function has been substituted, it is not possible to substitute the outer part again. */
 void ast_invoke_macro_subtitution(ast_node root);
 
-void ast_sem_search(ast_node node, splc_trans_unit tunit, int new_sym_table, splc_entry_t decl_entry_type, splc_entry_t decl_extra_type, const char* decl_spec_type);
-void ast_sem_expr(ast_node node, splc_trans_unit tunit);
+void ast_sem_search(ast_node node, splc_trans_unit tunit, int new_sym_table, splc_entry_t decl_entry_type, splc_entry_t decl_extra_type, const char* decl_spec_type, int first_struct);
+sem_expr_t ast_sem_expr(ast_node root, ast_node node);
 
 /* Print the Syntax Tree */
 void ast_print(const ast_node root);

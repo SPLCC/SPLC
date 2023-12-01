@@ -76,6 +76,8 @@ char *lut_get_info_string(lut_table table);
 
 void lut_debug_print(FILE stream, lut_table table);
 
+void lut_entry_print(const lut_entry ent);
+
 /* Macros */
 #define SPLC_LUT_IS_GLOBAL_SCOPE(x) ((x)->scope == 0)
 

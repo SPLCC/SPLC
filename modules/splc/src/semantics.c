@@ -72,6 +72,6 @@ void sem_analyze(splc_trans_unit tunit)
 {
     // TODO(semantics): finish semantic analysis part
     // splcdiag("Semantic Analysis should be performed there.\n");
-    ast_sem_search(tunit->root, tunit, 0, SPLE_NULL, SPLE_NULL, NULL);
-    ast_sem_expr(tunit->root, tunit);
+    ast_sem_search(tunit->root, tunit, 0, SPLE_NULL, SPLE_NULL, NULL, 0);
+    ast_sem_expr(tunit->root, tunit->root);
 }

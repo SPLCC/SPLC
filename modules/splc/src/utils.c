@@ -57,6 +57,23 @@ static const char *get_splc_error_color_code(error_t type)
     case SPLC_ERR_UNIV:
     case SPLC_ERR_A:
     case SPLC_ERR_B:
+
+    case SPLC_SEM_ERR_1:
+    case SPLC_SEM_ERR_2:
+    case SPLC_SEM_ERR_3:
+    case SPLC_SEM_ERR_4:
+    case SPLC_SEM_ERR_5:
+    case SPLC_SEM_ERR_6:
+    case SPLC_SEM_ERR_7:
+    case SPLC_SEM_ERR_8:
+    case SPLC_SEM_ERR_9:
+    case SPLC_SEM_ERR_10:
+    case SPLC_SEM_ERR_11:
+    case SPLC_SEM_ERR_12:
+    case SPLC_SEM_ERR_13:
+    case SPLC_SEM_ERR_14:
+    case SPLC_SEM_ERR_15:
+
     case SPLC_MACRO_ERROR:
         color_code = "\033[91m";
         break;
@@ -124,6 +141,23 @@ static char *splc_get_msg_type_prefix(error_t type)
     case SPLC_ERR_UNIV:
     case SPLC_ERR_A:
     case SPLC_ERR_B:
+
+    case SPLC_SEM_ERR_1:
+    case SPLC_SEM_ERR_2:
+    case SPLC_SEM_ERR_3:
+    case SPLC_SEM_ERR_4:
+    case SPLC_SEM_ERR_5:
+    case SPLC_SEM_ERR_6:
+    case SPLC_SEM_ERR_7:
+    case SPLC_SEM_ERR_8:
+    case SPLC_SEM_ERR_9:
+    case SPLC_SEM_ERR_10:
+    case SPLC_SEM_ERR_11:
+    case SPLC_SEM_ERR_12:
+    case SPLC_SEM_ERR_13:
+    case SPLC_SEM_ERR_14:
+    case SPLC_SEM_ERR_15:
+
         type_name = "error";
         break;
     case SPLC_WARN:
@@ -164,6 +198,53 @@ static char *splc_get_msg_type_suffix(error_t type)
     case SPLC_ERR_B:
         type_suffix = "B";
         break;
+
+    case SPLC_SEM_ERR_1:
+        type_suffix = "1";
+        break;
+    case SPLC_SEM_ERR_2:
+        type_suffix = "2";
+        break;
+    case SPLC_SEM_ERR_3:
+        type_suffix = "3";
+        break;
+    case SPLC_SEM_ERR_4:
+        type_suffix = "4";
+        break;
+    case SPLC_SEM_ERR_5:
+        type_suffix = "5";
+        break;
+    case SPLC_SEM_ERR_6:
+        type_suffix = "6";
+        break;
+    case SPLC_SEM_ERR_7:
+        type_suffix = "7";
+        break;
+    case SPLC_SEM_ERR_8:
+        type_suffix = "8";
+        break;
+    case SPLC_SEM_ERR_9:
+        type_suffix = "9";
+        break;
+    case SPLC_SEM_ERR_10:
+        type_suffix = "10";
+        break;
+    case SPLC_SEM_ERR_11:
+        type_suffix = "11";
+        break;
+    case SPLC_SEM_ERR_12:
+        type_suffix = "12";
+        break;
+    case SPLC_SEM_ERR_13:
+        type_suffix = "13";
+        break;
+    case SPLC_SEM_ERR_14:
+        type_suffix = "14";
+        break;
+    case SPLC_SEM_ERR_15:
+        type_suffix = "15";
+        break;
+
     case SPLC_WARN:
         type_suffix = NULL;
         break;
