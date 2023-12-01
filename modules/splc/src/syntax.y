@@ -722,10 +722,14 @@ conditional-expression:
 
 assignment-expression:
       conditional-expression { if (!SPLT_IS_EXPR($1->type)) $$ = ast_create_parent_node(SPLT_EXPR, 1, $1); else $$ = $1; }
-    | unary-expression assignment-operator assignment-expression { $$ = ast_create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
-
-    | unary-expression assignment-operator error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
-    | assignment-operator assignment-expression { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
+    
+    | assignment-expression assignment-operator conditional-expression { $$ = ast_create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
+    | assignment-expression assignment-operator error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
+    | assignment-operator conditional-expression { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
+    
+    /* | unary-expression assignment-operator assignment-expression { $$ = ast_create_parent_node(SPLT_EXPR, 3, $1, $2, $3); } */
+    /* | unary-expression assignment-operator error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; } */
+    /* | assignment-operator assignment-expression { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; } */
     ;
     
 assignment-operator: /* Use the default behavior to pass the value */
