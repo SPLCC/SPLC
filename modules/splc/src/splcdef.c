@@ -78,7 +78,7 @@ const char *splc_get_token_color_code(splc_token_t type)
 
     case SPLT_EXPR:
     case SPLT_PRIM_EXPR:
-    case SPLT_FUNC_INVOC_EXPR:
+    case SPLT_CALL_EXPR:
     case SPLT_POSTFIX_EXPR:
     case SPLT_UNARY_EXPR:
     case SPLT_CAST_EXPR:
@@ -377,8 +377,8 @@ const char *splc_token2str(splc_token_t type)
         return "Expr";
     case SPLT_PRIM_EXPR:
         return "PrimaryExpr";
-    case SPLT_FUNC_INVOC_EXPR:
-        return "FuncInvocExpr";
+    case SPLT_CALL_EXPR:
+        return "CallExpr";
     case SPLT_POSTFIX_EXPR:
         return "PostfixExpr";
     case SPLT_UNARY_EXPR:

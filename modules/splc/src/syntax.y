@@ -549,8 +549,8 @@ primary-expression:
 postfix-expression:
       primary-expression
     | postfix-expression LSB expression RSB { $$ = ast_create_parent_node(SPLT_EXPR, 4, $1, $2, $3, $4); }
-    | postfix-expression LP argument-list RP { $$ = ast_create_parent_node(SPLT_FUNC_INVOC_EXPR, 4, $1, $2, $3, $4); }
-    | postfix-expression LP RP { $$ = ast_create_parent_node(SPLT_FUNC_INVOC_EXPR, 3, $1, $2, $3); }
+    | postfix-expression LP argument-list RP { $$ = ast_create_parent_node(SPLT_CALL_EXPR, 4, $1, $2, $3, $4); }
+    /* | postfix-expression LP RP { $$ = ast_create_parent_node(SPLT_CALL_EXPR, 3, $1, $2, $3); } */
     | postfix-expression member-access-operator identifier { $$ = ast_create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
     | postfix-expression DPLUS { $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); }
     | postfix-expression DMINUS { $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); }
@@ -558,7 +558,7 @@ postfix-expression:
     | LP type-name RP LC initializer-list COMMA RC { $$ = ast_create_parent_node(SPLT_EXPR, 7, $1, $2, $3, $4, $5, $6, $7); }
 
     | postfix-expression LSB expression error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($3), "expect ']'"); $$ = ast_create_parent_node(SPLT_EXPR, 3, $1, $2, $3); yyerrok; }
-    | postfix-expression LP argument-list error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($3), "expect ')'"); $$ = ast_create_parent_node(SPLT_FUNC_INVOC_EXPR, 3, $1, $2, $3); yyerrok; }
+    | postfix-expression LP argument-list error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($3), "expect ')'"); $$ = ast_create_parent_node(SPLT_CALL_EXPR, 3, $1, $2, $3); yyerrok; }
     | postfix-expression member-access-operator { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_L(@2), "expect an identifier"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
     | RARROW identifier { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
     | LP type-name RP LC initializer-list error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($5), "expect token ',' and '}' "); $$ = ast_create_parent_node(SPLT_EXPR, 5, $1, $2, $3, $4, $5); yyerrok; }
@@ -723,9 +723,9 @@ conditional-expression:
 assignment-expression:
       conditional-expression { if (!SPLT_IS_EXPR($1->type)) $$ = ast_create_parent_node(SPLT_EXPR, 1, $1); else $$ = $1; }
     
-    | assignment-expression assignment-operator conditional-expression { $$ = ast_create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
-    | assignment-expression assignment-operator error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
-    | assignment-operator conditional-expression { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
+    | conditional-expression assignment-operator assignment-expression { $$ = ast_create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
+    | conditional-expression assignment-operator error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
+    | assignment-operator assignment-expression { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
     
     /* | unary-expression assignment-operator assignment-expression { $$ = ast_create_parent_node(SPLT_EXPR, 3, $1, $2, $3); } */
     /* | unary-expression assignment-operator error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; } */
@@ -762,11 +762,12 @@ initialization-expression:
 
 /* Argument: List of arguments */
 argument-list: 
-      argument-list COMMA assignment-expression { $$ = ast_add_children($1, 2, $2, $3); }
+      { $$ = ast_create_leaf_node(SPLT_ARG_LIST, SPLC_YY2LOC_CF_1_PNT_F(@$)); }
+    | argument-list COMMA assignment-expression { $$ = ast_add_children($1, 2, $2, $3); }
     | assignment-expression { $$ = ast_create_parent_node(SPLT_ARG_LIST, 1, $1); }
 
     | argument-list COMMA error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect an operand"); $$ = ast_create_parent_node(SPLT_ARG_LIST, 2, $1, $2); yyerrok; }
-    | COMMA error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_STARTLOC($1), "expect an operand"); $$ = ast_create_parent_node(SPLT_ARG_LIST, 1, $1); yyerrok; }
+    /* | COMMA error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_STARTLOC($1), "expect an operand"); $$ = ast_create_parent_node(SPLT_ARG_LIST, 1, $1); yyerrok; } */
     ;
 
 /* String intermediate expression. Allowing concatenation of strings. */

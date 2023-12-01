@@ -278,7 +278,7 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
     }
 
     // check errors when using functions
-    if(node->type == SPLT_FUNC_INVOC_EXPR) //FuncInvocExpr
+    if(node->type == SPLT_CALL_EXPR) //CallExpr
     {
         char* func_name = ((char*)(node->children[0])->val);
         int func_is_defined = 0;
@@ -295,11 +295,11 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
         }
         if(!func_is_defined && !func_name_is_defined)
         {
-            SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 2: function %s is undefined\n", func_name);
+            SPLC_FERROR(SPLM_ERR_SEM_2, node->location, "function %s is undefined\n", func_name);
         }
         else if(!func_is_defined && func_name_is_defined)
         {
-            SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 11: applying function invocation operator on name %s\n", func_name);
+            SPLC_FERROR(SPLM_ERR_SEM_11, node->location, "applying function invocation operator on name %s\n", func_name);
         }
     }
 
@@ -320,7 +320,7 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
         if(child->type == SPLT_DOT)
             in_expr = 0;
 
-        if(node->type == SPLT_FUNC_INVOC_EXPR && child->type == SPLT_ID)
+        if(node->type == SPLT_CALL_EXPR && child->type == SPLT_ID)
         {
             sem_ast_search(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type, in_struct, 0);
         }
@@ -390,7 +390,7 @@ sem_expr_t sem_ast_expr_process(ast_node root, ast_node node)
         else if (type == SPLT_LTR_CHAR)
             return EXPR_CHAR;
         return EXPR_NULL;
-    } else if (node->type == SPLT_FUNC_INVOC_EXPR) {
+    } else if (node->type == SPLT_CALL_EXPR) {
         lut_entry_print(find_id_entry(root, (char *)((node->children[0])->val)));
         return EXPR_NULL;
     }

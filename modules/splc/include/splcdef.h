@@ -98,7 +98,7 @@ enum splc_token_type
 
     SPLT_EXPR = SPLT_EXPR_OFFSET, /* expression */
     SPLT_PRIM_EXPR,               /* primary expression */
-    SPLT_FUNC_INVOC_EXPR,         /* function invocation expression */
+    SPLT_CALL_EXPR,         /* function invocation expression */
     SPLT_POSTFIX_EXPR,            /* postfix expression */
     SPLT_UNARY_EXPR,              /* unary expression */
     SPLT_CAST_EXPR,               /* cast expression */
