@@ -98,13 +98,13 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
         }
         char* struct_union_name = (char*)(id_children->val); // name of struct/union
         //TODO: check if there is a struct(or function) with the same name
-        int struct_union_undefined = 0;
+        int struct_union_defined = 0;
         for(int i = 0; i < tunit->nenvs; i++)
         {
-            if(lut_exists(tunit->envs[i], struct_union_name, SPLE_STRUCT_DEC))
-                struct_union_undefined = 1;
+            if(lut_exists(tunit->envs[i], struct_union_name, tmp_decl_entry_type))
+                struct_union_defined = 1;
         }
-        if(struct_union_undefined)
+        if(struct_union_defined)
         {
             SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 15: redefinition of struct/union %s", struct_union_name);
             //printf("Error type 15 at line %d: redefinition of %s\n", node->location.linebegin, struct_union_name);
@@ -202,7 +202,7 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
         }
         if(var_is_redefined)
         {
-            SPLC_FERROR(SPLM_ERR_SEM_3, node->location, "redefinition of variable `%s`", var_name);
+            SPLC_FERROR(SPLM_ERR_SEM_3, node->location, "Redefinition of variable `%s`", var_name);
         }
         else{
             printf("variable: %s %d %d %s\n",var_name, decl_entry_type, decl_extra_type, decl_spec_type);
@@ -268,6 +268,7 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
             {
                 use_num++;
                 tmp_node = tmp_node->father;
+                if((tmp_node->children[0])->type != SPLT_EXPR)  break;
             }            
             if(decl_num < use_num)
             {
