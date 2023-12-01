@@ -202,7 +202,7 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
         }
         if(var_is_redefined)
         {
-            SPLC_FERROR(SPLM_SEM_ERR_3, node->location, "Redefinition of variable `%s`\n", var_name);
+            SPLC_FERROR(SPLM_ERR_SEM_3, node->location, "Redefinition of variable `%s`\n", var_name);
         }
         else{
             printf("variable: %s %d %d %s\n",var_name, decl_entry_type, decl_extra_type, decl_spec_type);
@@ -254,7 +254,7 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
         }
         if(!var_is_defined)
         {
-            SPLC_FERROR(SPLM_SEM_ERR_1, node->location, "variable `%s` is undefined", var_name);
+            SPLC_FERROR(SPLM_ERR_SEM_1, node->location, "variable `%s` is undefined", var_name);
         }
         
         else{
@@ -422,7 +422,7 @@ sem_expr_t sem_ast_expr_process(ast_node root, ast_node node)
             sem_expr_t type = sem_ast_expr_process(root, expr_node);
             if (type == EXPR_NULL)
             {
-                SPLC_ERROR(SPLM_SEM_ERR_7, node->location, "unmatching operands");
+                SPLC_ERROR(SPLM_ERR_SEM_7, node->location, "unmatching operands");
             }
             return type;
         }
@@ -433,9 +433,9 @@ sem_expr_t sem_ast_expr_process(ast_node root, ast_node node)
             if (left == SPLT_NULL || right == SPLT_NULL || left != right)
             {
                 if (node->children[1]->type == SPLT_ASSIGN)
-                    SPLC_ERROR(SPLM_SEM_ERR_5, node->location, "unmatching types");
+                    SPLC_ERROR(SPLM_ERR_SEM_5, node->location, "unmatching types");
                 else 
-                    SPLC_ERROR(SPLM_SEM_ERR_7, node->location, "unmatching operands");
+                    SPLC_ERROR(SPLM_ERR_SEM_7, node->location, "unmatching operands");
             }
         }
     }

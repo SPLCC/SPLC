@@ -16,9 +16,10 @@ int splcf_enable_ast_punctuators = 0;
 ast_node ast_create_empty_node()
 {
     ast_node node = (ast_node)malloc(sizeof(ast_node_struct));
-    SPLC_ALLOC_PTR_CHECK(node, "out of memory");
+    SPLC_ALLOC_PTR_CHECK(node, "out of memory creating empty ast node");
     node->type = SPLT_NULL;
     node->symtable = NULL;
+    node->father = NULL;
     node->children = NULL;
     node->num_child = 0;
     memset(&node->location, 0, sizeof(splc_loc));
@@ -43,6 +44,7 @@ ast_node ast_add_child(ast_node parent, ast_node child)
     SPLC_ALLOC_PTR_CHECK(parent->children, "out of memory");
     parent->children[parent->num_child] = child;
     ++(parent->num_child);
+    child->father = parent;
     return parent;
 }
 
@@ -65,8 +67,6 @@ ast_node ast_add_children(ast_node parent, size_t num_child, ...)
                 parent->location.lineend = child->location.lineend;
                 parent->location.colend = child->location.colend;
             }
-            if (SPLC_AST_IGNORE_NODE(child))
-                continue;
             ast_add_child(parent, child);
         }
         va_end(args);
@@ -171,9 +171,14 @@ ast_node ast_deep_copy(ast_node node)
         return NULL;
 
     ast_node result = ast_create_empty_node();
+
+    /* Copy non-AST members */
     result->type = node->type;
     result->symtable = lut_copy_table(node->symtable);
+    result->father = node->father;
     result->location = node->location;
+
+    /* Copy AST children */
     if (node->num_child > 0)
     {
         result->num_child = node->num_child;

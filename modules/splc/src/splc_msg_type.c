@@ -86,56 +86,56 @@ const char *splc_get_msg_type_suffix(splc_msg_t type)
     case SPLM_ERR_UNIV:
         type_suffix = NULL;
         break;
-    case SPLM_ERR_A:
+    case SPLM_ERR_SYN_A:
         type_suffix = "A";
         break;
-    case SPLM_ERR_B:
+    case SPLM_ERR_SYN_B:
         type_suffix = "B";
         break;
 
-        case SPLM_SEM_ERR_1:
+        case SPLM_ERR_SEM_1:
         type_suffix = "1";
         break;
-    case SPLM_SEM_ERR_2:
+    case SPLM_ERR_SEM_2:
         type_suffix = "2";
         break;
-    case SPLM_SEM_ERR_3:
+    case SPLM_ERR_SEM_3:
         type_suffix = "3";
         break;
-    case SPLM_SEM_ERR_4:
+    case SPLM_ERR_SEM_4:
         type_suffix = "4";
         break;
-    case SPLM_SEM_ERR_5:
+    case SPLM_ERR_SEM_5:
         type_suffix = "5";
         break;
-    case SPLM_SEM_ERR_6:
+    case SPLM_ERR_SEM_6:
         type_suffix = "6";
         break;
-    case SPLM_SEM_ERR_7:
+    case SPLM_ERR_SEM_7:
         type_suffix = "7";
         break;
-    case SPLM_SEM_ERR_8:
+    case SPLM_ERR_SEM_8:
         type_suffix = "8";
         break;
-    case SPLM_SEM_ERR_9:
+    case SPLM_ERR_SEM_9:
         type_suffix = "9";
         break;
-    case SPLM_SEM_ERR_10:
+    case SPLM_ERR_SEM_10:
         type_suffix = "10";
         break;
-    case SPLM_SEM_ERR_11:
+    case SPLM_ERR_SEM_11:
         type_suffix = "11";
         break;
-    case SPLM_SEM_ERR_12:
+    case SPLM_ERR_SEM_12:
         type_suffix = "12";
         break;
-    case SPLM_SEM_ERR_13:
+    case SPLM_ERR_SEM_13:
         type_suffix = "13";
         break;
-    case SPLM_SEM_ERR_14:
+    case SPLM_ERR_SEM_14:
         type_suffix = "14";
         break;
-    case SPLM_SEM_ERR_15:
+    case SPLM_ERR_SEM_15:
         type_suffix = "15";
         break;
 
