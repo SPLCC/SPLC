@@ -142,7 +142,7 @@ lut_entry lut_find_name_first(const lut_table table, const char *name)
 
     while (target != NULL)
     {
-        if (strcmp(target->id, name))
+        if (strcmp(target->id, name) == 0)
             break;
         else
             target = target->next;
