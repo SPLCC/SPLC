@@ -85,6 +85,7 @@ const char *splc_get_msg_type_suffix(splc_msg_t type)
         break;
     case SPLM_ERR_UNIV:
         type_suffix = NULL;
+        break;
     case SPLM_ERR_A:
         type_suffix = "A";
         break;

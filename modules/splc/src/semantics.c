@@ -106,7 +106,7 @@ void sem_ast_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
         }
         if(struct_union_undefined)
         {
-            SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 15: redefinition of struct/union %s\n", struct_union_name);
+            SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 15: redefinition of struct/union %s", struct_union_name);
             //printf("Error type 15 at line %d: redefinition of %s\n", node->location.linebegin, struct_union_name);
         }
         printf("struct: %s %d\n",struct_union_name, tmp_decl_entry_type);
@@ -202,7 +202,7 @@ void sem_ast_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
         }
         if(var_is_redefined)
         {
-            SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 3: redefinition of variable %s\n", var_name);
+            SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 3: redefinition of variable %s", var_name);
         }
         else{
             printf("variable: %s %d %d %s\n",var_name, decl_entry_type, decl_extra_type, decl_spec_type);
@@ -221,7 +221,7 @@ void sem_ast_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
         }
         if(func_is_redefined)
         {
-            SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 4: redefinition of function %s\n", func_name);
+            SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 4: redefinition of function %s", func_name);
         }
         else{
             printf("function: %s %d %d %s\n",func_name, decl_entry_type, decl_extra_type, decl_spec_type);
@@ -249,7 +249,7 @@ void sem_ast_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
         }
         if(!var_is_defined)
         {
-            SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 1: variable %s is undefined\n", var_name);
+            SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 1: variable %s is undefined", var_name);
         }
     }
 
@@ -265,7 +265,7 @@ void sem_ast_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
         }
         if(!func_is_defined)
         {
-            SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 2: variable %s is undefined\n", func_name);
+            SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 2: variable %s is undefined", func_name);
         }
     }
 
