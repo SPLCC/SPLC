@@ -258,7 +258,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     return LTR_FLOAT;
 }
 
-<INITIAL>[0-9]*\.[0-9]+([eE]|[-+]|[\.])+ {
+<INITIAL>[0-9]*\.[0-9]([0-9]|([eE][-+]?[0-9]+)|[\.])+ {
     yylval = ast_create_leaf_node(SPLT_LTR_FLOAT, SPLC_YY2LOC_CF_D(yylloc));
     SPLC_ERROR(SPLM_ERR_A, SPLC_YY2LOC_CF_D(yylloc), "too many decimal points or exponential indicators");
     yylval->float_val = 0.0f;
