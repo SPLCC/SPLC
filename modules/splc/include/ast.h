@@ -77,7 +77,7 @@ void ast_print(const ast_node root);
 #define SPLC_AST_PRINT_COLORED(x)                                                                                      \
     do                                                                                                                 \
     {                                                                                                                  \
-        if (splcf_enable_colored_ast)                                                                                  \
+        if (!splcf_no_ast_color)                                                                                       \
             printf("%s", (x));                                                                                         \
     } while (0)
 

@@ -9,7 +9,7 @@
 
 int splcf_ast_dump = 0;
 
-int splcf_enable_colored_ast = 0;
+int splcf_no_ast_color = 0;
 
 int splcf_enable_ast_punctuators = 0;
 

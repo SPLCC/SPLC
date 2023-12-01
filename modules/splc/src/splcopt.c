@@ -36,7 +36,7 @@ static const option options[OPT_CNT] = {
     {&splcf_no_diagnostics_color, -1, "fno-diagnostics-color"},
     {&splcf_ast_dump, -1, "ast-dump"},
     {&splcf_enable_ast_punctuators, -1, "fenable-ast-punctuators"},
-    {&splcf_enable_colored_ast, -1, "fcolor-ast"},
+    {&splcf_no_ast_color, -1, "fno-ast-color"},
 };
 
 // clang-format off
