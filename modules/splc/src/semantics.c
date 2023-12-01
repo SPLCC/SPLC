@@ -71,7 +71,7 @@ int sem_test_typedef_name(const char *name)
     return (ent = lut_find(SPLC_TRANS_UNIT_ENV_TOP(current_trans_unit), name, SPLE_TYPEDEF)) != NULL && ent->type == SPLE_TYPEDEF;
 }
 
-void sem_ast_search(ast_node node, splc_trans_unit tunit, int new_sym_table, splc_entry_t decl_entry_type, splc_entry_t decl_extra_type, const char* decl_spec_type, int in_struct, int in_expr)
+void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int new_sym_table, splc_entry_t decl_entry_type, splc_entry_t decl_extra_type, const char* decl_spec_type, int in_struct, int in_expr)
 {
     // new table construction
     int find_stmt = 0;
@@ -229,7 +229,7 @@ void sem_ast_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
             lut_insert(tunit->envs[0], func_name, decl_entry_type, decl_extra_type, decl_spec_type, node, node->location);
         }
         if(node->num_child == 2)
-            sem_ast_search(node->children[1], tunit, 0, decl_entry_type, decl_extra_type, decl_spec_type, in_struct, in_expr);
+            sem_ast_search(node->children[1],node, tunit, 0, decl_entry_type, decl_extra_type, decl_spec_type, in_struct, in_expr);
         return;
     }
 
@@ -241,15 +241,54 @@ void sem_ast_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
     if(node->type == SPLT_ID && in_expr)
     {
         char* var_name = (char*)(node->val);
+        // check whether the variable is defined or not
         int var_is_defined = 0;
+        lut_entry var_entry;
         for(int i = 0; i < tunit->nenvs; i++)
         {
             if(lut_exists(tunit->envs[i], var_name, SPLE_VAR))
+            {
                 var_is_defined = 1;
+                var_entry = lut_find(tunit->envs[i], var_name, SPLE_VAR);
+            }
         }
         if(!var_is_defined)
         {
             SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 1: variable %s is undefined", var_name);
+        }
+        
+        else{
+            // check unvalid use of indexing operator
+            //TODO: check the tree structrue of nodes and figure out the exact fault
+            //(but the array structure is diffrent in declaration and usage)
+            ast_node var_node = var_entry->root;
+            if(var_node->num_child == 1 && fa_node->num_child > 1 && (fa_node->children[1])->type == SPLT_LSB)
+            {
+                SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 10: applying indexing operator on non-array type variable %s\n", var_name);
+            }
+            // check unvalide use of Dot
+            if((var_entry->type != SPLE_VAR || (var_entry->extra_type != SPLE_STRUCT_DEC && var_entry->extra_type != SPLE_UNION_DEC)) && fa_node->num_child > 1 && (fa_node->children[1])->type == SPLT_DOT)
+            {
+                SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 13: accessing members of a non-structure variable %s\n", var_name);
+            }
+            else if(var_entry->type == SPLE_VAR && (var_entry->extra_type == SPLE_STRUCT_DEC || var_entry->extra_type == SPLE_UNION_DEC))
+            {
+                const char* struct_union_name = var_entry->spec_type;
+                int struct_union_type_exists = 0;
+                for(int i = 0; i < tunit->nenvs; i++)
+                {
+                    if(lut_exists(tunit->envs[i], struct_union_name, SPLE_UNION_DEC)||lut_exists(tunit->envs[i], struct_union_name, SPLE_STRUCT_DEC))
+                        struct_union_type_exists = 1;
+                }
+                // first check if the struct type is declared
+                if(!struct_union_type_exists)
+                {
+                    // TODO: move it to the definition of the variable
+                    /*
+                    SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error: using an undeclared struct/union type %s\n", struct_union_name);
+                    */
+                }
+            }
         }
     }
 
@@ -263,9 +302,19 @@ void sem_ast_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
             if(lut_exists(tunit->envs[i], func_name, SPLE_FUNC))
                 func_is_defined = 1;
         }
-        if(!func_is_defined)
+        int func_name_is_defined = 0;
+        for(int i = 0; i < tunit->nenvs; i++)
         {
-            SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 2: variable %s is undefined", func_name);
+            if(lut_name_exists(tunit->envs[i], func_name))
+                func_name_is_defined = 1;
+        }
+        if(!func_is_defined && !func_name_is_defined)
+        {
+            SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 2: function %s is undefined\n", func_name);
+        }
+        else if(!func_is_defined && func_name_is_defined)
+        {
+            SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 11: applying function invocation operator on name %s\n", func_name);
         }
     }
 
@@ -287,7 +336,7 @@ void sem_ast_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
             in_expr = 0;
 
         //iteration
-        sem_ast_search(child, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type, in_struct, in_expr);
+        sem_ast_search(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type, in_struct, in_expr);
     }
 
     // pop symbol table and link it to the node
@@ -302,5 +351,5 @@ void sem_analyze(splc_trans_unit tunit)
 {
     // TODO(semantics): finish semantic analysis part
     // splcdiag("Semantic Analysis should be performed there.\n");
-    sem_ast_search(tunit->root, tunit, 0, SPLE_NULL, SPLE_NULL, NULL, 0, 0);
+    sem_ast_search(tunit->root, NULL, tunit, 0, SPLE_NULL, SPLE_NULL, NULL, 0, 0);
 }
