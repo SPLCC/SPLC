@@ -91,7 +91,7 @@ static void print_colored_line(splc_msg_t type, const char *line, int linebegin,
     for (int i = 0; i < colbegin - 1; ++i)
         fprintf(stderr, "%c", line[i]);
 
-    fprintf(stderr, "%s", color_code);
+    fprintf(stderr, "\033[1m%s", color_code);
     for (int i = colbegin - 1; i < colend; ++i)
         fprintf(stderr, "%c", line[i]);
     fprintf(stderr, "\033[0m");
