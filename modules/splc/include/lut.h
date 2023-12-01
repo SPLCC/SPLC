@@ -53,12 +53,22 @@ lut_table lut_copy_table(lut_table table);
 void lut_free_table(lut_table *table);
 
 /* Find the value of a name in the hashtable. Table must be valid and nonnull, and key must be nonnull.
-   Return 0 if such entry doesn't exist. Else 1. */
-int lut_exists(const lut_table table, const char *name);
+   Return NULL if such entry doesn't exist. */
+lut_entry lut_find(const lut_table table, const char *name, const splc_entry_t type);
 
 /* Find the value of a name in the hashtable. Table must be valid and nonnull, and key must be nonnull.
-   Return NULL if such entry doesn't exist. */
-lut_entry lut_find(const lut_table table, const char *name);
+   Return NULL if such entry doesn't exist.
+   Return the FIRST valid entry. */
+lut_entry lut_find_name_first(const lut_table table, const char *name);
+
+/* Find the value of a name in the hashtable. Table must be valid and nonnull, and key must be nonnull.
+   Return 0 if such entry doesn't exist. Else 1. */
+int lut_exists(const lut_table table, const char *name, const splc_entry_t type);
+
+/* Find the value of a name in the hashtable. Table must be valid and nonnull, and key must be nonnull.
+   Return 0 if such entry doesn't exist. Else 1.
+   Note: This function will return true if any of the name matches the given. */
+int lut_name_exists(const lut_table table, const char *name);
 
 /* Insert a value to hashtable. If the name already correspond to an entry, overwrite it.
    Name will be copied.
@@ -66,7 +76,7 @@ lut_entry lut_find(const lut_table table, const char *name);
 lut_entry lut_insert(lut_table table, const char *name, const splc_entry_t type, const splc_entry_t extra_type, const char* spec_type, const ast_node root, const splc_loc first_occur);
 
 /* Delete a value from hashtable. Accept NULL key, and allows nonexisting entry to be deleted. */
-void lut_delete(lut_table table, const char *name);
+void lut_delete(lut_table table, const char *name, const splc_entry_t type);
 
 /* Reset a hashtable. */
 void lut_reset_all(lut_table table);

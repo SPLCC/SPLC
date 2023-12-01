@@ -48,43 +48,32 @@ static char *fetchline(FILE *file, int linebegin)
     return lineptr;
 }
 
-static const char *get_splc_error_color_code(error_t type)
+static const char *get_splc_error_color_code(splc_msg_t type)
 {
     const char *color_code = "\033[31m";
+    if (SPLC_IS_MSG_WARNING(type))
+    {
+        color_code = "\033[95m";
+        return color_code;
+    }
+    else if (SPLC_IS_MSG_ERROR(type))
+    {
+        color_code = "\033[91m";
+        return color_code;
+    }
+
     switch (type)
     {
-    case SPLC_ERR_FATAL:
-    case SPLC_ERR_UNIV:
-    case SPLC_ERR_A:
-    case SPLC_ERR_B:
-
-    case SPLC_SEM_ERR_1:
-    case SPLC_SEM_ERR_2:
-    case SPLC_SEM_ERR_3:
-    case SPLC_SEM_ERR_4:
-    case SPLC_SEM_ERR_5:
-    case SPLC_SEM_ERR_6:
-    case SPLC_SEM_ERR_7:
-    case SPLC_SEM_ERR_8:
-    case SPLC_SEM_ERR_9:
-    case SPLC_SEM_ERR_10:
-    case SPLC_SEM_ERR_11:
-    case SPLC_SEM_ERR_12:
-    case SPLC_SEM_ERR_13:
-    case SPLC_SEM_ERR_14:
-    case SPLC_SEM_ERR_15:
-
-    case SPLC_MACRO_ERROR:
+    case SPLM_MACRO_ERROR:
         color_code = "\033[91m";
         break;
-    case SPLC_WARN:
-    case SPLC_MACRO_WARN:
+    case SPLM_MACRO_WARN:
         color_code = "\033[95m";
         break;
-    case SPLC_NOTE:
+    case SPLM_NOTE:
         color_code = "\033[96m";
         break;
-    case SPLC_DIAG:
+    case SPLM_DIAG:
         color_code = "\033[93m";
         break;
     default:
@@ -94,7 +83,7 @@ static const char *get_splc_error_color_code(error_t type)
     return color_code;
 }
 
-static void print_colored_line(error_t type, const char *line, int linebegin, int colbegin, int colend)
+static void print_colored_line(splc_msg_t type, const char *line, int linebegin, int colbegin, int colend)
 {
     const char *color_code = get_splc_error_color_code(type);
     fprintf(stderr, "%8d | ", linebegin);
@@ -102,7 +91,7 @@ static void print_colored_line(error_t type, const char *line, int linebegin, in
     for (int i = 0; i < colbegin - 1; ++i)
         fprintf(stderr, "%c", line[i]);
 
-    fprintf(stderr, "%s", color_code);
+    fprintf(stderr, "\033[1m%s", color_code);
     for (int i = colbegin - 1; i < colend; ++i)
         fprintf(stderr, "%c", line[i]);
     fprintf(stderr, "\033[0m");
@@ -112,7 +101,7 @@ static void print_colored_line(error_t type, const char *line, int linebegin, in
     fprintf(stderr, "\n");
 }
 
-static void print_indicator(error_t type, int colbegin, int colend)
+static void print_indicator(splc_msg_t type, int colbegin, int colend)
 {
     // fprintf(stderr, "Accepted parameters: %d %d\n", colbegin, colend);
     const char *color_code = get_splc_error_color_code(type);
@@ -130,49 +119,36 @@ static void print_indicator(error_t type, int colbegin, int colend)
     return;
 }
 
-static char *splc_get_msg_type_prefix(error_t type)
+static char *splc_get_msg_type_prefix(splc_msg_t type)
 {
     const char *type_name = "undefined message";
+    if (SPLC_IS_MSG_WARNING(type))
+    {
+        type_name = "warning";
+        return strdup(type_name);
+    }
+    else if (type == SPLM_ERR_FATAL)
+    {
+        type_name = "fatal error";
+        return strdup(type_name);
+    }
+    else if (SPLC_IS_MSG_ERROR(type))
+    {
+        type_name = "error";
+        return strdup(type_name);
+    }
     switch (type)
     {
-    case SPLC_ERR_FATAL:
-        type_name = "fatal error";
-        break;
-    case SPLC_ERR_UNIV:
-    case SPLC_ERR_A:
-    case SPLC_ERR_B:
-
-    case SPLC_SEM_ERR_1:
-    case SPLC_SEM_ERR_2:
-    case SPLC_SEM_ERR_3:
-    case SPLC_SEM_ERR_4:
-    case SPLC_SEM_ERR_5:
-    case SPLC_SEM_ERR_6:
-    case SPLC_SEM_ERR_7:
-    case SPLC_SEM_ERR_8:
-    case SPLC_SEM_ERR_9:
-    case SPLC_SEM_ERR_10:
-    case SPLC_SEM_ERR_11:
-    case SPLC_SEM_ERR_12:
-    case SPLC_SEM_ERR_13:
-    case SPLC_SEM_ERR_14:
-    case SPLC_SEM_ERR_15:
-
-        type_name = "error";
-        break;
-    case SPLC_WARN:
-        type_name = "warning";
-        break;
-    case SPLC_NOTE:
+    case SPLM_NOTE:
         type_name = "note";
         break;
-    case SPLC_DIAG:
+    case SPLM_DIAG:
         type_name = "diagnostics";
         break;
-    case SPLC_MACRO_ERROR:
+    case SPLM_MACRO_ERROR:
         type_name = "error";
         break;
-    case SPLC_MACRO_WARN:
+    case SPLM_MACRO_WARN:
         type_name = "warning";
         break;
     default:
@@ -182,83 +158,89 @@ static char *splc_get_msg_type_prefix(error_t type)
     return strdup(type_name);
 }
 
-static char *splc_get_msg_type_suffix(error_t type)
+static char *splc_get_msg_type_suffix(splc_msg_t type)
 {
     char *type_suffix = NULL;
     switch (type)
     {
-    case SPLC_ERR_FATAL:
+    case SPLM_ERR_FATAL:
         type_suffix = NULL;
         break;
-    case SPLC_ERR_UNIV:
+    case SPLM_ERR_UNIV:
         type_suffix = NULL;
-    case SPLC_ERR_A:
+    case SPLM_ERR_A:
         type_suffix = "A";
         break;
-    case SPLC_ERR_B:
+    case SPLM_ERR_B:
         type_suffix = "B";
         break;
 
-    case SPLC_SEM_ERR_1:
+    case SPLM_SEM_ERR_1:
         type_suffix = "1";
         break;
-    case SPLC_SEM_ERR_2:
+    case SPLM_SEM_ERR_2:
         type_suffix = "2";
         break;
-    case SPLC_SEM_ERR_3:
+    case SPLM_SEM_ERR_3:
         type_suffix = "3";
         break;
-    case SPLC_SEM_ERR_4:
+    case SPLM_SEM_ERR_4:
         type_suffix = "4";
         break;
-    case SPLC_SEM_ERR_5:
+    case SPLM_SEM_ERR_5:
         type_suffix = "5";
         break;
-    case SPLC_SEM_ERR_6:
+    case SPLM_SEM_ERR_6:
         type_suffix = "6";
         break;
-    case SPLC_SEM_ERR_7:
+    case SPLM_SEM_ERR_7:
         type_suffix = "7";
         break;
-    case SPLC_SEM_ERR_8:
+    case SPLM_SEM_ERR_8:
         type_suffix = "8";
         break;
-    case SPLC_SEM_ERR_9:
+    case SPLM_SEM_ERR_9:
         type_suffix = "9";
         break;
-    case SPLC_SEM_ERR_10:
+    case SPLM_SEM_ERR_10:
         type_suffix = "10";
         break;
-    case SPLC_SEM_ERR_11:
+    case SPLM_SEM_ERR_11:
         type_suffix = "11";
         break;
-    case SPLC_SEM_ERR_12:
+    case SPLM_SEM_ERR_12:
         type_suffix = "12";
         break;
-    case SPLC_SEM_ERR_13:
+    case SPLM_SEM_ERR_13:
         type_suffix = "13";
         break;
-    case SPLC_SEM_ERR_14:
+    case SPLM_SEM_ERR_14:
         type_suffix = "14";
         break;
-    case SPLC_SEM_ERR_15:
+    case SPLM_SEM_ERR_15:
         type_suffix = "15";
         break;
 
-    case SPLC_WARN:
+    case SPLM_Wuniv:
         type_suffix = NULL;
         break;
-    case SPLC_NOTE:
+    case SPLM_Woverflow:
+        type_suffix = "-Woverflow";
+        break;
+    case SPLM_Wimplicit_int:
+        type_suffix = "-Wimplicit-int";
+        break;
+    case SPLM_NOTE:
         type_suffix = NULL;
         break;
-    case SPLC_DIAG:
+    case SPLM_DIAG:
         type_suffix = NULL;
         break;
-    case SPLC_MACRO_ERROR:
-        type_suffix = "Wmacro-error";
+    case SPLM_MACRO_ERROR:
+        type_suffix = "-Wmacro-error";
         break;
-    case SPLC_MACRO_WARN:
-        type_suffix = "Wmacro-warning";
+    case SPLM_MACRO_WARN:
+        type_suffix = "-Wmacro-warning";
         break;
     default:
         type_suffix = NULL;
@@ -267,7 +249,7 @@ static char *splc_get_msg_type_suffix(error_t type)
     return (type_suffix != NULL) ? strdup(type_suffix) : NULL;
 }
 
-static void _builtin_splc_handle_msg_noloc(error_t type, const char *msg)
+static void _builtin_splc_handle_msg_noloc(splc_msg_t type, const char *msg)
 {
     const char *color_code = get_splc_error_color_code(type);
     char *type_name = splc_get_msg_type_prefix(type);
@@ -276,7 +258,7 @@ static void _builtin_splc_handle_msg_noloc(error_t type, const char *msg)
     fprintf(stderr, "\033[1m%s:\033[0m %s%s:\033[0m %s", filename, color_code, type_name, msg);
     if (type_suffix != NULL)
     {
-        fprintf(stderr, " [%s%s\033[0m]", color_code, type_suffix);
+        fprintf(stderr, " [\033[1m%s%s\033[0m]", color_code, type_suffix);
     }
     fprintf(stderr, "\n");
     free(type_name);
@@ -285,7 +267,7 @@ static void _builtin_splc_handle_msg_noloc(error_t type, const char *msg)
     return;
 }
 
-static void _builtin_splc_handle_msg(error_t type, const splc_loc *const location, const char *msg)
+static void _builtin_splc_handle_msg(splc_msg_t type, const splc_loc *const location, const char *msg)
 {
     // fprintf(stderr, "msg param %d %d - %d %d\n", location->linebegin, location->colbegin, location->lineend,
     // location->colend);
@@ -297,7 +279,7 @@ static void _builtin_splc_handle_msg(error_t type, const splc_loc *const locatio
             color_code, type_name, msg);
     if (type_suffix != NULL)
     {
-        fprintf(stderr, " [%s%s\033[0m]", color_code, type_suffix);
+        fprintf(stderr, " [\033[1m%s%s\033[0m]", color_code, type_suffix);
     }
     fprintf(stderr, "\n");
     free(type_name);
@@ -306,7 +288,7 @@ static void _builtin_splc_handle_msg(error_t type, const splc_loc *const locatio
     FILE *file = NULL;
     if ((file = fopen(orig_file, "r")) == NULL)
     {
-        SPLC_FERROR_NOLOC(SPLC_ERR_FATAL, "file no longer exists: %s\n", orig_file);
+        SPLC_FERROR_NOLOC(SPLM_ERR_FATAL, "file no longer exists: %s\n", orig_file);
         return;
     }
     char *line = fetchline(file, location->linebegin);
@@ -328,8 +310,10 @@ static void _builtin_splc_handle_msg(error_t type, const splc_loc *const locatio
 }
 
 /* If passed a NULL location or location that has fid=1, then the trace information will not be printed. */
-static void splc_handle_msg(error_t type, const splc_loc *const location, const char *msg)
+static void splc_dispatch_msg(splc_msg_t type, const splc_loc *const location, const char *msg)
 {
+    if (!SPLC_IS_MSG_NONVERBOSE(type) && !splcf_verbose)
+        return;
     if (location != NULL && !SPLC_IS_LOC_ROOT(*location))
         _builtin_splc_handle_msg(type, location, msg);
     else
@@ -361,7 +345,7 @@ static const char *splc_get_trace_string(trace_t type)
     return type_str;
 }
 
-void splctrace(trace_t type, int show_source, const char *name)
+void splctrace(const trace_t type, int show_source, const char *name)
 {
     const char *type_str = splc_get_trace_string(type);
     fprintf(stderr, "%s%sIn %s \033[1m'%s':%d\033[0m:\n", show_source != 0 ? splc_file_node_stack->filename : "",
@@ -369,26 +353,13 @@ void splctrace(trace_t type, int show_source, const char *name)
     return;
 }
 
-static void _builtin_splcerror(error_t type, const splc_loc *const location, const char *msg)
+/* Update error/warning count if necessary */
+void splc_update_log_status(const splc_msg_t type)
 {
-    update_error(1);
-    splc_handle_msg(type, location, msg);
-}
-
-static void _builtin_splcwarn(const splc_loc *const location, const char *msg)
-{
-    update_warning(1);
-    splc_handle_msg(SPLC_WARN, location, msg);
-}
-
-static void _builtin_splcnote(const splc_loc *const location, const char *msg)
-{
-    splc_handle_msg(SPLC_NOTE, location, msg);
-}
-
-void _builtin_splcdiag(const char *msg)
-{
-    splc_handle_msg(SPLC_DIAG, NULL, msg);
+    if (SPLC_IS_MSG_WARNING(type))
+        update_warning(1);
+    if (SPLC_IS_MSG_ERROR(type))
+        update_error(1);
 }
 
 static void _builtin_print_file_trace(util_file_node node)
@@ -419,46 +390,15 @@ static inline void print_file_trace(util_file_node node)
         _builtin_print_file_trace(node);
 }
 
-void splcfail(const char *msg)
+void splc_internal_handle_msg(const splc_msg_t type, const splc_loc location, const char *msg)
 {
-    splcerror_noloc(SPLC_ERR_FATAL, msg);
-    abort();
-}
-
-void splcerror(error_t type, const splc_loc location, const char *msg)
-{
-    print_file_trace(splc_all_file_nodes[location.fid]);
-    _builtin_splcerror(type, &location, msg);
-}
-
-void splcerror_noloc(error_t type, const char *msg)
-{
-    update_error(1);
-    _builtin_splcerror(type, NULL, msg);
-}
-
-void splcwarn(const splc_loc location, const char *msg)
-{
-    print_file_trace(splc_all_file_nodes[location.fid]);
-    _builtin_splcwarn(&location, msg);
-}
-
-void splcwarn_noloc(const char *msg)
-{
-    print_file_trace(NULL);
-    _builtin_splcwarn(NULL, msg);
-}
-
-void splcnote(const splc_loc location, const char *msg)
-{
-    print_file_trace(splc_all_file_nodes[location.fid]);
-    _builtin_splcnote(&location, msg);
-}
-
-void splcdiag(const char *msg)
-{
-    if (splcf_verbose)
-        _builtin_splcdiag(msg);
+    int require_loc = !SPLC_IS_LOC_INVALID(location);
+    if (require_loc)
+    {
+        print_file_trace(splc_all_file_nodes[location.fid]);
+    }
+    splc_update_log_status(type);
+    splc_dispatch_msg(type, require_loc ? &location : NULL, msg);
 }
 
 static int _builtin_splc_enter_file(const char *restrict _filename, const splc_loc *const location)
@@ -468,13 +408,15 @@ static int _builtin_splc_enter_file(const char *restrict _filename, const splc_l
                               is no need to free it, as it will be directly placed in the file node. */
     if ((filename = splc_search_incl_dirs(_filename)) == NULL || (new_file = fopen(filename, "r")) == NULL)
     {
-        const char *msg = "failed to include file. Please check whether the path exists or this program has access right.";
-        if (location != NULL) {
-            splcerror(SPLC_ERR_FATAL, *location, msg);
+        const char *msg =
+            "failed to include file. Please check whether the path exists or this program has access right.";
+        if (location != NULL)
+        {
+            SPLC_ERROR(SPLM_ERR_FATAL, *location, msg);
         }
         else
         {
-            splcerror_noloc(SPLC_ERR_FATAL, msg);
+            SPLC_ERROR_NOLOC(SPLM_ERR_FATAL, msg);
         }
         return -1;
     }

@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 
     if (splc_src_file_cnt == 0)
     {
-        splcerror_noloc(SPLC_ERR_FATAL, "no input file\ncompilation terminated.");
+        SPLC_ERROR_NOLOC(SPLM_ERR_FATAL, "no input file\ncompilation terminated.");
         exit(1);
     }
 
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
         yyparse();
 
         /* append the global symbol table to AST's root */
-        current_trans_unit->root->symtable = lut_copy_table(current_trans_unit->global_symtable);
+        current_trans_unit->root->symtable = lut_copy_table(SPLC_TRANS_UNIT_ENV_TOP(current_trans_unit));
 
         if (!err_count)
         {

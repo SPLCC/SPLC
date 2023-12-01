@@ -96,9 +96,10 @@ enum splc_token_type
 
     SPLT_EXPR = SPLT_EXPR_OFFSET, /* expression */
     SPLT_PRIM_EXPR,               /* primary expression */
-    SPLT_POSTF_EXPR,              /* postfix expression */
+    SPLT_FUNC_INVOC_EXPR,         /* function invocation expression */
+    SPLT_POSTFIX_EXPR,            /* postfix expression */
     SPLT_UNARY_EXPR,              /* unary expression */
-    SPLT_CAST_EXPR,               /* unary expression */
+    SPLT_CAST_EXPR,               /* cast expression */
     SPLT_MUL_EXPR,                /* multiplicative expression */
     SPLT_ADD_EXPR,                /* additive expression */
     SPLT_SHIFT_EXPR,              /* shift expression */
@@ -352,6 +353,9 @@ lut_table splc_push_symtable(splc_trans_unit tunit, int scope);
 lut_table splc_pop_symtable(splc_trans_unit tunit);
 
 splc_trans_unit splc_link_trans_units();
+
+#define SPLC_TRANS_UNIT_ENV_TOP(tunit) \
+    (tunit)->envs[(tunit)->nenvs - 1]
 
 /* Passed splc arguments */
 

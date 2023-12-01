@@ -76,7 +76,8 @@ const char *splc_get_token_color_code(splc_token_t type)
 
     case SPLT_EXPR:
     case SPLT_PRIM_EXPR:
-    case SPLT_POSTF_EXPR:
+    case SPLT_FUNC_INVOC_EXPR:
+    case SPLT_POSTFIX_EXPR:
     case SPLT_UNARY_EXPR:
     case SPLT_CAST_EXPR:
     case SPLT_MUL_EXPR:
@@ -370,7 +371,9 @@ const char *splc_token2str(splc_token_t type)
         return "Expr";
     case SPLT_PRIM_EXPR:
         return "PrimaryExpr";
-    case SPLT_POSTF_EXPR:
+    case SPLT_FUNC_INVOC_EXPR:
+        return "FuncInvocExpr";
+    case SPLT_POSTFIX_EXPR:
         return "PostfixExpr";
     case SPLT_UNARY_EXPR:
         return "UnaryExpr";
@@ -633,7 +636,7 @@ splc_trans_unit splc_create_empty_trans_unit()
 splc_trans_unit splc_create_trans_unit()
 {
     splc_trans_unit unit = splc_create_empty_trans_unit();
-    unit->global_symtable = lut_new_table(0);
+    unit->global_symtable = splc_push_symtable(unit, 0);
     return unit;
 }
 

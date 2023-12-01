@@ -9,7 +9,7 @@
 
 int splcf_ast_dump = 0;
 
-int splcf_enable_colored_ast = 0;
+int splcf_no_ast_color = 0;
 
 int splcf_enable_ast_punctuators = 0;
 
@@ -193,7 +193,7 @@ ast_node ast_deep_copy(ast_node node)
             SPLC_ALLOC_PTR_CHECK(result->val, "failed to copy string to another node");
             break;
         default:
-            SPLC_FWARN_NOLOC("AST value cannot be copied due to undefined behavior on node type: %s",
+            SPLC_FWARN_NOLOC(SPLM_ERR_UNIV, "AST value cannot be copied due to undefined behavior on node type: %s",
                              splc_token2str(node->type));
             break;
         }
@@ -206,7 +206,7 @@ ast_node ast_deep_copy(ast_node node)
     return result;
 }
 
-static void _builtin_print_single_node(const ast_node node)
+void print_single_node(const ast_node node)
 {
     // print node type
     SPLC_AST_PRINT_COLORED("\033[1m");
@@ -321,7 +321,7 @@ static void _builtin_ast_print(const ast_node node, const char *prefix)
         printf("%s%s", prefix, indicator);
         SPLC_AST_PRINT_COLORED("\033[0m");
 
-        _builtin_print_single_node(node->children[i]);
+        print_single_node(node->children[i]);
         printf("\n");
 
         if (node->children[i]->num_child > 0)
@@ -338,7 +338,7 @@ void ast_print(ast_node root)
 {
     if (root != NULL)
     {
-        _builtin_print_single_node(root);
+        print_single_node(root);
         printf("\n");
         _builtin_ast_print(root, "");
     }
@@ -346,302 +346,5 @@ void ast_print(ast_node root)
     {
         printf("%s", splc_get_token_color_code(SPLT_NULL));
         printf("(%s)\033[0m\n", splc_token2str(SPLT_NULL));
-    }
-}
-
-void ast_sem_search(ast_node node, splc_trans_unit tunit, int new_sym_table, splc_entry_t decl_entry_type,
-                    splc_entry_t decl_extra_type, const char *decl_spec_type, int first_struct)
-{
-    // new table construction
-    int find_stmt = 0;
-    if ((node->type == SPLT_STRUCT_UNION_SPEC && node->num_child == 3) || node->type == SPLT_FUNC_DEF ||
-        node->type == SPLT_TRANS_UNIT)
-        new_sym_table = 1;
-    if (new_sym_table)
-        splc_push_symtable(tunit, 0);
-
-    int copy_new_sym_table = new_sym_table;
-    if (node->type == SPLT_SEL_STMT || node->type == SPLT_ITER_STMT)
-        find_stmt = 1;
-
-    // definition
-    // definition of struct/union
-    if (node->type == SPLT_STRUCT_UNION_SPEC && node->num_child == 3)
-    {
-        ast_node type_children = node->children[0];
-        ast_node id_children = node->children[1];
-        splc_entry_t tmp_decl_entry_type;
-        if (type_children->type == SPLT_KWD_STRUCT)
-            tmp_decl_entry_type = SPLE_STRUCT_DEC;
-        else
-        {
-            tmp_decl_entry_type = SPLE_UNION_DEC;
-        }
-        char *struct_union_name = (char *)(id_children->val); // name of struct/union
-        // TODO: check if there is a struct(or function) with the same name
-        int struct_union_undefined = 0;
-        for (int i = 0; i < tunit->nenvs; i++)
-        {
-            if (lut_find(tunit->envs[i], struct_union_name))
-                struct_union_undefined = 1;
-        }
-        if (struct_union_undefined)
-        {
-            printf("Error type 15 at line %d: redefinition of %s\n", node->location.linebegin, struct_union_name);
-        }
-        printf("struct: %s %d\n", struct_union_name, tmp_decl_entry_type);
-        lut_insert(tunit->envs[(tunit->nenvs) - 1], struct_union_name, tmp_decl_entry_type, SPLE_NULL, NULL, node,
-                   node->location);
-        if (first_struct) // check if the global struct(whether insert into envs[0])
-        {
-            first_struct = 0;
-            lut_insert(tunit->envs[0], struct_union_name, tmp_decl_entry_type, SPLE_NULL, NULL, node, node->location);
-        }
-    }
-    // definition in struct/union
-    if (node->type == SPLT_STRUCT_DECLTN) // Struct/Union-Decl
-    {
-        decl_extra_type = SPLE_NULL;
-        ast_node typespec_child_node = ((node->children[0])->children[0])->children[0]; // son of TypeSpec
-        if (typespec_child_node->num_child == 0)                                        // variable type
-        {
-            decl_entry_type = SPLE_VAR;
-            decl_spec_type = splc_token2str(typespec_child_node->type);
-        }
-        else
-        { // struct/union type
-            // pass two parameter into his brothers for inserting into table
-            ast_node type_children = typespec_child_node->children[0];
-            ast_node id_children = typespec_child_node->children[1];
-            if (type_children->type == SPLT_KWD_STRUCT)
-                decl_entry_type = SPLE_STRUCT_DEC;
-            else
-            {
-                decl_entry_type = SPLE_UNION_DEC;
-            }
-            decl_spec_type = (char *)(id_children->val);
-        }
-    }
-
-    // definition of function
-    if (node->type == SPLT_FUNC_DEF) // FunctionDef
-    {
-        decl_entry_type = SPLE_FUNC;
-        ast_node typespec_child_node = (((node->children[0])->children[0])->children[0]); // Typespec's child
-        if (typespec_child_node->num_child == 0)                                          // variable type
-        {
-            decl_extra_type = SPLE_VAR;
-            decl_spec_type = splc_token2str(typespec_child_node->type);
-        }
-        else
-        { // struct/union type
-            ast_node type_children = typespec_child_node->children[0];
-            ast_node id_children = typespec_child_node->children[1];
-            if (type_children->type == SPLT_KWD_STRUCT)
-                decl_extra_type = SPLE_STRUCT_DEC;
-            else
-            {
-                decl_extra_type = SPLE_UNION_DEC;
-            }
-            decl_spec_type = (char *)(id_children->val);
-        }
-        // passing the params to the declaration below
-    }
-
-    // definition in function
-    if (node->type == SPLT_PARAM_DEC || node->type == SPLT_DIR_DECLTN) // ParamDecltr(for each parameter of function) /
-                                                                       // DirectDecl(declaration in the functionbody)
-    {
-        decl_extra_type = SPLE_NULL;
-        ast_node typespec_child_node = (((node->children[0])->children[0])->children[0]);
-        if (typespec_child_node->num_child == 0) // variable type
-        {
-            decl_entry_type = SPLE_VAR;
-            decl_spec_type = splc_token2str(typespec_child_node->type);
-        }
-        else
-        { // struct/union type
-            ast_node type_children = typespec_child_node->children[0];
-            ast_node id_children = typespec_child_node->children[1];
-            if (type_children->type == SPLT_KWD_STRUCT)
-                decl_entry_type = SPLE_STRUCT_DEC;
-            else
-            {
-                decl_entry_type = SPLE_UNION_DEC;
-            }
-            decl_spec_type = (char *)(id_children->val);
-        }
-        // pass the two params to the declaration below
-    }
-
-    // add declare variables into table:
-    if (node->type == SPLT_DIR_DEC) // DirectDecltr (for variables)
-    {
-        char *var_name = (char *)((node->children[0])->val);
-        // printf("%s %d %d %s\n",var_name, decl_entry_type, decl_extra_type, decl_spec_type);
-        //  Type 3 --- redefined variable
-        int var_is_redefined = 0;
-        for (int i = 0; i < tunit->nenvs; i++)
-        {
-            if (lut_find(tunit->envs[i], var_name))
-                var_is_redefined = 1;
-        }
-        if (var_is_redefined)
-        {
-            printf("Error type 3 at line %d: redefinition of %s\n", node->location.linebegin, var_name);
-        }
-        else
-        {
-            printf("variable: %s %d %d %s\n", var_name, decl_entry_type, decl_extra_type, decl_spec_type);
-            lut_insert(tunit->envs[(tunit->nenvs) - 1], var_name, decl_entry_type, decl_extra_type, decl_spec_type,
-                       node, node->location);
-        }
-        return;
-    }
-    if (node->type == SPLT_DIR_FUNC_DEC) // DirectFunctionDecltr (for functions)
-    {
-        char *func_name = (char *)(((node->children[0])->children[0])->val);
-        int func_is_redefined = 0;
-        for (int i = 0; i < tunit->nenvs; i++)
-        {
-            if (lut_find(tunit->envs[i], func_name))
-                func_is_redefined = 1;
-        }
-        if (func_is_redefined)
-        {
-            printf("Error type 4 at line %d: redefinition of %s\n", node->location.linebegin, func_name);
-        }
-        else
-        {
-            printf("function: %s %d %d %s\n", func_name, decl_entry_type, decl_extra_type, decl_spec_type);
-            lut_insert(tunit->envs[(tunit->nenvs) - 1], func_name, decl_entry_type, decl_extra_type, decl_spec_type,
-                       node, node->location);
-            lut_insert(tunit->envs[0], func_name, decl_entry_type, decl_extra_type, decl_spec_type, node,
-                       node->location);
-        }
-        if (node->num_child == 2)
-            ast_sem_search(node->children[1], tunit, 0, decl_entry_type, decl_extra_type, decl_spec_type, first_struct);
-        return;
-    }
-
-    // search children
-    for (int i = 0; i < node->num_child; i++)
-    {
-        // get new_sym_table
-        ast_node child = node->children[i];
-        if (child->type == SPLT_STMT && find_stmt)
-        {
-            new_sym_table = 1;
-            find_stmt = 0;
-        }
-        else
-        {
-            new_sym_table = 0;
-        }
-
-        // iteration
-        ast_sem_search(child, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type, first_struct);
-    }
-
-    // pop symbol table and link it to the node
-    if (copy_new_sym_table)
-    {
-        lut_table top_sym_table = splc_pop_symtable(tunit);
-        node->symtable = top_sym_table;
-    }
-}
-
-lut_entry find_id_entry(ast_node node, const char *name)
-{
-    lut_entry ent = NULL;
-    if (node->symtable)
-    {
-        ent = lut_find(node->symtable, name);
-        if (ent)
-        {
-            return ent;
-        }
-    }
-    // search children
-    for (int i = 0; i < node->num_child; i++)
-    {
-        // iteration
-        ent = find_id_entry(node->children[i], name);
-        if (ent)
-        {
-            return ent;
-        }
-    }
-    return SPLE_NULL;
-}
-
-sem_expr_t ast_sem_expr(ast_node root, ast_node node)
-{
-    if (SPLT_IS_ID(node->type))
-    {
-        // return the specific type directly
-        lut_entry ent = find_id_entry(root, (char *)(node->val));
-        if (ent != SPLE_NULL)
-        {
-            const char *type = ent->spec_type;
-            if (type == splc_token2str(SPLT_TYPE_INT))
-                return EXPR_INT;
-            else if (type == splc_token2str(SPLT_TYPE_FLOAT))
-                return EXPR_FLOAT;
-            else if (type == splc_token2str(SPLT_TYPE_CHAR))
-                return EXPR_CHAR;
-        }
-        return EXPR_NULL;
-    }
-    else if (SPLT_IS_LITERAL(node->type))
-    {
-        splc_token_t type = node->children[0]->type;
-        if (type == SPLT_LTR_INT)
-            return EXPR_INT;
-        else if (type == SPLT_LTR_FLOAT)
-            return EXPR_FLOAT;
-        else if (type == SPLT_LTR_CHAR)
-            return EXPR_CHAR;
-        return EXPR_NULL;
-    }
-
-    if (node->type == SPLT_EXPR)
-    {
-        if (node->num_child == 1)
-        {
-            // 带有括号的expr、字面量
-            return ast_sem_expr(root, node->children[0]);
-        }
-        else if (node->num_child == 2)
-        {
-            // unary
-            int expr_idx = node->children[0]->type == SPLT_ID || node->children[0]->type == SPLT_EXPR ? 0 : 1;
-            ast_node expr_node = node->children[expr_idx];
-            ast_node operand_node = node->children[1 - expr_idx];
-
-            sem_expr_t type = ast_sem_expr(root, expr_node);
-            if (type == EXPR_NULL)
-            {
-                splcerror(SPLC_SEM_ERR_7, node->location, "unmatching operands");
-            }
-            return type;
-        }
-        else if (node->num_child == 3)
-        {
-            sem_expr_t left = ast_sem_expr(root, node->children[0]);
-            sem_expr_t right = ast_sem_expr(root, node->children[2]);
-            if (left == SPLT_NULL || right == SPLT_NULL || left != right)
-            {
-                if (node->children[1]->type == SPLT_ASSIGN)
-                    splcerror(SPLC_SEM_ERR_5, node->location, "unmatching types");
-                else 
-                    splcerror(SPLC_SEM_ERR_7, node->location, "unmatching operands");
-            }
-        }
-    }
-
-    for (int i = 0; i < node->num_child; i++)
-    {
-        ast_sem_expr(root, node->children[i]);
     }
 }
