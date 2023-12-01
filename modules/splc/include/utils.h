@@ -195,7 +195,7 @@ extern int splcf_no_diagnostics_color;
 #ifndef SPLC_DISABLE_DIAG
 
 /* Call this to print a diagnostic message */
-#define SPLC_DIAG(_msg)                                                                                               \
+#define SPLC_DIAG(_msg)                                                                                                \
     do                                                                                                                 \
     {                                                                                                                  \
         size_t needed = strlen(_msg) + 1;                                                                              \
@@ -210,12 +210,15 @@ extern int splcf_no_diagnostics_color;
 #define SPLC_FDIAG(_msg, ...)                                                                                          \
     do                                                                                                                 \
     {                                                                                                                  \
-        size_t needed = snprintf(NULL, 0, _msg, __VA_ARGS__) + 1;                                                      \
-        char *buffer = (char *)malloc(needed);                                                                         \
-        SPLC_ALLOC_PTR_CHECK(buffer, "cannot allocate memory for printing error");                                     \
-        sprintf(buffer, _msg, __VA_ARGS__);                                                                            \
-        splc_internal_handle_msg(SPLM_DIAG, SPLC_INVALID_LOC, buffer);                                                 \
-        free(buffer);                                                                                                  \
+        if (splcf_verbose)                                                                                             \
+        {                                                                                                              \
+            size_t needed = snprintf(NULL, 0, _msg, __VA_ARGS__) + 1;                                                  \
+            char *buffer = (char *)malloc(needed);                                                                     \
+            SPLC_ALLOC_PTR_CHECK(buffer, "cannot allocate memory for printing error");                                 \
+            sprintf(buffer, _msg, __VA_ARGS__);                                                                        \
+            splc_internal_handle_msg(SPLM_DIAG, SPLC_INVALID_LOC, buffer);                                             \
+            free(buffer);                                                                                              \
+        }                                                                                                              \
     } while (0)
 
 #else
