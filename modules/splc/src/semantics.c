@@ -398,7 +398,7 @@ sem_expr_t sem_ast_expr_process(ast_node root, ast_node node)
     {
         if (node->num_child == 1)
         {
-            // 带有括号的expr、字面量
+            // expr or literals with parentheses
             return sem_ast_expr_process(root, node->children[0]);
         }
         else if (node->num_child == 2)
