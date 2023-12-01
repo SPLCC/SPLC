@@ -1,5 +1,5 @@
-#ifndef SPLC_ERROR_TYPE_H
-#define SPLC_ERROR_TYPE_H
+#ifndef SPLC_MSG_TYPE_H
+#define SPLC_MSG_TYPE_H
 
 #define SPLC_MSG_NONVERBOSE_OFFSET 0x4000
 #define SPLC_MSG_WARNING_MASK 0x10000
@@ -29,4 +29,10 @@ enum splc_msg_type
 #define SPLC_IS_MSG_WARNING(x) (((x) & SPLC_MSG_WARNING_MASK) == SPLC_MSG_WARNING_MASK)
 #define SPLC_IS_MSG_ERROR(x) (((x) & SPLC_MSG_ERROR_MASK) == SPLC_MSG_ERROR_MASK)
 
-#endif /* SPLC_ERROR_TYPE_H */
+const char *get_splc_msg_color_code(splc_msg_t type);
+
+const char *splc_get_msg_type_prefix(splc_msg_t type);
+
+const char *splc_get_msg_type_suffix(splc_msg_t type);
+
+#endif /* SPLC_MSG_TYPE_H */

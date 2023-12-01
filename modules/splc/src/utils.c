@@ -48,44 +48,9 @@ static char *fetchline(FILE *file, int linebegin)
     return lineptr;
 }
 
-static const char *get_splc_error_color_code(splc_msg_t type)
-{
-    const char *color_code = "\033[31m";
-    if (SPLC_IS_MSG_WARNING(type))
-    {
-        color_code = "\033[95m";
-        return color_code;
-    }
-    else if (SPLC_IS_MSG_ERROR(type))
-    {
-        color_code = "\033[91m";
-        return color_code;
-    }
-
-    switch (type)
-    {
-    case SPLM_MACRO_ERROR:
-        color_code = "\033[91m";
-        break;
-    case SPLM_MACRO_WARN:
-        color_code = "\033[95m";
-        break;
-    case SPLM_NOTE:
-        color_code = "\033[96m";
-        break;
-    case SPLM_DIAG:
-        color_code = "\033[93m";
-        break;
-    default:
-        color_code = "\033[96m";
-        break;
-    }
-    return color_code;
-}
-
 static void print_colored_line(splc_msg_t type, const char *line, int linebegin, int colbegin, int colend)
 {
-    const char *color_code = get_splc_error_color_code(type);
+    const char *color_code = get_splc_msg_color_code(type);
     fprintf(stderr, "%8d | ", linebegin);
 
     for (int i = 0; i < colbegin - 1; ++i)
@@ -104,7 +69,7 @@ static void print_colored_line(splc_msg_t type, const char *line, int linebegin,
 static void print_indicator(splc_msg_t type, int colbegin, int colend)
 {
     // fprintf(stderr, "Accepted parameters: %d %d\n", colbegin, colend);
-    const char *color_code = get_splc_error_color_code(type);
+    const char *color_code = get_splc_msg_color_code(type);
 
     fprintf(stderr, "         | ");
 
@@ -119,94 +84,11 @@ static void print_indicator(splc_msg_t type, int colbegin, int colend)
     return;
 }
 
-static char *splc_get_msg_type_prefix(splc_msg_t type)
-{
-    const char *type_name = "undefined message";
-    if (SPLC_IS_MSG_WARNING(type))
-    {
-        type_name = "warning";
-        return strdup(type_name);
-    }
-    else if (type == SPLM_ERR_FATAL)
-    {
-        type_name = "fatal error";
-        return strdup(type_name);
-    }
-    else if (SPLC_IS_MSG_ERROR(type))
-    {
-        type_name = "error";
-        return strdup(type_name);
-    }
-    switch (type)
-    {
-    case SPLM_NOTE:
-        type_name = "note";
-        break;
-    case SPLM_DIAG:
-        type_name = "diagnostics";
-        break;
-    case SPLM_MACRO_ERROR:
-        type_name = "error";
-        break;
-    case SPLM_MACRO_WARN:
-        type_name = "warning";
-        break;
-    default:
-        type_name = "fatal error";
-        break;
-    }
-    return strdup(type_name);
-}
-
-static char *splc_get_msg_type_suffix(splc_msg_t type)
-{
-    char *type_suffix = NULL;
-    switch (type)
-    {
-    case SPLM_ERR_FATAL:
-        type_suffix = NULL;
-        break;
-    case SPLM_ERR_UNIV:
-        type_suffix = NULL;
-    case SPLM_ERR_A:
-        type_suffix = "A";
-        break;
-    case SPLM_ERR_B:
-        type_suffix = "B";
-        break;
-    case SPLM_Wuniv:
-        type_suffix = NULL;
-        break;
-    case SPLM_Woverflow:
-        type_suffix = "-Woverflow";
-        break;
-    case SPLM_Wimplicit_int:
-        type_suffix = "-Wimplicit-int";
-        break;
-    case SPLM_NOTE:
-        type_suffix = NULL;
-        break;
-    case SPLM_DIAG:
-        type_suffix = NULL;
-        break;
-    case SPLM_MACRO_ERROR:
-        type_suffix = "-Wmacro-error";
-        break;
-    case SPLM_MACRO_WARN:
-        type_suffix = "-Wmacro-warning";
-        break;
-    default:
-        type_suffix = NULL;
-        break;
-    }
-    return (type_suffix != NULL) ? strdup(type_suffix) : NULL;
-}
-
 static void _builtin_splc_handle_msg_noloc(splc_msg_t type, const char *msg)
 {
-    const char *color_code = get_splc_error_color_code(type);
-    char *type_name = splc_get_msg_type_prefix(type);
-    char *type_suffix = splc_get_msg_type_suffix(type);
+    const char *color_code = get_splc_msg_color_code(type);
+    const char *type_name = splc_get_msg_type_prefix(type);
+    const char *type_suffix = splc_get_msg_type_suffix(type);
     const char *filename = (splc_file_node_stack != NULL) ? splc_file_node_stack->filename : progname;
     fprintf(stderr, "\033[1m%s:\033[0m %s%s:\033[0m %s", filename, color_code, type_name, msg);
     if (type_suffix != NULL)
@@ -214,8 +96,6 @@ static void _builtin_splc_handle_msg_noloc(splc_msg_t type, const char *msg)
         fprintf(stderr, " [\033[1m%s%s\033[0m]", color_code, type_suffix);
     }
     fprintf(stderr, "\n");
-    free(type_name);
-    free(type_suffix);
 
     return;
 }
@@ -224,9 +104,9 @@ static void _builtin_splc_handle_msg(splc_msg_t type, const splc_loc *const loca
 {
     // fprintf(stderr, "msg param %d %d - %d %d\n", location->linebegin, location->colbegin, location->lineend,
     // location->colend);
-    const char *color_code = get_splc_error_color_code(type);
-    char *type_name = splc_get_msg_type_prefix(type);
-    char *type_suffix = splc_get_msg_type_suffix(type);
+    const char *color_code = get_splc_msg_color_code(type);
+    const char *type_name = splc_get_msg_type_prefix(type);
+    const char *type_suffix = splc_get_msg_type_suffix(type);
     const char *const orig_file = splc_all_file_nodes[location->fid]->filename;
     fprintf(stderr, "\033[1m%s:%d:%d:\033[0m %s%s:\033[0m %s", orig_file, location->linebegin, location->colbegin,
             color_code, type_name, msg);
@@ -235,8 +115,6 @@ static void _builtin_splc_handle_msg(splc_msg_t type, const splc_loc *const loca
         fprintf(stderr, " [\033[1m%s%s\033[0m]", color_code, type_suffix);
     }
     fprintf(stderr, "\n");
-    free(type_name);
-    free(type_suffix);
 
     FILE *file = NULL;
     if ((file = fopen(orig_file, "r")) == NULL)
