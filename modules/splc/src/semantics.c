@@ -255,39 +255,23 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
         if(!var_is_defined)
         {
             SPLC_FERROR(SPLM_ERR_SEM_1, node->location, "variable `%s` is undefined", var_name);
-        }
-        
+        } 
         else{
             // check unvalid use of indexing operator
             //TODO: check the tree structrue of nodes and figure out the exact fault
             //(but the array structure is diffrent in declaration and usage)
             ast_node var_node = var_entry->root;
-            if(var_node->num_child == 1 && fa_node->num_child > 1 && (fa_node->children[1])->type == SPLT_LSB)
+            int decl_num = (var_node->num_child)/3;
+            int use_num = 0;
+            ast_node tmp_node = node->father;
+            while(tmp_node->type == SPLT_EXPR && (tmp_node->children[(tmp_node->num_child) - 1])->type == SPLT_RSB)
             {
-                SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 10: applying indexing operator on non-array type variable %s\n", var_name);
-            }
-            // check unvalide use of Dot
-            if((var_entry->type != SPLE_VAR || (var_entry->extra_type != SPLE_STRUCT_DEC && var_entry->extra_type != SPLE_UNION_DEC)) && fa_node->num_child > 1 && (fa_node->children[1])->type == SPLT_DOT)
+                use_num++;
+                tmp_node = tmp_node->father;
+            }            
+            if(decl_num < use_num)
             {
-                SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 13: accessing members of a non-structure variable %s\n", var_name);
-            }
-            else if(var_entry->type == SPLE_VAR && (var_entry->extra_type == SPLE_STRUCT_DEC || var_entry->extra_type == SPLE_UNION_DEC))
-            {
-                const char* struct_union_name = var_entry->spec_type;
-                int struct_union_type_exists = 0;
-                for(int i = 0; i < tunit->nenvs; i++)
-                {
-                    if(lut_exists(tunit->envs[i], struct_union_name, SPLE_UNION_DEC)||lut_exists(tunit->envs[i], struct_union_name, SPLE_STRUCT_DEC))
-                        struct_union_type_exists = 1;
-                }
-                // first check if the struct type is declared
-                if(!struct_union_type_exists)
-                {
-                    // TODO: move it to the definition of the variable
-                    /*
-                    SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error: using an undeclared struct/union type %s\n", struct_union_name);
-                    */
-                }
+                SPLC_FERROR(SPLM_ERR_SEM_10, node->location, "applying indexing operation on non-array type variable `%s`", var_name);
             }
         }
     }
@@ -335,8 +319,13 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
         if(child->type == SPLT_DOT)
             in_expr = 0;
 
-        //iteration
-        sem_ast_search(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type, in_struct, in_expr);
+        if(node->type == SPLT_FUNC_INVOC_EXPR && child->type == SPLT_ID)
+        {
+            sem_ast_search(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type, in_struct, 0);
+        }
+        else{
+            sem_ast_search(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type, in_struct, in_expr);
+        }
     }
 
     // pop symbol table and link it to the node
