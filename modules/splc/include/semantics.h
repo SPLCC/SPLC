@@ -21,6 +21,6 @@ void sem_track_scope_root(ast_node node);
 
 void sem_analyze(splc_trans_unit tunit);
 
-void sem_ast_search(ast_node node, splc_trans_unit tunit, int new_sym_table, splc_entry_t decl_entry_type, splc_entry_t decl_extra_type, const char* decl_spec_type);
+void sem_ast_search(ast_node node, splc_trans_unit tunit, int new_sym_table, splc_entry_t decl_entry_type, splc_entry_t decl_extra_type, const char* decl_spec_type, int in_struct);
 
 #endif /* SEMANTICS_H */
