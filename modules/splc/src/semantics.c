@@ -202,7 +202,7 @@ void sem_ast_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
         }
         if(var_is_redefined)
         {
-            SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 3: redefinition of variable %s\n", var_name);
+            SPLC_FERROR(SPLM_SEM_ERR_3, node->location, "Redefinition of variable `%s`\n", var_name);
         }
         else{
             printf("variable: %s %d %d %s\n",var_name, decl_entry_type, decl_extra_type, decl_spec_type);
@@ -221,7 +221,7 @@ void sem_ast_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
         }
         if(func_is_redefined)
         {
-            SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 4: redefinition of function %s\n", func_name);
+            SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 4: redefinition of function %s", func_name);
         }
         else{
             printf("function: %s %d %d %s\n",func_name, decl_entry_type, decl_extra_type, decl_spec_type);
@@ -249,7 +249,7 @@ void sem_ast_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
         }
         if(!var_is_defined)
         {
-            SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 1: variable %s is undefined\n", var_name);
+            SPLC_FERROR(SPLM_SEM_ERR_1, node->location, "variable `%s` is undefined", var_name);
         }
     }
 
@@ -265,7 +265,7 @@ void sem_ast_search(ast_node node, splc_trans_unit tunit, int new_sym_table, spl
         }
         if(!func_is_defined)
         {
-            SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 2: variable %s is undefined\n", func_name);
+            SPLC_FERROR(SPLM_SEM_ERR_2, node->location, "variable `%s` is undefined", func_name);
         }
     }
 
@@ -304,7 +304,7 @@ lut_entry find_id_entry(ast_node node, const char *name)
     lut_entry ent = SPLE_NULL;
     if (node->symtable)
     {
-        // ent = lut_find(node->symtable, name);
+        ent = lut_find_name_first(node->symtable, name);
         if (ent)
         {
             return ent;
@@ -351,6 +351,9 @@ sem_expr_t sem_ast_expr_process(ast_node root, ast_node node)
         else if (type == SPLT_LTR_CHAR)
             return EXPR_CHAR;
         return EXPR_NULL;
+    } else if (node->type == SPLT_FUNC_INVOC_EXPR) {
+        lut_entry_print(find_id_entry(root, (char *)((node->children[0])->val)));
+        return EXPR_NULL;
     }
 
     if (node->type == SPLT_EXPR)
@@ -370,7 +373,7 @@ sem_expr_t sem_ast_expr_process(ast_node root, ast_node node)
             sem_expr_t type = sem_ast_expr_process(root, expr_node);
             if (type == EXPR_NULL)
             {
-                splc_internal_handle_msg(SPLM_SEM_ERR_7, node->location, "unmatching operands");
+                SPLC_ERROR(SPLM_SEM_ERR_7, node->location, "unmatching operands");
             }
             return type;
         }
@@ -381,9 +384,9 @@ sem_expr_t sem_ast_expr_process(ast_node root, ast_node node)
             if (left == SPLT_NULL || right == SPLT_NULL || left != right)
             {
                 if (node->children[1]->type == SPLT_ASSIGN)
-                    splc_internal_handle_msg(SPLM_SEM_ERR_5, node->location, "unmatching types");
+                    SPLC_ERROR(SPLM_SEM_ERR_5, node->location, "unmatching types");
                 else 
-                    splc_internal_handle_msg(SPLM_SEM_ERR_7, node->location, "unmatching operands");
+                    SPLC_ERROR(SPLM_SEM_ERR_7, node->location, "unmatching operands");
             }
         }
     }
@@ -400,5 +403,5 @@ void sem_analyze(splc_trans_unit tunit)
     // TODO(semantics): finish semantic analysis part
     // splcdiag("Semantic Analysis should be performed there.\n");
     sem_ast_search(tunit->root, tunit, 0, SPLE_NULL, SPLE_NULL, NULL, 0, 0);
-    // sem_ast_expr_process(tunit->root, tunit->root);
+    sem_ast_expr_process(tunit->root, tunit->root);
 }
