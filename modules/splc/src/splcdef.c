@@ -76,7 +76,8 @@ const char *splc_get_token_color_code(splc_token_t type)
 
     case SPLT_EXPR:
     case SPLT_PRIM_EXPR:
-    case SPLT_POSTF_EXPR:
+    case SPLT_FUNC_INVOC_EXPR:
+    case SPLT_POSTFIX_EXPR:
     case SPLT_UNARY_EXPR:
     case SPLT_CAST_EXPR:
     case SPLT_MUL_EXPR:
@@ -370,7 +371,9 @@ const char *splc_token2str(splc_token_t type)
         return "Expr";
     case SPLT_PRIM_EXPR:
         return "PrimaryExpr";
-    case SPLT_POSTF_EXPR:
+    case SPLT_FUNC_INVOC_EXPR:
+        return "FuncInvocExpr";
+    case SPLT_POSTFIX_EXPR:
         return "PostfixExpr";
     case SPLT_UNARY_EXPR:
         return "UnaryExpr";
@@ -621,8 +624,10 @@ splc_trans_unit splc_create_empty_trans_unit()
 {
     splc_trans_unit unit = (splc_trans_unit)malloc(sizeof(splc_trans_unit_struct));
     SPLC_ALLOC_PTR_CHECK(unit, "out of memory when creating translation unit");
-    unit->symbol_table = NULL;
+    unit->global_symtable = NULL;
     unit->root = NULL;
+    unit->envs = NULL;
+    unit->nenvs = 0;
     unit->err_count = 0;
     unit->warn_count = 0;
     return unit;
@@ -631,6 +636,36 @@ splc_trans_unit splc_create_empty_trans_unit()
 splc_trans_unit splc_create_trans_unit()
 {
     splc_trans_unit unit = splc_create_empty_trans_unit();
-    unit->symbol_table = lut_new_table();
+    unit->global_symtable = splc_push_symtable(unit, 0);
     return unit;
+}
+
+lut_table splc_push_symtable(splc_trans_unit tunit, int scope)
+{
+    lut_table *newarr = (lut_table *)realloc(tunit->envs, (tunit->nenvs + 1) * sizeof(lut_table));
+    SPLC_ALLOC_PTR_CHECK(newarr, "cannot allocate new symbol table for internal scope");
+    tunit->envs = newarr;
+    tunit->envs[tunit->nenvs] = lut_new_table(scope);
+    tunit->nenvs++;
+    return tunit->envs[tunit->nenvs - 1];
+}
+
+lut_table splc_pop_symtable(splc_trans_unit tunit)
+{
+    if (tunit->nenvs == 0)
+        return NULL;
+    lut_table result = tunit->envs[tunit->nenvs - 1];
+    lut_table *newarr = NULL;
+    if (tunit->nenvs > 1)
+    {
+        newarr = (lut_table *)realloc(tunit->envs, (tunit->nenvs - 1) * sizeof(lut_table));
+        SPLC_ALLOC_PTR_CHECK(newarr, "cannot deallocate symbol table for internal scope");
+    }
+    else
+    {
+        free(tunit->envs);
+    }
+    tunit->envs = newarr;
+    tunit->nenvs--;
+    return result;
 }

@@ -96,9 +96,10 @@ enum splc_token_type
 
     SPLT_EXPR = SPLT_EXPR_OFFSET, /* expression */
     SPLT_PRIM_EXPR,               /* primary expression */
-    SPLT_POSTF_EXPR,              /* postfix expression */
+    SPLT_FUNC_INVOC_EXPR,         /* function invocation expression */
+    SPLT_POSTFIX_EXPR,            /* postfix expression */
     SPLT_UNARY_EXPR,              /* unary expression */
-    SPLT_CAST_EXPR,               /* unary expression */
+    SPLT_CAST_EXPR,               /* cast expression */
     SPLT_MUL_EXPR,                /* multiplicative expression */
     SPLT_ADD_EXPR,                /* additive expression */
     SPLT_SHIFT_EXPR,              /* shift expression */
@@ -298,6 +299,16 @@ extern int yynewfile;
 
 /* Parsing and error tracking */
 
+#if defined (__unix__) || defined (unix) || defined (__unix) || \
+    defined (__APPLE__) || defined (__MACH__) || \
+    defined (__linux) || defined (linux) || defined (__linux__)
+#define SYSTEM_PATH_SEPARATOR '/'
+#elif defined (_WIN32) || defined (_WIN64) || defined (__CYGWIN__)
+#define SYSTEM_PATH_SEPARATOR '\\'
+#else
+#error "Unidentified platform should support their system path separator here"
+#endif
+
 typedef struct util_file_node_struct *util_file_node;
 
 typedef struct util_file_node_struct
@@ -317,8 +328,12 @@ typedef struct splc_trans_unit_struct *splc_trans_unit;
 
 typedef struct splc_trans_unit_struct
 {
-    lut_table symbol_table; /* symbol table of this translation unit */
-    ast_node root;          /* root of this translation unit */
+    lut_table global_symtable; /* symbol table of this translation unit */
+    ast_node root;             /* root of this translation unit */
+
+    lut_table *envs; /* environment stack of this translation unit */
+    size_t nenvs;    /* current number of environments */            
+
     int err_count;
     int warn_count;
 } splc_trans_unit_struct;
@@ -326,10 +341,21 @@ typedef struct splc_trans_unit_struct
 /* create an empty translation unit with all fields initialized to 0/NULL. */
 splc_trans_unit splc_create_empty_trans_unit();
 
-/* create an empty translation unit but initialize the symbol table. */
+/* create an empty translation unit and initialize the symbol table. */
 splc_trans_unit splc_create_trans_unit();
 
+/* push an empty symbol table into the environment of this translation unit */
+lut_table splc_push_symtable(splc_trans_unit tunit, int scope);
+
+/* pop and return the symbol table at the top of the environment of this translation unit.
+   This function manages the internal stack state.
+   This function will NOT free the underlying symbol table. */
+lut_table splc_pop_symtable(splc_trans_unit tunit);
+
 splc_trans_unit splc_link_trans_units();
+
+#define SPLC_TRANS_UNIT_ENV_TOP(tunit) \
+    (tunit)->envs[(tunit)->nenvs - 1]
 
 /* Passed splc arguments */
 
@@ -344,15 +370,9 @@ extern int splc_src_file_cnt; /* Number of source files. */
 
 extern const char **splc_src_files; /* Source files */
 
-extern int splc_enable_diag; /* if set to 1, enable diagnostic outputs */
+#include "splcflag.h"
 
-extern int splc_ast_dump; /* if set to 1, dump AST */
-
-extern int splc_enable_ast_punctuators; /* if set to 1, convert AST to the concrete by appending punctuators */
-
-extern int splc_enable_colored_ast; /* if set to 1, color the output AST */
-
-#define SPLC_OPT_REQUIRE_AST_PREP (splc_enable_ast_punctuators)
+#define SPLC_OPT_REQUIRE_AST_PREP (splcf_enable_ast_punctuators)
 
 /* splc internal global variables */
 

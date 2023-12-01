@@ -82,7 +82,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 
 <IN_CL_COMMENT><<EOF>> {
-    splcerror(SPLC_ERR_UNIV, SPLC_YY2LOC_CF_D(yylloc), "unclosed comment");
+    SPLC_ERROR(SPLM_ERR_UNIV, SPLC_YY2LOC_CF_D(yylloc), "unclosed comment");
     BEGIN(INITIAL);
 }
     
@@ -118,7 +118,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 
 <IN_PPD_INCL>. {
-    splcwarn(SPLC_YY2LOC_CF_D(yylloc), "unrecognized token in #include directive");
+    SPLC_WARN(SPLM_Wuniv, SPLC_YY2LOC_CF_D(yylloc), "extra tokens at end of #include directive");
 }
 
 <IN_PPD_INCL>\r?\n {
@@ -138,7 +138,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 
 <IN_MACRO_DEF>. {
-    splcwarn(SPLC_YY2LOC_CF_D(yylloc), "unsupported preprocessor directive");
+    SPLC_WARN(SPLM_Wuniv, SPLC_YY2LOC_CF_D(yylloc), "unsupported preprocessor directive");
     BEGIN(INITIAL);
 }
 
@@ -200,7 +200,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 
 <IN_STRING><<EOF>> {
-    splcerror(SPLC_ERR_UNIV, SPLC_YY2LOC_CF_D(yylloc), "unclosed string literal");
+    SPLC_ERROR(SPLM_ERR_UNIV, SPLC_YY2LOC_CF_D(yylloc), "unclosed string literal");
     BEGIN(INITIAL);
 }
 
@@ -253,14 +253,14 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     if (errno == ERANGE)
     {
         errno = 0;
-        splcwarn(SPLC_YY2LOC_CF_D(yylloc), "overflow in floating-point constant");
+        SPLC_WARN(SPLM_Woverflow, SPLC_YY2LOC_CF_D(yylloc), "overflow in floating-point constant");
     }
     return LTR_FLOAT;
 }
 
-<INITIAL>[0-9]*\.([0-9]|[eE]|[-+]|[\.])+ {
+<INITIAL>[0-9]*\.[0-9]+([eE]|[-+]|[\.])+ {
     yylval = ast_create_leaf_node(SPLT_LTR_FLOAT, SPLC_YY2LOC_CF_D(yylloc));
-    splcerror(SPLC_ERR_A, SPLC_YY2LOC_CF_D(yylloc), "too many decimal points or exponential indicators");
+    SPLC_ERROR(SPLM_ERR_A, SPLC_YY2LOC_CF_D(yylloc), "too many decimal points or exponential indicators");
     yylval->float_val = 0.0f;
     return LTR_FLOAT;
 }
@@ -270,13 +270,13 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     yylval = ast_create_leaf_node(SPLT_LTR_INT, SPLC_YY2LOC_CF_D(yylloc));
     if (yyleng > 1 && yytext[0] == '0') 
     {
-        splcerror(SPLC_ERR_A, SPLC_YY2LOC_CF_D(yylloc), "decimal integer cannot start with 0");
+        SPLC_ERROR(SPLM_ERR_A, SPLC_YY2LOC_CF_D(yylloc), "decimal integer cannot start with 0");
     }
     yylval->ull_val = strtoul(yytext, NULL, 10);
     if (errno == ERANGE || yylval->ull_val > (unsigned long)(-(long)INT_MIN))
     {
         errno = 0;
-        splcwarn(SPLC_YY2LOC_CF_D(yylloc), "overflow in integer constant");
+        SPLC_WARN(SPLM_Woverflow, SPLC_YY2LOC_CF_D(yylloc), "overflow in integer constant");
     }
     return LTR_INT;
 }
@@ -285,13 +285,13 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     yylval = ast_create_leaf_node(SPLT_LTR_INT, SPLC_YY2LOC_CF_D(yylloc));
     if (yyleng > 3 && yytext[2] == '0')
     {
-        splcerror(SPLC_ERR_A, SPLC_YY2LOC_CF_D(yylloc), "hexadecimal integer cannot start with 0");
+        SPLC_ERROR(SPLM_ERR_A, SPLC_YY2LOC_CF_D(yylloc), "hexadecimal integer cannot start with 0");
     }
     yylval->ull_val = strtoul(yytext, NULL, 16);
     if (errno == ERANGE)
     {
         errno = 0;
-        splcwarn(SPLC_YY2LOC_CF_D(yylloc), "overflow in integer constant");
+        SPLC_WARN(SPLM_Woverflow, SPLC_YY2LOC_CF_D(yylloc), "overflow in integer constant");
     }
     return LTR_INT;
 }
@@ -299,14 +299,14 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     /* SPL: invalid hexadecimal integer */
 <INITIAL>0[xX][0-9a-fA-F]{9,} {
     yylval = ast_create_leaf_node(SPLT_LTR_INT, SPLC_YY2LOC_CF_D(yylloc));
-    splcwarn(SPLC_YY2LOC_CF_D(yylloc), "overflow in integer constant");
+    SPLC_WARN(SPLM_Woverflow, SPLC_YY2LOC_CF_D(yylloc), "overflow in integer constant");
     yylval->ull_val = 0;
     return LTR_INT;
 }
 
     /* =================== SPL: char =================== */
 <INITIAL>0[xX][0-9a-zA-Z]+ {
-    splcerror(SPLC_ERR_A, SPLC_YY2LOC_CF_D(yylloc), "hexadecimal integer contains invalid characters");
+    SPLC_ERROR(SPLM_ERR_A, SPLC_YY2LOC_CF_D(yylloc), "hexadecimal integer contains invalid characters");
     yylval = ast_create_leaf_node(SPLT_LTR_INT, SPLC_YY2LOC_CF_D(yylloc));
     return LTR_INT;
 }
@@ -319,7 +319,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 
 <INITIAL>'\\x[0-9a-zA-Z]*' {
     yylval = ast_create_leaf_node(SPLT_LTR_CHAR, SPLC_YY2LOC_CF_D(yylloc));
-    splcerror(SPLC_ERR_A, SPLC_YY2LOC_CF_D(yylloc), "invalid form of octal-form character");
+    SPLC_ERROR(SPLM_ERR_A, SPLC_YY2LOC_CF_D(yylloc), "invalid form of octal-form character");
     yylval->val = (void *)strndup(yytext + 1, strlen(yytext) - 2);
     return LTR_CHAR;
 }
@@ -346,7 +346,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 <INITIAL>[0-9][a-zA-Z0-9_]* {
     yylval = ast_create_leaf_node(SPLT_ID, SPLC_YY2LOC_CF_D(yylloc));
     yylval->val = (void *)strdup(yytext);       
-    splcerror(SPLC_ERR_A, SPLC_YY2LOC_CF_D(yylloc), "identifier name cannot start with digits");
+    SPLC_ERROR(SPLM_ERR_A, SPLC_YY2LOC_CF_D(yylloc), "identifier name cannot start with digits");
     return ID;
 }
 
@@ -431,7 +431,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 <INITIAL>. {
     yylval = ast_create_leaf_node(SPLT_ID, SPLC_YY2LOC_CF_D(yylloc));
     yylval->val = (void *)strdup(yytext);
-    splcerror(SPLC_ERR_A, SPLC_YY2LOC_CF_D(yylloc), "unknown lexeme");
+    SPLC_ERROR(SPLM_ERR_A, SPLC_YY2LOC_CF_D(yylloc), "unknown lexeme");
     return ID;
 }
 

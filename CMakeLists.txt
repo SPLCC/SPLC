@@ -12,3 +12,10 @@ project(SPLCC)
 # Include the subdirectories containing other CMakeLists.txt files.
 add_subdirectory(modules/splc)
 add_subdirectory(modules/libspl)
+
+# Add compile options
+if (MSVC)
+  add_compile_options(/W4)
+else()
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()

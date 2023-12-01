@@ -19,10 +19,41 @@ const char **splc_src_files = NULL;
 int splc_opterror = 1;
 int splc_optind = 1;
 char splc_optopt = '\0';
-char *splc_optfull = NULL;
-char *splc_optarg = NULL;
+const char *splc_optfull = NULL;
+const char *splc_optarg = NULL;
 
-int splc_getopt(int nargc, char *nargv[], const char *ostr)
+/* Own definitions */
+typedef struct option
+{
+    int *const target_opt;
+    const int opt_abbr;
+    const char *opt_name;
+} option;
+
+#define OPT_CNT 5
+static const option options[OPT_CNT] = {
+    {&splcf_verbose, -1, "fverbose"},
+    {&splcf_no_diagnostics_color, -1, "fno-diagnostics-color"},
+    {&splcf_ast_dump, -1, "ast-dump"},
+    {&splcf_enable_ast_punctuators, -1, "fenable-ast-punctuators"},
+    {&splcf_no_ast_color, -1, "fno-ast-color"},
+};
+
+// clang-format off
+void usage()
+{
+    printf("usage: \033[1m%s\033[0m [options] [file ...]\n%s%s%s%s%s%s%s", progname,
+           "  -h                          print this usage and exit\n",
+           "  -fverbose                   print all available diagnostic information\n",
+           "  -fno-diagnostics-color      do not color diagnostic information\n",
+           "  -ast-dump                   dump generated AST to stdout\n",
+           "  -fenable-ast-punctuators    append punctuators in AST\n",
+           "  -fcolor-ast                 color the output AST\n",
+           "  -I<include-directory>       specify extra directory for #include search\n");
+}
+// clang-format on
+
+int splc_getopt(const int nargc, const char *const nargv[], const char *ostr)
 {
     if (splc_optind >= nargc)
         return -1;
@@ -31,7 +62,7 @@ int splc_getopt(int nargc, char *nargv[], const char *ostr)
     splc_optfull = NULL;
     splc_optarg = NULL;
 
-    char *arg = nargv[splc_optind];
+    const char *arg = nargv[splc_optind];
     char *optr = NULL;
 
     /* Check if it is an option */
@@ -56,7 +87,7 @@ int splc_getopt(int nargc, char *nargv[], const char *ostr)
         if (*splc_optarg == '\0')
         {
             if (splc_opterror)
-                SPLC_FWARN_NOLOC("This option requires an argument: %s", nargv[splc_optind]);
+                SPLC_FWARN_NOLOC(SPLM_ERR_UNIV, "This option requires an argument: %s", nargv[splc_optind]);
             ++splc_optind;
             return SPLC_OPT_BADCH;
         }
@@ -64,7 +95,7 @@ int splc_getopt(int nargc, char *nargv[], const char *ostr)
     else if (*(arg + 1) != '\0')
     {
         if (splc_opterror)
-            SPLC_FWARN_NOLOC("Unrecognized option: %s", nargv[splc_optind]);
+            SPLC_FWARN_NOLOC(SPLM_ERR_UNIV, "Unrecognized option: %s", nargv[splc_optind]);
         ++splc_optind;
         return SPLC_OPT_BADCH;
     }
@@ -73,72 +104,114 @@ int splc_getopt(int nargc, char *nargv[], const char *ostr)
     return 1;
 }
 
-void splc_process_args(int nargc, char *nargv[])
+static void add_source_file(const char *const file)
+{
+    ++splc_src_file_cnt;
+    const char **new_filev = (const char **)realloc(splc_src_files, splc_src_file_cnt * sizeof(char *));
+    SPLC_ALLOC_PTR_CHECK(new_filev, "failed to allocate array for storing source filenames");
+    splc_src_files = new_filev;
+    const char *filename = strdup(file);
+    SPLC_ALLOC_PTR_CHECK(filename, "failed to allocate array for storing source filenames");
+    splc_src_files[splc_src_file_cnt - 1] = filename;
+}
+
+static void add_include_directory(const char *const dir)
+{
+    ++splc_incl_dir_cnt;
+    const char **new_filev = (const char **)realloc(splc_incl_dirs, splc_incl_dir_cnt * sizeof(char *));
+    SPLC_ALLOC_PTR_CHECK(new_filev, "failed to allocate array for storing include directories");
+
+    char *target = strdup(dir);
+    size_t dirlen = strlen(dir);
+    if (dirlen > 0 && dir[dirlen - 1] != SYSTEM_PATH_SEPARATOR)
+    {
+        target = (char *)malloc((dirlen + 2) * sizeof(char));
+        SPLC_ALLOC_PTR_CHECK(target, "failed to allocate buffer for include directory name");
+        memcpy(target, dir, dirlen);
+        target[dirlen] = SYSTEM_PATH_SEPARATOR;
+        target[dirlen + 1] = '\0';
+    }
+    splc_incl_dirs = new_filev;
+    splc_incl_dirs[splc_incl_dir_cnt - 1] = target;
+}
+
+void splc_process_args(const int nargc, const char *nargv[])
 {
     int opcode;
-    while ((opcode = splc_getopt(nargc, nargv, "hI:vtp")) != -1)
+    while ((opcode = splc_getopt(nargc, nargv, "I:h")) != -1)
     {
         switch (opcode)
         {
-        case 0: {
-            /* Save file names */
-            ++splc_src_file_cnt;
-            const char **new_filev = (const char **)realloc(splc_src_files, splc_src_file_cnt * sizeof(char *));
-            SPLC_ALLOC_PTR_CHECK(new_filev, "failed to allocate array for storing source filenames");
-            splc_src_files = new_filev;
-            splc_src_files[splc_src_file_cnt - 1] = splc_optarg;
+        case 0: { /* a direct argument is present */
+            /* Save file name */
+            add_source_file(splc_optarg);
+            /* Save the directory of file */
+            /* Check if there a slash. */
+            int dir_present_flag = 0;
+            const char *ptr = splc_optarg;
+            ptr += strlen(splc_optarg);
+            while (*(ptr) != SYSTEM_PATH_SEPARATOR && ptr >= splc_optarg)
+                --ptr;
+            if (ptr >= splc_optarg) /* found the path separator */
+            {
+                size_t len = ptr - splc_optarg + 1;
+                char *buffer = malloc(len + 1);
+                memcpy(buffer, splc_optarg, len);
+                buffer[len] = '\0';
+                add_include_directory(buffer);
+                free(buffer);
+            }
             break;
         }
-        case 1: {
+        case 1: { /* A known abbreviated option is present */
             switch (splc_optopt)
             {
-            case 'I':
+            case 'I': {
                 /* Save include directories */
-                ++splc_incl_dir_cnt;
-                const char **new_filev = (const char **)realloc(splc_incl_dirs, splc_incl_dir_cnt * sizeof(char *));
-                SPLC_ALLOC_PTR_CHECK(new_filev, "failed to allocate array for storing include directories");
-
-                char *target = splc_optarg;
-                size_t dirlen = strlen(splc_optarg);
-                if (dirlen > 0 && splc_optarg[dirlen - 1] != SPLC_SYS_DIR_SEPARATOR)
-                {
-                    target = (char *)malloc((dirlen + 1) * sizeof(char));
-                    SPLC_ALLOC_PTR_CHECK(target, "failed to allocate buffer for include directory name");
-                    memcpy(target, splc_optarg, dirlen);
-                    target[dirlen] = SPLC_SYS_DIR_SEPARATOR;
-                    target[dirlen + 1] = '\0';
-                }
-                splc_incl_dirs = new_filev;
-                splc_incl_dirs[splc_incl_dir_cnt - 1] = target;
+                add_include_directory(splc_optarg);
                 break;
-            case 'v':
-                splc_enable_diag = 1;
-                break;
-            case 't':
-                splc_enable_colored_ast = 1;
-                break;
-            case 'p':
-                splc_enable_ast_punctuators = 1;
-                break;
-            case 'h':
+            }
+            case 'h': {
                 usage();
                 exit(0);
-            default:
-                usage();
-                if (splc_opterror)
-                    SPLC_FWARN_NOLOC("Unsupported option: %c", splc_optopt);
+            }
+            case SPLC_OPT_BADCH: {
                 break;
+            }
+            default: {
+                int flag = 0;
+                for (size_t i = 0; i < OPT_CNT; ++i)
+                {
+                    if (options[i].opt_abbr != -1 && options[i].opt_abbr == splc_optopt)
+                    {
+                        *(options[i].target_opt) = 1;
+                        flag = 1;
+                    }
+                }
+                if (!flag)
+                {
+                    usage();
+                    if (splc_opterror)
+                        SPLC_FWARN_NOLOC(SPLM_ERR_UNIV, "Unsupported option: %c", splc_optopt);
+                }
+                break;
+            }
             }
             break;
         }
-        case 2: {
-            if (strcmp(splc_optfull, "ast-dump") == 0)
+        case 2: { /* a full argument is present */
+            int flag = 0;
+            for (size_t i = 0; i < OPT_CNT; ++i)
             {
-                splc_ast_dump = 1;
+                if (strcmp(splc_optfull, options[i].opt_name) == 0)
+                {
+                    *(options[i].target_opt) = 1;
+                    flag = 1;
+                }
             }
-            else
+            if (!flag)
             {
-                SPLC_FWARN_NOLOC("unrecognized option: %s", splc_optfull);
+                SPLC_FWARN_NOLOC(SPLM_ERR_UNIV, "unrecognized option: %s", splc_optfull);
             }
             break;
         }
@@ -148,19 +221,6 @@ void splc_process_args(int nargc, char *nargv[])
     }
 }
 
-// clang-format off
-void usage()
-{
-    printf("usage: \033[1m%s\033[0m [options] [file ...]\n%s%s%s%s%s%s", progname,
-           "  -h                       print this usage and exit\n",
-           "  -v                       print diagnostic information\n",
-           "  -ast-dump                dump generated AST to stdout\n",
-           "  -p                       append punctuators in AST\n",
-           "  -t                       color the output AST\n",
-           "  -I[{include-directory}]  specify extra directory for #include search\n");
-}
-// clang-format on
-
 #ifdef DEBUG
 #define SPLC_BUILD_DEBUG_VAL 1
 #else
@@ -169,12 +229,12 @@ void usage()
 
 void print_prog_diag_info()
 {
-    SPLC_FDIAG("%s %s", progname, progversion);
+    SPLC_FDIAG("%s %s (built %s at %s)", progname, progversion, __DATE__, __TIME__);
     SPLC_FDIAG("DEBUG=%d", SPLC_BUILD_DEBUG_VAL);
-    SPLC_FDIAG("enable_diag=%d", splc_enable_diag);
-    SPLC_FDIAG("ast_dump=%d", splc_ast_dump);
-    SPLC_FDIAG("enable_ast_punctuators=%d", splc_enable_ast_punctuators);
-    SPLC_FDIAG("enable_colored_ast=%d", splc_enable_colored_ast);
+    for (size_t i = 0; i < OPT_CNT; ++i)
+    {
+        SPLC_FDIAG("%s=%d", options[i].opt_name, *(options[i].target_opt));
+    }
     SPLC_FDIAG("opt_require_AST_preprocessing=%d", SPLC_OPT_REQUIRE_AST_PREP);
     for (int i = 0; i < splc_incl_dir_cnt; ++i)
     {
