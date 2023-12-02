@@ -188,7 +188,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 
 <IN_PPD_DEFINE_BODY>{identifier} {
-    lut_insert(current_trans_unit->global_symtable, ppd_macro_name, SPLE_MACRO_VAR, SPLE_NULL, yytext, NULL, SPLC_YY2LOC_CF_D(yylloc));
+    lut_insert(current_trans_unit->global_symtable, ppd_macro_name, SPLE_MACRO_VAR, SPLE_NULL, NULL, yytext, NULL, SPLC_YY2LOC_CF_D(yylloc));
     SPLC_FDIAG("registered identifier %s -> %s", ppd_macro_name, yytext);
 }
 
@@ -390,7 +390,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     if ((ent = lut_find(current_trans_unit->global_symtable, textcopy, SPLE_MACRO_VAR)) != NULL)
     {
         free(textcopy);
-        textcopy = strdup(ent->spec_type);
+        textcopy = strdup(ent->content);
     }
 
     if (sem_test_typedef_name(textcopy))

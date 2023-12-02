@@ -33,7 +33,7 @@ static void register_typedef(const ast_node node)
     if (node->type == SPLT_ID)
     {
         SPLC_ASSERT(current_trans_unit->nenvs > 0);
-        lut_insert(SPLC_TRANS_UNIT_ENV_TOP(current_trans_unit), (const char *)node->val, SPLE_TYPEDEF, SPLE_NULL, NULL, node, node->location);
+        lut_insert(SPLC_TRANS_UNIT_ENV_TOP(current_trans_unit), (const char *)node->val, SPLE_TYPEDEF, SPLE_NULL, NULL, NULL, node, node->location);
     }
     for (int i = 0; i < node->num_child; ++i)
     {
@@ -48,7 +48,7 @@ static void register_typedef(const ast_node node)
             register_typedef(node->children[i]);
             break;
         case SPLT_ID:
-            lut_insert(SPLC_TRANS_UNIT_ENV_TOP(current_trans_unit), (const char *)node->children[i]->val, SPLE_TYPEDEF, SPLE_NULL, NULL, node, node->location);
+            lut_insert(SPLC_TRANS_UNIT_ENV_TOP(current_trans_unit), (const char *)node->children[i]->val, SPLE_TYPEDEF, SPLE_NULL, NULL, NULL, node, node->location);
             break;
         default:
             break;
@@ -110,8 +110,8 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
             //printf("Error type 15 at line %d: redefinition of %s\n", node->location.linebegin, struct_union_name);
         }
         printf("struct: %s %d\n",struct_union_name, tmp_decl_entry_type);
-        lut_insert(tunit->envs[(tunit->nenvs)-1], struct_union_name, tmp_decl_entry_type, SPLE_NULL, NULL, node, node->location);
-        lut_insert(tunit->envs[(tunit->nenvs)-2], struct_union_name, tmp_decl_entry_type, SPLE_NULL, NULL, node, node->location);
+        lut_insert(tunit->envs[(tunit->nenvs)-1], struct_union_name, tmp_decl_entry_type, SPLE_NULL, NULL, NULL, node, node->location);
+        lut_insert(tunit->envs[(tunit->nenvs)-2], struct_union_name, tmp_decl_entry_type, SPLE_NULL, NULL, NULL, node, node->location);
         in_struct = 1;
     }
         // definition in struct/union
@@ -203,7 +203,7 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
         }
         else{
             printf("variable: %s %d %d %s\n",var_name, decl_entry_type, decl_extra_type, decl_spec_type);
-            lut_insert(tunit->envs[(tunit->nenvs)-1], var_name, decl_entry_type,decl_extra_type, decl_spec_type, node, node->location);
+            lut_insert(tunit->envs[(tunit->nenvs)-1], var_name, decl_entry_type, decl_extra_type, decl_spec_type, NULL, node, node->location);
         }
         return;
     }
@@ -222,8 +222,8 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
         }
         else{
             printf("function: %s %d %d %s\n",func_name, decl_entry_type, decl_extra_type, decl_spec_type);
-            lut_insert(tunit->envs[(tunit->nenvs)-1], func_name, decl_entry_type, decl_extra_type, decl_spec_type, node, node->location);
-            lut_insert(tunit->envs[0], func_name, decl_entry_type, decl_extra_type, decl_spec_type, node, node->location);
+            lut_insert(tunit->envs[(tunit->nenvs)-1], func_name, decl_entry_type, decl_extra_type, decl_spec_type, NULL, node, node->location);
+            lut_insert(tunit->envs[0], func_name, decl_entry_type, decl_extra_type, decl_spec_type, NULL, node, node->location);
         }
         if(node->num_child == 2)
             sem_ast_search(node->children[1],node, tunit, 0, decl_entry_type, decl_extra_type, decl_spec_type, in_struct, in_expr);

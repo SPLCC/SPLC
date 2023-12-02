@@ -47,6 +47,7 @@ static lut_entry lut_new_entry(const char *name)
     tmp->spec_type = NULL;
     tmp->id = id;
     tmp->next = NULL;
+    tmp->content = NULL;
     tmp->first_occur = SPLC_INVALID_LOC;
     tmp->ast_scope_root = NULL;
     tmp->root = NULL;
@@ -64,6 +65,7 @@ static void lut_free_entry(lut_entry *entry)
     free((*entry)->id);
     ast_release_node(&(*entry)->root);
     free((*entry)->spec_type);
+    free((*entry)->content);
     free(*entry);
     *entry = NULL;
 }
@@ -161,7 +163,7 @@ int lut_name_exists(const lut_table table, const char *name)
     return lut_find_name_first(table, name) != NULL;
 }
 
-lut_entry lut_insert(lut_table table, const char *name, const splc_entry_t type, const splc_entry_t extra_type, const char* spec_type, const ast_node root, const splc_loc first_occur)
+lut_entry lut_insert(lut_table table, const char *name, const splc_entry_t type, const splc_entry_t extra_type, const char* spec_type, const char *content, const ast_node root, const splc_loc first_occur)
 {
     unsigned int key0 = hash(name) % (table->capacity);
     lut_entry target = *(table->entries + key0), prev = NULL, next = NULL;
@@ -184,9 +186,10 @@ lut_entry lut_insert(lut_table table, const char *name, const splc_entry_t type,
     target->type = type;
     target->extra_type = extra_type;
     target->spec_type = spec_type == NULL ? NULL : strdup(spec_type);
+    target->next = next;
+    target->content = content == NULL ? NULL : strdup(content);
     target->first_occur = first_occur;
     target->root = ast_shallow_copy(root);
-    target->next = next;
 
     if (prev != NULL)
     {
