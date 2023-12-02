@@ -269,7 +269,7 @@ void lut_debug_print(FILE stream, lut_table table)
     // TODO(lut): print debug information
 }
 
-void lut_entry_print(const lut_entry ent) {
-    printf("{type=%s, extra_type=%s, spec_type=%s, id=%s}\n", 
-        splc_token2str(ent->type), splc_token2str(ent->extra_type), ent->spec_type, ent->id);
-}
+// void lut_entry_print(const lut_entry ent) {
+//     printf("{type=%s, extra_type=%s, spec_type=%s, id=%s}\n", 
+//         splc_token2str(ent->type), splc_token2str(ent->extra_type), ent->spec_type, ent->id);
+// }
