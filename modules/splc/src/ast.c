@@ -18,6 +18,7 @@ ast_node ast_create_empty_node()
     ast_node node = (ast_node)malloc(sizeof(ast_node_struct));
     SPLC_ALLOC_PTR_CHECK(node, "out of memory creating empty ast node");
     node->type = SPLT_NULL;
+    node->ref_count = 1;
     node->symtable = NULL;
     node->father = NULL;
     node->children = NULL;
@@ -127,15 +128,19 @@ void ast_release_node(ast_node *root)
 {
     if (root == NULL || (*root) == NULL)
         return;
-    for (int i = 0; i < (*root)->num_child; ++i)
+    (*root)->ref_count--;
+    if ((*root)->ref_count == 0)
     {
-        ast_release_node(&(*root)->children[i]);
+        for (int i = 0; i < (*root)->num_child; ++i)
+        {
+            ast_release_node(&(*root)->children[i]);
+        }
+        free((*root)->children);
+        lut_free_table(&((*root)->symtable));
+        if (SPLT_AST_REQUIRE_VAL_FREE((*root)->type))
+            free((*root)->val);
+        free(*root);
     }
-    free((*root)->children);
-    lut_free_table(&((*root)->symtable));
-    if (SPLT_AST_REQUIRE_VAL_FREE((*root)->type))
-        free((*root)->val);
-    free(*root);
     *root = NULL;
 }
 
@@ -165,6 +170,15 @@ void ast_preprocess(ast_node root)
     root->num_child = new_nchild;
 }
 
+ast_node ast_shallow_copy(ast_node node)
+{
+    if (node == NULL)
+        return NULL;
+
+    node->ref_count++;
+    return node;
+}
+
 ast_node ast_deep_copy(ast_node node)
 {
     if (node == NULL)
@@ -174,6 +188,7 @@ ast_node ast_deep_copy(ast_node node)
 
     /* Copy non-AST members */
     result->type = node->type;
+    result->ref_count = 1;
     result->symtable = lut_copy_table(node->symtable);
     result->father = node->father;
     result->location = node->location;

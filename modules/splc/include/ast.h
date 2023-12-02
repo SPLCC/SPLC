@@ -12,6 +12,8 @@ typedef struct ast_node_struct *ast_node;
 typedef struct ast_node_struct
 {
     splc_token_t type;  /* Type of this node */
+    size_t ref_count;   /* Reference count of this node */
+
     lut_table symtable; /* If this is a function declaration/definition, or a compound statement, 
                            `symtable` stores the underlying symbol table. */
 
@@ -58,6 +60,9 @@ void ast_release_node(ast_node *root);
 /* Preprocess an AST:
    - Eliminate all punctuators. The root node would not be eliminated. */
 void ast_preprocess(ast_node root);
+
+/* Add reference count and return the node. The underlying symbol table will get a shallow copy. */
+ast_node ast_shallow_copy(ast_node node);
 
 /* Recusively copy a single tree rooted at `node`. The underlying symbol table will get a shallow copy. */
 ast_node ast_deep_copy(ast_node node);

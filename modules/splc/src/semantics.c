@@ -381,6 +381,9 @@ lut_entry find_envs(const splc_trans_unit tunit, const char *name, const splc_en
         ent = lut_find(tunit->envs[i], name, type);
         if (ent)
         {
+            // char *s = lut_get_info_string(tunit->envs[i]);
+            // printf("%s\n", s);
+            // free(s);
             return ent;
         }
     }
@@ -402,8 +405,10 @@ sem_expr_t sem_ast_process_expr_dot(const ast_node node, splc_trans_unit tunit)
             lut_entry struct_ent = find_envs(tunit, var_ent->spec_type, SPLE_STRUCT_DEC);
             if (struct_ent) {
                 lut_entry_print(struct_ent);
-                printf("%s\n", splc_token2str(struct_ent->root->type));
-
+                // printf("%s\n", splc_token2str(struct_ent->root->type));
+                // printf("%s\n", splc_token2str(struct_ent->root->type));
+                ast_print_single_node(struct_ent->root);
+                printf("\n");
                 if (struct_ent->root->symtable == NULL) {
                     printf("symtable NULL\n");
                 }
