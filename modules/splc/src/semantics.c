@@ -321,7 +321,7 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
         }
         if (!func_is_defined && !func_name_is_defined)
         {
-            SPLC_FERROR(SPLM_ERR_SEM_2, node->location, "function %s is undefined\n", func_name);
+            SPLC_FERROR(SPLM_ERR_SEM_2, node->location, "function %s is undefined", func_name);
         }
         else if (!func_is_defined && func_name_is_defined)
         {
@@ -653,7 +653,7 @@ void sem_process_func_return(ast_node node, splc_trans_unit tunit)
 void sem_analyze(splc_trans_unit tunit)
 {
     // TODO(semantics): finish semantic analysis part
-    // splcdiag("Semantic Analysis should be performed there.\n");
+    // splcdiag("Semantic Analysis should be performed there.");
     sem_ast_search(tunit->root, NULL, tunit, 0, SPLE_NULL, SPLE_NULL, NULL, 0, 0);
     sem_process_expr(tunit->root, tunit);
     sem_process_func_return(tunit->root, tunit);

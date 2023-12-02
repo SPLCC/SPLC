@@ -1,119 +1,102 @@
 # CS323-Compiler-Project
 
 ## TODO
-- C Preprocessor
-  - Macro variable/function substitution
-  - Recursive macro expansion
-    - *(Done) Recursive file inclusion*
 - Main structure
   - **SPL Grammar**:
+    - **C Preprocessor**
+      - Macro variable/function substitution
+        - *(Done) Macro variable substitution*
+        - (Ongoing) Macro function substitution
+      - *(Done) Recursive file inclusion*
     - **Parser**:
       - *(Done) Pointer/Address-Of Support*
       - *(Done) Support All C operators*
       - *(Done) Support type-qualifiers*
-  - LUT (Look-Up Table)
-      - *(Experimental) Done*
-  - AST
-    - *(Done) Mark the source of function precisely*
-  - Utilities
-    - `util_yy_buffer_node`
-      - *(Done) Support file node ID*
-      - *(Done) Reference file node from AST through ID*
-      - *(Done) Rewrite auto-recycling*:
-        - *(Done) Keep track of file ID and filename*
+    - **Semantic Analyzer**
+      - *(Done)* Analyzer passes are structed into a general one
+      - (Ongoing) Extensible semantic analyzing
+  - **Utilities**
+    - *(Done) LUT (Look-Up Table)*
+    - *(Done) Full AST Support*
+    - *(Done)* `clang`-like AST dump
+    - *(Done)* `clang`-like message from compiler
+    - *(Done)* Error tracking during all steps
 
 ## Phase 1
 
 ### Extended Feature List
 - Error Detection:
-  - Hanging else
-  
-  - Invalid function definition inside functions
-  
-  - Various errors about missing parenthesis/square bracket
-  
-  - Various errors about missing operands:
-  
-    ![image-20231028170745357](images/img-2.png)
-  
-  - Errors about invalid constant form
-  
-    ![image-20231028221130144](images/img-5.png)
-  
-    
-  
-- Features:
-  - Optimized error/warning output
-  
-    ![image-20231029131149498](images/img-1.png)
-  
-    **This may cause the `diff`** **utility not to work when batch verifying**, as ASCII control sequences are used to color the output and they will not be recognized by `diff`.
-  
-    The parsing tree will not be colored.
-  
-  - Allowing unary operators: +/-
-  
-  - Allowing unary prefix/postfix operator: ++/--
-  
-  - Allowing for loop declaration
-  
-    - Allow any type of for loop combination:
-  
-      ```c
-      for ([optional definition]; [optional expression]; optional expression)
-          stmt
-      ```
-  
-    - Run parser on `test_ex/test_6.spl` for details.
-  
-  - Allowing the following floating-point declaration, given by `[0-9]*\.[0-9]+([eE][-+]?[0-9]+)?`:
-  
-    ```c
-    float y = .3e-13;
-    ```
-  
-  - Allow single-line/cross-line comments
-  
-    ```c
-    int main()
-    {
-        int a = 0; // This is a single comment.
-        int b = 0; // This is a cross-line comment \
-                      as you can tell by changing the language server interpreting this comment to match the C language.
-        int c = 233; // Hi! C
-        /*
-        This is a cross-line comment.
-        */
-        int d = c;
-        /* Hi!
-        */
-       
-        */ // This is a hanging comment, which should not be recognized
-    }
-    ```
-  
-    ![image-20231028203442987](images/img-3.png)
-  
-  - Allow single-line/cross-line strings:
-  
-    - Allowed escape characters: `\[abefnrtv\'"?]`
-  
-    ```c
-    
-    int main()
-    {
-        char msg1 = "Hi Just want to test!";
-    
-        char msg2 = "Hi \
-                        Just want to test!";
-    
-        char msg3 = "Hi"
-                    "Thanks!";
-        printf("[%s]", msg);
-        return 0;
-    }
-    ```
-  
-    <img src="images/img-4.png" alt="image-20231028211819722" style="zoom: 50%;" />
-  
-    
+  - Any sentential form that violates ANSC or supported C99 grammar will be reported.
+
+- Optimized error/warning output
+
+  ![image-20231029131149498](images/img-1.png)
+
+  **This may cause the `diff`** **utility not to work when batch verifying**, as ASCII control sequences are used to color the output and they will not be recognized by `diff`.
+
+  The parsing tree will not be colored.
+- Allow partial C99/C11 features.
+  - The exception being `generic-selection` and `generc-association`.
+  - **Examples**:
+    - Recursive macro substitution
+    - Almost all C99 grammar
+  Please see the attached example in `test/test-func/phase1.c`, which contains a copy of the source code from this compiler.
+  ```c
+  #define NULL (void *)0
+  typedef unsigned long long size_t;
+  /* From `splcdef.h` */
+
+  int splc_incl_dir_cnt = 0;
+  const char **splc_incl_dirs = NULL;
+
+  int splc_src_file_cnt = 0;
+  const char **splc_src_files = NULL;
+
+  /* From `splcopt.h` */
+
+  int splc_opterror = 1;
+  int splc_optind = 1;
+  char splc_optopt = '\0';
+  const char *splc_optfull = NULL;
+  const char *splc_optarg = NULL;
+
+  /* Own definitions */
+  typedef struct option
+  {
+      int *const target_opt;
+      const int opt_abbr;
+      const char *opt_name;
+  } option;
+
+  #define OPT_CNT 5
+  static const option options[OPT_CNT] = {
+      {&splcf_verbose, -1, "fverbose"},
+      {&splcf_no_diagnostics_color, -1, "fno-diagnostics-color"},
+      {&splcf_ast_dump, -1, "ast-dump"},
+      {&splcf_enable_ast_punctuators, -1, "fenable-ast-punctuators"},
+      {&splcf_no_ast_color, -1, "fno-ast-color"},
+  };
+
+  // clang-format off
+  void usage()
+  {
+      printf("usage: \033[1m%s\033[0m [options] [file ...]\n%s%s%s%s%s%s%s", progname,
+            "  -h                          print this usage and exit\n",
+            "  -fverbose                   print all available diagnostic information\n",
+            "  -fno-diagnostics-color      do not color diagnostic information\n",
+            "  -ast-dump                   dump generated AST to stdout\n",
+            "  -fenable-ast-punctuators    append punctuators in AST\n",
+            "  -fcolor-ast                 color the output AST\n",
+            "  -I<include-directory>       specify extra directory for #include search\n");
+  }
+  // clang-format on
+  /* omitted... */
+
+  void splc_process_args(const int nargc, const char *nargv[])
+  {
+      /* content */
+  }
+  ```
+  ![image-2](images/img-2.png)
+  ![image-3](images/img-3.png)
+
