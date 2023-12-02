@@ -43,6 +43,8 @@
     
     ast_node pproot = NULL;
     ast_node tmp = NULL;
+
+    char *ppd_macro_name = NULL;
 %}
 
 /* In cross-line comment */
@@ -53,10 +55,10 @@
 %s IN_PPD
 /* Preprocessor Directive: include */
 %s IN_PPD_INCL
-/* In preprocessor directive: define: test if name exists */
-%s IN_MACRO_DEF_TEST
-/* In preprocessor directive: define: content */
-%s IN_MACRO_DEF
+/* Preprocessor Directive: define */
+%s IN_PPD_DEFINE
+/* Preprocessor Directive: define body */
+%s IN_PPD_DEFINE_BODY
 
 identifier [a-zA-Z_][a-zA-Z0-9_]*
 
@@ -98,9 +100,30 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     BEGIN(IN_PPD);
 }
 
+    /* PPD Dispatch: include */
 <IN_PPD>"include" {
     BEGIN(IN_PPD_INCL);
 }
+
+    /* PPD Dispatch: define */
+<IN_PPD>"define" {
+    BEGIN(IN_PPD_DEFINE);
+}
+
+    /* PPD Dispatch: if */
+    /* <IN_PPD>"if" { */
+    /*     BEGIN(IN_PPD_INCL); */
+    /* } */
+
+    /* PPD Dispatch: ifdef */
+    /*<IN_PPD>"ifdef" { */
+    /*    BEGIN(IN_PPD_INCL); */
+    /*} */
+
+    /* PPD Dispatch: ifndef */
+    /* <IN_PPD>"ifndef" { */
+    /*     BEGIN(IN_PPD_INCL); */
+    /* } */
 
 <IN_PPD>. {
 
@@ -143,6 +166,44 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 
 <IN_PPD_INCL>\r?\n {
     BEGIN(INITIAL);
+}
+
+    /* ============== PPD: #define directive ============== */
+<IN_PPD_DEFINE>{identifier} {
+    SPLC_FWARN(SPLM_Wuniv, SPLC_YY2LOC_CF_D(yylloc), "detected definition '\033[1m%s\033[0m'. Only single identifier substitution is allowed.", yytext);
+    ppd_macro_name = strdup(yytext);
+    BEGIN(IN_PPD_DEFINE_BODY);
+}
+
+<IN_PPD_DEFINE>. {
+
+}
+
+<IN_PPD_DEFINE>\\\r?\n {
+
+}
+
+<IN_PPD_DEFINE>\r?\n {
+    BEGIN(INITIAL);
+}
+
+<IN_PPD_DEFINE_BODY>{identifier} {
+    lut_insert(current_trans_unit->global_symtable, ppd_macro_name, SPLE_MACRO_VAR, SPLE_NULL, yytext, NULL, SPLC_YY2LOC_CF_D(yylloc));
+    SPLC_FDIAG("registered identifier %s -> %s", ppd_macro_name, yytext);
+}
+
+<IN_PPD_DEFINE_BODY>\\\r?\n {
+
+}
+
+<IN_PPD_DEFINE_BODY>\r?\n {
+    free(ppd_macro_name);
+    ppd_macro_name = NULL;
+    BEGIN(INITIAL);
+}
+
+<IN_PPD_DEFINE_BODY>. {
+
 }
 
     /* =================== STRING =================== */
@@ -325,6 +386,13 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     /* the only valid identifier entry */
     char *textcopy = strdup(yytext);
     // EXPERIMENTAL
+    lut_entry ent = NULL;
+    if ((ent = lut_find(current_trans_unit->global_symtable, textcopy, SPLE_MACRO_VAR)) != NULL)
+    {
+        free(textcopy);
+        textcopy = strdup(ent->spec_type);
+    }
+
     if (sem_test_typedef_name(textcopy))
     {
         yylval = ast_create_leaf_node(SPLT_TYPEDEF_NAME, SPLC_YY2LOC_CF_D(yylloc));
