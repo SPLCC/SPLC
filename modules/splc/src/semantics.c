@@ -33,7 +33,8 @@ static void register_typedef(const ast_node node)
     if (node->type == SPLT_ID)
     {
         SPLC_ASSERT(current_trans_unit->nenvs > 0);
-        lut_insert(SPLC_TRANS_UNIT_ENV_TOP(current_trans_unit), (const char *)node->val, SPLE_TYPEDEF, SPLE_NULL, NULL, NULL, node, node->location);
+        lut_insert(SPLC_TRANS_UNIT_ENV_TOP(current_trans_unit), (const char *)node->val, SPLE_TYPEDEF, SPLE_NULL, NULL,
+                   NULL, node, node->location);
     }
     for (int i = 0; i < node->num_child; ++i)
     {
@@ -48,7 +49,8 @@ static void register_typedef(const ast_node node)
             register_typedef(node->children[i]);
             break;
         case SPLT_ID:
-            lut_insert(SPLC_TRANS_UNIT_ENV_TOP(current_trans_unit), (const char *)node->children[i]->val, SPLE_TYPEDEF, SPLE_NULL, NULL, NULL, node, node->location);
+            lut_insert(SPLC_TRANS_UNIT_ENV_TOP(current_trans_unit), (const char *)node->children[i]->val, SPLE_TYPEDEF,
+                       SPLE_NULL, NULL, NULL, node, node->location);
             break;
         default:
             break;
@@ -115,9 +117,11 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
                         struct_union_name);
             // printf("Error type 15 at line %d: redefinition of %s\n", node->location.linebegin, struct_union_name);
         }
-        printf("struct: %s %d\n",struct_union_name, tmp_decl_entry_type);
-        lut_insert(tunit->envs[(tunit->nenvs)-1], struct_union_name, tmp_decl_entry_type, SPLE_NULL, NULL, NULL, node, node->location);
-        lut_insert(tunit->envs[(tunit->nenvs)-2], struct_union_name, tmp_decl_entry_type, SPLE_NULL, NULL, NULL, node, node->location);
+        printf("struct: %s %d\n", struct_union_name, tmp_decl_entry_type);
+        lut_insert(tunit->envs[(tunit->nenvs) - 1], struct_union_name, tmp_decl_entry_type, SPLE_NULL, NULL, NULL, node,
+                   node->location);
+        lut_insert(tunit->envs[(tunit->nenvs) - 2], struct_union_name, tmp_decl_entry_type, SPLE_NULL, NULL, NULL, node,
+                   node->location);
         in_struct = 1;
     }
     // definition in struct/union
@@ -224,7 +228,7 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
         else
         {
             printf("variable: %s %d %d %s\n", var_name, decl_entry_type, decl_extra_type, decl_spec_type);
-            lut_insert(tunit->envs[(tunit->nenvs) - 1], var_name, decl_entry_type,  decl_extra_type, decl_spec_type,
+            lut_insert(tunit->envs[(tunit->nenvs) - 1], var_name, decl_entry_type, decl_extra_type, decl_spec_type,
                        NULL, node, node->location);
         }
         return;
@@ -494,7 +498,10 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit)
     if (node->type == SPLT_CALL_EXPR)
     {
         // find in global symtable
-        return sem_lut2expr(lut_find(tunit->envs[0], (char *)(node->children[0]->val), SPLE_FUNC));
+        lut_entry ent = lut_find(tunit->envs[0], (char *)(node->children[0]->val), SPLE_FUNC);
+        if (ent)
+            return sem_lut2expr(ent);
+        return NULL;
     }
 
     if (node->type == SPLT_EXPR)
@@ -595,7 +602,68 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit)
     return NULL;
 }
 
-void sem_process_func_return(ast_node node, splc_trans_unit tunit)
+/* Cannot detect a function without JumpStmt */
+void sem_process_func_return_bottom_up(ast_node node, splc_trans_unit tunit)
+{
+
+    if (node->symtable)
+    {
+        splc_push_existing_symtable(tunit, node->symtable);
+    }
+
+    if (node->type == SPLT_RETURN)
+    {
+        ast_node jump_stmt_node = node->father;
+        expr_entry ret_ent;
+        if (jump_stmt_node->num_child == 1)
+        {
+            ret_ent = sem_new_expr_entry();
+            ret_ent->spec_type = splc_token2str(SPLT_TYPE_VOID);
+        }
+        else
+        {
+            ret_ent = sem_process_expr(jump_stmt_node->children[1], tunit);
+        }
+
+        ast_node func_def_node = jump_stmt_node;
+        while (func_def_node->type != SPLT_FUNC_DEF)
+        {
+            func_def_node = func_def_node->father;
+        }
+
+        expr_entry func_ent = sem_lut2expr(
+            lut_find(tunit->envs[0], (char *)(func_def_node->children[1]->children[0]->children[0]->children[0]->val),
+                     SPLE_FUNC));
+        if (ret_ent && func_ent)
+        {
+            if (!are_types_equal(ret_ent->spec_type, func_ent->spec_type, SPLT_TYPE_INT, SPLT_LTR_INT) &&
+                !are_types_equal(ret_ent->spec_type, func_ent->spec_type, SPLT_TYPE_FLOAT, SPLT_LTR_FLOAT) &&
+                !are_types_equal(ret_ent->spec_type, func_ent->spec_type, SPLT_TYPE_CHAR, SPLT_LTR_CHAR) &&
+
+                !(strcmp(ret_ent->spec_type, splc_token2str(SPLT_TYPE_VOID)) == 0 &&
+                  strcmp(func_ent->spec_type, splc_token2str(SPLT_TYPE_VOID)) == 0) &&
+
+                !(ret_ent->extra_type == SPLE_STRUCT_DEC && func_ent->extra_type == SPLE_STRUCT_DEC &&
+                  (strcmp(ret_ent->spec_type, func_ent->spec_type) == 0)))
+            {
+                SPLC_ERROR(SPLM_ERR_SEM_8, jump_stmt_node->location, "incompatiable return type");
+            }
+        }
+        return;
+    }
+
+    for (int i = 0; i < node->num_child; i++)
+    {
+        sem_process_func_return_bottom_up(node->children[i], tunit);
+    }
+
+    if (node->symtable)
+    {
+        splc_pop_symtable(tunit);
+    }
+}
+
+void sem_process_func_return_top_down(ast_node node, splc_trans_unit tunit)
 {
     if (node->symtable)
     {
@@ -607,6 +675,11 @@ void sem_process_func_return(ast_node node, splc_trans_unit tunit)
 
         lut_entry func_ent = lut_find(
             node->symtable, (char *)(node->children[1]->children[0]->children[0]->children[0]->val), SPLE_FUNC);
+
+        if (func_ent == NULL)
+        {
+            return;
+        }
 
         ast_node jump_stmt_node = ast_find(node, SPLT_JUMP_STMT);
 
@@ -641,7 +714,38 @@ void sem_process_func_return(ast_node node, splc_trans_unit tunit)
 
     for (int i = 0; i < node->num_child; i++)
     {
-        sem_process_func_return(node->children[i], tunit);
+        sem_process_func_return_top_down(node->children[i], tunit);
+    }
+
+    if (node->symtable)
+    {
+        splc_pop_symtable(tunit);
+    }
+}
+
+void sem_process_array_index(ast_node node, splc_trans_unit tunit)
+{
+    if (node->symtable)
+    {
+        splc_push_existing_symtable(tunit, node->symtable);
+    }
+
+    if (node->type == SPLT_LSB)
+    {
+        ast_node expr_node = node->father->children[2];
+        expr_entry ent = sem_process_expr(expr_node, tunit);
+        if (ent == NULL && strcmp(ent->spec_type, splc_token2str(SPLT_TYPE_INT)) != 0 &&
+            strcmp(ent->spec_type, splc_token2str(SPLT_LTR_INT)) != 0)
+        {
+            SPLC_ERROR(SPLM_ERR_SEM_12, expr_node->location, "array indexing with a non-integer type expression");
+        }
+
+        // todo: bug + 嵌套array index
+    }
+
+    for (int i = 0; i < node->num_child; i++)
+    {
+        sem_process_array_index(node->children[i], tunit);
     }
 
     if (node->symtable)
@@ -656,7 +760,8 @@ void sem_analyze(splc_trans_unit tunit)
     // splcdiag("Semantic Analysis should be performed there.");
     sem_ast_search(tunit->root, NULL, tunit, 0, SPLE_NULL, SPLE_NULL, NULL, 0, 0);
     sem_process_expr(tunit->root, tunit);
-    sem_process_func_return(tunit->root, tunit);
+    sem_process_func_return_bottom_up(tunit->root, tunit);
+    sem_process_array_index(tunit->root, tunit);
 }
 
-// TODO: 8, 9, 12
+// TODO: 9, 12
