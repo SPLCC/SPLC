@@ -1,7 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include "splc_msg_type.h" // Include message types
+#include "msg_type.h" // Include message types
 #include "splcdef.h"
 #include <stdio.h>
 

@@ -1,4 +1,4 @@
-#include "splc_msg_type.h"
+#include "msg_type.h"
 #include "stddef.h"
 
 const char *get_splc_msg_color_code(splc_msg_t type)
