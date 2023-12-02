@@ -122,6 +122,13 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
                    node->location);
         lut_insert(tunit->envs[(tunit->nenvs) - 2], struct_union_name, tmp_decl_entry_type, SPLE_NULL, NULL, node,
                    node->location);
+
+        // insert to global symtable
+        // if (tunit->nenvs == 1)
+        // {
+        //     lut_insert(tunit->global_symtable, struct_union_name, tmp_decl_entry_type, SPLE_NULL, NULL, node,
+        //                node->location);
+        // }
         in_struct = 1;
     }
     // definition in struct/union
@@ -407,7 +414,7 @@ expr_entry sem_lut2expr(lut_entry ent)
     return result;
 }
 
-expr_entry sem_ast_process_expr_dot(const expr_entry struct_var_ent, const ast_node node, splc_trans_unit tunit)
+expr_entry sem_process_expr_dot(const expr_entry struct_var_ent, const ast_node node, splc_trans_unit tunit)
 {
     // ID1.Dot.ID2
     // check whether exists a struct the spec_type of `ID1` is
@@ -444,18 +451,23 @@ expr_entry sem_ast_process_expr_dot(const expr_entry struct_var_ent, const ast_n
 
 int is_computable(expr_entry ent)
 {
-    return ent->spec_type == splc_token2str(SPLT_TYPE_INT) || ent->spec_type == splc_token2str(SPLT_TYPE_FLOAT) ||
-           ent->spec_type == splc_token2str(SPLT_TYPE_CHAR) || ent->spec_type == splc_token2str(SPLT_LTR_INT) ||
-           ent->spec_type == splc_token2str(SPLT_LTR_FLOAT) || ent->spec_type == splc_token2str(SPLT_LTR_CHAR);
+    return strcmp(ent->spec_type, splc_token2str(SPLT_TYPE_INT)) == 0 ||
+           strcmp(ent->spec_type, splc_token2str(SPLT_TYPE_FLOAT)) == 0 ||
+           strcmp(ent->spec_type, splc_token2str(SPLT_TYPE_CHAR)) == 0 ||
+           strcmp(ent->spec_type, splc_token2str(SPLT_LTR_INT)) == 0 ||
+           strcmp(ent->spec_type, splc_token2str(SPLT_LTR_FLOAT)) == 0 ||
+           strcmp(ent->spec_type, splc_token2str(SPLT_LTR_CHAR)) == 0;
 }
 
 int are_types_equal(const char *spec_type1, const char *spec_type2, splc_token_t token_type, splc_token_t token_literal)
 {
-    return (spec_type1 == splc_token2str(token_type) || spec_type1 == splc_token2str(token_literal)) &&
-           (spec_type2 == splc_token2str(token_type) || spec_type2 == splc_token2str(token_literal));
+    return (strcmp(spec_type1, splc_token2str(token_type)) == 0 ||
+            strcmp(spec_type1, splc_token2str(token_literal)) == 0) &&
+           (strcmp(spec_type2, splc_token2str(token_type)) == 0 ||
+            strcmp(spec_type2, splc_token2str(token_literal)) == 0);
 }
 
-expr_entry sem_ast_process_expr(const ast_node node, splc_trans_unit tunit)
+expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit)
 {
 
     if (node->symtable)
@@ -479,7 +491,8 @@ expr_entry sem_ast_process_expr(const ast_node node, splc_trans_unit tunit)
         if (type == SPLT_LTR_INT || type == SPLT_LTR_FLOAT || type == SPLT_LTR_CHAR)
         {
             expr_entry ent = sem_new_expr_entry();
-            ent->spec_type = splc_token2str(type);
+            const char *spec_type = splc_token2str(type);
+            ent->spec_type = spec_type;
             return ent;
         }
         else
@@ -491,18 +504,8 @@ expr_entry sem_ast_process_expr(const ast_node node, splc_trans_unit tunit)
     // CallExpr
     if (node->type == SPLT_CALL_EXPR)
     {
-        ast_node id_node = node->children[0];
-        ast_node arg_list_node = node->children[1];
-
-        expr_entry func_type = sem_ast_process_expr(id_node, tunit);
-
-        // 如何比较参数是否合法？
-        for (int i = 0; i < arg_list_node->num_child; i++)
-        {
-            sem_ast_process_expr(arg_list_node->children[i], tunit);
-        }
-
-        return NULL;
+        // find in global symtable
+        return sem_lut2expr(lut_find(tunit->envs[0], (char *)(node->children[0]->val), SPLE_FUNC));
     }
 
     if (node->type == SPLT_EXPR)
@@ -510,7 +513,7 @@ expr_entry sem_ast_process_expr(const ast_node node, splc_trans_unit tunit)
         if (node->num_child == 1)
         {
             // expr or literals with parentheses
-            return sem_ast_process_expr(node->children[0], tunit);
+            return sem_process_expr(node->children[0], tunit);
         }
         else if (node->num_child == 2)
         {
@@ -519,7 +522,7 @@ expr_entry sem_ast_process_expr(const ast_node node, splc_trans_unit tunit)
             ast_node expr_node = node->children[expr_idx];
             ast_node operand_node = node->children[1 - expr_idx];
 
-            expr_entry ent = sem_ast_process_expr(expr_node, tunit);
+            expr_entry ent = sem_process_expr(expr_node, tunit);
             if (!is_computable(ent))
             {
                 SPLC_ERROR(SPLM_ERR_SEM_7, node->location, "unmatching operands");
@@ -531,17 +534,17 @@ expr_entry sem_ast_process_expr(const ast_node node, splc_trans_unit tunit)
 
             if (node->children[1]->type == SPLT_DOT)
             {
-                expr_entry left = sem_ast_process_expr(node->children[0], tunit);
+                expr_entry left = sem_process_expr(node->children[0], tunit);
                 if (left)
                 {
-                    return sem_ast_process_expr_dot(left, node, tunit);
+                    return sem_process_expr_dot(left, node, tunit);
                 }
                 return NULL;
             }
             else
             {
-                expr_entry left = sem_ast_process_expr(node->children[0], tunit);
-                expr_entry right = sem_ast_process_expr(node->children[2], tunit);
+                expr_entry left = sem_process_expr(node->children[0], tunit);
+                expr_entry right = sem_process_expr(node->children[2], tunit);
 
                 if (left == NULL || right == NULL)
                 {
@@ -573,7 +576,6 @@ expr_entry sem_ast_process_expr(const ast_node node, splc_trans_unit tunit)
                     !are_types_equal(left->spec_type, right->spec_type, SPLT_TYPE_FLOAT, SPLT_LTR_FLOAT) &&
                     !are_types_equal(left->spec_type, right->spec_type, SPLT_TYPE_CHAR, SPLT_LTR_CHAR))
                 {
-                    // 都不是就直接吃屎
                     if (node->children[1]->type == SPLT_ASSIGN)
                     {
                         SPLC_ERROR(SPLM_ERR_SEM_5, node->location, "unmatching type on both sides of assignment ");
@@ -593,7 +595,7 @@ expr_entry sem_ast_process_expr(const ast_node node, splc_trans_unit tunit)
 
     for (int i = 0; i < node->num_child; i++)
     {
-        sem_ast_process_expr(node->children[i], tunit);
+        sem_process_expr(node->children[i], tunit);
     }
 
     if (node->symtable)
@@ -603,12 +605,69 @@ expr_entry sem_ast_process_expr(const ast_node node, splc_trans_unit tunit)
 
     return NULL;
 }
+
+void sem_process_func_return(ast_node node, splc_trans_unit tunit)
+{
+    if (node->symtable)
+    {
+        splc_push_existing_symtable(tunit, node->symtable);
+    }
+
+    if (node->type == SPLT_FUNC_DEF)
+    {
+
+        lut_entry func_ent = lut_find(
+            node->symtable, (char *)(node->children[1]->children[0]->children[0]->children[0]->val), SPLE_FUNC);
+
+        ast_node jump_stmt_node = ast_find(node, SPLT_JUMP_STMT);
+
+        if ((jump_stmt_node == NULL || jump_stmt_node->num_child == 1) &&
+            strcmp(func_ent->spec_type, splc_token2str(SPLT_NULL)) != 0)
+        {
+            // no return but not void function
+            if (jump_stmt_node == NULL)
+                SPLC_ERROR(SPLM_ERR_SEM_8, node->children[0]->location, "incompatiable return type");
+            else
+                SPLC_ERROR(SPLM_ERR_SEM_8, jump_stmt_node->location, "incompatiable return type");
+        }
+        else
+        {
+            expr_entry ret_ent = sem_process_expr(jump_stmt_node->children[1], tunit);
+            ast_print(jump_stmt_node);
+            if (ret_ent)
+            {
+                printf("%s\n", ret_ent->spec_type);
+                if (!are_types_equal(ret_ent->spec_type, func_ent->spec_type, SPLT_TYPE_INT, SPLT_LTR_INT) &&
+                    !are_types_equal(ret_ent->spec_type, func_ent->spec_type, SPLT_TYPE_FLOAT, SPLT_LTR_FLOAT) &&
+                    !are_types_equal(ret_ent->spec_type, func_ent->spec_type, SPLT_TYPE_CHAR, SPLT_LTR_CHAR) &&
+                    !(ret_ent->extra_type == SPLE_STRUCT_DEC && func_ent->extra_type == SPLE_STRUCT_DEC &&
+                      (strcmp(ret_ent->spec_type, func_ent->spec_type) == 0)))
+                {
+                    SPLC_ERROR(SPLM_ERR_SEM_8, jump_stmt_node->location, "incompatiable return type");
+                }
+            }
+        }
+        return;
+    }
+
+    for (int i = 0; i < node->num_child; i++)
+    {
+        sem_process_func_return(node->children[i], tunit);
+    }
+
+    if (node->symtable)
+    {
+        splc_pop_symtable(tunit);
+    }
+}
+
 void sem_analyze(splc_trans_unit tunit)
 {
     // TODO(semantics): finish semantic analysis part
     // splcdiag("Semantic Analysis should be performed there.\n");
     sem_ast_search(tunit->root, NULL, tunit, 0, SPLE_NULL, SPLE_NULL, NULL, 0, 0);
-    sem_ast_process_expr(tunit->root, tunit);
+    sem_process_expr(tunit->root, tunit);
+    sem_process_func_return(tunit->root, tunit);
 }
 
 // TODO: 8, 9, 12

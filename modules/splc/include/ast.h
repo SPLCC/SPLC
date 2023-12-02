@@ -68,6 +68,9 @@ ast_node ast_shallow_copy(ast_node node);
 /* Recusively copy a single tree rooted at `node`. The underlying symbol table will get a shallow copy. */
 ast_node ast_deep_copy(ast_node node);
 
+/* Find the specific type of ast_node in the children of `node` (include itself).  */
+ast_node ast_find(const ast_node node, const splc_token_t type);
+
 /* Substitute all macro mount points inside the given AST.
    When subsituting macro functions, the following requirement holds:
    - Once the target macro function has been substituted, it is not possible to substitute the outer part again. */
