@@ -64,11 +64,15 @@ int main(int argc, char *argv[])
         /* Start parsing */
         yyparse();
 
-        /* append the global symbol table to AST's root */
-        current_trans_unit->root->symtable = lut_copy_table(SPLC_TRANS_UNIT_ENV_TOP(current_trans_unit));
+        if (current_trans_unit->root == NULL)
+        {
+            SPLC_ERROR_NOLOC(SPLM_ERR_FATAL, "failed to parse file: the translation unit return is NULL.");
+        }
 
         if (!err_count)
         {
+            /* append the global symbol table to AST's root */
+            current_trans_unit->root->symtable = lut_copy_table(SPLC_TRANS_UNIT_ENV_TOP(current_trans_unit));
             if (SPLC_OPT_REQUIRE_AST_PREP)
             {
                 printf("Generating parsed tree...\n");

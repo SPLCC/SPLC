@@ -783,7 +783,5 @@ identifier:
 
 void yyerror(const char *s) {
     // suppressed
-#ifdef DEBUG
     SPLC_FDIAG("%s at line %d", s, yylloc.first_line);
-#endif
 }

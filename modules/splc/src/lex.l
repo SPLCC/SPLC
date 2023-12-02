@@ -1,9 +1,11 @@
 %option yylineno
+%option stack
 %{
     #include "splcdef.h"
     #include "utils.h"
     #include "lut.h"
     #include "ast.h"
+    #include "preprocessor.h"
     #include "semantics.h"
 
     #include "syntax.tab.h"
@@ -45,6 +47,7 @@
     ast_node tmp = NULL;
 
     char *ppd_macro_name = NULL;
+    splc_loc ppd_macro_pt = SPLC_INVALID_LOC;
 %}
 
 /* In cross-line comment */
@@ -66,13 +69,13 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 %%
 
     /* =================== COMMENT =================== */
-<INITIAL>"/*" {
+"/*" {
     /* ignore comments */
-    BEGIN(IN_CL_COMMENT);
+    yy_push_state(IN_CL_COMMENT);
 }
 
 <IN_CL_COMMENT>"*/" {
-    BEGIN(INITIAL);
+    yy_pop_state();
 }
 
 <IN_CL_COMMENT>[^\*]+ {
@@ -89,7 +92,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     /* } */
 
     /* =================== SINGLE-LINE COMMENT =================== */
-<INITIAL>"//"([^\r\n]*(\\[\r]?\n)?)*\n {
+"//"([^\r\n]*(\\[\r]?\n)?)*\n {
     /* match single-line comments that may spread across lines by '\\' */
     /* Explanation: match the prefix "//", then: */
     /*     match any character except newline or "\\(\r, if any)\n" as the body, terminated by "\n" */
@@ -97,17 +100,19 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     
     /* ============== Preprocessor Directive Translation ============== */
 <INITIAL># {
-    BEGIN(IN_PPD);
+    yy_push_state(IN_PPD);
 }
 
     /* PPD Dispatch: include */
 <IN_PPD>"include" {
-    BEGIN(IN_PPD_INCL);
+    yy_pop_state();
+    yy_push_state(IN_PPD_INCL);
 }
 
     /* PPD Dispatch: define */
 <IN_PPD>"define" {
-    BEGIN(IN_PPD_DEFINE);
+    yy_pop_state();
+    yy_push_state(IN_PPD_DEFINE);
 }
 
     /* PPD Dispatch: if */
@@ -134,7 +139,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 
 <IN_PPD>\r?\n {
-    BEGIN(INITIAL);
+    yy_pop_state();
 }
 
     /* ============== PPD: #include directive ============== */
@@ -144,18 +149,18 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 
 <IN_PPD_INCL>\<([^\r\n]|(\\\r?\n))+\> {
     char *filename = strndup(yytext + 1, strlen(yytext) - 2);
-    if (splc_enter_file(filename, SPLC_YY2LOC_CF_D(yylloc)) == 0)
+    if (splc_push_file_buffer(filename, SPLC_YY2LOC_CF_D(yylloc)) == 0)
     {
-        BEGIN(INITIAL);
+        yy_push_state(INITIAL);
     }
     free(filename);
 }
 
 <IN_PPD_INCL>\"([^\r\n]|(\\\r?\n))+\" {
     char *filename = strndup(yytext + 1, strlen(yytext) - 2);
-    if (splc_enter_file(filename, SPLC_YY2LOC_CF_D(yylloc)) == 0)
+    if (splc_push_file_buffer(filename, SPLC_YY2LOC_CF_D(yylloc)) == 0)
     {
-        BEGIN(INITIAL);
+        yy_push_state(INITIAL);
     }
     free(filename);
 }
@@ -165,14 +170,16 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 
 <IN_PPD_INCL>\r?\n {
-    BEGIN(INITIAL);
+    yy_pop_state();
 }
 
     /* ============== PPD: #define directive ============== */
 <IN_PPD_DEFINE>{identifier} {
-    SPLC_FWARN(SPLM_Wuniv, SPLC_YY2LOC_CF_D(yylloc), "detected definition '\033[1m%s\033[0m'. Only single identifier substitution is allowed.", yytext);
+    ppd_macro_pt = SPLC_YY2LOC_CF_D(yylloc);
     ppd_macro_name = strdup(yytext);
-    BEGIN(IN_PPD_DEFINE_BODY);
+    SPLC_FWARN(SPLM_Wuniv, ppd_macro_pt, "detected macro definition '\033[1m%s\033[0m'. This is an experimental feature.", ppd_macro_name);
+    yy_pop_state();
+    yy_push_state(IN_PPD_DEFINE_BODY);
 }
 
 <IN_PPD_DEFINE>. {
@@ -184,31 +191,29 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 
 <IN_PPD_DEFINE>\r?\n {
-    BEGIN(INITIAL);
+    yy_pop_state();
 }
 
-<IN_PPD_DEFINE_BODY>{identifier} {
-    lut_insert(current_trans_unit->global_symtable, ppd_macro_name, SPLE_MACRO_VAR, SPLE_NULL, NULL, yytext, NULL, SPLC_YY2LOC_CF_D(yylloc));
-    SPLC_FDIAG("registered identifier %s -> %s", ppd_macro_name, yytext);
-}
-
-<IN_PPD_DEFINE_BODY>\\\r?\n {
-
-}
-
-<IN_PPD_DEFINE_BODY>\r?\n {
-    free(ppd_macro_name);
-    ppd_macro_name = NULL;
-    BEGIN(INITIAL);
+<IN_PPD_DEFINE_BODY>([^\r\n]*(\\[\r]?\n)?)* {
+    char *expanded = get_expanded_macro_content(yytext);
+    lut_insert(current_trans_unit->global_symtable, ppd_macro_name, SPLE_MACRO_VAR, SPLE_NULL, NULL, expanded, NULL, SPLC_YY2LOC_CF_D(yylloc));
+    SPLC_FDIAG("registered identifier %s", ppd_macro_name);
+    free(expanded);
 }
 
 <IN_PPD_DEFINE_BODY>. {
 
 }
 
+<IN_PPD_DEFINE_BODY>\r?\n {
+    free(ppd_macro_name);
+    ppd_macro_name = NULL;
+    yy_pop_state();
+}
+
     /* =================== STRING =================== */
 <INITIAL>\" {
-    BEGIN(IN_STRING);
+    yy_push_state(IN_STRING);
 }
 
 <INITIAL>\"\" {
@@ -253,12 +258,12 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 
 <IN_STRING>\" {
-    BEGIN(INITIAL);
+    yy_pop_state();
 }
 
 <IN_STRING><<EOF>> {
     SPLC_ERROR(SPLM_ERR_UNIV, SPLC_YY2LOC_CF_D(yylloc), "unclosed string literal");
-    BEGIN(INITIAL);
+    yy_pop_state();
 }
 
     /* =================== SPL: keywords =================== */
@@ -389,21 +394,23 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     lut_entry ent = NULL;
     if ((ent = lut_find(current_trans_unit->global_symtable, textcopy, SPLE_MACRO_VAR)) != NULL)
     {
-        free(textcopy);
-        textcopy = strdup(ent->content);
+        yy_push_state(INITIAL);
+        splc_push_char_buffer(ent->id, SPLC_YY2LOC_CF_D(yylloc), ent->content);
     }
-
-    if (sem_test_typedef_name(textcopy))
+    else 
     {
-        yylval = ast_create_leaf_node(SPLT_TYPEDEF_NAME, SPLC_YY2LOC_CF_D(yylloc));
-        yylval->val = textcopy;
-        return TYPEDEF_NAME;
-    }
-    else
-    {
-        yylval = ast_create_leaf_node(SPLT_ID, SPLC_YY2LOC_CF_D(yylloc));
-        yylval->val = textcopy;
-        return ID;
+        if (sem_test_typedef_name(textcopy))
+        {
+            yylval = ast_create_leaf_node(SPLT_TYPEDEF_NAME, SPLC_YY2LOC_CF_D(yylloc));
+            yylval->val = textcopy;
+            return TYPEDEF_NAME;
+        }
+        else
+        {
+            yylval = ast_create_leaf_node(SPLT_ID, SPLC_YY2LOC_CF_D(yylloc));
+            yylval->val = textcopy;
+            return ID;
+        }
     }
 }
 
@@ -508,10 +515,10 @@ int yywrap()
     {
         SPLC_ERROR(SPLM_ERR_UNIV, SPLC_YY2LOC_CF_D(yylloc), "unclosed comment at the end of file");
     }
-    int op = splc_exit_file();
+    int op = splc_pop_buffer();
     if (op == 0)
     {
-        BEGIN(IN_PPD_INCL);
+        yy_pop_state();
     }
     return op;
 }
