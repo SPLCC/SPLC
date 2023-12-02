@@ -351,7 +351,7 @@ lut_table splc_push_new_symtable(splc_trans_unit tunit, int scope);
 
 /* push an existing symbol table into the environment of this translation unit. 
    This method maintains the reference count, therefore passing the original pointer suffice. */
-lut_table splc_push_existing_symtable(splc_trans_unit tunit, lut_table symtable)
+lut_table splc_push_existing_symtable(splc_trans_unit tunit, lut_table symtable);
 
 /* pop and return the symbol table at the top of the environment of this translation unit.
    This function manages the internal stack state.
