@@ -577,6 +577,10 @@ unary-expression:
     | SIZEOF unary-expression { $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); }
     | SIZEOF LP type-name RP { $$ = ast_create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
 
+    | BW_AND error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 1, $1); yyerrok; }
+    | ASTRK error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 1, $1); yyerrok; }
+    | BW_NOT error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 1, $1); yyerrok; }
+    | NOT error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 1, $1); yyerrok; }
     | DPLUS error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 1, $1); yyerrok; }
     | DMINUS error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 1, $1); yyerrok; }
     | SIZEOF error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 1, $1); yyerrok; }
@@ -676,7 +680,6 @@ BW-AND-expression:
     | BW-AND-expression BW_AND equality-expression { $$ = ast_create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
 
     | BW-AND-expression BW_AND error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
-    | BW_AND error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
     ;
 
 BW-XOR-expression:
