@@ -68,7 +68,7 @@ ast_node ast_deep_copy(ast_node node);
 void ast_invoke_macro_subtitution(ast_node root);
 
 /* Print a single node. No line break will be appended. */
-void print_single_node(const ast_node node);
+void ast_print_single_node(const ast_node node);
 
 /* Print the Syntax Tree */
 void ast_print(const ast_node root);
