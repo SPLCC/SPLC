@@ -191,15 +191,20 @@ ast_node ast_deep_copy(ast_node node)
     }
     if (SPLT_IS_VAL_ALLOCATED(node->type))
     {
+        SPLC_ASSERT(node->val != NULL);
         switch (node->type)
         {
         case SPLT_STR_UNIT:
             result->val = (void *)strdup((char *)node->val);
             SPLC_ALLOC_PTR_CHECK(result->val, "failed to copy string to another node");
             break;
+        case SPLT_ID:
+            result->val = (void *)strdup((char *)node->val);
+            SPLC_ALLOC_PTR_CHECK(result->val, "failed to copy string to another node");
+            break;
         default:
-            SPLC_FWARN_NOLOC(SPLM_ERR_UNIV, "AST value cannot be copied due to undefined behavior on node type: %s",
-                             splc_token2str(node->type));
+            SPLC_FERROR_NOLOC(SPLM_ERR_UNIV, "AST value cannot be copied due to undefined behavior on node type: %s",
+                              splc_token2str(node->type));
             break;
         }
     }
