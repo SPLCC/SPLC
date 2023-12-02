@@ -451,8 +451,7 @@ sem_expr_t sem_ast_process_expr(const ast_node node, splc_trans_unit tunit)
 {
     if (node->symtable)
     {
-        tunit->envs[tunit->nenvs] = node->symtable;
-        tunit->nenvs++;
+        splc_push_existing_symtable(tunit, node->symtable);
     }
 
     if (SPLT_IS_ID(node->type))
