@@ -1,7 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include "splc_msg_type.h" // Include message types
+#include "msg_type.h" // Include message types
 #include "splcdef.h"
 #include <stdio.h>
 
@@ -32,18 +32,23 @@ void splc_internal_handle_msg(const splc_msg_t type, const splc_loc location, co
    Return 0 on success, else there is an error to be handled. */
 int splc_enter_root(const char *restrict _filename);
 
-/* When switching parser into parsing a new file, this function must be called to preserve the previously opened files.
+/* When switching parser into parsing a new buffer, this function must be called to preserve the previously opened files.
    Return 0 on success, else there is an error to be handled.
-   Specify where the file is included in the previous file in the global stack */
-int splc_enter_file(const char *restrict _filename, const splc_loc location);
+   Specify where the buffer is included in the previous file in the global stack */
+int splc_push_file_buffer(const char *restrict _filename, const splc_loc location);
 
-/* When the parser finishes parsing a new file and returned, this function must be called to starting parsing on the
-   previously opened files. If there is still file left, return 0. Else return nonzero. The file node will be kept, with
+/* When switching parser into parsing a new buffer, this function must be called to preserve the previously opened files.
+   Return 0 on success, else there is an error to be handled.
+   Specify where the buffer is included in the previous file in the global stack */
+int splc_push_char_buffer(const char *restrict _macroname, const splc_loc location, const char *content);
+
+/* When the parser finishes parsing a new buffer and returned, this function must be called to starting parsing on the
+   previously opened buffers. If there is still file left, return 0. Else return nonzero. The file node will be kept, with
    the information of entry preserved. */
-int splc_exit_file();
+int splc_pop_buffer();
 
-/* Return the filename of the node. This string shall not be freed. */
-const char *const splc_get_node_filename(int fid);
+/* Return the buffername of the node. This string shall not be freed. */
+const char *const splc_get_buffer_node_name(int fid);
 
 void update_error(int val);
 

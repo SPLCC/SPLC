@@ -98,7 +98,7 @@ enum splc_token_type
 
     SPLT_EXPR = SPLT_EXPR_OFFSET, /* expression */
     SPLT_PRIM_EXPR,               /* primary expression */
-    SPLT_CALL_EXPR,         /* function invocation expression */
+    SPLT_CALL_EXPR,               /* function invocation expression */
     SPLT_POSTFIX_EXPR,            /* postfix expression */
     SPLT_UNARY_EXPR,              /* unary expression */
     SPLT_CAST_EXPR,               /* cast expression */
@@ -220,7 +220,7 @@ enum splc_token_type
     SPLT_TYPE_LONG,                            /* type: long */
     SPLT_TYPE_FLOAT,                           /* type: float */
     SPLT_TYPE_CHAR,                            /* type: char */
-    
+
     SPLT_ID = SPLT_ID_OFFSET, /* id literal */
     SPLT_TYPEDEF_NAME,        /* type name through typedef declaration */
 
@@ -305,67 +305,43 @@ extern int yynewfile;
 
 /* Parsing and error tracking */
 
-#if defined (__unix__) || defined (unix) || defined (__unix) || \
-    defined (__APPLE__) || defined (__MACH__) || \
-    defined (__linux) || defined (linux) || defined (__linux__)
+#if defined(__unix__) || defined(unix) || defined(__unix) || defined(__APPLE__) || defined(__MACH__) ||                \
+    defined(__linux) || defined(linux) || defined(__linux__)
 #define SYSTEM_PATH_SEPARATOR '/'
-#elif defined (_WIN32) || defined (_WIN64) || defined (__CYGWIN__)
+#elif defined(_WIN32) || defined(_WIN64) || defined(__CYGWIN__)
 #define SYSTEM_PATH_SEPARATOR '\\'
 #else
 #error "Unidentified platform should support their system path separator here"
 #endif
 
-typedef struct util_file_node_struct *util_file_node;
+typedef struct util_yy_buffer_node_struct *util_yy_buffer_node;
 
-typedef struct util_file_node_struct
+typedef struct util_yy_buffer_node_struct
 {
+    int type;                    /* Type of this buffer. 0 for file and 1 for char *array. */
+    char *buffername;            /* Name of the file. Must be freed when freeing this struct */
     int fid;                     /* File ID */
-    char *filename;              /* name of the file. Must be freed when freeing this struct */
-    FILE *file;                  /* file descriptor. Will be closed after splc finished reading this file */
-    YY_BUFFER_STATE file_buffer; /* YY_BUFFER_STATE for flex. Will be closed after splc finished reading this file */
+    FILE *file;                  /* The file descriptor if this root is a file. Will be closed after splc finished reading this file */
+    char *content;               /* The content of this buffer node if this root is a char array. Will be freed after parsing finished. */
+    YY_BUFFER_STATE real_yy_buffer; /* YY_BUFFER_STATE for flex. Will be closed after splc finished reading this file */
     splc_loc location;           /* Location */
     int yylineno;
     int yycolno;
-    struct util_file_node_struct *next;
-} util_file_node_struct;
+    struct util_yy_buffer_node_struct *next;
+} util_yy_buffer_node_struct;
 
-/* Translation Unit */
-typedef struct splc_trans_unit_struct *splc_trans_unit;
+#define SPLC_IS_BUFFER_FILE(node) ((node)->type == 0)
+#define SPLC_IS_BUFFER_CHAR_ARRAY(node) ((node)->type == 1)
 
-typedef struct splc_trans_unit_struct
-{
-    lut_table global_symtable; /* symbol table of this translation unit */
-    ast_node root;             /* root of this translation unit */
+/* All previously appeared buffers will be stored there. They will be indexed using their IDs. */
+extern util_yy_buffer_node *splc_all_buffer_nodes;
 
-    lut_table *envs; /* environment stack of this translation unit */
-    size_t nenvs;    /* current number of environments */            
+/* The root of linked list buffers. The root marks the previous file. */
+extern util_yy_buffer_node splc_buffer_node_stack;
 
-    int err_count;
-    int warn_count;
-} splc_trans_unit_struct;
+extern size_t splc_buffer_node_stack_count;
 
-/* create an empty translation unit with all fields initialized to 0/NULL. */
-splc_trans_unit splc_create_empty_trans_unit();
-
-/* create an empty translation unit and initialize the symbol table. */
-splc_trans_unit splc_create_trans_unit();
-
-/* push an empty symbol table into the environment of this translation unit */
-lut_table splc_push_new_symtable(splc_trans_unit tunit, int scope);
-
-/* push an existing symbol table into the environment of this translation unit. 
-   This method maintains the reference count, therefore passing the original pointer suffice. */
-lut_table splc_push_existing_symtable(splc_trans_unit tunit, lut_table symtable);
-
-/* pop and return the symbol table at the top of the environment of this translation unit.
-   This function manages the internal stack state.
-   This function will NOT free the underlying symbol table. */
-lut_table splc_pop_symtable(splc_trans_unit tunit);
-
-splc_trans_unit splc_link_trans_units();
-
-#define SPLC_TRANS_UNIT_ENV_TOP(tunit) \
-    (tunit)->envs[(tunit)->nenvs - 1]
+#define SPLC_BUFFER_NODE_STACK_COUNT_MAX 1000
 
 /* Passed splc arguments */
 
@@ -388,11 +364,42 @@ extern const char **splc_src_files; /* Source files */
 
 extern int splc_file_node_cnt; /* How many files have splc encountered */
 
-/* All previously appeared files will be stored there. They will be indexed using their IDs. */
-extern util_file_node *splc_all_file_nodes;
+/* Translation Unit */
+typedef struct splc_trans_unit_struct *splc_trans_unit;
 
-/* The root of linked list files. The root marks the previous file. */
-extern util_file_node splc_file_node_stack;
+typedef struct splc_trans_unit_struct
+{
+    lut_table global_symtable; /* symbol table of this translation unit */
+    ast_node root;             /* root of this translation unit */
+
+    lut_table *envs; /* environment stack of this translation unit */
+    size_t nenvs;    /* current number of environments */
+
+    int err_count;
+    int warn_count;
+} splc_trans_unit_struct;
+
+/* create an empty translation unit with all fields initialized to 0/NULL. */
+splc_trans_unit splc_create_empty_trans_unit();
+
+/* create an empty translation unit and initialize the symbol table. */
+splc_trans_unit splc_create_trans_unit();
+
+/* push an empty symbol table into the environment of this translation unit */
+lut_table splc_push_new_symtable(splc_trans_unit tunit, int scope);
+
+/* push an existing symbol table into the environment of this translation unit.
+   This method maintains the reference count, therefore passing the original pointer suffice. */
+lut_table splc_push_existing_symtable(splc_trans_unit tunit, lut_table symtable);
+
+/* pop and return the symbol table at the top of the environment of this translation unit.
+   This function manages the internal stack state.
+   This function will NOT free the underlying symbol table. */
+lut_table splc_pop_symtable(splc_trans_unit tunit);
+
+splc_trans_unit splc_link_trans_units();
+
+#define SPLC_TRANS_UNIT_ENV_TOP(tunit) (tunit)->envs[(tunit)->nenvs - 1]
 
 /* Translation units parsed from `yyparse()` on different source files */
 extern splc_trans_unit *splc_trans_unit_list;
@@ -410,7 +417,7 @@ extern const char *progversion;
 
 /* Macros */
 
-#define SPLC_GET_CURRENT_FID (splc_file_node_stack[0].fid)
+#define SPLC_GET_CURRENT_FID (splc_buffer_node_stack[0].fid)
 
 #define SPLC_ROOT_LOC (splc_root_loc)
 /* Check if the location is root (i.e., assigned from static global constant) */
@@ -431,9 +438,11 @@ extern const char *progversion;
 #define SPLC_MAKE_LOC_CF(_linebegin, _colbegin, _lineend, _colend)                                                     \
     (splc_loc)                                                                                                         \
     {                                                                                                                  \
-        .fid = splc_file_node_stack->fid, .linebegin = (_linebegin), .colbegin = (_colbegin), .lineend = (_lineend),   \
+        .fid = splc_buffer_node_stack->fid, .linebegin = (_linebegin), .colbegin = (_colbegin), .lineend = (_lineend), \
         .colend = (_colend)                                                                                            \
     }
+
+#define SPLC_LOC_DUPLICATE(x) SPLC_MAKE_LOC((x).fid, (x).linebegin, (x).colbegin, (x).lineend, (x).colend)
 
 #define SPLC_UNPACK_YYLLOC(x) x.first_line, x.first_column, x.last_line, x.last_column
 /* Make a splc_loc struct directly from current file and yylloc */

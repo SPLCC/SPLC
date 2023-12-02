@@ -23,6 +23,7 @@ typedef struct lut_entry_struct
     struct lut_entry_struct *next; /* `lut_entry_struct` internal variable:
                                       point to the next element in case of hash collision */
 
+    char *content;                 /* If it is a preprocessor macro then this holds the content */
     splc_loc first_occur;    /* first occurrence of this token */
     ast_node ast_scope_root; /* EXPERIMENTAL: root of scope */
 
@@ -75,7 +76,7 @@ int lut_name_exists(const lut_table table, const char *name);
    This method will also deep copy the root, so that the original root won't be affected when the entry gets modified.
  */
 lut_entry lut_insert(lut_table table, const char *name, const splc_entry_t type, const splc_entry_t extra_type,
-                     const char *spec_type, const ast_node root, const splc_loc first_occur);
+                     const char *spec_type, const char *content, const ast_node root, const splc_loc first_occur);
 
 /* Delete a value from hashtable. Accept NULL key, and allows nonexisting entry to be deleted. */
 void lut_delete(lut_table table, const char *name, const splc_entry_t type);
