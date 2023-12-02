@@ -285,6 +285,10 @@ typedef struct lut_table_struct *lut_table;
 struct ast_node_struct;
 typedef struct ast_node_struct *ast_node;
 
+// expr
+struct sem_expr_entry_struct;
+typedef struct sem_expr_entry_struct *expr_entry;
+
 /* Flex & Bison */
 struct YYLTYPE;
 typedef struct YYLTYPE YYLTYPE;

@@ -6,15 +6,13 @@
 #include "lut.h"
 
 /* expression type enum */
-typedef enum sem_expr_type sem_expr_t;
-enum sem_expr_type 
+typedef struct sem_expr_entry_struct
 {
-    EXPR_NULL = 0x00000000,
-    EXPR_INT,
-    EXPR_FLOAT,
-    EXPR_CHAR,
-    EXPR_STRUCT
-};
+    splc_entry_t extra_type;       /* Extra type of this entry */
+    char *spec_type;               /* Specific type of this entry */
+    char *id;                      /* The name of the entry, if any */
+} sem_expr_entry_struct;
+
 
 /* EXPERIMENTAL: Register typedef names for the following AST nodes:
    - direct-declaration
@@ -34,6 +32,6 @@ void sem_analyze(splc_trans_unit tunit);
 
 void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int new_sym_table, splc_entry_t decl_entry_type, splc_entry_t decl_extra_type, const char* decl_spec_type, int in_struct, int in_expr);
 
-sem_expr_t sem_ast_process_expr(const ast_node node, splc_trans_unit tunit);
+expr_entry sem_ast_process_expr(const ast_node node, splc_trans_unit tunit);
 
 #endif /* SEMANTICS_H */
