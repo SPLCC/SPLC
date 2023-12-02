@@ -332,10 +332,12 @@ typedef struct util_yy_buffer_node_struct
 /* All previously appeared buffers will be stored there. They will be indexed using their IDs. */
 extern util_yy_buffer_node *splc_all_buffer_nodes;
 
+extern int splc_buffer_node_cnt; /* How many files have splc encountered */
+
 /* The root of linked list buffers. The root marks the previous file. */
 extern util_yy_buffer_node splc_buffer_node_stack;
 
-extern size_t splc_buffer_node_stack_count;
+extern size_t splc_buffer_node_stack_size;
 
 #define SPLC_BUFFER_NODE_STACK_COUNT_MAX 1000
 
@@ -356,9 +358,6 @@ extern const char **splc_src_files; /* Source files */
 
 #define SPLC_OPT_REQUIRE_AST_PREP (splcf_enable_ast_punctuators)
 
-/* splc internal global variables */
-
-extern int splc_file_node_cnt; /* How many files have splc encountered */
 
 /* Translation Unit */
 typedef struct splc_trans_unit_struct *splc_trans_unit;

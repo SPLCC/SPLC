@@ -28,6 +28,9 @@ void splctrace(const trace_t type, int show_source, const char *name);
    If location is NULL, then file trace will not be printed. */
 void splc_internal_handle_msg(const splc_msg_t type, const splc_loc location, const char *msg);
 
+/* Check if buffer node with specific name exists. */
+int buffer_stack_check_node_exists(const char *restrict nodename);
+
 /* When switching parser into parsing a new file, this function must be called to preserve the previously opened files.
    Return 0 on success, else there is an error to be handled. */
 int splc_enter_root(const char *restrict _filename);

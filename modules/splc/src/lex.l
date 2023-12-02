@@ -392,13 +392,18 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     char *textcopy = strdup(yytext);
     // EXPERIMENTAL
     lut_entry ent = NULL;
-    if ((ent = lut_find(current_trans_unit->global_symtable, textcopy, SPLE_MACRO_VAR)) != NULL)
+    if ((ent = lut_find(current_trans_unit->global_symtable, textcopy, SPLE_MACRO_VAR)) != NULL && !buffer_stack_check_node_exists(ent->id))
     {
+        free(textcopy);
         yy_push_state(INITIAL);
         splc_push_char_buffer(ent->id, SPLC_YY2LOC_CF_D(yylloc), ent->content);
     }
-    else 
+    else
     {
+        if (ent != NULL && buffer_stack_check_node_exists(ent->id))
+        {
+            SPLC_FWARN(SPLM_Wuniv, SPLC_YY2LOC_CF_D(yylloc), "repeated expansion of macro \033[1m%s\033[0m is forbidden and will be ignored.", ent->id);
+        }
         if (sem_test_typedef_name(textcopy))
         {
             yylval = ast_create_leaf_node(SPLT_TYPEDEF_NAME, SPLC_YY2LOC_CF_D(yylloc));
