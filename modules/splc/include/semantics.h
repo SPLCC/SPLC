@@ -9,7 +9,7 @@
 typedef struct sem_expr_entry_struct
 {
     splc_entry_t extra_type;       /* Extra type of this entry */
-    char *spec_type;               /* Specific type of this entry */
+    const char *spec_type;         /* Specific type of this entry */
     char *id;                      /* The name of the entry, if any */
 } sem_expr_entry_struct;
 

@@ -133,7 +133,7 @@ static void _builtin_splc_handle_msg(splc_msg_t type, const splc_loc *const loca
     const char *type_suffix = splc_get_msg_type_suffix(type);
     const char *const orig_file = splc_all_buffer_nodes[location->fid]->buffername;
     const char *prefix = "";
-    if ((splc_buffer_node_stack != NULL) && (SPLC_IS_BUFFER_CHAR_ARRAY(splc_buffer_node_stack)))
+    if (SPLC_IS_BUFFER_CHAR_ARRAY(splc_all_buffer_nodes[location->fid]))
     {
         prefix = "In expansion of macro ";
     }
