@@ -251,7 +251,7 @@ enum splc_token_type
 #define SPLT_IS_MACRO(x) (((x) & SPLT_MACRO_MNTPT_OFFSET) == SPLT_MACRO_MNTPT_OFFSET)
 #define SPLT_IS_LITERAL(x) (((x) & SPLT_LITERAL_OFFSET) == SPLT_LITERAL_OFFSET)
 
-#define SPLT_IS_VAL_ALLOCATED(x) ((x) == SPLT_STR_UNIT)
+#define SPLT_IS_VAL_ALLOCATED(x) ((x) == SPLT_STR_UNIT || (x) == SPLT_ID)
 
 /* Convert a token to string. The caller shall not free this string. */
 const char *splc_token2str(splc_token_t type);
