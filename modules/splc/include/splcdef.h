@@ -347,7 +347,7 @@ splc_trans_unit splc_create_empty_trans_unit();
 splc_trans_unit splc_create_trans_unit();
 
 /* push an empty symbol table into the environment of this translation unit */
-lut_table splc_push_symtable(splc_trans_unit tunit, int scope);
+lut_table splc_push_new_symtable(splc_trans_unit tunit, int scope);
 
 /* pop and return the symbol table at the top of the environment of this translation unit.
    This function manages the internal stack state.
