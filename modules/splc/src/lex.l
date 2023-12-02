@@ -49,9 +49,9 @@
 %s IN_CL_COMMENT
 /* In string */
 %s IN_STRING
-/* In preprocessor directive */
+/* Preprocessor Directive */
 %s IN_PPD
-/* Directive: Include */
+/* Preprocessor Directive: include */
 %s IN_PPD_INCL
 /* In preprocessor directive: define: test if name exists */
 %s IN_MACRO_DEF_TEST
@@ -81,12 +81,19 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     // eat the lone star
 }
 
-<IN_CL_COMMENT><<EOF>> {
-    SPLC_ERROR(SPLM_ERR_UNIV, SPLC_YY2LOC_CF_D(yylloc), "unclosed comment");
-    BEGIN(INITIAL);
+    /* <IN_CL_COMMENT><<EOF>> { */
+        /* SPLC_ERROR(SPLM_ERR_UNIV, SPLC_YY2LOC_CF_D(yylloc), "unclosed comment"); */
+        /* BEGIN(INITIAL); */
+    /* } */
+
+    /* =================== SINGLE-LINE COMMENT =================== */
+<INITIAL>"//"([^\r\n]*(\\[\r]?\n)?)*\n {
+    /* match single-line comments that may spread across lines by '\\' */
+    /* Explanation: match the prefix "//", then: */
+    /*     match any character except newline or "\\(\r, if any)\n" as the body, terminated by "\n" */
 }
     
-    /* =================== MACRO =================== */
+    /* ============== Preprocessor Directive Translation ============== */
 <INITIAL># {
     BEGIN(IN_PPD);
 }
@@ -95,6 +102,19 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     BEGIN(IN_PPD_INCL);
 }
 
+<IN_PPD>. {
+
+}
+
+<IN_PPD>\\\r?\n {
+    /* allow line break */
+}
+
+<IN_PPD>\r?\n {
+    BEGIN(INITIAL);
+}
+
+    /* ============== PPD: #include directive ============== */
 <IN_PPD_INCL>[ ] {
     /* Skip spaces */
 }
@@ -123,30 +143,6 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 
 <IN_PPD_INCL>\r?\n {
     BEGIN(INITIAL);
-}
-
-<IN_PPD>. {
-
-}
-
-<IN_PPD>\\\r?\n {
-    /* allow line break */
-}
-
-<IN_PPD>\r?\n {
-    BEGIN(INITIAL);
-}
-
-<IN_MACRO_DEF>. {
-    SPLC_WARN(SPLM_Wuniv, SPLC_YY2LOC_CF_D(yylloc), "unsupported preprocessor directive");
-    BEGIN(INITIAL);
-}
-
-    /* =================== SINGLE-LINE COMMENT =================== */
-<INITIAL>"//"([^\r\n]*(\\[\r]?\n)?)*\n {
-    /* match single-line comments that may spread across lines by '\\' */
-    /* Explanation: match the prefix "//", then: */
-    /*     match any character except newline or "\\(\r, if any)\n" as the body, terminated by "\n" */
 }
 
     /* =================== STRING =================== */
@@ -440,6 +436,10 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 /* This function defines what to do when EOF has been reached */
 int yywrap()
 {
+    if (YY_START == IN_CL_COMMENT)
+    {
+        SPLC_ERROR(SPLM_ERR_UNIV, SPLC_YY2LOC_CF_D(yylloc), "unclosed comment at the end of file");
+    }
     int op = splc_exit_file();
     if (op == 0)
     {
