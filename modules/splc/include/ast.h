@@ -71,11 +71,6 @@ ast_node ast_deep_copy(ast_node node);
 /* Find the specific type of ast_node in the children of `node` (include itself).  */
 ast_node ast_find(const ast_node node, const splc_token_t type);
 
-/* Substitute all macro mount points inside the given AST.
-   When subsituting macro functions, the following requirement holds:
-   - Once the target macro function has been substituted, it is not possible to substitute the outer part again. */
-void ast_invoke_macro_subtitution(ast_node root);
-
 /* Print a single node. No line break will be appended. */
 void ast_print_single_node(const ast_node node);
 

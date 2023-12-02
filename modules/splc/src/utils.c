@@ -17,9 +17,11 @@ int splcf_no_diagnostics_color = 0;
 
 int splc_file_node_cnt = 0;
 
-util_file_node *splc_all_file_nodes = NULL;
+util_yy_buffer_node *splc_all_buffer_nodes = NULL;
 
-util_file_node splc_file_node_stack = NULL;
+util_yy_buffer_node splc_buffer_node_stack = NULL;
+
+size_t splc_buffer_node_stack_count = 0;
 
 /* Return an array of lines fetched. No newline character will be present. */
 static char *fetchline(FILE *file, int linebegin)
@@ -89,8 +91,14 @@ static void _builtin_splc_handle_msg_noloc(splc_msg_t type, const char *msg)
     const char *color_code = get_splc_msg_color_code(type);
     const char *type_name = splc_get_msg_type_prefix(type);
     const char *type_suffix = splc_get_msg_type_suffix(type);
-    const char *filename = (splc_file_node_stack != NULL) ? splc_file_node_stack->filename : progname;
-    fprintf(stderr, "\033[1m%s:\033[0m %s%s:\033[0m %s", filename, color_code, type_name, msg);
+    const char *buffername = (splc_buffer_node_stack != NULL) ? splc_buffer_node_stack->buffername : progname;
+    const char *prefix = "";
+    if ((splc_buffer_node_stack != NULL) && (SPLC_IS_BUFFER_CHAR_ARRAY(splc_buffer_node_stack)))
+    {
+        prefix = "In expansion of macro ";
+    }
+
+    fprintf(stderr, "%s\033[1m%s:\033[0m %s%s:\033[0m %s", prefix, buffername, color_code, type_name, msg);
     if (type_suffix != NULL)
     {
         fprintf(stderr, " [\033[1m%s%s\033[0m]", color_code, type_suffix);
@@ -100,6 +108,22 @@ static void _builtin_splc_handle_msg_noloc(splc_msg_t type, const char *msg)
     return;
 }
 
+static char *get_char_buffer_content_line(const char *content)
+{
+    size_t needed = 1;
+    const char *ptr = content;
+    while (*ptr != '\0' && *ptr != '\r' && *ptr != '\n')
+    {
+        ++needed;
+        ++ptr;
+    }
+    char *result = malloc(needed);
+    SPLC_ALLOC_PTR_CHECK(result, "cannot allocate buffer for char buffer inclusion");
+    memcpy(result, content, ptr - content);
+    result[needed - 1] = '\0';
+    return result;
+}
+
 static void _builtin_splc_handle_msg(splc_msg_t type, const splc_loc *const location, const char *msg)
 {
     // fprintf(stderr, "msg param %d %d - %d %d\n", location->linebegin, location->colbegin, location->lineend,
@@ -107,8 +131,13 @@ static void _builtin_splc_handle_msg(splc_msg_t type, const splc_loc *const loca
     const char *color_code = get_splc_msg_color_code(type);
     const char *type_name = splc_get_msg_type_prefix(type);
     const char *type_suffix = splc_get_msg_type_suffix(type);
-    const char *const orig_file = splc_all_file_nodes[location->fid]->filename;
-    fprintf(stderr, "\033[1m%s:%d:%d:\033[0m %s%s:\033[0m %s", orig_file, location->linebegin, location->colbegin,
+    const char *const orig_file = splc_all_buffer_nodes[location->fid]->buffername;
+    const char *prefix = "";
+    if (SPLC_IS_BUFFER_CHAR_ARRAY(splc_all_buffer_nodes[location->fid]))
+    {
+        prefix = "In expansion of macro ";
+    }
+    fprintf(stderr, "%s\033[1m%s:%d:%d:\033[0m %s%s:\033[0m %s", prefix, orig_file, location->linebegin, location->colbegin,
             color_code, type_name, msg);
     if (type_suffix != NULL)
     {
@@ -116,14 +145,22 @@ static void _builtin_splc_handle_msg(splc_msg_t type, const splc_loc *const loca
     }
     fprintf(stderr, "\n");
 
-    FILE *file = NULL;
-    if ((file = fopen(orig_file, "r")) == NULL)
+    char *line = NULL;
+    if (SPLC_IS_BUFFER_FILE(splc_all_buffer_nodes[location->fid]))
     {
-        SPLC_FERROR_NOLOC(SPLM_ERR_FATAL, "file no longer exists: %s\n", orig_file);
-        return;
+        FILE *file = NULL;
+        if ((file = fopen(orig_file, "r")) == NULL)
+        {
+            SPLC_FERROR_NOLOC(SPLM_ERR_FATAL, "file no longer exists: %s\n", orig_file);
+            return;
+        }
+        line = fetchline(file, location->linebegin);
+        fclose(file);
     }
-    char *line = fetchline(file, location->linebegin);
-    fclose(file);
+    else if (SPLC_IS_BUFFER_CHAR_ARRAY(splc_all_buffer_nodes[location->fid]))
+    {
+        line = get_char_buffer_content_line(splc_all_buffer_nodes[location->fid]->content);
+    }
 
     int line_len = (int)strlen(line);
 
@@ -179,8 +216,8 @@ static const char *splc_get_trace_string(trace_t type)
 void splctrace(const trace_t type, int show_source, const char *name)
 {
     const char *type_str = splc_get_trace_string(type);
-    fprintf(stderr, "%s%sIn %s \033[1m'%s':%d\033[0m:\n", show_source != 0 ? splc_file_node_stack->filename : "",
-            show_source != 0 ? ": " : "", type_str, name, splc_file_node_stack->yylineno);
+    fprintf(stderr, "%s%sIn %s \033[1m'%s':%d\033[0m:\n", show_source != 0 ? splc_buffer_node_stack->buffername : "",
+            show_source != 0 ? ": " : "", type_str, name, splc_buffer_node_stack->yylineno);
     return;
 }
 
@@ -193,30 +230,29 @@ void splc_update_log_status(const splc_msg_t type)
         update_error(1);
 }
 
-static void _builtin_print_file_trace(util_file_node node)
+static void _builtin_print_file_trace(util_yy_buffer_node node)
 {
-    if (node == NULL || SPLC_IS_LOC_ROOT(node->location))
+    if (node == NULL || SPLC_IS_LOC_ROOT(node->location) || node->next->next == NULL)
     {
         return;
     }
-    SPLC_ASSERT(node->next->next != NULL);
-    util_file_node top = node;
+    util_yy_buffer_node top = node;
     const char *suffix = (top->next->next == NULL) ? ":\n" : ",\n";
-    fprintf(stderr, "In file included from \033[1m%s:%d\033[0m%s", top->next->filename, top->yylineno, suffix);
+    fprintf(stderr, "In file included from \033[1m%s:%d\033[0m%s", top->next->buffername, top->yylineno, suffix);
     top = top->next;
     while (top && !SPLC_IS_LOC_ROOT(top->location))
     {
         SPLC_ASSERT(top->next != NULL);
         suffix = (top->next->next == NULL) ? ":\n" : ",\n";
-        fprintf(stderr, "                 from \033[1m%s:%d\033[0m%s", top->next->filename, top->yylineno, suffix);
+        fprintf(stderr, "                 from \033[1m%s:%d\033[0m%s", top->next->buffername, top->yylineno, suffix);
         top = top->next;
     }
 }
 
-static inline void print_file_trace(util_file_node node)
+static inline void print_file_trace(util_yy_buffer_node node)
 {
     if (node == NULL)
-        _builtin_print_file_trace(splc_file_node_stack);
+        _builtin_print_file_trace(splc_buffer_node_stack);
     else
         _builtin_print_file_trace(node);
 }
@@ -226,14 +262,19 @@ void splc_internal_handle_msg(const splc_msg_t type, const splc_loc location, co
     int require_loc = !SPLC_IS_LOC_INVALID(location);
     if (require_loc)
     {
-        print_file_trace(splc_all_file_nodes[location.fid]);
+        print_file_trace(splc_all_buffer_nodes[location.fid]);
     }
     splc_update_log_status(type);
     splc_dispatch_msg(type, require_loc ? &location : NULL, msg);
 }
 
-static int _builtin_splc_enter_file(const char *restrict _filename, const splc_loc *const location)
+static int _builtin_splc_enter_file_buffer(const char *restrict _filename, const splc_loc *const location)
 {
+    if (splc_buffer_node_stack_count >= 1000)
+    {
+        SPLC_FFAIL("on entering file \033[1m%s:\033[0m maximum recursion depth met: %zu", _filename, splc_buffer_node_stack_count);
+    }
+
     FILE *new_file = NULL;
     char *filename = NULL; /* This contains actually the full path of file. After got from splc_search_incl_dirs, there
                               is no need to free it, as it will be directly placed in the file node. */
@@ -253,55 +294,83 @@ static int _builtin_splc_enter_file(const char *restrict _filename, const splc_l
     }
     SPLC_FDIAG("the included file has been identified: %s", filename);
 
-    util_file_node node = (util_file_node)malloc(sizeof(util_file_node_struct));
+    util_yy_buffer_node node = (util_yy_buffer_node)malloc(sizeof(util_yy_buffer_node_struct));
+    node->type = 0;
     node->fid = splc_file_node_cnt++;
-    node->filename = filename;
+    node->buffername = filename;
     node->file = new_file;
-    node->file_buffer = yy_create_buffer(new_file, YY_BUF_SIZE);
+    node->content = NULL;
+    node->real_yy_buffer = yy_create_buffer(new_file, YY_BUF_SIZE);
     node->location = (location != NULL) ? *location : SPLC_ROOT_LOC;
     node->yylineno = yylineno;
     node->yycolno = yycolno;
-    node->next = splc_file_node_stack;
-    splc_file_node_stack = node;
+    node->next = splc_buffer_node_stack;
+    splc_buffer_node_stack = node;
 
-    splc_all_file_nodes = (util_file_node *)realloc(splc_all_file_nodes, splc_file_node_cnt * sizeof(util_file_node));
-    SPLC_ALLOC_PTR_CHECK(splc_all_file_nodes, "out of memory when opening files");
-    splc_all_file_nodes[splc_file_node_cnt - 1] = node;
+    splc_all_buffer_nodes =
+        (util_yy_buffer_node *)realloc(splc_all_buffer_nodes, splc_file_node_cnt * sizeof(util_yy_buffer_node));
+    SPLC_ALLOC_PTR_CHECK(splc_all_buffer_nodes, "out of memory when creating new buffer node array");
+    splc_all_buffer_nodes[splc_file_node_cnt - 1] = node;
 
-    yy_switch_to_buffer(node->file_buffer);
+    yy_switch_to_buffer(node->real_yy_buffer);
     yynewfile = 1;
     yylineno = 1;
     yycolno = 1;
 
+    splc_buffer_node_stack_count += 1;
     return 0;
 }
 
-int splc_enter_root(const char *restrict _filename)
+static int _builtin_splc_push_char_buffer(const char *restrict _macroname, const splc_loc *const location,
+                                          const char *content)
 {
-    return _builtin_splc_enter_file(_filename, NULL);
-}
+    SPLC_ASSERT(_macroname != NULL && content != NULL);
+    SPLC_FDIAG("substituting macro: %s", _macroname);
 
-int splc_enter_file(const char *restrict _filename, const splc_loc location)
-{
-    return _builtin_splc_enter_file(_filename, &location);
-}
-
-int _builtin_splc_exit_file()
-{
-    if (splc_file_node_stack == NULL)
+    if (splc_buffer_node_stack_count >= 1000)
     {
-        return 1;
+        SPLC_FFAIL("on expansion of macro \033[1m%s:\033[0m maximum recursion depth met: %zu", _macroname, splc_buffer_node_stack_count);
     }
 
-    util_file_node tmp = splc_file_node_stack;
+    util_yy_buffer_node node = (util_yy_buffer_node)malloc(sizeof(util_yy_buffer_node_struct));
+    node->type = 1;
+    node->fid = splc_file_node_cnt++;
+    node->buffername = strdup(_macroname);
+    node->file = NULL;
+    node->content = strdup(content);
+    SPLC_ALLOC_PTR_CHECK(node->content, "failed to copy buffer char array");
+    node->real_yy_buffer = yy_scan_string(content);
+    node->location = (location != NULL) ? *location : SPLC_ROOT_LOC;
+    node->yylineno = yylineno;
+    node->yycolno = yycolno;
+    node->next = splc_buffer_node_stack;
+    splc_buffer_node_stack = node;
 
-    yy_delete_buffer(tmp->file_buffer);
+    splc_all_buffer_nodes =
+        (util_yy_buffer_node *)realloc(splc_all_buffer_nodes, splc_file_node_cnt * sizeof(util_yy_buffer_node));
+    SPLC_ALLOC_PTR_CHECK(splc_all_buffer_nodes, "out of memory when creating new buffer node array");
+    splc_all_buffer_nodes[splc_file_node_cnt - 1] = node;
+
+    yy_switch_to_buffer(node->real_yy_buffer);
+    yynewfile = 1;
+    yylineno = 1;
+    yycolno = 1;
+
+    splc_buffer_node_stack_count += 1;
+    return 0;
+}
+
+static int _builtin_splc_exit_file_buffer()
+{
+    util_yy_buffer_node tmp = splc_buffer_node_stack;
+
+    yy_delete_buffer(tmp->real_yy_buffer);
     fclose(tmp->file);
 
-    splc_file_node_stack = tmp->next;
-    if (splc_file_node_stack != NULL)
+    splc_buffer_node_stack = tmp->next;
+    if (splc_buffer_node_stack != NULL)
     {
-        yy_switch_to_buffer(splc_file_node_stack->file_buffer);
+        yy_switch_to_buffer(splc_buffer_node_stack->real_yy_buffer);
         yynewfile = 0;
         /* Handle yylloc */
         yylloc.first_line = tmp->location.linebegin;
@@ -312,17 +381,77 @@ int _builtin_splc_exit_file()
         yycolno = tmp->yycolno;
     }
 
-    return splc_file_node_stack == NULL;
+    splc_buffer_node_stack_count -= 1;
+    return splc_buffer_node_stack == NULL;
 }
 
-int splc_exit_file()
+static int _builtin_splc_exit_char_buffer()
 {
-    return _builtin_splc_exit_file();
+    util_yy_buffer_node tmp = splc_buffer_node_stack;
+
+    yy_delete_buffer(tmp->real_yy_buffer);
+
+    splc_buffer_node_stack = tmp->next;
+    if (splc_buffer_node_stack != NULL)
+    {
+        yy_switch_to_buffer(splc_buffer_node_stack->real_yy_buffer);
+        yynewfile = 0;
+        /* Handle yylloc */
+        yylloc.first_line = tmp->location.linebegin;
+        yylloc.first_column = tmp->location.colbegin;
+        yylloc.last_line = tmp->location.lineend;
+        yylloc.last_column = tmp->location.colend;
+        yylineno = tmp->yylineno;
+        yycolno = tmp->yycolno;
+    }
+
+    splc_buffer_node_stack_count -= 1;
+    return splc_buffer_node_stack == NULL;
 }
 
-const char *const splc_get_node_filename(int fid)
+static int _builtin_splc_exit_buffer()
 {
-    return splc_all_file_nodes[fid]->filename;
+    if (splc_buffer_node_stack == NULL)
+    {
+        return 1;
+    }
+
+    SPLC_ASSERT(SPLC_IS_BUFFER_FILE(splc_buffer_node_stack) || SPLC_IS_BUFFER_CHAR_ARRAY(splc_buffer_node_stack));
+
+    if (SPLC_IS_BUFFER_FILE(splc_buffer_node_stack))
+    {
+        return _builtin_splc_exit_file_buffer();
+    }
+    else if (SPLC_IS_BUFFER_CHAR_ARRAY(splc_buffer_node_stack))
+    {
+        return _builtin_splc_exit_char_buffer();
+    }
+    return 1;
+}
+
+int splc_enter_root(const char *restrict _filename)
+{
+    return _builtin_splc_enter_file_buffer(_filename, NULL);
+}
+
+int splc_push_file_buffer(const char *restrict _filename, const splc_loc location)
+{
+    return _builtin_splc_enter_file_buffer(_filename, &location);
+}
+
+int splc_push_char_buffer(const char *restrict _macroname, const splc_loc location, const char *content)
+{
+    return _builtin_splc_push_char_buffer(_macroname, &location, content);
+}
+
+int splc_pop_buffer()
+{
+    return _builtin_splc_exit_buffer();
+}
+
+const char *const splc_get_buffer_node_name(int fid)
+{
+    return splc_all_buffer_nodes[fid]->buffername;
 }
 
 void update_error(int val)

@@ -1,9 +1,11 @@
 %option yylineno
+%option stack
 %{
     #include "splcdef.h"
     #include "utils.h"
     #include "lut.h"
     #include "ast.h"
+    #include "preprocessor.h"
     #include "semantics.h"
 
     #include "syntax.tab.h"
@@ -43,20 +45,23 @@
     
     ast_node pproot = NULL;
     ast_node tmp = NULL;
+
+    char *ppd_macro_name = NULL;
+    splc_loc ppd_macro_pt = SPLC_INVALID_LOC;
 %}
 
 /* In cross-line comment */
 %s IN_CL_COMMENT
 /* In string */
 %s IN_STRING
-/* In preprocessor directive */
+/* Preprocessor Directive */
 %s IN_PPD
-/* Directive: Include */
+/* Preprocessor Directive: include */
 %s IN_PPD_INCL
-/* In preprocessor directive: define: test if name exists */
-%s IN_MACRO_DEF_TEST
-/* In preprocessor directive: define: content */
-%s IN_MACRO_DEF
+/* Preprocessor Directive: define */
+%s IN_PPD_DEFINE
+/* Preprocessor Directive: define body */
+%s IN_PPD_DEFINE_BODY
 
 identifier [a-zA-Z_][a-zA-Z0-9_]*
 
@@ -64,13 +69,13 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 %%
 
     /* =================== COMMENT =================== */
-<INITIAL>"/*" {
+"/*" {
     /* ignore comments */
-    BEGIN(IN_CL_COMMENT);
+    yy_push_state(IN_CL_COMMENT);
 }
 
 <IN_CL_COMMENT>"*/" {
-    BEGIN(INITIAL);
+    yy_pop_state();
 }
 
 <IN_CL_COMMENT>[^\*]+ {
@@ -81,49 +86,49 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     // eat the lone star
 }
 
-<IN_CL_COMMENT><<EOF>> {
-    SPLC_ERROR(SPLM_ERR_UNIV, SPLC_YY2LOC_CF_D(yylloc), "unclosed comment");
-    BEGIN(INITIAL);
+    /* <IN_CL_COMMENT><<EOF>> { */
+        /* SPLC_ERROR(SPLM_ERR_UNIV, SPLC_YY2LOC_CF_D(yylloc), "unclosed comment"); */
+        /* BEGIN(INITIAL); */
+    /* } */
+
+    /* =================== SINGLE-LINE COMMENT =================== */
+"//"([^\r\n]*(\\[\r]?\n)?)*\n {
+    /* match single-line comments that may spread across lines by '\\' */
+    /* Explanation: match the prefix "//", then: */
+    /*     match any character except newline or "\\(\r, if any)\n" as the body, terminated by "\n" */
 }
     
-    /* =================== MACRO =================== */
+    /* ============== Preprocessor Directive Translation ============== */
 <INITIAL># {
-    BEGIN(IN_PPD);
+    yy_push_state(IN_PPD);
 }
 
+    /* PPD Dispatch: include */
 <IN_PPD>"include" {
-    BEGIN(IN_PPD_INCL);
+    yy_pop_state();
+    yy_push_state(IN_PPD_INCL);
 }
 
-<IN_PPD_INCL>[ ] {
-    /* Skip spaces */
+    /* PPD Dispatch: define */
+<IN_PPD>"define" {
+    yy_pop_state();
+    yy_push_state(IN_PPD_DEFINE);
 }
 
-<IN_PPD_INCL>\<([^\r\n]|(\\\r?\n))+\> {
-    char *filename = strndup(yytext + 1, strlen(yytext) - 2);
-    if (splc_enter_file(filename, SPLC_YY2LOC_CF_D(yylloc)) == 0)
-    {
-        BEGIN(INITIAL);
-    }
-    free(filename);
-}
+    /* PPD Dispatch: if */
+    /* <IN_PPD>"if" { */
+    /*     BEGIN(IN_PPD_INCL); */
+    /* } */
 
-<IN_PPD_INCL>\"([^\r\n]|(\\\r?\n))+\" {
-    char *filename = strndup(yytext + 1, strlen(yytext) - 2);
-    if (splc_enter_file(filename, SPLC_YY2LOC_CF_D(yylloc)) == 0)
-    {
-        BEGIN(INITIAL);
-    }
-    free(filename);
-}
+    /* PPD Dispatch: ifdef */
+    /*<IN_PPD>"ifdef" { */
+    /*    BEGIN(IN_PPD_INCL); */
+    /*} */
 
-<IN_PPD_INCL>. {
-    SPLC_WARN(SPLM_Wuniv, SPLC_YY2LOC_CF_D(yylloc), "extra tokens at end of #include directive");
-}
-
-<IN_PPD_INCL>\r?\n {
-    BEGIN(INITIAL);
-}
+    /* PPD Dispatch: ifndef */
+    /* <IN_PPD>"ifndef" { */
+    /*     BEGIN(IN_PPD_INCL); */
+    /* } */
 
 <IN_PPD>. {
 
@@ -134,24 +139,81 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 
 <IN_PPD>\r?\n {
-    BEGIN(INITIAL);
+    yy_pop_state();
 }
 
-<IN_MACRO_DEF>. {
-    SPLC_WARN(SPLM_Wuniv, SPLC_YY2LOC_CF_D(yylloc), "unsupported preprocessor directive");
-    BEGIN(INITIAL);
+    /* ============== PPD: #include directive ============== */
+<IN_PPD_INCL>[ ] {
+    /* Skip spaces */
 }
 
-    /* =================== SINGLE-LINE COMMENT =================== */
-<INITIAL>"//"([^\r\n]*(\\[\r]?\n)?)*\n {
-    /* match single-line comments that may spread across lines by '\\' */
-    /* Explanation: match the prefix "//", then: */
-    /*     match any character except newline or "\\(\r, if any)\n" as the body, terminated by "\n" */
+<IN_PPD_INCL>\<([^\r\n]|(\\\r?\n))+\> {
+    char *filename = strndup(yytext + 1, strlen(yytext) - 2);
+    if (splc_push_file_buffer(filename, SPLC_YY2LOC_CF_D(yylloc)) == 0)
+    {
+        yy_push_state(INITIAL);
+    }
+    free(filename);
+}
+
+<IN_PPD_INCL>\"([^\r\n]|(\\\r?\n))+\" {
+    char *filename = strndup(yytext + 1, strlen(yytext) - 2);
+    if (splc_push_file_buffer(filename, SPLC_YY2LOC_CF_D(yylloc)) == 0)
+    {
+        yy_push_state(INITIAL);
+    }
+    free(filename);
+}
+
+<IN_PPD_INCL>. {
+    SPLC_WARN(SPLM_Wuniv, SPLC_YY2LOC_CF_D(yylloc), "extra tokens at end of #include directive");
+}
+
+<IN_PPD_INCL>\r?\n {
+    yy_pop_state();
+}
+
+    /* ============== PPD: #define directive ============== */
+<IN_PPD_DEFINE>{identifier} {
+    ppd_macro_pt = SPLC_YY2LOC_CF_D(yylloc);
+    ppd_macro_name = strdup(yytext);
+    SPLC_FWARN(SPLM_Wuniv, ppd_macro_pt, "detected macro definition '\033[1m%s\033[0m'. This is an experimental feature.", ppd_macro_name);
+    yy_pop_state();
+    yy_push_state(IN_PPD_DEFINE_BODY);
+}
+
+<IN_PPD_DEFINE>. {
+
+}
+
+<IN_PPD_DEFINE>\\\r?\n {
+
+}
+
+<IN_PPD_DEFINE>\r?\n {
+    yy_pop_state();
+}
+
+<IN_PPD_DEFINE_BODY>([^\r\n]*(\\[\r]?\n)?)* {
+    char *expanded = get_expanded_macro_content(yytext);
+    lut_insert(current_trans_unit->global_symtable, ppd_macro_name, SPLE_MACRO_VAR, SPLE_NULL, NULL, expanded, NULL, SPLC_YY2LOC_CF_D(yylloc));
+    SPLC_FDIAG("registered identifier %s", ppd_macro_name);
+    free(expanded);
+}
+
+<IN_PPD_DEFINE_BODY>. {
+
+}
+
+<IN_PPD_DEFINE_BODY>\r?\n {
+    free(ppd_macro_name);
+    ppd_macro_name = NULL;
+    yy_pop_state();
 }
 
     /* =================== STRING =================== */
 <INITIAL>\" {
-    BEGIN(IN_STRING);
+    yy_push_state(IN_STRING);
 }
 
 <INITIAL>\"\" {
@@ -196,12 +258,12 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 
 <IN_STRING>\" {
-    BEGIN(INITIAL);
+    yy_pop_state();
 }
 
 <IN_STRING><<EOF>> {
     SPLC_ERROR(SPLM_ERR_UNIV, SPLC_YY2LOC_CF_D(yylloc), "unclosed string literal");
-    BEGIN(INITIAL);
+    yy_pop_state();
 }
 
     /* =================== SPL: keywords =================== */
@@ -329,17 +391,26 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     /* the only valid identifier entry */
     char *textcopy = strdup(yytext);
     // EXPERIMENTAL
-    if (sem_test_typedef_name(textcopy))
+    lut_entry ent = NULL;
+    if ((ent = lut_find(current_trans_unit->global_symtable, textcopy, SPLE_MACRO_VAR)) != NULL)
     {
-        yylval = ast_create_leaf_node(SPLT_TYPEDEF_NAME, SPLC_YY2LOC_CF_D(yylloc));
-        yylval->val = textcopy;
-        return TYPEDEF_NAME;
+        yy_push_state(INITIAL);
+        splc_push_char_buffer(ent->id, SPLC_YY2LOC_CF_D(yylloc), ent->content);
     }
-    else
+    else 
     {
-        yylval = ast_create_leaf_node(SPLT_ID, SPLC_YY2LOC_CF_D(yylloc));
-        yylval->val = textcopy;
-        return ID;
+        if (sem_test_typedef_name(textcopy))
+        {
+            yylval = ast_create_leaf_node(SPLT_TYPEDEF_NAME, SPLC_YY2LOC_CF_D(yylloc));
+            yylval->val = textcopy;
+            return TYPEDEF_NAME;
+        }
+        else
+        {
+            yylval = ast_create_leaf_node(SPLT_ID, SPLC_YY2LOC_CF_D(yylloc));
+            yylval->val = textcopy;
+            return ID;
+        }
     }
 }
 
@@ -440,10 +511,14 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 /* This function defines what to do when EOF has been reached */
 int yywrap()
 {
-    int op = splc_exit_file();
+    if (YY_START == IN_CL_COMMENT)
+    {
+        SPLC_ERROR(SPLM_ERR_UNIV, SPLC_YY2LOC_CF_D(yylloc), "unclosed comment at the end of file");
+    }
+    int op = splc_pop_buffer();
     if (op == 0)
     {
-        BEGIN(IN_PPD_INCL);
+        yy_pop_state();
     }
     return op;
 }
