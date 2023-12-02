@@ -15,6 +15,7 @@ typedef struct ast_node_struct
     lut_table symtable; /* If this is a function declaration/definition, or a compound statement, 
                            `symtable` stores the underlying symbol table. */
 
+    ast_node father;    /* Father of this node. A node has no control of its father. */
     ast_node *children; /* Array of children */
     size_t num_child;   /* Number of children */
 

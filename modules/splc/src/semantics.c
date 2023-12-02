@@ -223,7 +223,7 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
         }
         if (var_is_redefined)
         {
-            SPLC_FERROR(SPLM_SEM_ERR_3, node->location, "redefinition of variable `%s`", var_name);
+            SPLC_FERROR(SPLM_ERR_SEM_3, node->location, "Redefinition of variable `%s`", var_name);
         }
         else
         {
@@ -281,54 +281,31 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
         }
         if (!var_is_defined)
         {
-            SPLC_FERROR(SPLM_SEM_ERR_1, node->location, "variable `%s` is undefined", var_name);
-        }
-
-        else
-        {
+            SPLC_FERROR(SPLM_ERR_SEM_1, node->location, "variable `%s` is undefined", var_name);
+        } 
+        else{
             // check unvalid use of indexing operator
             // TODO: check the tree structrue of nodes and figure out the exact fault
             //(but the array structure is diffrent in declaration and usage)
             ast_node var_node = var_entry->root;
-            if (var_node->num_child == 1 && fa_node->num_child > 1 && (fa_node->children[1])->type == SPLT_LSB)
+            int decl_num = (var_node->num_child)/3;
+            int use_num = 0;
+            ast_node tmp_node = node->father;
+            while(tmp_node->type == SPLT_EXPR && (tmp_node->children[(tmp_node->num_child) - 1])->type == SPLT_RSB)
             {
-                SPLC_FERROR(SPLM_ERR_UNIV, node->location,
-                            "Error type 10: applying indexing operator on non-array type variable %s\n", var_name);
-            }
-            // check unvalide use of Dot
-            if ((var_entry->type != SPLE_VAR ||
-                 (var_entry->extra_type != SPLE_STRUCT_DEC && var_entry->extra_type != SPLE_UNION_DEC)) &&
-                fa_node->num_child > 1 && (fa_node->children[1])->type == SPLT_DOT)
+                use_num++;
+                tmp_node = tmp_node->father;
+                if((tmp_node->children[0])->type != SPLT_EXPR)  break;
+            }            
+            if(decl_num < use_num)
             {
-                SPLC_FERROR(SPLM_ERR_UNIV, node->location,
-                            "Error type 13: accessing members of a non-structure variable %s\n", var_name);
-            }
-            else if (var_entry->type == SPLE_VAR &&
-                     (var_entry->extra_type == SPLE_STRUCT_DEC || var_entry->extra_type == SPLE_UNION_DEC))
-            {
-                const char *struct_union_name = var_entry->spec_type;
-                int struct_union_type_exists = 0;
-                for (int i = 0; i < tunit->nenvs; i++)
-                {
-                    if (lut_exists(tunit->envs[i], struct_union_name, SPLE_UNION_DEC) ||
-                        lut_exists(tunit->envs[i], struct_union_name, SPLE_STRUCT_DEC))
-                        struct_union_type_exists = 1;
-                }
-                // first check if the struct type is declared
-                if (!struct_union_type_exists)
-                {
-                    // TODO: move it to the definition of the variable
-                    /*
-                    SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error: using an undeclared struct/union type %s\n",
-                    struct_union_name);
-                    */
-                }
+                SPLC_FERROR(SPLM_ERR_SEM_10, node->location, "applying indexing operation on non-array type variable `%s`", var_name);
             }
         }
     }
 
     // check errors when using functions
-    if (node->type == SPLT_FUNC_INVOC_EXPR) // FuncInvocExpr
+    if(node->type == SPLT_CALL_EXPR) //CallExpr
     {
         char *func_name = ((char *)(node->children[0])->val);
         int func_is_defined = 0;
@@ -345,12 +322,11 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
         }
         if (!func_is_defined && !func_name_is_defined)
         {
-            SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 2: function %s is undefined\n", func_name);
+            SPLC_FERROR(SPLM_ERR_SEM_2, node->location, "function %s is undefined\n", func_name);
         }
         else if (!func_is_defined && func_name_is_defined)
         {
-            SPLC_FERROR(SPLM_ERR_UNIV, node->location,
-                        "Error type 11: applying function invocation operator on name %s\n", func_name);
+            SPLC_FERROR(SPLM_ERR_SEM_11, node->location, "applying function invocation operator on name %s\n", func_name);
         }
     }
 
@@ -373,15 +349,12 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
         if (child->type == SPLT_DOT)
             in_expr = 0;
 
-        if (node->type == SPLT_FUNC_INVOC_EXPR && child->type == SPLT_ID)
+        if(node->type == SPLT_CALL_EXPR && child->type == SPLT_ID)
         {
-            sem_ast_search(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type,
-                           in_struct, 0);
+            sem_ast_search(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type, in_struct, 0);
         }
-        else
-        {
-            sem_ast_search(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type,
-                           in_struct, in_expr);
+        else{
+            sem_ast_search(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type, in_struct, in_expr);
         }
     }
 
@@ -444,7 +417,7 @@ sem_expr_t sem_ast_expr_process(const ast_node node, splc_trans_unit tunit)
     }
     
     // FuncInvocExpr
-    if (node->type == SPLT_FUNC_INVOC_EXPR)
+    if (node->type == SPLT_CALL_EXPR)
     {
         if (node->num_child == 1) {
             return sem_ast_expr_process(node->children[0], tunit);
@@ -486,7 +459,7 @@ sem_expr_t sem_ast_expr_process(const ast_node node, splc_trans_unit tunit)
     {
         if (node->num_child == 1)
         {
-            // 带有括号的expr、字面量
+            // expr or literals with parentheses
             return sem_ast_expr_process(node->children[0], tunit);
         }
         else if (node->num_child == 2)
@@ -499,7 +472,7 @@ sem_expr_t sem_ast_expr_process(const ast_node node, splc_trans_unit tunit)
             sem_expr_t type = sem_ast_expr_process(expr_node, tunit);
             if (type == EXPR_NULL)
             {
-                SPLC_ERROR(SPLM_SEM_ERR_7, node->location, "unmatching operands");
+                SPLC_ERROR(SPLM_ERR_SEM_7, node->location, "unmatching operands");
             }
             return type;
         }
@@ -516,9 +489,9 @@ sem_expr_t sem_ast_expr_process(const ast_node node, splc_trans_unit tunit)
             if (left == SPLT_NULL || right == SPLT_NULL || left != right)
             {
                 if (node->children[1]->type == SPLT_ASSIGN)
-                    SPLC_ERROR(SPLM_SEM_ERR_5, node->location, "unmatching types");
-                else
-                    SPLC_ERROR(SPLM_SEM_ERR_7, node->location, "unmatching operands");
+                    SPLC_ERROR(SPLM_ERR_SEM_5, node->location, "unmatching types");
+                else 
+                    SPLC_ERROR(SPLM_ERR_SEM_7, node->location, "unmatching operands");
             }
         }
     }
@@ -539,7 +512,7 @@ void sem_analyze(splc_trans_unit tunit)
     // TODO(semantics): finish semantic analysis part
     // splcdiag("Semantic Analysis should be performed there.\n");
     sem_ast_search(tunit->root, NULL, tunit, 0, SPLE_NULL, SPLE_NULL, NULL, 0, 0);
-    sem_ast_expr_process(tunit->root, tunit);
+    // sem_ast_expr_process(tunit->root, tunit);
 }
 
 // struct.a

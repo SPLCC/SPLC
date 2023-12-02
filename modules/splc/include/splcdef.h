@@ -52,11 +52,13 @@ enum splc_token_type
     SPLT_SPEC_QUAL_LIST,     /* specifier-qualifier-list */
     SPLT_TYPENAME,           /* typename */
     SPLT_STRUCT_UNION_SPEC,  /* struct or union specifier */
+    SPLT_STRUCT_DECLTN_BODY, /* struct declaration body */
     SPLT_STRUCT_DECLTN_LIST, /* struct declaration list */
     SPLT_STRUCT_DECLTN,      /* struct declaration */
     SPLT_STRUCT_DEC_LIST,    /* struct declarator list */
     SPLT_STRUCT_DEC,         /* struct declarator */
     SPLT_ENUM_SPEC,          /* enum specifier */
+    SPLT_ENUM_BODY,          /* enum body */
     SPLT_ENUM_LIST,          /* enum list */
     SPLT_ENUM,               /* a single enum */
     SPLT_DEC,                /* variable declaration (pointer interface) */
@@ -96,7 +98,7 @@ enum splc_token_type
 
     SPLT_EXPR = SPLT_EXPR_OFFSET, /* expression */
     SPLT_PRIM_EXPR,               /* primary expression */
-    SPLT_FUNC_INVOC_EXPR,         /* function invocation expression */
+    SPLT_CALL_EXPR,         /* function invocation expression */
     SPLT_POSTFIX_EXPR,            /* postfix expression */
     SPLT_UNARY_EXPR,              /* unary expression */
     SPLT_CAST_EXPR,               /* cast expression */
