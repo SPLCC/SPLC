@@ -497,19 +497,6 @@ sem_expr_t sem_ast_process_expr(const ast_node node, splc_trans_unit tunit)
             sem_ast_process_expr(arg_list_node->children[i], tunit);
         }
 
-        // if (node->num_child == 2)
-        // {
-        //     // ArgList, each child is Expr
-        //     ast_node arg_list_node = node->children[1];
-        //     // check the length of arguments
-        //     ast_node param_list_node = ent->root->children[1]->children[0];
-
-        //     for (int i = 0; i < arg_list_node->num_child; i++) {
-
-        //     }
-
-        // }
-
         return EXPR_NULL;
     }
 
@@ -574,5 +561,3 @@ void sem_analyze(splc_trans_unit tunit)
     sem_ast_search(tunit->root, NULL, tunit, 0, SPLE_NULL, SPLE_NULL, NULL, 0, 0);
     sem_ast_process_expr(tunit->root, tunit);
 }
-
-// struct.a
