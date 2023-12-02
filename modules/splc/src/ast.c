@@ -174,7 +174,6 @@ ast_node ast_shallow_copy(ast_node node)
 {
     if (node == NULL)
         return NULL;
-
     node->ref_count++;
     return node;
 }

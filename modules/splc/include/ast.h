@@ -61,7 +61,8 @@ void ast_release_node(ast_node *root);
    - Eliminate all punctuators. The root node would not be eliminated. */
 void ast_preprocess(ast_node root);
 
-/* Add reference count and return the node. The underlying symbol table will get a shallow copy. */
+/* Return a shallow copy of the node while maintaining internal reference count. 
+   The underlying symbol table will get a shallow copy. */
 ast_node ast_shallow_copy(ast_node node);
 
 /* Recusively copy a single tree rooted at `node`. The underlying symbol table will get a shallow copy. */
