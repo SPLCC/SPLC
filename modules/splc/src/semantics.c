@@ -330,7 +330,7 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
     if(copy_new_sym_table)
     {
         lut_table top_sym_table = splc_pop_symtable(tunit);
-        node->symtable = lut_copy_table(top_sym_table);
+        node->symtable = top_sym_table;
     }
 }
 
