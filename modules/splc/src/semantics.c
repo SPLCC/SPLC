@@ -136,7 +136,6 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
             decl_spec_type = (char*)(id_children->val);
         }
     }
-    
         // definition of function
     if(node->type == SPLT_FUNC_DEF)  //FunctionDef
     {
@@ -158,7 +157,6 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
         }
         // passing the params to the declaration below
     }
-    
         // definition in function
     if(node->type == SPLT_PARAM_DEC||node->type == SPLT_DIR_DECLTN) // ParamDecltr(for each parameter of function) / DirectDecl(declaration in the functionbody)
     {
@@ -182,7 +180,6 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
         }
         // pass the two params to the declaration below
     }
-    
     // add declare variables into table:
     if(node->type == SPLT_DIR_DEC) //DirectDecltr (for variables)
     {
@@ -442,5 +439,5 @@ void sem_analyze(splc_trans_unit tunit)
     // TODO(semantics): finish semantic analysis part
     // splcdiag("Semantic Analysis should be performed there.\n");
     sem_ast_search(tunit->root, NULL, tunit, 0, SPLE_NULL, SPLE_NULL, NULL, 0, 0);
-    sem_ast_expr_process(tunit->root, tunit->root);
+    //sem_ast_expr_process(tunit->root, tunit->root);
 }

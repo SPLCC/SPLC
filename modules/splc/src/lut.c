@@ -180,11 +180,10 @@ lut_entry lut_insert(lut_table table, const char *name, const splc_entry_t type,
             target = target->next;
         }
     }
-
     target = lut_new_entry(name);
     target->type = type;
     target->extra_type = extra_type;
-    target->spec_type = strdup(spec_type);
+    target->spec_type = spec_type;
     target->first_occur = first_occur;
     target->root = ast_deep_copy(root);
     target->next = next;

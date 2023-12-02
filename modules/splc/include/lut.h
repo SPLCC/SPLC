@@ -18,7 +18,7 @@ typedef struct lut_entry_struct
 {
     splc_entry_t type;             /* Type of this entry */
     splc_entry_t extra_type;       /* Extra type of this entry */
-    char *spec_type;               /* Specific type of this entry */
+    char* spec_type;               /* Specific type of this entry */
     char *id;                      /* The name of the entry, if any */
     struct lut_entry_struct *next; /* `lut_entry_struct` internal variable:
                                       point to the next element in case of hash collision */
