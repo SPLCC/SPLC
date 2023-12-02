@@ -223,7 +223,7 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
         }
         if (var_is_redefined)
         {
-            SPLC_FERROR(SPLM_ERR_SEM_3, node->location, "Redefinition of variable `%s`", var_name);
+            SPLC_FERROR(SPLM_ERR_SEM_3, node->location, "redefinition of variable `%s`", var_name);
         }
         else
         {
@@ -282,30 +282,33 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
         if (!var_is_defined)
         {
             SPLC_FERROR(SPLM_ERR_SEM_1, node->location, "variable `%s` is undefined", var_name);
-        } 
-        else{
+        }
+        else
+        {
             // check unvalid use of indexing operator
             // TODO: check the tree structrue of nodes and figure out the exact fault
             //(but the array structure is diffrent in declaration and usage)
             ast_node var_node = var_entry->root;
-            int decl_num = (var_node->num_child)/3;
+            int decl_num = (var_node->num_child) / 3;
             int use_num = 0;
             ast_node tmp_node = node->father;
-            while(tmp_node->type == SPLT_EXPR && (tmp_node->children[(tmp_node->num_child) - 1])->type == SPLT_RSB)
+            while (tmp_node->type == SPLT_EXPR && (tmp_node->children[(tmp_node->num_child) - 1])->type == SPLT_RSB)
             {
                 use_num++;
                 tmp_node = tmp_node->father;
-                if((tmp_node->children[0])->type != SPLT_EXPR)  break;
-            }            
-            if(decl_num < use_num)
+                if ((tmp_node->children[0])->type != SPLT_EXPR)
+                    break;
+            }
+            if (decl_num < use_num)
             {
-                SPLC_FERROR(SPLM_ERR_SEM_10, node->location, "applying indexing operation on non-array type variable `%s`", var_name);
+                SPLC_FERROR(SPLM_ERR_SEM_10, node->location,
+                            "applying indexing operation on non-array type variable `%s`", var_name);
             }
         }
     }
 
     // check errors when using functions
-    if(node->type == SPLT_CALL_EXPR) //CallExpr
+    if (node->type == SPLT_CALL_EXPR) // CallExpr
     {
         char *func_name = ((char *)(node->children[0])->val);
         int func_is_defined = 0;
@@ -326,7 +329,8 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
         }
         else if (!func_is_defined && func_name_is_defined)
         {
-            SPLC_FERROR(SPLM_ERR_SEM_11, node->location, "applying function invocation operator on name %s\n", func_name);
+            SPLC_FERROR(SPLM_ERR_SEM_11, node->location, "applying function invocation operator on name %s\n",
+                        func_name);
         }
     }
 
@@ -349,12 +353,15 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
         if (child->type == SPLT_DOT)
             in_expr = 0;
 
-        if(node->type == SPLT_CALL_EXPR && child->type == SPLT_ID)
+        if (node->type == SPLT_CALL_EXPR && child->type == SPLT_ID)
         {
-            sem_ast_search(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type, in_struct, 0);
+            sem_ast_search(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type,
+                           in_struct, 0);
         }
-        else{
-            sem_ast_search(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type, in_struct, in_expr);
+        else
+        {
+            sem_ast_search(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type,
+                           in_struct, in_expr);
         }
     }
 
@@ -380,7 +387,67 @@ lut_entry find_envs(const splc_trans_unit tunit, const char *name, const splc_en
     return NULL;
 }
 
-sem_expr_t sem_ast_expr_process(const ast_node node, splc_trans_unit tunit)
+sem_expr_t sem_ast_process_expr_dot(const ast_node node, splc_trans_unit tunit)
+{
+    // ID1.Dot.ID2
+    char* var_name = (char *)(node->children[0]->val);
+    lut_entry var_ent = find_envs(tunit, var_name, SPLE_VAR);
+    if (var_ent)
+    {
+        // there exists a variable `ID1`
+        // check whether exists a struct `ID1`
+        lut_entry_print(var_ent);
+        if (var_ent->extra_type == SPLE_STRUCT_DEC)
+        {
+            lut_entry struct_ent = find_envs(tunit, var_ent->spec_type, SPLE_STRUCT_DEC);
+            if (struct_ent) {
+                lut_entry_print(struct_ent);
+                printf("%s\n", splc_token2str(struct_ent->root->type));
+
+                if (struct_ent->root->symtable == NULL) {
+                    printf("symtable NULL\n");
+                }
+                // lut_entry member_ent = lut_find(struct_ent->root->symtable, (char *)(node->children[2]->val), SPLE_VAR);
+                // if (member_ent)
+                // {
+                //     lut_entry_print(member_ent);
+                // }
+            }
+        }
+        else
+        {
+            SPLC_ERROR(SPLM_ERR_SEM_13, node->location, "accessing members of a non-structure variable");
+            return EXPR_NULL;
+        }
+        
+
+
+        // ast_print(var_ent->root);
+        // lut_entry_print(var_ent);
+        // // there exists struct `ID1`
+        // // check whether exists a variable `ID2` in struct `ID1`
+        // lut_table struct_symtable = var_ent->root->symtable;
+        // if (struct_symtable == NULL) {
+        //     printf("symtable NULL\n");
+        // }
+        // char* a = (char *)(node->children[2]->val);
+        // printf("%s\n", a);
+        // lut_entry member_ent = lut_find(struct_symtable, (char *)(node->children[2]->val), SPLE_VAR);
+
+        // if (member_ent)
+        // {
+        //     // return member_ent->spec_type
+        //     lut_entry_print(member_ent);
+        // }
+    }
+    else 
+    {
+        // there no exist a variable `ID1`
+        return EXPR_NULL;
+    }
+}
+
+sem_expr_t sem_ast_process_expr(const ast_node node, splc_trans_unit tunit)
 {
     if (node->symtable)
     {
@@ -415,28 +482,20 @@ sem_expr_t sem_ast_expr_process(const ast_node node, splc_trans_unit tunit)
             return EXPR_CHAR;
         return EXPR_NULL;
     }
-    
-    // FuncInvocExpr
+
+    // CallExpr
     if (node->type == SPLT_CALL_EXPR)
     {
-        if (node->num_child == 1) {
-            return sem_ast_expr_process(node->children[0], tunit);
-        }
-        else if (node->num_child == 2)
+        ast_node id_node = node->children[0];
+        ast_node arg_list_node = node->children[1];
+
+        sem_expr_t func_type = sem_ast_process_expr(id_node, tunit);
+
+        // 如何比较参数是否合法？
+        for (int i = 0; i < arg_list_node->num_child; i++)
         {
-            ast_node id_node = node->children[0];
-            ast_node arg_list_node = node->children[1];
-
-            sem_expr_t func_type = sem_ast_expr_process(id_node, tunit);
-
-            // 如何比较参数是否合法？
-            for (int i = 0; i < arg_list_node->num_child; i++) {
-                sem_ast_expr_process(arg_list_node->children[i], tunit);
-            }
-
+            sem_ast_process_expr(arg_list_node->children[i], tunit);
         }
-
-        
 
         // if (node->num_child == 2)
         // {
@@ -444,12 +503,11 @@ sem_expr_t sem_ast_expr_process(const ast_node node, splc_trans_unit tunit)
         //     ast_node arg_list_node = node->children[1];
         //     // check the length of arguments
         //     ast_node param_list_node = ent->root->children[1]->children[0];
-            
 
         //     for (int i = 0; i < arg_list_node->num_child; i++) {
-                
+
         //     }
-            
+
         // }
 
         return EXPR_NULL;
@@ -460,7 +518,7 @@ sem_expr_t sem_ast_expr_process(const ast_node node, splc_trans_unit tunit)
         if (node->num_child == 1)
         {
             // expr or literals with parentheses
-            return sem_ast_expr_process(node->children[0], tunit);
+            return sem_ast_process_expr(node->children[0], tunit);
         }
         else if (node->num_child == 2)
         {
@@ -469,7 +527,7 @@ sem_expr_t sem_ast_expr_process(const ast_node node, splc_trans_unit tunit)
             ast_node expr_node = node->children[expr_idx];
             ast_node operand_node = node->children[1 - expr_idx];
 
-            sem_expr_t type = sem_ast_expr_process(expr_node, tunit);
+            sem_expr_t type = sem_ast_process_expr(expr_node, tunit);
             if (type == EXPR_NULL)
             {
                 SPLC_ERROR(SPLM_ERR_SEM_7, node->location, "unmatching operands");
@@ -479,26 +537,28 @@ sem_expr_t sem_ast_expr_process(const ast_node node, splc_trans_unit tunit)
         else if (node->num_child == 3)
         {
             // TODO Dot
-            if (node->type == SPLT_DOT)
+            if (node->children[1]->type == SPLT_DOT)
             {
-                
+                sem_ast_process_expr_dot(node, tunit);
             }
-
-            sem_expr_t left = sem_ast_expr_process(node->children[0], tunit);
-            sem_expr_t right = sem_ast_expr_process(node->children[2], tunit);
-            if (left == SPLT_NULL || right == SPLT_NULL || left != right)
+            else
             {
-                if (node->children[1]->type == SPLT_ASSIGN)
-                    SPLC_ERROR(SPLM_ERR_SEM_5, node->location, "unmatching types");
-                else 
-                    SPLC_ERROR(SPLM_ERR_SEM_7, node->location, "unmatching operands");
+                sem_expr_t left = sem_ast_process_expr(node->children[0], tunit);
+                sem_expr_t right = sem_ast_process_expr(node->children[2], tunit);
+                if (left == SPLT_NULL || right == SPLT_NULL || left != right)
+                {
+                    if (node->children[1]->type == SPLT_ASSIGN)
+                        SPLC_ERROR(SPLM_ERR_SEM_5, node->location, "unmatching types");
+                    else
+                        SPLC_ERROR(SPLM_ERR_SEM_7, node->location, "unmatching operands");
+                }
             }
         }
     }
 
     for (int i = 0; i < node->num_child; i++)
     {
-        sem_ast_expr_process(node->children[i], tunit);
+        sem_ast_process_expr(node->children[i], tunit);
     }
 
     if (node->symtable)
@@ -512,7 +572,7 @@ void sem_analyze(splc_trans_unit tunit)
     // TODO(semantics): finish semantic analysis part
     // splcdiag("Semantic Analysis should be performed there.\n");
     sem_ast_search(tunit->root, NULL, tunit, 0, SPLE_NULL, SPLE_NULL, NULL, 0, 0);
-    // sem_ast_expr_process(tunit->root, tunit);
+    sem_ast_process_expr(tunit->root, tunit);
 }
 
 // struct.a

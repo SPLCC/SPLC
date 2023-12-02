@@ -12,7 +12,8 @@ enum sem_expr_type
     EXPR_NULL = 0x00000000,
     EXPR_INT,
     EXPR_FLOAT,
-    EXPR_CHAR
+    EXPR_CHAR,
+    EXPR_STRUCT
 };
 
 /* EXPERIMENTAL: Register typedef names for the following AST nodes:
@@ -33,6 +34,6 @@ void sem_analyze(splc_trans_unit tunit);
 
 void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int new_sym_table, splc_entry_t decl_entry_type, splc_entry_t decl_extra_type, const char* decl_spec_type, int in_struct, int in_expr);
 
-sem_expr_t sem_ast_expr_process(const ast_node node, splc_trans_unit tunit);
+sem_expr_t sem_ast_process_expr(const ast_node node, splc_trans_unit tunit);
 
 #endif /* SEMANTICS_H */

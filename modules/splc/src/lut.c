@@ -180,11 +180,10 @@ lut_entry lut_insert(lut_table table, const char *name, const splc_entry_t type,
             target = target->next;
         }
     }
-
     target = lut_new_entry(name);
     target->type = type;
     target->extra_type = extra_type;
-    target->spec_type = strdup(spec_type);
+    target->spec_type = spec_type;
     target->first_occur = first_occur;
     target->root = ast_deep_copy(root);
     target->next = next;
@@ -270,7 +269,7 @@ void lut_debug_print(FILE stream, lut_table table)
     // TODO(lut): print debug information
 }
 
-// void lut_entry_print(const lut_entry ent) {
-//     printf("{type=%s, extra_type=%s, spec_type=%s, id=%s}\n", 
-//         splc_token2str(ent->type), splc_token2str(ent->extra_type), ent->spec_type, ent->id);
-// }
+void lut_entry_print(const lut_entry ent) {
+    printf("{type=%d, extra_type=%d, spec_type=%s, id=%s}\n", 
+        ent->type, ent->extra_type, ent->spec_type, ent->id);
+}
