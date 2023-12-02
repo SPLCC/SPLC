@@ -642,16 +642,26 @@ splc_trans_unit splc_create_empty_trans_unit()
 splc_trans_unit splc_create_trans_unit()
 {
     splc_trans_unit unit = splc_create_empty_trans_unit();
-    unit->global_symtable = splc_push_symtable(unit, 0);
+    unit->global_symtable = splc_push_new_symtable(unit, 0);
     return unit;
 }
 
-lut_table splc_push_symtable(splc_trans_unit tunit, int scope)
+lut_table splc_push_new_symtable(splc_trans_unit tunit, int scope)
 {
     lut_table *newarr = (lut_table *)realloc(tunit->envs, (tunit->nenvs + 1) * sizeof(lut_table));
     SPLC_ALLOC_PTR_CHECK(newarr, "cannot allocate new symbol table for internal scope");
     tunit->envs = newarr;
     tunit->envs[tunit->nenvs] = lut_new_table(scope);
+    tunit->nenvs++;
+    return tunit->envs[tunit->nenvs - 1];
+}
+
+lut_table splc_push_existing_symtable(splc_trans_unit tunit, lut_table symtable)
+{
+    lut_table *newarr = (lut_table *)realloc(tunit->envs, (tunit->nenvs + 1) * sizeof(lut_table));
+    SPLC_ALLOC_PTR_CHECK(newarr, "cannot allocate new symbol table for internal scope");
+    tunit->envs = newarr;
+    tunit->envs[tunit->nenvs] = lut_copy_table(symtable);
     tunit->nenvs++;
     return tunit->envs[tunit->nenvs - 1];
 }

@@ -79,7 +79,7 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
         new_sym_table = 1; // Update to avoid pushing a global symbol table when encountering
                            // SPLT_TRANS_UNIT, as there is already one at scope 0.
     if(new_sym_table)
-        splc_push_symtable(tunit, 1);
+        splc_push_new_symtable(tunit, 1);
 
     int copy_new_sym_table = new_sym_table;
     if(node->type == SPLT_SEL_STMT || node->type == SPLT_ITER_STMT)
