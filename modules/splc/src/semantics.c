@@ -97,7 +97,7 @@ void register_struct_decltn(splc_trans_unit tunit, ast_node node, ast_node fathe
 
     // Second, the struct-declarator-list
     // Assume only declarator is present.
-
+    
 }
 
 /* `root_env` is where the struct declaration is placed.
@@ -192,7 +192,7 @@ static void register_simple_comp_stmt(splc_trans_unit tunit, ast_node node, ast_
     splc_push_new_symtable(tunit, 1);
     for (size_t i = 0; i < node->num_child; ++i)
     {
-        experimental_register_id(tunit, node->children[i], node, tunit->nenvs - 1);
+        experimental_register_dispatch(tunit, node->children[i], node, tunit->nenvs - 1);
     }
     lut_table top_sym_table = splc_pop_symtable(tunit);
     node->symtable = top_sym_table; // Linked
@@ -203,7 +203,7 @@ static void register_self_contained_stmt(splc_trans_unit tunit, ast_node node, a
     // TODO
 }
 
-static void experimental_register_id(splc_trans_unit tunit, ast_node node, ast_node father, int root_env)
+static void experimental_register_dispatch(splc_trans_unit tunit, ast_node node, ast_node father, int root_env)
 {
     SPLC_ASSERT(node->type != SPLT_NULL);
     SPLC_ASSERT(!SPLT_IS_PUNCTUATOR(node->type));
