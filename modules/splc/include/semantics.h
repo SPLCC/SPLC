@@ -30,10 +30,4 @@ void sem_track_scope_root(ast_node node);
 
 void sem_analyze(splc_trans_unit tunit);
 
-void sem_register_identifiers(ast_node node, ast_node fa_node, splc_trans_unit tunit, int new_sym_table, splc_entry_t decl_entry_type, splc_entry_t decl_extra_type, const char* decl_spec_type, int in_struct, int in_expr);
-
-expr_entry sem_ast_process_expr(const ast_node node, splc_trans_unit tunit);
-
-void sem_process_func_arg(ast_node node, splc_trans_unit tunit);
-
 #endif /* SEMANTICS_H */

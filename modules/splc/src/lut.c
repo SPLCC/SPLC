@@ -49,8 +49,9 @@ static lut_entry lut_new_entry(const char *name)
     tmp->next = NULL;
     tmp->content = NULL;
     tmp->first_occur = SPLC_INVALID_LOC;
-    tmp->ast_scope_root = NULL;
+    tmp->ast_type = NULL;
     tmp->root = NULL;
+    tmp->is_defined = 0;
 
     return tmp;
 }
@@ -63,9 +64,10 @@ static void lut_free_entry(lut_entry *entry)
         return;
 
     free((*entry)->id);
-    ast_release_node(&(*entry)->root);
     free((*entry)->spec_type);
     free((*entry)->content);
+    ast_release_node(&(*entry)->ast_type);
+    ast_release_node(&(*entry)->root);
     free(*entry);
     *entry = NULL;
 }

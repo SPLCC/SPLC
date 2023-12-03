@@ -1,4 +1,5 @@
 #include "semantics.h"
+#include "limits.h"
 #include "utils.h"
 
 // EXPERIMENTAL
@@ -33,8 +34,8 @@ static void register_typedef(const ast_node node)
     if (node->type == SPLT_ID)
     {
         SPLC_ASSERT(current_trans_unit->nenvs > 0);
-        lut_insert(current_trans_unit->global_symtable, (const char *)node->val, SPLE_TYPEDEF, SPLE_NULL, NULL,
-                   NULL, node, node->location);
+        lut_insert(current_trans_unit->global_symtable, (const char *)node->val, SPLE_TYPEDEF, SPLE_NULL, NULL, NULL,
+                   node, node->location);
     }
     for (int i = 0; i < node->num_child; ++i)
     {
@@ -74,9 +75,82 @@ int sem_test_typedef_name(const char *name)
            ent->type == SPLE_TYPEDEF;
 }
 
-void sem_register_identifiers(ast_node node, ast_node fa_node, splc_trans_unit tunit, int new_sym_table,
-                              splc_entry_t decl_entry_type, splc_entry_t decl_extra_type, const char *decl_spec_type,
-                              int in_struct, int in_expr)
+static inline char *get_anonymous_name(int id)
+{
+    SPLC_ASSERT(id > 0);
+    const char *name = "anonymous";
+    size_t namelen = strlen(name);
+    size_t needed = namelen + 1 + 10; // 1 for '\0' and 10 for id
+    char *buffer = malloc(needed);
+    SPLC_ALLOC_PTR_CHECK(buffer, "failed to create anonymous name buffer");
+    memcpy(buffer, name, namelen);
+    snprintf(buffer + namelen, 10, "%d", id);
+    return buffer;
+}
+
+void register_struct_decl_comp(splc_trans_unit tunit, ast_node node, ast_node father, int root_env, int struct_decl_env)
+{
+
+}
+
+void register_struct_decl(splc_trans_unit tunit, ast_node node, ast_node father, int root_env, int struct_decl_env)
+{
+    splc_push_new_symtable(tunit, 1);
+    ast_node type_children = node->children[0];
+    ast_node id_children = NULL;
+    const char *decl_name = NULL;
+    splc_entry_t tmp_decl_entry_type = NULL;
+    int is_defined = 0;
+
+    if (type_children->type == SPLT_KWD_STRUCT)
+        tmp_decl_entry_type = SPLE_STRUCT_DEC;
+    else
+        tmp_decl_entry_type = SPLE_UNION_DEC;
+
+    if (node->children[1]->type == SPLT_ID)
+        id_children = node->children[1];
+
+    if (node->children[1]->type == SPLT_STRUCT_DECLTN_BODY || node->num_child == 3 && node->children[2]->type == SPLT_STRUCT_DECLTN_BODY)
+    {
+        is_defined = 1;
+    }
+
+    if (id_children != NULL)
+    {
+        decl_name = strdup((char *)(id_children->val)); // name of struct/union
+        SPLC_ALLOC_PTR_CHECK(decl_name, "failed to allocate name for struct declaration.");
+        if (lut_exists(tunit->envs[root_env], decl_name, SPLE_STRUCT_DEC))
+            SPLC_FERROR(SPLM_ERR_SEM_15, node->location, "redefinition of struct/union %s", decl_name);
+    }
+    else
+    {
+        char *new_name = NULL;
+        int id;
+        for (id = 0; id < INT_MAX; ++id)
+        {
+            new_name = get_anonymous_name(id);
+            if (!lut_exists(tunit->envs[root_env], decl_name, SPLE_STRUCT_DEC))
+                break;
+        }
+        if (id == INT_MAX)
+        {
+            SPLC_FFAIL("number of anonymous struct reached maximum limit: \033[1m%d\033[0m.", INT_MAX);
+        }
+        decl_name = new_name;
+    }
+    SPLC_FDIAG("registered struct: %s %d", decl_name, tmp_decl_entry_type);
+
+    lut_entry ent = lut_insert(tunit->envs[root_env], decl_name, tmp_decl_entry_type, SPLE_NULL, NULL, NULL, node, node->location);
+    ent->is_defined = is_defined;
+}
+
+static void test_register_id(ast_node node, ast_node father, splc_trans_unit tunit, int root_env)
+{
+}
+
+static void register_id(ast_node node, ast_node fa_node, splc_trans_unit tunit, int new_sym_table,
+                        splc_entry_t decl_entry_type, splc_entry_t decl_extra_type, const char *decl_spec_type,
+                        int in_struct, int in_expr)
 {
     // new table construction
     int find_stmt = 0;
@@ -98,7 +172,9 @@ void sem_register_identifiers(ast_node node, ast_node fa_node, splc_trans_unit t
         ast_node id_children = node->children[1];
         splc_entry_t tmp_decl_entry_type;
         if (type_children->type == SPLT_KWD_STRUCT)
+        {
             tmp_decl_entry_type = SPLE_STRUCT_DEC;
+        }
         else
         {
             tmp_decl_entry_type = SPLE_UNION_DEC;
@@ -255,8 +331,8 @@ void sem_register_identifiers(ast_node node, ast_node fa_node, splc_trans_unit t
                        node->location);
         }
         if (node->num_child == 2)
-            sem_register_identifiers(node->children[1], node, tunit, 0, decl_entry_type, decl_extra_type, decl_spec_type,
-                           in_struct, in_expr);
+            register_id(node->children[1], node, tunit, 0, decl_entry_type, decl_extra_type, decl_spec_type, in_struct,
+                        in_expr);
         return;
     }
 
@@ -355,13 +431,13 @@ void sem_register_identifiers(ast_node node, ast_node fa_node, splc_trans_unit t
 
         if (node->type == SPLT_CALL_EXPR && child->type == SPLT_ID)
         {
-            sem_register_identifiers(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type,
-                           in_struct, 0);
+            register_id(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type, in_struct,
+                        0);
         }
         else
         {
-            sem_register_identifiers(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type,
-                           in_struct, in_expr);
+            register_id(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type, in_struct,
+                        in_expr);
         }
     }
 
@@ -508,7 +584,6 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit)
         {
             sem_process_func_arg(node, tunit);
             return sem_lut2expr(ent);
-
         }
 
         return NULL;
@@ -721,9 +796,9 @@ void sem_process_func_arg(ast_node node, splc_trans_unit tunit)
 
     for (int i = 0; i < param_list->num_child; i++)
     {
-        
-        lut_entry ent =
-            lut_find(func_symtable, (char *)(param_list->children[i]->children[1]->children[0]->children[0]->val), SPLE_VAR);
+
+        lut_entry ent = lut_find(
+            func_symtable, (char *)(param_list->children[i]->children[1]->children[0]->children[0]->val), SPLE_VAR);
         expr_entry param_expr = sem_lut2expr(ent);
 
         if (param_expr == NULL)
@@ -811,7 +886,7 @@ void sem_analyze(splc_trans_unit tunit)
 {
     // TODO(semantics): finish semantic analysis part
     // splcdiag("Semantic Analysis should be performed there.");
-    sem_register_identifiers(tunit->root, NULL, tunit, 0, SPLE_NULL, SPLE_NULL, NULL, 0, 0);
+    register_id(tunit->root, NULL, tunit, 0, SPLE_NULL, SPLE_NULL, NULL, 0, 0);
     sem_process_expr(tunit->root, tunit);
     sem_process_func_return_bottom_up(tunit->root, tunit);
 }

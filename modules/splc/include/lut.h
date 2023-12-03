@@ -23,12 +23,14 @@ typedef struct lut_entry_struct
     struct lut_entry_struct *next; /* `lut_entry_struct` internal variable:
                                       point to the next element in case of hash collision */
 
-    char *content;                 /* If it is a preprocessor macro then this holds the content */
+    char *content;           /* If it is a preprocessor macro then this holds the content */
     splc_loc first_occur;    /* first occurrence of this token */
-    ast_node ast_scope_root; /* EXPERIMENTAL: root of scope */
 
-    ast_node root; /* EXPERIMENTAL: Contain the root of this entry.
-                      AST has full control of this root, as it is a deep copy. */
+    ast_node ast_type; /* AST type of this entry. */
+    ast_node root;     /* EXPERIMENTAL: Contain the root of this entry.
+                          LUT has no control of this root but to release reference count,
+                          as it is a shallow copy. */
+    int is_defined;
 
 } lut_entry_struct;
 
