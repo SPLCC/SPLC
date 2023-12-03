@@ -379,20 +379,25 @@ function-declarator:
     ;
 
 direct-function-declarator:
-      direct-declarator LP parameter-type-list RP { $$ = ast_create_parent_node(SPLT_DIR_FUNC_DEC, 4, $1, $2, $3, $4); }
-    | direct-declarator LP RP { $$ = ast_create_parent_node(SPLT_DIR_FUNC_DEC, 3, $1, $2, $3); }
+      direct-declarator-for-function LP parameter-type-list RP { $$ = ast_create_parent_node(SPLT_DIR_FUNC_DEC, 4, $1, $2, $3, $4); }
+    /* | direct-declarator-for-function LP RP { $$ = ast_create_parent_node(SPLT_DIR_FUNC_DEC, 3, $1, $2, $3); } */
 
-    | direct-declarator LP error RP { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_I(@3), "invalid parameter declaration ')'"); $$ = ast_create_parent_node(SPLT_DIR_FUNC_DEC, 0); yyerrok; }
-    | direct-declarator LP parameter-type-list error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($3), "missing closing parenthesis ')'"); $$ = ast_create_parent_node(SPLT_DIR_FUNC_DEC, 0); yyerrok; }
-    | direct-declarator LP error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "missing closing parenthesis ')'"); $$ = ast_create_parent_node(SPLT_DIR_FUNC_DEC, 0); yyerrok; }
+    /* | direct-declarator-for-function LP error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_I(@3), "invalid parameter declaration ')'"); $$ = ast_create_parent_node(SPLT_DIR_FUNC_DEC, 0); yyerrok; } */
+    | direct-declarator-for-function LP parameter-type-list error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($3), "missing closing parenthesis ')'"); $$ = ast_create_parent_node(SPLT_DIR_FUNC_DEC, 0); yyerrok; }
+    /* | direct-declarator-for-function LP error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "missing closing parenthesis ')'"); $$ = ast_create_parent_node(SPLT_DIR_FUNC_DEC, 0); yyerrok; } */
 
     | LP parameter-type-list RP { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "missing identifier for function"); $$ = ast_create_parent_node(SPLT_DIR_FUNC_DEC, 3, $1, $2, $3); yyerrok; }
-    | LP RP { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "missing identifier for function"); $$ = ast_create_parent_node(SPLT_DIR_FUNC_DEC, 2, $1, $2); yyerrok; }
+    /* | LP RP { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "missing identifier for function"); $$ = ast_create_parent_node(SPLT_DIR_FUNC_DEC, 2, $1, $2); yyerrok; } */
+    ;
+
+direct-declarator-for-function:
+      identifier { $$ = ast_create_parent_node(SPLT_DIR_DEC, 1, $1); }
     ;
 
 /* List of variables names */
 parameter-type-list: 
-      parameter-list { $$ = ast_create_parent_node(SPLT_PARAM_TYPE_LIST, 1, $1); }
+      { $$ = ast_create_leaf_node(SPLT_PARAM_TYPE_LIST, SPLC_YY2LOC_CF_1_PNT_I(@$)); }
+    | parameter-list { $$ = ast_create_parent_node(SPLT_PARAM_TYPE_LIST, 1, $1); }
     | parameter-list COMMA ELLIPSIS { $$ = ast_create_parent_node(SPLT_PARAM_TYPE_LIST, 3, $1, $2, $3); }
     ;
 
@@ -400,7 +405,7 @@ parameter-list:
       parameter-declaration { $$ = ast_create_parent_node(SPLT_PARAM_LIST, 1, $1); }
     | parameter-list COMMA parameter-declaration { $$ = ast_add_children($1, 2, $2, $3); }
 
-    | parameter-list COMMA { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_L(@2), "expect parameter delcaration"); $$ = ast_add_child($1, $2); yyerrok; }
+    | parameter-list COMMA error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_L(@2), "expect parameter delcaration"); $$ = ast_add_child($1, $2); yyerrok; }
     | COMMA { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "expect parameter delcaration"); $$ = ast_create_parent_node(SPLT_PARAM_LIST, 1, $1); yyerrok; }
     ;
 
@@ -769,8 +774,8 @@ argument-list:
     | argument-list COMMA assignment-expression { $$ = ast_add_children($1, 2, $2, $3); }
     | assignment-expression { $$ = ast_create_parent_node(SPLT_ARG_LIST, 1, $1); }
 
-    | argument-list COMMA error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect an operand"); $$ = ast_create_parent_node(SPLT_ARG_LIST, 2, $1, $2); yyerrok; }
-    /* | COMMA error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_STARTLOC($1), "expect an operand"); $$ = ast_create_parent_node(SPLT_ARG_LIST, 1, $1); yyerrok; } */
+    | argument-list COMMA error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "incomplete call expression is not allowed"); $$ = ast_create_parent_node(SPLT_ARG_LIST, 2, $1, $2); yyerrok; }
+    /* | error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "invalid argument list"); $$ = ast_create_parent_node(SPLT_ARG_LIST, 0); yyerrok; } */
     ;
 
 /* String intermediate expression. Allowing concatenation of strings. */

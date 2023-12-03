@@ -81,6 +81,7 @@ const char *splc_get_token_color_code(splc_token_t type)
     case SPLT_CALL_EXPR:
     case SPLT_POSTFIX_EXPR:
     case SPLT_UNARY_EXPR:
+    case SPLT_IMPLICIT_CAST_EXPR:
     case SPLT_CAST_EXPR:
     case SPLT_MUL_EXPR:
     case SPLT_ADD_EXPR:
@@ -383,6 +384,8 @@ const char *splc_token2str(splc_token_t type)
         return "PostfixExpr";
     case SPLT_UNARY_EXPR:
         return "UnaryExpr";
+    case SPLT_IMPLICIT_CAST_EXPR:
+        return "ImplicitCastExpr";
     case SPLT_CAST_EXPR:
         return "ExplicitCastExpr";
     case SPLT_MUL_EXPR:
