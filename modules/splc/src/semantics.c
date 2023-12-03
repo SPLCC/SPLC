@@ -33,8 +33,8 @@ static void register_typedef(const ast_node node)
     if (node->type == SPLT_ID)
     {
         SPLC_ASSERT(current_trans_unit->nenvs > 0);
-        lut_insert(current_trans_unit->global_symtable, (const char *)node->val, SPLE_TYPEDEF, SPLE_NULL, NULL,
-                   NULL, node, node->location);
+        lut_insert(current_trans_unit->global_symtable, (const char *)node->val, SPLE_TYPEDEF, SPLE_NULL, NULL, NULL,
+                   node, node->location);
     }
     for (int i = 0; i < node->num_child; ++i)
     {
@@ -255,8 +255,8 @@ void sem_register_identifiers(ast_node node, ast_node fa_node, splc_trans_unit t
                        node->location);
         }
         if (node->num_child == 2)
-            sem_register_identifiers(node->children[1], node, tunit, 0, decl_entry_type, decl_extra_type, decl_spec_type,
-                           in_struct, in_expr);
+            sem_register_identifiers(node->children[1], node, tunit, 0, decl_entry_type, decl_extra_type,
+                                     decl_spec_type, in_struct, in_expr);
         return;
     }
 
@@ -355,13 +355,13 @@ void sem_register_identifiers(ast_node node, ast_node fa_node, splc_trans_unit t
 
         if (node->type == SPLT_CALL_EXPR && child->type == SPLT_ID)
         {
-            sem_register_identifiers(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type,
-                           in_struct, 0);
+            sem_register_identifiers(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type,
+                                     decl_spec_type, in_struct, 0);
         }
         else
         {
-            sem_register_identifiers(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type,
-                           in_struct, in_expr);
+            sem_register_identifiers(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type,
+                                     decl_spec_type, in_struct, in_expr);
         }
     }
 
@@ -508,7 +508,6 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit)
         {
             sem_process_func_arg(node, tunit);
             return sem_lut2expr(ent);
-
         }
 
         return NULL;
@@ -721,15 +720,10 @@ void sem_process_func_arg(ast_node node, splc_trans_unit tunit)
 
     for (int i = 0; i < param_list->num_child; i++)
     {
-        
-        lut_entry ent =
-            lut_find(func_symtable, (char *)(param_list->children[i]->children[1]->children[0]->children[0]->val), SPLE_VAR);
-        expr_entry param_expr = sem_lut2expr(ent);
 
-        if (param_expr == NULL)
-        {
-            printf("param NULL");
-        }
+        lut_entry ent = lut_find(
+            func_symtable, (char *)(param_list->children[i]->children[1]->children[0]->children[0]->val), SPLE_VAR);
+        expr_entry param_expr = sem_lut2expr(ent);
         expr_entry arg_expr = sem_process_expr(arg_list->children[i], tunit);
         if (arg_expr != NULL)
         {
@@ -741,10 +735,10 @@ void sem_process_func_arg(ast_node node, splc_trans_unit tunit)
             {
                 continue;
             }
-        }
 
-        SPLC_FERROR(SPLM_ERR_SEM_9, arg_list->children[i]->location, "invalid argument type, except `%s`, got `%s`",
-                    param_expr->spec_type, arg_expr->spec_type);
+            SPLC_FERROR(SPLM_ERR_SEM_9, arg_list->children[i]->location, "invalid argument type, except `%s`, got `%s`",
+                        param_expr->spec_type, arg_expr->spec_type);
+        }
     }
 }
 
