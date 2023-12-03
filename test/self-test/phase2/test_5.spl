@@ -1,0 +1,17 @@
+struct ib
+{
+    char cn;
+};
+
+struct website
+{
+    struct ib itbill;
+    char is;
+};
+
+void welcome(int to, float my)
+{
+    struct website www[10];
+    www[to].is = www[my].itbill.cn;
+    return my;
+}
