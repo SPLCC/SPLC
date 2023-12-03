@@ -113,9 +113,9 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
         }
         if (struct_union_undefined)
         {
-            SPLC_FERROR(SPLM_ERR_SEM_15, node->location, "redefinition of struct/union %s",
-                        struct_union_name);
-            // SPLC_FDIAG("Error type 15 at line %d: redefinition of %s\n", node->location.linebegin, struct_union_name);
+            SPLC_FERROR(SPLM_ERR_SEM_15, node->location, "redefinition of struct/union %s", struct_union_name);
+            // SPLC_FDIAG("Error type 15 at line %d: redefinition of %s\n", node->location.linebegin,
+            // struct_union_name);
         }
         SPLC_FDIAG("struct: %s %d", struct_union_name, tmp_decl_entry_type);
         lut_insert(tunit->envs[(tunit->nenvs) - 1], struct_union_name, tmp_decl_entry_type, SPLE_NULL, NULL, NULL, node,
@@ -378,6 +378,7 @@ lut_entry find_envs(const splc_trans_unit tunit, const char *name, const splc_en
     lut_entry ent = NULL;
     for (int i = 0; i < tunit->nenvs; i++)
     {
+
         ent = lut_find(tunit->envs[i], name, type);
         if (ent)
         {
@@ -400,6 +401,10 @@ expr_entry sem_new_expr_entry()
 
 expr_entry sem_lut2expr(lut_entry ent)
 {
+    if (ent == NULL)
+    {
+        return NULL;
+    }
     expr_entry result = sem_new_expr_entry();
     result->spec_type = ent->spec_type;
     result->extra_type = ent->extra_type;
@@ -500,7 +505,12 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit)
         // find in global symtable
         lut_entry ent = lut_find(tunit->envs[0], (char *)(node->children[0]->val), SPLE_FUNC);
         if (ent)
+        {
+            sem_process_func_arg(node, tunit);
             return sem_lut2expr(ent);
+
+        }
+
         return NULL;
     }
 
@@ -561,7 +571,7 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit)
 
                     // struct can be assigned but cannot be computed
                     else if ((left->extra_type == SPLE_STRUCT_DEC || right->extra_type == SPLE_STRUCT_DEC) &&
-                               left->spec_type != right->spec_type)
+                             left->spec_type != right->spec_type)
                     {
                         SPLC_ERROR(SPLM_ERR_SEM_5, node->location, "unmatching type on both sides of assignment");
                         return NULL;
@@ -589,17 +599,16 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit)
         }
         else if (node->num_child == 4)
         {
-            ast_print(node);
+
             // array
             expr_entry ent = sem_process_expr(node->children[2], tunit);
             if (ent == NULL || (strcmp(ent->spec_type, splc_token2str(SPLT_TYPE_INT)) != 0 &&
-                strcmp(ent->spec_type, splc_token2str(SPLT_LTR_INT)) != 0))
+                                strcmp(ent->spec_type, splc_token2str(SPLT_LTR_INT)) != 0))
             {
                 SPLC_ERROR(SPLM_ERR_SEM_12, node->children[2]->location,
                            "array indexing with a non-integer type expression");
             }
             return sem_process_expr(node->children[0], tunit);
-
         }
     }
 
@@ -686,21 +695,57 @@ void sem_process_func_arg(ast_node node, splc_trans_unit tunit)
         return;
     }
 
-    ast_node dir_func_dec_node = func_ent->root->children[1]->children[0];
-    ast_node arg_list_node = node->children[1];
-    
-    
+    ast_node param_type_list = func_ent->root->children[1];
+    ast_node arg_list = node->children[1];
 
-    if (dir_func_dec_node->num_child == 2)
+    if (param_type_list->num_child == 0)
     {
-        // contain ParamTypeList
-        ast_node param_list_node = dir_func_dec_node->children[1]->children[0];
-        for (int i = 0; i < param_list_node->num_child; i++)
+        // empty paramList
+        if (arg_list->num_child != 0)
         {
-            param_list_node->children[i];
+            SPLC_FERROR(SPLM_ERR_SEM_9, arg_list->location, "invalid argument number, except %d, got %ld", 0,
+                        arg_list->num_child);
         }
+        return;
     }
-    
+
+    ast_node param_list = param_type_list->children[0];
+    if (param_list->num_child != arg_list->num_child)
+    {
+        SPLC_FERROR(SPLM_ERR_SEM_9, arg_list->location, "invalid argument number, except %ld, got %ld",
+                    param_list->num_child, arg_list->num_child);
+        return;
+    }
+    // must find the function symtable
+    lut_table func_symtable = func_ent->root->father->father->symtable;
+
+    for (int i = 0; i < param_list->num_child; i++)
+    {
+        
+        lut_entry ent =
+            lut_find(func_symtable, (char *)(param_list->children[i]->children[1]->children[0]->children[0]->val), SPLE_VAR);
+        expr_entry param_expr = sem_lut2expr(ent);
+
+        if (param_expr == NULL)
+        {
+            printf("param NULL");
+        }
+        expr_entry arg_expr = sem_process_expr(arg_list->children[i], tunit);
+        if (arg_expr != NULL)
+        {
+            if (are_types_equal(param_expr->spec_type, arg_expr->spec_type, SPLT_TYPE_INT, SPLT_LTR_INT) ||
+                are_types_equal(param_expr->spec_type, arg_expr->spec_type, SPLT_TYPE_FLOAT, SPLT_LTR_FLOAT) ||
+                are_types_equal(param_expr->spec_type, arg_expr->spec_type, SPLT_TYPE_CHAR, SPLT_LTR_CHAR) ||
+                (param_expr->extra_type == SPLE_STRUCT_DEC && arg_expr->extra_type == SPLE_STRUCT_DEC &&
+                 (strcmp(param_expr->spec_type, arg_expr->spec_type) == 0)))
+            {
+                continue;
+            }
+        }
+
+        SPLC_FERROR(SPLM_ERR_SEM_9, arg_list->children[i]->location, "invalid argument type, except `%s`, got `%s`",
+                    param_expr->spec_type, arg_expr->spec_type);
+    }
 }
 
 void sem_process_func_return_top_down(ast_node node, splc_trans_unit tunit)
@@ -735,7 +780,6 @@ void sem_process_func_return_top_down(ast_node node, splc_trans_unit tunit)
         else
         {
             expr_entry ret_ent = sem_process_expr(jump_stmt_node->children[1], tunit);
-            ast_print(jump_stmt_node);
             if (ret_ent)
             {
                 SPLC_FDIAG("%s", ret_ent->spec_type);
