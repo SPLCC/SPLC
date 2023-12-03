@@ -560,8 +560,8 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit)
                     }
 
                     // struct can be assigned but cannot be computed
-                    else if (!(left->extra_type == SPLE_STRUCT_DEC && right->extra_type == SPLE_STRUCT_DEC &&
-                               left->spec_type == right->spec_type))
+                    else if ((left->extra_type == SPLE_STRUCT_DEC || right->extra_type == SPLE_STRUCT_DEC) &&
+                               left->spec_type != right->spec_type)
                     {
                         SPLC_ERROR(SPLM_ERR_SEM_5, node->location, "unmatching type on both sides of assignment");
                         return NULL;
@@ -586,6 +586,20 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit)
 
                 return left;
             }
+        }
+        else if (node->num_child == 4)
+        {
+            ast_print(node);
+            // array
+            expr_entry ent = sem_process_expr(node->children[2], tunit);
+            if (ent == NULL || (strcmp(ent->spec_type, splc_token2str(SPLT_TYPE_INT)) != 0 &&
+                strcmp(ent->spec_type, splc_token2str(SPLT_LTR_INT)) != 0))
+            {
+                SPLC_ERROR(SPLM_ERR_SEM_12, node->children[2]->location,
+                           "array indexing with a non-integer type expression");
+            }
+            return sem_process_expr(node->children[0], tunit);
+
         }
     }
 
@@ -723,37 +737,6 @@ void sem_process_func_return_top_down(ast_node node, splc_trans_unit tunit)
     }
 }
 
-void sem_process_array_index(ast_node node, splc_trans_unit tunit)
-{
-    if (node->symtable)
-    {
-        splc_push_existing_symtable(tunit, node->symtable);
-    }
-
-    if (node->type == SPLT_LSB)
-    {
-        ast_node expr_node = node->father->children[2];
-        expr_entry ent = sem_process_expr(expr_node, tunit);
-        if (ent == NULL && strcmp(ent->spec_type, splc_token2str(SPLT_TYPE_INT)) != 0 &&
-            strcmp(ent->spec_type, splc_token2str(SPLT_LTR_INT)) != 0)
-        {
-            SPLC_ERROR(SPLM_ERR_SEM_12, expr_node->location, "array indexing with a non-integer type expression");
-        }
-
-        // todo: bug + 嵌套array index
-    }
-
-    for (int i = 0; i < node->num_child; i++)
-    {
-        sem_process_array_index(node->children[i], tunit);
-    }
-
-    if (node->symtable)
-    {
-        splc_pop_symtable(tunit);
-    }
-}
-
 void sem_analyze(splc_trans_unit tunit)
 {
     // TODO(semantics): finish semantic analysis part
@@ -761,7 +744,6 @@ void sem_analyze(splc_trans_unit tunit)
     sem_ast_search(tunit->root, NULL, tunit, 0, SPLE_NULL, SPLE_NULL, NULL, 0, 0);
     sem_process_expr(tunit->root, tunit);
     sem_process_func_return_bottom_up(tunit->root, tunit);
-    sem_process_array_index(tunit->root, tunit);
 }
 
 // TODO: 9, 12
