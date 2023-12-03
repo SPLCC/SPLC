@@ -40,7 +40,7 @@ Reports for CS323-2023-Fall are placed under `reports` folder, with images place
 
   The parsing tree will not be colored.
 - Allow partial C99/C11 features.
-  - The exception being `generic-selection` and `generc-association`.
+  - The exception being `generic-selection`, `generc-association`, atomic specifier, ... Please refer to `modules/splc/src/syntax.y`.
   - **Examples**:
     - Recursive macro substitution
     - Almost all C99 grammar
