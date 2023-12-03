@@ -1,6 +1,7 @@
 #include "semantics.h"
 #include "limits.h"
 #include "utils.h"
+#include "type.h"
 
 // EXPERIMENTAL
 static ast_node find_typedef(const ast_node node)
@@ -90,8 +91,13 @@ static inline char *get_anonymous_name(int id)
 
 void register_struct_decltn(splc_trans_unit tunit, ast_node node, ast_node father, int root_env, int struct_decl_env)
 {
-    // First, the body of a struct-declaration contains specifier-qualifier-list, which is
-    
+    // TODO: support bit field
+
+    // First, the specifier-qualifier-list, and each is a two-level hierarchy
+
+    // Second, the struct-declarator-list
+    // Assume only declarator is present.
+
 }
 
 /* `root_env` is where the struct declaration is placed.
@@ -184,7 +190,10 @@ void register_struct_spec(splc_trans_unit tunit, ast_node node, ast_node father,
 static void register_simple_comp_stmt(splc_trans_unit tunit, ast_node node, ast_node father, int root_env)
 {
     splc_push_new_symtable(tunit, 1);
-    // TODO
+    for (size_t i = 0; i < node->num_child; ++i)
+    {
+        experimental_register_id(tunit, node->children[i], node, tunit->nenvs - 1);
+    }
     lut_table top_sym_table = splc_pop_symtable(tunit);
     node->symtable = top_sym_table; // Linked
 }
@@ -197,6 +206,7 @@ static void register_self_contained_stmt(splc_trans_unit tunit, ast_node node, a
 static void experimental_register_id(splc_trans_unit tunit, ast_node node, ast_node father, int root_env)
 {
     SPLC_ASSERT(node->type != SPLT_NULL);
+    SPLC_ASSERT(!SPLT_IS_PUNCTUATOR(node->type));
     if (node->type == SPLT_TRANS_UNIT)
     {
     }
@@ -230,9 +240,9 @@ static void experimental_register_id(splc_trans_unit tunit, ast_node node, ast_n
     }
 }
 
-static void register_id(ast_node node, ast_node fa_node, splc_trans_unit tunit, int new_sym_table,
-                        splc_entry_t decl_entry_type, splc_entry_t decl_extra_type, const char *decl_spec_type,
-                        int in_struct, int in_expr)
+static void legacy_register_id(ast_node node, ast_node fa_node, splc_trans_unit tunit, int new_sym_table,
+                               splc_entry_t decl_entry_type, splc_entry_t decl_extra_type, const char *decl_spec_type,
+                               int in_struct, int in_expr)
 {
     // new table construction
     int find_stmt = 0;
@@ -413,7 +423,7 @@ static void register_id(ast_node node, ast_node fa_node, splc_trans_unit tunit, 
                        node->location);
         }
         if (node->num_child == 2)
-            register_id(node->children[1], node, tunit, 0, decl_entry_type, decl_extra_type, decl_spec_type, in_struct,
+            legacy_register_id(node->children[1], node, tunit, 0, decl_entry_type, decl_extra_type, decl_spec_type, in_struct,
                         in_expr);
         return;
     }
@@ -513,12 +523,12 @@ static void register_id(ast_node node, ast_node fa_node, splc_trans_unit tunit, 
 
         if (node->type == SPLT_CALL_EXPR && child->type == SPLT_ID)
         {
-            register_id(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type, in_struct,
+            legacy_register_id(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type, in_struct,
                         0);
         }
         else
         {
-            register_id(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type, in_struct,
+            legacy_register_id(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type, in_struct,
                         in_expr);
         }
     }
@@ -964,7 +974,7 @@ void sem_analyze(splc_trans_unit tunit)
 {
     // TODO(semantics): finish semantic analysis part
     // splcdiag("Semantic Analysis should be performed there.");
-    register_id(tunit->root, NULL, tunit, 0, SPLE_NULL, SPLE_NULL, NULL, 0, 0);
+    legacy_register_id(tunit->root, NULL, tunit, 0, SPLE_NULL, SPLE_NULL, NULL, 0, 0);
     sem_process_expr(tunit->root, tunit);
     sem_process_func_return_bottom_up(tunit->root, tunit);
 }
