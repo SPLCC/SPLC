@@ -244,7 +244,7 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
         }
         if (func_is_redefined)
         {
-            SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 4: redefinition of function %s", func_name);
+            SPLC_FERROR(SPLM_ERR_SEM_4, node->location, "redefinition of function '\033[1m%s\033[0m'", func_name);
         }
         else
         {
@@ -660,7 +660,7 @@ void sem_process_func_return_bottom_up(ast_node node, splc_trans_unit tunit)
                 !(ret_ent->extra_type == SPLE_STRUCT_DEC && func_ent->extra_type == SPLE_STRUCT_DEC &&
                   (strcmp(ret_ent->spec_type, func_ent->spec_type) == 0)))
             {
-                SPLC_ERROR(SPLM_ERR_SEM_8, jump_stmt_node->location, "incompatiable return type");
+                SPLC_ERROR(SPLM_ERR_SEM_8, jump_stmt_node->location, "incompatible return type");
             }
         }
         return;
@@ -702,9 +702,9 @@ void sem_process_func_return_top_down(ast_node node, splc_trans_unit tunit)
         {
             // no return but not void function
             if (jump_stmt_node == NULL)
-                SPLC_ERROR(SPLM_ERR_SEM_8, node->children[0]->location, "incompatiable return type");
+                SPLC_ERROR(SPLM_ERR_SEM_8, node->children[0]->location, "incompatible return type");
             else
-                SPLC_ERROR(SPLM_ERR_SEM_8, jump_stmt_node->location, "incompatiable return type");
+                SPLC_ERROR(SPLM_ERR_SEM_8, jump_stmt_node->location, "incompatible return type");
         }
         else
         {
@@ -719,7 +719,7 @@ void sem_process_func_return_top_down(ast_node node, splc_trans_unit tunit)
                     !(ret_ent->extra_type == SPLE_STRUCT_DEC && func_ent->extra_type == SPLE_STRUCT_DEC &&
                       (strcmp(ret_ent->spec_type, func_ent->spec_type) == 0)))
                 {
-                    SPLC_ERROR(SPLM_ERR_SEM_8, jump_stmt_node->location, "incompatiable return type");
+                    SPLC_ERROR(SPLM_ERR_SEM_8, jump_stmt_node->location, "incompatible return type");
                 }
             }
         }
