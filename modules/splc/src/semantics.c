@@ -102,7 +102,6 @@ void register_struct_decltn(splc_trans_unit tunit, ast_node node, int root_env, 
     // TODO: support bit field
 
     // Just append and leave it to the type system
-    
 }
 
 /* `root_env` is where the struct declaration is placed.
@@ -210,9 +209,8 @@ static void register_simple_comp_stmt(splc_trans_unit tunit, ast_node node, int 
 static void register_self_contained_stmt(splc_trans_unit tunit, ast_node node, int root_env)
 {
     splc_push_new_symtable(tunit, 1);
-    
-    // TODO: register declarations if it is a for loop 
 
+    // TODO: register declarations if it is a for loop
 
     lut_table top_sym_table = splc_pop_symtable(tunit);
     node->symtable = top_sym_table; // Linked
@@ -234,7 +232,7 @@ static void register_function_def(splc_trans_unit tunit, ast_node node, int root
 
     splc_push_new_symtable(tunit, 1);
     // TODO: register all parameters
-    
+
     lut_table top_sym_table = splc_pop_symtable(tunit);
     node->symtable = top_sym_table; // Linked
 }
@@ -761,6 +759,13 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit)
                     return sem_process_expr_dot(left, node, tunit);
                 }
                 return NULL;
+            }
+            else if (node->children[1]->type == SPLT_EQ)
+            {
+                // TODO more detail
+                expr_entry ent = sem_new_expr_entry();
+                ent->spec_type = splc_token2str(SPLT_LTR_INT);
+                return ent;
             }
             else
             {
