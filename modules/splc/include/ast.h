@@ -68,6 +68,12 @@ ast_node ast_shallow_copy(ast_node node);
 /* Recusively copy a single tree rooted at `node`. The underlying symbol table will get a shallow copy. */
 ast_node ast_deep_copy(ast_node node);
 
+/* Find the specific type of ast_node in the children of `node` (include itself). */
+ast_node ast_find(const ast_node node, const splc_token_t type);
+
+/* Find all specific type of ast_node in the children of `node` (include itself). */
+ast_node* ast_find_all(const ast_node node, const splc_token_t type);
+
 /* Print a single node. No line break will be appended. */
 void ast_print_single_node(const ast_node node);
 

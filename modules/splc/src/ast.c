@@ -230,6 +230,23 @@ ast_node ast_deep_copy(ast_node node)
     return result;
 }
 
+ast_node ast_find(const ast_node node, const splc_token_t type)
+{
+    if (node->type == type)
+    {
+        return ast_deep_copy(node);
+    }
+    for (int i = 0; i < node->num_child; i++)
+    {
+        ast_node res = ast_find(node->children[i], type);
+        if (res && res->type == type)
+        {
+            return ast_deep_copy(res);
+        }
+    }
+    return NULL;
+}
+
 void ast_print_single_node(const ast_node node)
 {
     // print node type
