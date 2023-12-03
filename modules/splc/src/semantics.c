@@ -697,10 +697,10 @@ void sem_process_func_arg(ast_node node, splc_trans_unit tunit)
         ast_node param_list_node = dir_func_dec_node->children[1]->children[0];
         for (int i = 0; i < param_list_node->num_child; i++)
         {
-            param_list_node->children[i]
+            param_list_node->children[i];
         }
     }
-
+    
 }
 
 void sem_process_func_return_top_down(ast_node node, splc_trans_unit tunit)
