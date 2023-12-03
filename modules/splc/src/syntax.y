@@ -520,10 +520,10 @@ iteration-statement:
     | FOR LP for-loop-body error { SPLC_ERROR(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($3), "missing closing parenthesis ')'"); $$ = ast_create_parent_node(SPLT_ITER_STMT, 0); yyerrok; }
     ;
 
-for-loop-body: 
+for-loop-body: // TODO: add constant expressions 
       initialization-expression SEMI expression SEMI expression { $$ = ast_create_parent_node(SPLT_FOR_LOOP_BODY, 5, $1, $2, $3, $4, $5); }
 
-    | SEMI expression SEMI expression { $$ = ast_create_parent_node(SPLT_FOR_LOOP_BODY, 4, $1, $2, $3, $4); }
+    | SEMI expression SEMI expression { $$ = ast_create_parent_node(SPLT_FOR_LOOP_BODY, 4, $1, $2, $3, $4); } 
     | initialization-expression SEMI expression SEMI { $$ = ast_create_parent_node(SPLT_FOR_LOOP_BODY, 4, $1, $2, $3, $4); }
     | initialization-expression SEMI SEMI expression { $$ = ast_create_parent_node(SPLT_FOR_LOOP_BODY, 4, $1, $2, $3, $4); }
 
