@@ -92,21 +92,21 @@ static inline char *get_anonymous_name(int id)
     return buffer;
 }
 
-void register_struct_specifiers(splc_trans_unit tunit, ast_node node, int root_env, int struct_decl_env)
+static void register_struct_specifiers(splc_trans_unit tunit, ast_node node, int root_env, int struct_decl_env)
 {
-    // TODO: recursively register structures
+    // TODO: recursively register structure specifiers
 }
 
-void register_struct_decltn(splc_trans_unit tunit, ast_node node, int root_env, int struct_decl_env)
+static void register_struct_decltn(splc_trans_unit tunit, ast_node node, int root_env, int struct_decl_env)
 {
-    // TODO: support bit field
-
+    // TODO: register struct
+    // BONUS: support bit field
     // Just append and leave it to the type system
 }
 
 /* `root_env` is where the struct declaration is placed.
    `struct_decl_env` is where the declaration body of struct is placed. */
-void register_struct_spec(splc_trans_unit tunit, ast_node node, int root_env, int struct_decl_env)
+static void register_struct_spec(splc_trans_unit tunit, ast_node node, int root_env, int struct_decl_env)
 {
     SPLC_ASSERT(node->type == SPLT_STRUCT_UNION_SPEC);
 
@@ -201,7 +201,9 @@ static void register_comp_stmt_no_new_env(splc_trans_unit tunit, ast_node node, 
 static void register_simple_comp_stmt(splc_trans_unit tunit, ast_node node, int root_env)
 {
     splc_push_new_symtable(tunit, 1);
+
     register_comp_stmt_no_new_env(tunit, node, root_env);
+
     lut_table top_sym_table = splc_pop_symtable(tunit);
     node->symtable = top_sym_table; // Linked
 }
@@ -209,8 +211,12 @@ static void register_simple_comp_stmt(splc_trans_unit tunit, ast_node node, int 
 static void register_self_contained_stmt(splc_trans_unit tunit, ast_node node, int root_env)
 {
     splc_push_new_symtable(tunit, 1);
-
-    // TODO: register declarations if it is a for loop
+    
+    // TODO: register declarations if it is a for loop 
+    if (node->type == SPLT_ITER_STMT && node->children[0]->type == SPLT_FOR)
+    {
+        
+    }
 
     lut_table top_sym_table = splc_pop_symtable(tunit);
     node->symtable = top_sym_table; // Linked
@@ -247,12 +253,15 @@ static void experimental_analyze_dispatch(splc_trans_unit tunit, ast_node node, 
     }
     else if (node->type == SPLT_EXT_DECLTN_LIST)
     {
+        experimental_analyze_dispatch(tunit, node, root_env);
     }
     else if (node->type == SPLT_EXT_DECLTN)
     {
+        experimental_analyze_dispatch(tunit, node, root_env);
     }
     else if (node->type == SPLT_DECLTN)
     {
+        // TODO: declaration dispatch
     }
     else if (node->type == SPLT_FUNC_DEF)
     {
@@ -284,7 +293,7 @@ static void experimental_analyze_dispatch(splc_trans_unit tunit, ast_node node, 
     }
 }
 
-static void legacy_register_id(ast_node node, ast_node fa_node, splc_trans_unit tunit, int new_sym_table,
+static void legacy_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int new_sym_table,
                                splc_entry_t decl_entry_type, splc_entry_t decl_extra_type, const char *decl_spec_type,
                                int in_struct, int in_expr)
 {
@@ -467,7 +476,7 @@ static void legacy_register_id(ast_node node, ast_node fa_node, splc_trans_unit 
                        node->location);
         }
         if (node->num_child == 2)
-            legacy_register_id(node->children[1], node, tunit, 0, decl_entry_type, decl_extra_type, decl_spec_type,
+            legacy_ast_search(node->children[1], node, tunit, 0, decl_entry_type, decl_extra_type, decl_spec_type,
                                in_struct, in_expr);
         return;
     }
@@ -567,12 +576,12 @@ static void legacy_register_id(ast_node node, ast_node fa_node, splc_trans_unit 
 
         if (node->type == SPLT_CALL_EXPR && child->type == SPLT_ID)
         {
-            legacy_register_id(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type,
+            legacy_ast_search(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type,
                                in_struct, 0);
         }
         else
         {
-            legacy_register_id(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type,
+            legacy_ast_search(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type,
                                in_struct, in_expr);
         }
     }
@@ -1025,7 +1034,7 @@ void sem_analyze(splc_trans_unit tunit)
 {
     // TODO(semantics): finish semantic analysis part
     // splcdiag("Semantic Analysis should be performed there.");
-    legacy_register_id(tunit->root, NULL, tunit, 0, SPLE_NULL, SPLE_NULL, NULL, 0, 0);
+    legacy_ast_search(tunit->root, NULL, tunit, 0, SPLE_NULL, SPLE_NULL, NULL, 0, 0);
     sem_process_expr(tunit->root, tunit);
     sem_process_func_return_bottom_up(tunit->root, tunit);
 }
