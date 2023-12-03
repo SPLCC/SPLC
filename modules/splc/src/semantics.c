@@ -1,7 +1,10 @@
 #include "semantics.h"
 #include "limits.h"
-#include "utils.h"
 #include "type.h"
+#include "utils.h"
+
+// forward declaration
+static void experimental_analyze_dispatch(splc_trans_unit tunit, ast_node node, int root_env);
 
 // EXPERIMENTAL
 static ast_node find_typedef(const ast_node node)
@@ -76,8 +79,6 @@ int sem_test_typedef_name(const char *name)
            ent->type == SPLE_TYPEDEF;
 }
 
-static void experimental_register_dispatch(splc_trans_unit tunit, ast_node node, ast_node father, int root_env);
-
 static inline char *get_anonymous_name(int id)
 {
     SPLC_ASSERT(id > 0);
@@ -91,20 +92,22 @@ static inline char *get_anonymous_name(int id)
     return buffer;
 }
 
-void register_struct_decltn(splc_trans_unit tunit, ast_node node, ast_node father, int root_env, int struct_decl_env)
+void register_struct_specifiers(splc_trans_unit tunit, ast_node node, int root_env, int struct_decl_env)
+{
+    // TODO: recursively register structures
+}
+
+void register_struct_decltn(splc_trans_unit tunit, ast_node node, int root_env, int struct_decl_env)
 {
     // TODO: support bit field
 
-    // First, the specifier-qualifier-list, and each is a two-level hierarchy
-
-    // Second, the struct-declarator-list
-    // Assume only declarator is present.
-
+    // Just append and leave it to the type system
+    
 }
 
 /* `root_env` is where the struct declaration is placed.
    `struct_decl_env` is where the declaration body of struct is placed. */
-void register_struct_spec(splc_trans_unit tunit, ast_node node, ast_node father, int root_env, int struct_decl_env)
+void register_struct_spec(splc_trans_unit tunit, ast_node node, int root_env, int struct_decl_env)
 {
     SPLC_ASSERT(node->type == SPLT_STRUCT_UNION_SPEC);
 
@@ -167,69 +170,82 @@ void register_struct_spec(splc_trans_unit tunit, ast_node node, ast_node father,
         decl_name = new_name;
     }
 
-    splc_push_new_symtable(tunit, 1);
     lut_entry ent =
         lut_insert(tunit->envs[root_env], decl_name, tmp_decl_entry_type, SPLE_NULL, NULL, NULL, node, node->location);
     ent->is_defined = is_defined;
 
     // Register internal declarations
-    if (decl_body->num_child == 3)
+    splc_push_new_symtable(tunit, 1);
+    if (decl_body->num_child == 3) // If a body indeed exists
     {
         ast_node decltn_list = decl_body->children[1];
         SPLC_ASSERT(decltn_list->type == SPLT_STRUCT_DECLTN_LIST);
         for (size_t i = 0; i < decltn_list->num_child; ++i)
         {
-            register_struct_decltn(tunit, decltn_list->children[i], node, root_env, tunit->nenvs - 1);
+            // Register each single struct-declaration
+            register_struct_decltn(tunit, decltn_list->children[i], root_env, tunit->nenvs - 1);
         }
     }
+    node->symtable = splc_pop_symtable(tunit); // Linked
 
     SPLC_FDIAG("registered struct: %s %d", decl_name, tmp_decl_entry_type);
-
-    // Clean-up
-    node->symtable = splc_pop_symtable(tunit); // Linked
 }
 
-static void register_simple_comp_stmt(splc_trans_unit tunit, ast_node node, ast_node father, int root_env)
+static void register_comp_stmt_no_new_env(splc_trans_unit tunit, ast_node node, int root_env)
 {
-    splc_push_new_symtable(tunit, 1);
     for (size_t i = 0; i < node->num_child; ++i)
     {
-        experimental_register_dispatch(tunit, node->children[i], node, tunit->nenvs - 1);
+        experimental_analyze_dispatch(tunit, node->children[i], tunit->nenvs - 1);
     }
+}
+
+static void register_simple_comp_stmt(splc_trans_unit tunit, ast_node node, int root_env)
+{
+    splc_push_new_symtable(tunit, 1);
+    register_comp_stmt_no_new_env(tunit, node, root_env);
     lut_table top_sym_table = splc_pop_symtable(tunit);
     node->symtable = top_sym_table; // Linked
 }
 
-static void register_self_contained_stmt(splc_trans_unit tunit, ast_node node, ast_node father, int root_env)
+static void register_self_contained_stmt(splc_trans_unit tunit, ast_node node, int root_env)
 {
-    // TODO
+    splc_push_new_symtable(tunit, 1);
+    
+    // TODO: register declarations if it is a for loop 
+
+
+    lut_table top_sym_table = splc_pop_symtable(tunit);
+    node->symtable = top_sym_table; // Linked
 }
 
-static void register_function_def(splc_trans_unit tunit, ast_node node, ast_node father, int root_env)
+static void register_function_def(splc_trans_unit tunit, ast_node node, int root_env)
 {
-    SPLC_ASSERT(node->type == SPLT_FUNC_DEF);
     const char *func_name = NULL;
-    // GET FUNC NAME
     {
-        // ast_node dir_func_decltr = node->children[0]
+        ast_node func_decltr = node->children[1];                                     // GUARANTEED
+        ast_node dir_func_decltr = func_decltr->children[func_decltr->num_child - 1]; // GUARANTEED
+        func_name = (char *)dir_func_decltr->val;
     }
+
     if (lut_exists(tunit->envs[root_env], func_name, SPLE_FUNC))
     {
         SPLC_FERROR(SPLM_ERR_SEM_4, node->location, "redefinition of function '\033[1m%s\033[0m'", func_name);
     }
-    // GET FUNC parameter
-    splc_push_new_symtable(tunit, 1);
 
+    splc_push_new_symtable(tunit, 1);
+    // TODO: register all parameters
+    
     lut_table top_sym_table = splc_pop_symtable(tunit);
     node->symtable = top_sym_table; // Linked
 }
 
-static void experimental_register_dispatch(splc_trans_unit tunit, ast_node node, ast_node father, int root_env)
+static void experimental_analyze_dispatch(splc_trans_unit tunit, ast_node node, int root_env)
 {
     SPLC_ASSERT(node->type != SPLT_NULL);
     SPLC_ASSERT(!SPLT_IS_PUNCTUATOR(node->type));
     if (node->type == SPLT_TRANS_UNIT)
     {
+        experimental_analyze_dispatch(tunit, node, root_env);
     }
     else if (node->type == SPLT_EXT_DECLTN_LIST)
     {
@@ -242,18 +258,27 @@ static void experimental_register_dispatch(splc_trans_unit tunit, ast_node node,
     }
     else if (node->type == SPLT_FUNC_DEF)
     {
+        // TODO: check function definition
     }
     else if (node->type == SPLT_SEL_STMT || SPLT_ITER_STMT)
     {
-        register_self_contained_stmt(tunit, node, father, root_env);
+        register_self_contained_stmt(tunit, node, root_env);
     }
     else if (node->type == SPLT_COMP_STMT)
     {
-        register_simple_comp_stmt(tunit, node, father, root_env);
+        register_simple_comp_stmt(tunit, node, root_env);
     }
     else if (node->type == SPLT_STRUCT_UNION_SPEC)
     {
-        register_struct_spec(tunit, node, father, root_env, root_env);
+        register_struct_spec(tunit, node, root_env, root_env);
+    }
+    else if (SPLT_IS_EXPR(node->type))
+    {
+        // TODO: expression dispatch
+    }
+    else if (node->type == SPLT_ABS_DEC)
+    {
+        // TODO: abstract declarator dispatch
     }
     else
     {
@@ -444,8 +469,8 @@ static void legacy_register_id(ast_node node, ast_node fa_node, splc_trans_unit 
                        node->location);
         }
         if (node->num_child == 2)
-            legacy_register_id(node->children[1], node, tunit, 0, decl_entry_type, decl_extra_type, decl_spec_type, in_struct,
-                        in_expr);
+            legacy_register_id(node->children[1], node, tunit, 0, decl_entry_type, decl_extra_type, decl_spec_type,
+                               in_struct, in_expr);
         return;
     }
 
@@ -544,13 +569,13 @@ static void legacy_register_id(ast_node node, ast_node fa_node, splc_trans_unit 
 
         if (node->type == SPLT_CALL_EXPR && child->type == SPLT_ID)
         {
-            legacy_register_id(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type, in_struct,
-                        0);
+            legacy_register_id(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type,
+                               in_struct, 0);
         }
         else
         {
-            legacy_register_id(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type, in_struct,
-                        in_expr);
+            legacy_register_id(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type,
+                               in_struct, in_expr);
         }
     }
 
