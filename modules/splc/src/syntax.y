@@ -352,8 +352,11 @@ function-definition:
           sem_register_typedef($$);
       }
     | function-declarator compound-statement { 
-          SPLC_WARN(SPLM_Wimplicit_int, SPLC_AST_GET_STARTLOC($1), "function is missing a specifier and will default to 'int'"); 
-          $$ = ast_create_parent_node(SPLT_FUNC_DEF, 2, $1, $2); 
+          SPLC_WARN(SPLM_Wimplicit_int, SPLC_AST_GET_STARTLOC($1), "function is missing a specifier and will default to 'int'");
+          ast_node dummy_node = ast_create_leaf_node(SPLT_TYPE_INT, SPLC_AST_GET_STARTLOC($1));
+          ast_node type_spec = ast_create_parent_node(SPLT_TYPE_SPEC, 1, dummy_node);
+          ast_node decl_specs = ast_create_parent_node(SPLT_DECLTN_SPEC, 1, dummy_node);
+          $$ = ast_create_parent_node(SPLT_FUNC_DEF, 3, dummy_node, $1, $2); 
           // EXPERIMENTAL
           sem_register_typedef($$);
       } 
