@@ -319,19 +319,25 @@ static void experimental_expr_dispatch(splc_trans_unit tunit, ast_node node, int
 }
 
 /* The main function to dispatch semantic analyses.
-   When called, this function tries to parse
+   When called, this function tries to analyze the given node.
+
+   Parameters
+   ----------
+   - `tunit` the root translation unit
+   - `node` the node to be analyzed
+   - `root_env_idx` the index of environment in the translation unit
 
    Allowed types
-   ---------
+   -------------
    - `SPLT_TRANS_UNIT`
    - `SPLT_EXT_DECLTN_LIST`
    - `SPLT_EXT_DECLTN`
    - `SPLT_FUNC_DEF`
    - `SPLT_ITER_STMT` for handling extra variable outside of `SPLT_COMP_STMT`
-   - `SPLT_COMP_STMT` for handling compound statements, creating a new environment
-     - If you do not need to create a separate environment, do not call this.
+   - `SPLT_COMP_STMT` for handling compound statements, creating a new environment. 
+     If you do not need to create a separate environment, do not call this to dispatch it.
    - `SPLT_STMT` for handling general statements
-   - `SPLT_
+   - `SPLT_EXPR` for handling expressions
   */
 static void experimental_analyze_dispatch(splc_trans_unit tunit, ast_node node, int root_env_idx)
 {
@@ -367,19 +373,18 @@ static void experimental_analyze_dispatch(splc_trans_unit tunit, ast_node node, 
         {
             register_simple_comp_stmt(tunit, node, root_env_idx);
         }
-        // else do not go into recursion.
-    }
-    else if (node->type == SPLT_STRUCT_UNION_SPEC)
-    {
-        register_struct_spec(tunit, node, root_env_idx, root_env_idx);
+        // TODO: dispatch other statements
+        if (node->num_child > 0)
+        {
+            for (size_t i = 0; i < node->num_child; ++i)
+            {
+                experimental_analyze_dispatch(tunit, node->children[i], root_env_idx);
+            }
+        }
     }
     else if (SPLT_IS_EXPR(node->type))
     {
         experimental_expr_dispatch(tunit, node, root_env_idx);
-    }
-    else if (node->type == SPLT_ABS_DEC)
-    {
-        // TODO: abstract declarator dispatch
     }
     else
     {
