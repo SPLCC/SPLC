@@ -1,0 +1,12 @@
+struct AA {
+    struct BB b;
+};
+
+struct BB {};
+
+int func()
+{
+    struct AA a;
+    a.b.c;
+    return;
+}

@@ -1,0 +1,33 @@
+struct point {
+  int coords[10];
+};
+
+struct shape {
+  struct point corner;
+};
+
+struct color {
+  float intensity;
+};
+
+struct index {
+    int i;
+};
+
+struct index func(int a)
+{
+    struct index sti;
+    sti.i = sti.i + a;
+    return sti;
+}
+
+int draw_shape()
+{
+    struct shape triangle;
+    struct color palette[5];
+
+    triangle.corner.coords[func(func(10).i).i] = func(0).i;
+    triangle.corner.coords[func(func(10).i).i] = palette[5].intensity;
+
+    return 0;
+}
