@@ -33,7 +33,7 @@ static void register_typedef(const ast_node node)
     if (node->type == SPLT_ID)
     {
         SPLC_ASSERT(current_trans_unit->nenvs > 0);
-        lut_insert(SPLC_TRANS_UNIT_ENV_TOP(current_trans_unit), (const char *)node->val, SPLE_TYPEDEF, SPLE_NULL, NULL,
+        lut_insert(current_trans_unit->global_symtable, (const char *)node->val, SPLE_TYPEDEF, SPLE_NULL, NULL,
                    NULL, node, node->location);
     }
     for (int i = 0; i < node->num_child; ++i)
@@ -49,7 +49,7 @@ static void register_typedef(const ast_node node)
             register_typedef(node->children[i]);
             break;
         case SPLT_ID:
-            lut_insert(SPLC_TRANS_UNIT_ENV_TOP(current_trans_unit), (const char *)node->children[i]->val, SPLE_TYPEDEF,
+            lut_insert(current_trans_unit->global_symtable, (const char *)node->children[i]->val, SPLE_TYPEDEF,
                        SPLE_NULL, NULL, NULL, node, node->location);
             break;
         default:
@@ -70,13 +70,13 @@ int sem_test_typedef_name(const char *name)
     lut_entry ent = NULL;
     SPLC_ASSERT(current_trans_unit->nenvs > 0);
     // TODO(sem): fix typedef name scope check
-    return (ent = lut_find(SPLC_TRANS_UNIT_ENV_TOP(current_trans_unit), name, SPLE_TYPEDEF)) != NULL &&
+    return (ent = lut_find(current_trans_unit->global_symtable, name, SPLE_TYPEDEF)) != NULL &&
            ent->type == SPLE_TYPEDEF;
 }
 
-void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int new_sym_table,
-                    splc_entry_t decl_entry_type, splc_entry_t decl_extra_type, const char *decl_spec_type,
-                    int in_struct, int in_expr)
+void sem_register_identifiers(ast_node node, ast_node fa_node, splc_trans_unit tunit, int new_sym_table,
+                              splc_entry_t decl_entry_type, splc_entry_t decl_extra_type, const char *decl_spec_type,
+                              int in_struct, int in_expr)
 {
     // new table construction
     int find_stmt = 0;
@@ -255,7 +255,7 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
                        node->location);
         }
         if (node->num_child == 2)
-            sem_ast_search(node->children[1], node, tunit, 0, decl_entry_type, decl_extra_type, decl_spec_type,
+            sem_register_identifiers(node->children[1], node, tunit, 0, decl_entry_type, decl_extra_type, decl_spec_type,
                            in_struct, in_expr);
         return;
     }
@@ -355,12 +355,12 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
 
         if (node->type == SPLT_CALL_EXPR && child->type == SPLT_ID)
         {
-            sem_ast_search(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type,
+            sem_register_identifiers(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type,
                            in_struct, 0);
         }
         else
         {
-            sem_ast_search(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type,
+            sem_register_identifiers(child, node, tunit, new_sym_table, decl_entry_type, decl_extra_type, decl_spec_type,
                            in_struct, in_expr);
         }
     }
@@ -811,7 +811,7 @@ void sem_analyze(splc_trans_unit tunit)
 {
     // TODO(semantics): finish semantic analysis part
     // splcdiag("Semantic Analysis should be performed there.");
-    sem_ast_search(tunit->root, NULL, tunit, 0, SPLE_NULL, SPLE_NULL, NULL, 0, 0);
+    sem_register_identifiers(tunit->root, NULL, tunit, 0, SPLE_NULL, SPLE_NULL, NULL, 0, 0);
     sem_process_expr(tunit->root, tunit);
     sem_process_func_return_bottom_up(tunit->root, tunit);
 }

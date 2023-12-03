@@ -73,7 +73,7 @@ int lut_name_exists(const lut_table table, const char *name);
 
 /* Insert a value to hashtable. If the name already correspond to an entry, overwrite it.
    Name will be copied.
-   This method will also deep copy the root, so that the original root won't be affected when the entry gets modified.
+   This method will also shallow copy the root. Any modification on the existing tree will also affect this entry.
  */
 lut_entry lut_insert(lut_table table, const char *name, const splc_entry_t type, const splc_entry_t extra_type,
                      const char *spec_type, const char *content, const ast_node root, const splc_loc first_occur);
