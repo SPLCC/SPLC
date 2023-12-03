@@ -677,6 +677,32 @@ void sem_process_func_return_bottom_up(ast_node node, splc_trans_unit tunit)
     }
 }
 
+void sem_process_func_arg(ast_node node, splc_trans_unit tunit)
+{
+    // node->type == CALL_EXPR
+    lut_entry func_ent = lut_find(tunit->envs[0], (char *)(node->children[0]->val), SPLE_FUNC);
+    if (func_ent == NULL)
+    {
+        return;
+    }
+
+    ast_node dir_func_dec_node = func_ent->root->children[1]->children[0];
+    ast_node arg_list_node = node->children[1];
+    
+    
+
+    if (dir_func_dec_node->num_child == 2)
+    {
+        // contain ParamTypeList
+        ast_node param_list_node = dir_func_dec_node->children[1]->children[0];
+        for (int i = 0; i < param_list_node->num_child; i++)
+        {
+            param_list_node->children[i]
+        }
+    }
+
+}
+
 void sem_process_func_return_top_down(ast_node node, splc_trans_unit tunit)
 {
     if (node->symtable)
@@ -746,4 +772,4 @@ void sem_analyze(splc_trans_unit tunit)
     sem_process_func_return_bottom_up(tunit->root, tunit);
 }
 
-// TODO: 9, 12
+// TODO: 9
