@@ -76,6 +76,8 @@ int sem_test_typedef_name(const char *name)
            ent->type == SPLE_TYPEDEF;
 }
 
+static void experimental_register_dispatch(splc_trans_unit tunit, ast_node node, ast_node father, int root_env);
+
 static inline char *get_anonymous_name(int id)
 {
     SPLC_ASSERT(id > 0);
@@ -97,7 +99,7 @@ void register_struct_decltn(splc_trans_unit tunit, ast_node node, ast_node fathe
 
     // Second, the struct-declarator-list
     // Assume only declarator is present.
-    
+
 }
 
 /* `root_env` is where the struct declaration is placed.
@@ -106,7 +108,7 @@ void register_struct_spec(splc_trans_unit tunit, ast_node node, ast_node father,
 {
     SPLC_ASSERT(node->type == SPLT_STRUCT_UNION_SPEC);
 
-    splc_push_new_symtable(tunit, 1);
+    lut_entry existing = NULL;
     ast_node type_children = node->children[0];
     ast_node id_children = NULL;
     const char *decl_name = NULL;
@@ -137,8 +139,8 @@ void register_struct_spec(splc_trans_unit tunit, ast_node node, ast_node father,
     {
         decl_name = strdup((char *)(id_children->val)); // name of struct/union
         SPLC_ALLOC_PTR_CHECK(decl_name, "failed to allocate name for struct declaration.");
-        lut_entry existing = NULL;
-        if ((existing = lut_find(tunit->envs[root_env], decl_name, tmp_decl_entry_type)) != NULL)
+        existing = lut_find(tunit->envs[root_env], decl_name, tmp_decl_entry_type);
+        if (existing != NULL)
         {
             SPLC_FERROR(SPLM_ERR_SEM_15, node->location, "redefinition of struct/union %s", decl_name);
             SPLC_NOTE(existing->first_occur, "previously defined here.");
@@ -165,6 +167,7 @@ void register_struct_spec(splc_trans_unit tunit, ast_node node, ast_node father,
         decl_name = new_name;
     }
 
+    splc_push_new_symtable(tunit, 1);
     lut_entry ent =
         lut_insert(tunit->envs[root_env], decl_name, tmp_decl_entry_type, SPLE_NULL, NULL, NULL, node, node->location);
     ent->is_defined = is_defined;
@@ -183,7 +186,6 @@ void register_struct_spec(splc_trans_unit tunit, ast_node node, ast_node father,
     SPLC_FDIAG("registered struct: %s %d", decl_name, tmp_decl_entry_type);
 
     // Clean-up
-
     node->symtable = splc_pop_symtable(tunit); // Linked
 }
 
@@ -201,6 +203,25 @@ static void register_simple_comp_stmt(splc_trans_unit tunit, ast_node node, ast_
 static void register_self_contained_stmt(splc_trans_unit tunit, ast_node node, ast_node father, int root_env)
 {
     // TODO
+}
+
+static void register_function_def(splc_trans_unit tunit, ast_node node, ast_node father, int root_env)
+{
+    SPLC_ASSERT(node->type == SPLT_FUNC_DEF);
+    const char *func_name = NULL;
+    // GET FUNC NAME
+    {
+        // ast_node dir_func_decltr = node->children[0]
+    }
+    if (lut_exists(tunit->envs[root_env], func_name, SPLE_FUNC))
+    {
+        SPLC_FERROR(SPLM_ERR_SEM_4, node->location, "redefinition of function '\033[1m%s\033[0m'", func_name);
+    }
+    // GET FUNC parameter
+    splc_push_new_symtable(tunit, 1);
+
+    lut_table top_sym_table = splc_pop_symtable(tunit);
+    node->symtable = top_sym_table; // Linked
 }
 
 static void experimental_register_dispatch(splc_trans_unit tunit, ast_node node, ast_node father, int root_env)
