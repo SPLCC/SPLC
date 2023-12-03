@@ -800,11 +800,6 @@ void sem_process_func_arg(ast_node node, splc_trans_unit tunit)
         lut_entry ent = lut_find(
             func_symtable, (char *)(param_list->children[i]->children[1]->children[0]->children[0]->val), SPLE_VAR);
         expr_entry param_expr = sem_lut2expr(ent);
-
-        if (param_expr == NULL)
-        {
-            printf("param NULL");
-        }
         expr_entry arg_expr = sem_process_expr(arg_list->children[i], tunit);
         if (arg_expr != NULL)
         {
@@ -816,10 +811,10 @@ void sem_process_func_arg(ast_node node, splc_trans_unit tunit)
             {
                 continue;
             }
-        }
 
-        SPLC_FERROR(SPLM_ERR_SEM_9, arg_list->children[i]->location, "invalid argument type, except `%s`, got `%s`",
-                    param_expr->spec_type, arg_expr->spec_type);
+            SPLC_FERROR(SPLM_ERR_SEM_9, arg_list->children[i]->location, "invalid argument type, except `%s`, got `%s`",
+                        param_expr->spec_type, arg_expr->spec_type);
+        }
     }
 }
 
