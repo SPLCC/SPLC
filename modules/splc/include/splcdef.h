@@ -101,6 +101,7 @@ enum splc_token_type
     SPLT_CALL_EXPR,               /* function invocation expression */
     SPLT_POSTFIX_EXPR,            /* postfix expression */
     SPLT_UNARY_EXPR,              /* unary expression */
+    SPLT_IMPLICIT_CAST_EXPR,      /* IMPLICIT cast expression */
     SPLT_CAST_EXPR,               /* cast expression */
     SPLT_MUL_EXPR,                /* multiplicative expression */
     SPLT_ADD_EXPR,                /* additive expression */
