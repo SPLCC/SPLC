@@ -115,9 +115,9 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
         {
             SPLC_FERROR(SPLM_ERR_UNIV, node->location, "Error type 15: redefinition of struct/union %s",
                         struct_union_name);
-            // printf("Error type 15 at line %d: redefinition of %s\n", node->location.linebegin, struct_union_name);
+            // SPLC_FDIAG("Error type 15 at line %d: redefinition of %s\n", node->location.linebegin, struct_union_name);
         }
-        printf("struct: %s %d\n", struct_union_name, tmp_decl_entry_type);
+        SPLC_FDIAG("struct: %s %d", struct_union_name, tmp_decl_entry_type);
         lut_insert(tunit->envs[(tunit->nenvs) - 1], struct_union_name, tmp_decl_entry_type, SPLE_NULL, NULL, NULL, node,
                    node->location);
         lut_insert(tunit->envs[(tunit->nenvs) - 2], struct_union_name, tmp_decl_entry_type, SPLE_NULL, NULL, NULL, node,
@@ -206,7 +206,7 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
     if (node->type == SPLT_DIR_DEC) // DirectDecltr (for variables)
     {
         char *var_name = (char *)((node->children[0])->val);
-        // printf("%s %d %d %s\n",var_name, decl_entry_type, decl_extra_type, decl_spec_type);
+        // SPLC_FDIAG("%s %d %d %s",var_name, decl_entry_type, decl_extra_type, decl_spec_type);
         //  Type 3 --- redefined variable
         int var_is_redefined = 0;
         if (!in_struct)
@@ -227,7 +227,7 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
         }
         else
         {
-            printf("variable: %s %d %d %s\n", var_name, decl_entry_type, decl_extra_type, decl_spec_type);
+            SPLC_FDIAG("variable: %s %d %d %s", var_name, decl_entry_type, decl_extra_type, decl_spec_type);
             lut_insert(tunit->envs[(tunit->nenvs) - 1], var_name, decl_entry_type, decl_extra_type, decl_spec_type,
                        NULL, node, node->location);
         }
@@ -248,7 +248,7 @@ void sem_ast_search(ast_node node, ast_node fa_node, splc_trans_unit tunit, int 
         }
         else
         {
-            printf("function: %s %d %d %s\n", func_name, decl_entry_type, decl_extra_type, decl_spec_type);
+            SPLC_FDIAG("function: %s %d %d %s", func_name, decl_entry_type, decl_extra_type, decl_spec_type);
             lut_insert(tunit->envs[(tunit->nenvs) - 1], func_name, decl_entry_type, decl_extra_type, decl_spec_type,
                        NULL, node, node->location);
             lut_insert(tunit->envs[0], func_name, decl_entry_type, decl_extra_type, decl_spec_type, NULL, node,
@@ -712,7 +712,7 @@ void sem_process_func_return_top_down(ast_node node, splc_trans_unit tunit)
             ast_print(jump_stmt_node);
             if (ret_ent)
             {
-                printf("%s\n", ret_ent->spec_type);
+                SPLC_FDIAG("%s", ret_ent->spec_type);
                 if (!are_types_equal(ret_ent->spec_type, func_ent->spec_type, SPLT_TYPE_INT, SPLT_LTR_INT) &&
                     !are_types_equal(ret_ent->spec_type, func_ent->spec_type, SPLT_TYPE_FLOAT, SPLT_LTR_FLOAT) &&
                     !are_types_equal(ret_ent->spec_type, func_ent->spec_type, SPLT_TYPE_CHAR, SPLT_LTR_CHAR) &&

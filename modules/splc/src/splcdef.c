@@ -604,9 +604,9 @@ const char *splc_token2str(splc_token_t type)
         /* Terminals: literals */
 
     case SPLT_LTR_INT:
-        return "IntLiteral";
+        return "IntegerLiteral";
     case SPLT_LTR_FLOAT:
-        return "FloatLiteral";
+        return "FloatingLiteral";
     case SPLT_LTR_CHAR:
         return "CharLiteral";
     case SPLT_LTR_STR:
