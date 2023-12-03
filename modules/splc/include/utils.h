@@ -35,19 +35,19 @@ int buffer_stack_check_node_exists(const char *restrict nodename);
    Return 0 on success, else there is an error to be handled. */
 int splc_enter_root(const char *restrict _filename);
 
-/* When switching parser into parsing a new buffer, this function must be called to preserve the previously opened files.
-   Return 0 on success, else there is an error to be handled.
-   Specify where the buffer is included in the previous file in the global stack */
+/* When switching parser into parsing a new buffer, this function must be called to preserve the previously opened
+   files. Return 0 on success, else there is an error to be handled. Specify where the buffer is included in the
+   previous file in the global stack */
 int splc_push_file_buffer(const char *restrict _filename, const splc_loc location);
 
-/* When switching parser into parsing a new buffer, this function must be called to preserve the previously opened files.
-   Return 0 on success, else there is an error to be handled.
-   Specify where the buffer is included in the previous file in the global stack */
+/* When switching parser into parsing a new buffer, this function must be called to preserve the previously opened
+   files. Return 0 on success, else there is an error to be handled. Specify where the buffer is included in the
+   previous file in the global stack */
 int splc_push_char_buffer(const char *restrict _macroname, const splc_loc location, const char *content);
 
 /* When the parser finishes parsing a new buffer and returned, this function must be called to starting parsing on the
-   previously opened buffers. If there is still file left, return 0. Else return nonzero. The file node will be kept, with
-   the information of entry preserved. */
+   previously opened buffers. If there is still file left, return 0. Else return nonzero. The file node will be kept,
+   with the information of entry preserved. */
 int splc_pop_buffer();
 
 /* Return the buffername of the node. This string shall not be freed. */
@@ -197,6 +197,54 @@ extern int splcf_no_diagnostics_color;
         SPLC_ALLOC_PTR_CHECK(buffer, "cannot allocate memory for printing error");                                     \
         sprintf(buffer, _msg, __VA_ARGS__);                                                                            \
         splc_internal_handle_msg(type, SPLC_INVALID_LOC, buffer);                                                      \
+        free(buffer);                                                                                                  \
+    } while (0)
+
+/* Call this to print a note */
+#define SPLC_NOTE(_location, _msg)                                                                                     \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        size_t needed = strlen(_msg) + 1;                                                                              \
+        char *buffer = (char *)malloc(needed);                                                                         \
+        SPLC_ALLOC_PTR_CHECK(buffer, "cannot allocate memory for printing error");                                     \
+        memcpy(buffer, _msg, needed);                                                                                  \
+        splc_internal_handle_msg(SPLM_NOTE, _location, buffer);                                                        \
+        free(buffer);                                                                                                  \
+    } while (0)
+
+/* Call this to print a note without location */
+#define SPLC_NOTE_NOLOC(_msg)                                                                                          \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        size_t needed = strlen(_msg) + 1;                                                                              \
+        char *buffer = (char *)malloc(needed);                                                                         \
+        SPLC_ALLOC_PTR_CHECK(buffer, "cannot allocate memory for printing error");                                     \
+        memcpy(buffer, _msg, needed);                                                                                  \
+        splc_internal_handle_msg(SPLM_NOTE, SPLC_INVALID_LOC, buffer);                                                 \
+        free(buffer);                                                                                                  \
+    } while (0)
+
+/* Call this to print a formatted note */
+#define SPLC_FNOTE(_location, _msg, ...)                                                                               \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        size_t needed = snprintf(NULL, 0, _msg, __VA_ARGS__) + 1;                                                      \
+        char *buffer = (char *)malloc(needed);                                                                         \
+        SPLC_ALLOC_PTR_CHECK(buffer, "cannot allocate memory for printing error");                                     \
+        sprintf(buffer, _msg, __VA_ARGS__);                                                                            \
+        splc_internal_handle_msg(SPLM_NOTE, _location, buffer);                                                        \
+        free(buffer);                                                                                                  \
+    } while (0)
+
+/* Call this to print a formatted note */
+#define SPLC_FNOTE_NOLOC(_msg, ...)                                                                                    \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        size_t needed = snprintf(NULL, 0, _msg, __VA_ARGS__) + 1;                                                      \
+        char *buffer = (char *)malloc(needed);                                                                         \
+        SPLC_ALLOC_PTR_CHECK(buffer, "cannot allocate memory for printing error");                                     \
+        sprintf(buffer, _msg, __VA_ARGS__);                                                                            \
+        splc_internal_handle_msg(SPLM_NOTE, SPLC_INVALID_LOC, buffer);                                                 \
         free(buffer);                                                                                                  \
     } while (0)
 

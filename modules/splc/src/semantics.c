@@ -88,18 +88,24 @@ static inline char *get_anonymous_name(int id)
     return buffer;
 }
 
-void register_struct_decl_comp(splc_trans_unit tunit, ast_node node, ast_node father, int root_env, int struct_decl_env)
+void register_struct_decltn(splc_trans_unit tunit, ast_node node, ast_node father, int root_env, int struct_decl_env)
 {
-
+    // First, the body of a struct-declaration contains specifier-qualifier-list, which is
+    
 }
 
-void register_struct_decl(splc_trans_unit tunit, ast_node node, ast_node father, int root_env, int struct_decl_env)
+/* `root_env` is where the struct declaration is placed.
+   `struct_decl_env` is where the declaration body of struct is placed. */
+void register_struct_spec(splc_trans_unit tunit, ast_node node, ast_node father, int root_env, int struct_decl_env)
 {
+    SPLC_ASSERT(node->type == SPLT_STRUCT_UNION_SPEC);
+
     splc_push_new_symtable(tunit, 1);
     ast_node type_children = node->children[0];
     ast_node id_children = NULL;
     const char *decl_name = NULL;
-    splc_entry_t tmp_decl_entry_type = NULL;
+    splc_entry_t tmp_decl_entry_type = SPLE_NULL;
+    ast_node decl_body = NULL;
     int is_defined = 0;
 
     if (type_children->type == SPLT_KWD_STRUCT)
@@ -110,17 +116,27 @@ void register_struct_decl(splc_trans_unit tunit, ast_node node, ast_node father,
     if (node->children[1]->type == SPLT_ID)
         id_children = node->children[1];
 
-    if (node->children[1]->type == SPLT_STRUCT_DECLTN_BODY || node->num_child == 3 && node->children[2]->type == SPLT_STRUCT_DECLTN_BODY)
+    if (node->children[1]->type == SPLT_STRUCT_DECLTN_BODY)
     {
         is_defined = 1;
+        decl_body = node->children[1];
+    }
+    else if (node->num_child == 3 && node->children[2]->type == SPLT_STRUCT_DECLTN_BODY)
+    {
+        is_defined = 1;
+        decl_body = node->children[2];
     }
 
     if (id_children != NULL)
     {
         decl_name = strdup((char *)(id_children->val)); // name of struct/union
         SPLC_ALLOC_PTR_CHECK(decl_name, "failed to allocate name for struct declaration.");
-        if (lut_exists(tunit->envs[root_env], decl_name, SPLE_STRUCT_DEC))
+        lut_entry existing = NULL;
+        if ((existing = lut_find(tunit->envs[root_env], decl_name, tmp_decl_entry_type)) != NULL)
+        {
             SPLC_FERROR(SPLM_ERR_SEM_15, node->location, "redefinition of struct/union %s", decl_name);
+            SPLC_NOTE(existing->first_occur, "previously defined here.");
+        }
     }
     else
     {
@@ -130,7 +146,11 @@ void register_struct_decl(splc_trans_unit tunit, ast_node node, ast_node father,
         {
             new_name = get_anonymous_name(id);
             if (!lut_exists(tunit->envs[root_env], decl_name, SPLE_STRUCT_DEC))
+            {
+                free(new_name);
                 break;
+            }
+            free(new_name);
         }
         if (id == INT_MAX)
         {
@@ -138,14 +158,76 @@ void register_struct_decl(splc_trans_unit tunit, ast_node node, ast_node father,
         }
         decl_name = new_name;
     }
+
+    lut_entry ent =
+        lut_insert(tunit->envs[root_env], decl_name, tmp_decl_entry_type, SPLE_NULL, NULL, NULL, node, node->location);
+    ent->is_defined = is_defined;
+
+    // Register internal declarations
+    if (decl_body->num_child == 3)
+    {
+        ast_node decltn_list = decl_body->children[1];
+        SPLC_ASSERT(decltn_list->type == SPLT_STRUCT_DECLTN_LIST);
+        for (size_t i = 0; i < decltn_list->num_child; ++i)
+        {
+            register_struct_decltn(tunit, decltn_list->children[i], node, root_env, tunit->nenvs - 1);
+        }
+    }
+
     SPLC_FDIAG("registered struct: %s %d", decl_name, tmp_decl_entry_type);
 
-    lut_entry ent = lut_insert(tunit->envs[root_env], decl_name, tmp_decl_entry_type, SPLE_NULL, NULL, NULL, node, node->location);
-    ent->is_defined = is_defined;
+    // Clean-up
+
+    node->symtable = splc_pop_symtable(tunit); // Linked
 }
 
-static void test_register_id(ast_node node, ast_node father, splc_trans_unit tunit, int root_env)
+static void register_simple_comp_stmt(splc_trans_unit tunit, ast_node node, ast_node father, int root_env)
 {
+    splc_push_new_symtable(tunit, 1);
+    // TODO
+    lut_table top_sym_table = splc_pop_symtable(tunit);
+    node->symtable = top_sym_table; // Linked
+}
+
+static void register_self_contained_stmt(splc_trans_unit tunit, ast_node node, ast_node father, int root_env)
+{
+    // TODO
+}
+
+static void experimental_register_id(splc_trans_unit tunit, ast_node node, ast_node father, int root_env)
+{
+    SPLC_ASSERT(node->type != SPLT_NULL);
+    if (node->type == SPLT_TRANS_UNIT)
+    {
+    }
+    else if (node->type == SPLT_EXT_DECLTN_LIST)
+    {
+    }
+    else if (node->type == SPLT_EXT_DECLTN)
+    {
+    }
+    else if (node->type == SPLT_DECLTN)
+    {
+    }
+    else if (node->type == SPLT_FUNC_DEF)
+    {
+    }
+    else if (node->type == SPLT_SEL_STMT || SPLT_ITER_STMT)
+    {
+        register_self_contained_stmt(tunit, node, father, root_env);
+    }
+    else if (node->type == SPLT_COMP_STMT)
+    {
+        register_simple_comp_stmt(tunit, node, father, root_env);
+    }
+    else if (node->type == SPLT_STRUCT_UNION_SPEC)
+    {
+        register_struct_spec(tunit, node, father, root_env, root_env);
+    }
+    else
+    {
+        SPLC_FFAIL("Unsupported type during id registration: %s.", splc_token2str(node->type));
+    }
 }
 
 static void register_id(ast_node node, ast_node fa_node, splc_trans_unit tunit, int new_sym_table,
@@ -541,6 +623,8 @@ int are_types_equal(const char *spec_type1, const char *spec_type2, splc_token_t
             strcmp(spec_type2, splc_token2str(token_literal)) == 0);
 }
 
+void sem_process_func_arg(ast_node node, splc_trans_unit tunit);
+
 expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit)
 {
 
@@ -796,7 +880,6 @@ void sem_process_func_arg(ast_node node, splc_trans_unit tunit)
 
     for (int i = 0; i < param_list->num_child; i++)
     {
-
         lut_entry ent = lut_find(
             func_symtable, (char *)(param_list->children[i]->children[1]->children[0]->children[0]->val), SPLE_VAR);
         expr_entry param_expr = sem_lut2expr(ent);
