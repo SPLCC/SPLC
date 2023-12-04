@@ -770,7 +770,7 @@ expr_entry sem_process_expr_dot(const expr_entry struct_var_ent, const ast_node 
             else
             {
                 // no specific member in the struct declaration
-                SPLC_COND_MSG(msg_cond, SPLM_ERR_SEM_13, node->children[2]->location, "accessing an undefined structure member");
+                SPLC_COND_MSG(msg_cond, SPLM_ERR_SEM_14, node->children[2]->location, "accessing an undefined structure member");
                 return NULL;
             }
         }
@@ -1073,7 +1073,7 @@ void sem_process_func_arg(ast_node node, splc_trans_unit tunit, const int msg_co
         // empty paramList
         if (arg_list->num_child != 0)
         {
-            SPLC_FMSG(SPLM_ERR_SEM_9, arg_list->location, "invalid argument number, except %d, got %ld", 0,
+            SPLC_COND_FMSG(msg_cond, SPLM_ERR_SEM_9, arg_list->location, "invalid argument number, except %d, got %ld", 0,
                         arg_list->num_child);
         }
         return;
@@ -1082,7 +1082,7 @@ void sem_process_func_arg(ast_node node, splc_trans_unit tunit, const int msg_co
     ast_node param_list = param_type_list->children[0];
     if (param_list->num_child != arg_list->num_child)
     {
-        SPLC_FMSG(SPLM_ERR_SEM_9, arg_list->location, "invalid argument number, except %ld, got %ld",
+        SPLC_COND_FMSG(msg_cond, SPLM_ERR_SEM_9, arg_list->location, "invalid argument number, except %ld, got %ld",
                     param_list->num_child, arg_list->num_child);
         return;
     }
@@ -1106,7 +1106,7 @@ void sem_process_func_arg(ast_node node, splc_trans_unit tunit, const int msg_co
                 continue;
             }
 
-            SPLC_FMSG(SPLM_ERR_SEM_9, arg_list->children[i]->location, "invalid argument type, except `%s`, got `%s`",
+            SPLC_COND_FMSG(msg_cond, SPLM_ERR_SEM_9, arg_list->children[i]->location, "invalid argument type, except `%s`, got `%s`",
                         param_expr->spec_type, arg_expr->spec_type);
         }
     }
