@@ -582,7 +582,9 @@ static void legacy_ast_search(ast_node node, ast_node fa_node, splc_trans_unit t
 
     // check expr
     if (node->type == SPLT_EXPR)
+    {
         in_expr = 1;
+    }
 
     // Type1 --- check variable is undefined
     if (node->type == SPLT_ID && in_expr)
@@ -605,13 +607,14 @@ static void legacy_ast_search(ast_node node, ast_node fa_node, splc_trans_unit t
         }
         else
         {
+            // SPLC_DIAG("checking indexing operator.");
             // check unvalid use of indexing operator
             // TODO: check the tree structrue of nodes and figure out the exact fault
             //(but the array structure is diffrent in declaration and usage)
             ast_node var_node = var_entry->root;
-            int decl_num = (var_node->num_child) / 3;
-            int use_num = 0;
-            ast_node tmp_node = node->father;
+            int decl_num = (var_node->num_child) / 3; // declared number of level
+            int use_num = 0; // used number of level
+            ast_node tmp_node = node->father; // root SPLT_EXPR
             while (tmp_node->type == SPLT_EXPR && (tmp_node->children[(tmp_node->num_child) - 1])->type == SPLT_RSB)
             {
                 use_num++;
