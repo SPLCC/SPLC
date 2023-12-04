@@ -183,7 +183,7 @@ extern int splcf_no_diagnostics_color;
     } while (0)
 
 /* Call this to print a formatted error without location if condition is true */
-#define SPLC_COND_FSG_NO_LOC(cond, type, _msg, ...)                                                                    \
+#define SPLC_COND_FMSG_NO_LOC(cond, type, _msg, ...)                                                                   \
     do                                                                                                                 \
     {                                                                                                                  \
         if (!((cond)))                                                                                                 \
