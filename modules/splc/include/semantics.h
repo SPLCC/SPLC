@@ -32,4 +32,6 @@ void sem_track_scope_root(ast_node node);
 
 void sem_analyze(splc_trans_unit tunit);
 
+void sem_process_func_arg(ast_node node, splc_trans_unit tunit, const int msg_cond);
+
 #endif /* SEMANTICS_H */
