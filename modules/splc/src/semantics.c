@@ -982,6 +982,72 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit, const in
         }
     }
 
+    if (node->type == SPLT_INIT_DEC && node->num_child == 3)
+    {
+        // First, find the declared type, which should sit under its father
+        // and is a Decltr
+        ast_node dir_decltr = node->children[0]->children[0]->children[0]; // TODO: delete this all
+        ast_node init_expr = node->children[2]->children[0];
+        SPLC_ASSERT(dir_decltr->type == SPLT_ID);
+        SPLC_ASSERT(init_expr->type == SPLT_EXPR);
+        expr_entry left = sem_process_expr(dir_decltr, tunit, msg_cond);
+        expr_entry right = sem_process_expr(init_expr, tunit, msg_cond);
+        
+        if (left == NULL || right == NULL)
+        {
+            return NULL;
+        }
+
+        if (node->children[1]->type == SPLT_ASSIGN)
+        {
+            SPLC_FDIAG("assignment, lhs=<%d, %d>, rhs=<%d, %d>", left->decl_num, left->level, right->decl_num, right->level);
+            // Literal as left
+            if (left->spec_type == splc_token2str(SPLT_LTR_INT) ||
+                left->spec_type == splc_token2str(SPLT_LTR_FLOAT) ||
+                left->spec_type == splc_token2str(SPLT_LTR_CHAR))
+            {
+                SPLC_COND_MSG(msg_cond, SPLM_ERR_SEM_6, node->children[0]->location,
+                            "rvalue appears on the left-hand side of the assignment operator");
+                return NULL;
+            }
+
+            // struct can be assigned but cannot be computed
+            else if ((left->extra_type == SPLE_STRUCT_DEC || right->extra_type == SPLE_STRUCT_DEC) &&
+                        strcmp(left->spec_type, right->spec_type) != 0)
+            {
+                SPLC_COND_MSG(msg_cond, SPLM_ERR_SEM_5, node->location, "unmatching type on both sides of assignment");
+                return NULL;
+            }
+        }
+
+        if (!(left->decl_num - left->level == right->decl_num - right->level))
+        {
+            SPLC_COND_MSG(msg_cond, SPLM_ERR_SEM_5, node->location, "\033[1mwhat are you fucking doing?\033[0m Unmatched level of dereferencing on operands");
+            return NULL;
+        }
+
+
+        // SPLC_DIAG("Escaped assignment lhs check.");
+        if (!are_types_equal(left->spec_type, right->spec_type, SPLT_TYPE_INT, SPLT_LTR_INT) &&
+            !are_types_equal(left->spec_type, right->spec_type, SPLT_TYPE_FLOAT, SPLT_LTR_FLOAT) &&
+            !are_types_equal(left->spec_type, right->spec_type, SPLT_TYPE_CHAR, SPLT_LTR_CHAR))
+        {
+            // SPLC_DIAG("Entering decl check.");
+            if (node->children[1]->type == SPLT_ASSIGN)
+            {
+                SPLC_COND_MSG(msg_cond, SPLM_ERR_SEM_5, node->location, "unmatching type on both sides of assignment ");
+                return NULL;
+            }
+            else
+            {
+                SPLC_COND_MSG(msg_cond, SPLM_ERR_SEM_7, node->location, "unmatching operand");
+                return NULL;
+            }
+        }
+
+        return left;
+    }
+
     for (int i = 0; i < node->num_child; i++)
     {
         sem_process_expr(node->children[i], tunit, msg_cond);
