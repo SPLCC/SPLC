@@ -66,8 +66,8 @@ static void lut_free_entry(lut_entry *entry)
     free((*entry)->id);
     free((*entry)->spec_type);
     free((*entry)->content);
-    ast_release_node(&(*entry)->decltn);
-    ast_release_node(&(*entry)->root);
+    // ast_release_node(&(*entry)->decltn);
+    // ast_release_node(&(*entry)->root);
     free(*entry);
     *entry = NULL;
 }
@@ -191,7 +191,8 @@ lut_entry lut_insert(lut_table table, const char *name, const splc_entry_t type,
     target->next = next;
     target->content = content == NULL ? NULL : strdup(content);
     target->first_occur = first_occur;
-    target->root = ast_shallow_copy(root);
+    // target->root = ast_shallow_copy(root);
+    target->root = root;
 
     if (prev != NULL)
     {

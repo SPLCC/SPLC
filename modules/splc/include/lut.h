@@ -26,10 +26,11 @@ typedef struct lut_entry_struct
     char *content;           /* If it is a preprocessor macro then this holds the content */
     splc_loc first_occur;    /* first occurrence of this token */
 
-    ast_node decltn; /* AST type of this entry. */
-    ast_node root;     /* EXPERIMENTAL: Contain the root of this entry.
-                          LUT has no control of this root but to release reference count,
-                          as it is a shallow copy. */
+    ast_node decltn; /* AST type of this entry. 
+                        Direct assignment (thus no control and shouldn't be freed) */
+    ast_node root;   /* EXPERIMENTAL: Contain the root of this entry.
+                        LUT has no control of this root but to release reference count,
+                        as it is a direct assignment. */
     int is_defined;
 
 } lut_entry_struct;
