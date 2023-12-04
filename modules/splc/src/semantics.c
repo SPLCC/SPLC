@@ -654,8 +654,7 @@ static void legacy_ast_search(ast_node node, ast_node fa_node, splc_trans_unit t
         }
         else if (!func_is_defined && func_name_is_defined)
         {
-            SPLC_FMSG(SPLM_ERR_SEM_11, node->location, "applying function invocation operator on name %s\n",
-                        func_name);
+            SPLC_FMSG(SPLM_ERR_SEM_11, node->location, "applying function invocation operator on name %s\n", func_name);
         }
     }
 
@@ -752,7 +751,8 @@ expr_entry sem_lut2expr(lut_entry ent)
     return result;
 }
 
-expr_entry sem_process_expr_dot(const expr_entry struct_var_ent, const ast_node node, splc_trans_unit tunit, const int msg_cond)
+expr_entry sem_process_expr_dot(const expr_entry struct_var_ent, const ast_node node, splc_trans_unit tunit,
+                                const int msg_cond)
 {
     // ID1.Dot.ID2
     // check whether exists a struct the spec_type of `ID1` is
@@ -770,7 +770,8 @@ expr_entry sem_process_expr_dot(const expr_entry struct_var_ent, const ast_node 
             else
             {
                 // no specific member in the struct declaration
-                SPLC_COND_MSG(msg_cond, SPLM_ERR_SEM_14, node->children[2]->location, "accessing an undefined structure member");
+                SPLC_COND_MSG(msg_cond, SPLM_ERR_SEM_14, node->children[2]->location,
+                              "accessing an undefined structure member");
                 return NULL;
             }
         }
@@ -782,7 +783,8 @@ expr_entry sem_process_expr_dot(const expr_entry struct_var_ent, const ast_node 
     }
     else
     {
-        SPLC_COND_MSG(msg_cond, SPLM_ERR_SEM_13, node->children[1]->location, "accessing members of a non-structure variable");
+        SPLC_COND_MSG(msg_cond, SPLM_ERR_SEM_13, node->children[1]->location,
+                      "accessing members of a non-structure variable");
         return NULL;
     }
 }
@@ -905,14 +907,15 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit, const in
 
                 if (node->children[1]->type == SPLT_ASSIGN)
                 {
-                    SPLC_FDIAG("assignment, lhs=<%d, %d>, rhs=<%d, %d>", left->decl_num, left->level, right->decl_num, right->level);
+                    SPLC_FDIAG("assignment, lhs=<%d, %d>, rhs=<%d, %d>", left->decl_num, left->level, right->decl_num,
+                               right->level);
                     // Literal as left
-                    if (left->spec_type == splc_token2str(SPLT_LTR_INT) ||
-                        left->spec_type == splc_token2str(SPLT_LTR_FLOAT) ||
-                        left->spec_type == splc_token2str(SPLT_LTR_CHAR))
+                    if (strcmp(left->spec_type, splc_token2str(SPLT_LTR_INT)) == 0 ||
+                        strcmp(left->spec_type, splc_token2str(SPLT_LTR_FLOAT)) == 0 ||
+                        strcmp(left->spec_type, splc_token2str(SPLT_LTR_CHAR)) == 0)
                     {
                         SPLC_COND_MSG(msg_cond, SPLM_ERR_SEM_6, node->children[0]->location,
-                                   "rvalue appears on the left-hand side of the assignment operator");
+                                      "rvalue appears on the left-hand side of the assignment operator");
                         return NULL;
                     }
 
@@ -920,17 +923,19 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit, const in
                     else if ((left->extra_type == SPLE_STRUCT_DEC || right->extra_type == SPLE_STRUCT_DEC) &&
                              strcmp(left->spec_type, right->spec_type) != 0)
                     {
-                        SPLC_COND_MSG(msg_cond, SPLM_ERR_SEM_5, node->location, "unmatching type on both sides of assignment");
+                        SPLC_COND_MSG(msg_cond, SPLM_ERR_SEM_5, node->location,
+                                      "unmatching type on both sides of assignment");
                         return NULL;
                     }
                 }
 
                 if (!(left->decl_num - left->level == right->decl_num - right->level))
                 {
-                    SPLC_COND_MSG(msg_cond, SPLM_ERR_SEM_5, node->location, "\033[1mwhat are you fucking doing?\033[0m Unmatched level of dereferencing on operands");
+                    SPLC_COND_MSG(
+                        msg_cond, SPLM_ERR_SEM_5, node->location,
+                        "\033[1mwhat are you fucking doing?\033[0m Unmatched level of dereferencing on operands");
                     return NULL;
                 }
-
 
                 // SPLC_DIAG("Escaped assignment lhs check.");
                 if (!are_types_equal(left->spec_type, right->spec_type, SPLT_TYPE_INT, SPLT_LTR_INT) &&
@@ -940,7 +945,8 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit, const in
                     // SPLC_DIAG("Entering decl check.");
                     if (node->children[1]->type == SPLT_ASSIGN)
                     {
-                        SPLC_COND_MSG(msg_cond, SPLM_ERR_SEM_5, node->location, "unmatching type on both sides of assignment ");
+                        SPLC_COND_MSG(msg_cond, SPLM_ERR_SEM_5, node->location,
+                                      "unmatching type on both sides of assignment ");
                         return NULL;
                     }
                     else
@@ -960,12 +966,13 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit, const in
             if (postfix->decl_num == 0 || postfix->decl_num != 0 && postfix->level == postfix->decl_num)
             {
                 SPLC_COND_MSG(msg_cond, SPLM_ERR_SEM_10, node->children[1]->location,
-                           "cannot index on non-array variable");
+                              "cannot index on non-array variable");
                 return NULL;
             }
             else
             {
-                SPLC_FDIAG("examining indexing operation with decl_num=%d, current level=%d", postfix->decl_num, postfix->level);
+                SPLC_FDIAG("examining indexing operation with decl_num=%d, current level=%d", postfix->decl_num,
+                           postfix->level);
             }
             // check index
             expr_entry expr = sem_process_expr(node->children[2], tunit, msg_cond);
@@ -973,7 +980,7 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit, const in
                                  strcmp(expr->spec_type, splc_token2str(SPLT_LTR_INT)) != 0))
             {
                 SPLC_COND_MSG(msg_cond, SPLM_ERR_SEM_12, node->children[2]->location,
-                           "array indexing with a non-integer type expression");
+                              "array indexing with a non-integer type expression");
                 return NULL;
             }
             postfix->is_indexing = 1;
@@ -992,7 +999,7 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit, const in
         SPLC_ASSERT(init_expr->type == SPLT_EXPR);
         expr_entry left = sem_process_expr(dir_decltr, tunit, msg_cond);
         expr_entry right = sem_process_expr(init_expr, tunit, msg_cond);
-        
+
         if (left == NULL || right == NULL)
         {
             return NULL;
@@ -1000,20 +1007,21 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit, const in
 
         if (node->children[1]->type == SPLT_ASSIGN)
         {
-            SPLC_FDIAG("assignment, lhs=<%d, %d>, rhs=<%d, %d>", left->decl_num, left->level, right->decl_num, right->level);
+            SPLC_FDIAG("assignment, lhs=<%d, %d>, rhs=<%d, %d>", left->decl_num, left->level, right->decl_num,
+                       right->level);
             // Literal as left
-            if (left->spec_type == splc_token2str(SPLT_LTR_INT) ||
-                left->spec_type == splc_token2str(SPLT_LTR_FLOAT) ||
-                left->spec_type == splc_token2str(SPLT_LTR_CHAR))
+            if (strcmp(left->spec_type, splc_token2str(SPLT_LTR_INT)) == 0 ||
+                strcmp(left->spec_type, splc_token2str(SPLT_LTR_FLOAT)) == 0 ||
+                strcmp(left->spec_type, splc_token2str(SPLT_LTR_CHAR)) == 0)
             {
                 SPLC_COND_MSG(msg_cond, SPLM_ERR_SEM_6, node->children[0]->location,
-                            "rvalue appears on the left-hand side of the assignment operator");
+                              "rvalue appears on the left-hand side of the assignment operator");
                 return NULL;
             }
 
             // struct can be assigned but cannot be computed
             else if ((left->extra_type == SPLE_STRUCT_DEC || right->extra_type == SPLE_STRUCT_DEC) &&
-                        strcmp(left->spec_type, right->spec_type) != 0)
+                     strcmp(left->spec_type, right->spec_type) != 0)
             {
                 SPLC_COND_MSG(msg_cond, SPLM_ERR_SEM_5, node->location, "unmatching type on both sides of assignment");
                 return NULL;
@@ -1022,10 +1030,10 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit, const in
 
         if (!(left->decl_num - left->level == right->decl_num - right->level))
         {
-            SPLC_COND_MSG(msg_cond, SPLM_ERR_SEM_5, node->location, "\033[1mwhat are you fucking doing?\033[0m Unmatched level of dereferencing on operands");
+            SPLC_COND_MSG(msg_cond, SPLM_ERR_SEM_5, node->location,
+                          "\033[1mwhat are you fucking doing?\033[0m Unmatched level of dereferencing on operands");
             return NULL;
         }
-
 
         // SPLC_DIAG("Escaped assignment lhs check.");
         if (!are_types_equal(left->spec_type, right->spec_type, SPLT_TYPE_INT, SPLT_LTR_INT) &&
@@ -1139,8 +1147,8 @@ void sem_process_func_arg(ast_node node, splc_trans_unit tunit, const int msg_co
         // empty paramList
         if (arg_list->num_child != 0)
         {
-            SPLC_COND_FMSG(msg_cond, SPLM_ERR_SEM_9, arg_list->location, "invalid argument number, except %d, got %ld", 0,
-                        arg_list->num_child);
+            SPLC_COND_FMSG(msg_cond, SPLM_ERR_SEM_9, arg_list->location, "invalid argument number, except %d, got %ld",
+                           0, arg_list->num_child);
         }
         return;
     }
@@ -1149,7 +1157,7 @@ void sem_process_func_arg(ast_node node, splc_trans_unit tunit, const int msg_co
     if (param_list->num_child != arg_list->num_child)
     {
         SPLC_COND_FMSG(msg_cond, SPLM_ERR_SEM_9, arg_list->location, "invalid argument number, except %ld, got %ld",
-                    param_list->num_child, arg_list->num_child);
+                       param_list->num_child, arg_list->num_child);
         return;
     }
     // must find the function symtable
@@ -1172,8 +1180,8 @@ void sem_process_func_arg(ast_node node, splc_trans_unit tunit, const int msg_co
                 continue;
             }
 
-            SPLC_COND_FMSG(msg_cond, SPLM_ERR_SEM_9, arg_list->children[i]->location, "invalid argument type, except `%s`, got `%s`",
-                        param_expr->spec_type, arg_expr->spec_type);
+            SPLC_COND_FMSG(msg_cond, SPLM_ERR_SEM_9, arg_list->children[i]->location,
+                           "invalid argument type, except `%s`, got `%s`", param_expr->spec_type, arg_expr->spec_type);
         }
     }
 }
