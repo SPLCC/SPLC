@@ -105,7 +105,7 @@ extern int splcf_no_diagnostics_color;
     } while (0)
 
 /* Call this to print an error */
-#define SPLC_MSG(type, _location, _msg)                                                                              \
+#define SPLC_MSG(type, _location, _msg)                                                                                \
     do                                                                                                                 \
     {                                                                                                                  \
         size_t needed = strlen(_msg) + 1;                                                                              \
@@ -117,7 +117,7 @@ extern int splcf_no_diagnostics_color;
     } while (0)
 
 /* Call this to print an error without location */
-#define SPLC_MSG_NOLOC(type, _msg)                                                                                   \
+#define SPLC_MSG_NOLOC(type, _msg)                                                                                     \
     do                                                                                                                 \
     {                                                                                                                  \
         size_t needed = strlen(_msg) + 1;                                                                              \
@@ -129,7 +129,7 @@ extern int splcf_no_diagnostics_color;
     } while (0)
 
 /* Call this to print a formatted error */
-#define SPLC_FMSG(type, _location, _msg, ...)                                                                        \
+#define SPLC_FMSG(type, _location, _msg, ...)                                                                          \
     do                                                                                                                 \
     {                                                                                                                  \
         size_t needed = snprintf(NULL, 0, _msg, __VA_ARGS__) + 1;                                                      \
@@ -141,7 +141,7 @@ extern int splcf_no_diagnostics_color;
     } while (0)
 
 /* Call this to print a formatted error without location */
-#define SPLC_FMSG_NOLOC(type, _msg, ...)                                                                             \
+#define SPLC_FMSG_NOLOC(type, _msg, ...)                                                                               \
     do                                                                                                                 \
     {                                                                                                                  \
         size_t needed = snprintf(NULL, 0, _msg, __VA_ARGS__) + 1;                                                      \
@@ -150,6 +150,46 @@ extern int splcf_no_diagnostics_color;
         sprintf(buffer, _msg, __VA_ARGS__);                                                                            \
         splc_internal_handle_msg(type, SPLC_INVALID_LOC, buffer);                                                      \
         free(buffer);                                                                                                  \
+    } while (0)
+
+/* Call this to print an error with location if condition is true */
+#define SPLC_COND_MSG(cond, type, _location, _msg)                                                                     \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        if (!((cond)))                                                                                                 \
+        {                                                                                                              \
+            SPLC_MSG(type, _location, _msg);                                                                           \
+        }                                                                                                              \
+    } while (0)
+
+/* Call this to print an error without location if condition is true */
+#define SPLC_COND_MSG_NO_LOC(cond, type, _msg)                                                                         \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        if (!((cond)))                                                                                                 \
+        {                                                                                                              \
+            SPLC_MSG_NOLOC(type, _msg);                                                                                \
+        }                                                                                                              \
+    } while (0)
+
+/* Call this to print a formatted error location if condition is true */
+#define SPLC_COND_FMSG(cond, type, _location, _msg, ...)                                                               \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        if (!((cond)))                                                                                                 \
+        {                                                                                                              \
+            SPLC_FMSG(type, _location, _msg, __VA_ARGS__);                                                             \
+        }                                                                                                              \
+    } while (0)
+
+/* Call this to print a formatted error without location if condition is true */
+#define SPLC_COND_FSG_NO_LOC(cond, type, _msg, ...)                                                                    \
+    do                                                                                                                 \
+    {                                                                                                                  \
+        if (!((cond)))                                                                                                 \
+        {                                                                                                              \
+            SPLC_FMSG_NOLOC(type, _msg, __VA_ARGS__);                                                                  \
+        }                                                                                                              \
     } while (0)
 
 #ifndef SPLC_DISABLE_DIAG
