@@ -46,8 +46,10 @@
     ast_node pproot = NULL;
     ast_node tmp = NULL;
 
-    char *ppd_macro_name = NULL;
-    splc_loc ppd_macro_pt = SPLC_INVALID_LOC;
+    int ppd_macro_var_ignore = 0;
+    int ppd_macro_var_inserted = 0;
+    char *ppd_macro_var_name = NULL;
+    splc_loc ppd_macro_var_pt = SPLC_INVALID_LOC;
 %}
 
 /* In cross-line comment */
@@ -175,11 +177,22 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 
     /* ============== PPD: #define directive ============== */
 <IN_PPD_DEFINE>{identifier} {
-    ppd_macro_pt = SPLC_YY2LOC_CF_D(yylloc);
-    ppd_macro_name = strdup(yytext);
-    SPLC_FMSG(SPLM_Wuniv, ppd_macro_pt, "detected macro definition '\033[1m%s\033[0m'. This is an experimental feature.", ppd_macro_name);
-    yy_pop_state();
-    yy_push_state(IN_PPD_DEFINE_BODY);
+    lut_entry ent = NULL;
+    if ((ent = lut_find(current_trans_unit->global_symtable, yytext, SPLE_MACRO_VAR)) != NULL)
+    {
+        SPLC_FMSG(SPLM_ERR_UNIV, SPLC_YY2LOC_CF_D(yylloc), "redefinition of macro %s", yytext);
+        ppd_macro_var_ignore = 1;
+        yy_pop_state();
+        yy_push_state(IN_PPD_DEFINE_BODY);
+    }
+    else
+    {
+        ppd_macro_var_pt = SPLC_YY2LOC_CF_D(yylloc);
+        ppd_macro_var_name = strdup(yytext);
+        SPLC_FMSG(SPLM_Wuniv, ppd_macro_var_pt, "detected macro definition '\033[1m%s\033[0m'. This is an experimental feature.", ppd_macro_var_name);
+        yy_pop_state();
+        yy_push_state(IN_PPD_DEFINE_BODY);
+    }
 }
 
 <IN_PPD_DEFINE>. {
@@ -195,10 +208,14 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 
 <IN_PPD_DEFINE_BODY>([^\r\n]*(\\[\r]?\n)?)* {
-    char *expanded = get_expanded_macro_content(yytext);
-    lut_insert(current_trans_unit->global_symtable, ppd_macro_name, SPLE_MACRO_VAR, SPLE_NULL, NULL, expanded, NULL, SPLC_YY2LOC_CF_D(yylloc));
-    SPLC_FDIAG("registered identifier %s", ppd_macro_name);
-    free(expanded);
+    if (!ppd_macro_var_ignore)
+    {
+        char *expanded = get_expanded_macro_content(yytext);
+        lut_insert(current_trans_unit->global_symtable, ppd_macro_var_name, SPLE_MACRO_VAR, SPLE_NULL, NULL, expanded, NULL, ppd_macro_var_pt);
+        SPLC_FDIAG("registered identifier %s", ppd_macro_var_name);
+        ppd_macro_var_inserted = 1;
+        free(expanded);
+    }
 }
 
 <IN_PPD_DEFINE_BODY>. {
@@ -206,8 +223,16 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 
 <IN_PPD_DEFINE_BODY>\r?\n {
-    free(ppd_macro_name);
-    ppd_macro_name = NULL;
+    if (!ppd_macro_var_ignore && !ppd_macro_var_inserted)
+    {
+        lut_insert(current_trans_unit->global_symtable, ppd_macro_var_name, SPLE_MACRO_VAR, SPLE_NULL, NULL, NULL, NULL, ppd_macro_var_pt);
+    }
+
+    // clean up
+    ppd_macro_var_ignore = 0;
+    ppd_macro_var_inserted = 0;
+    free(ppd_macro_var_name);
+    ppd_macro_var_name = NULL;
     yy_pop_state();
 }
 
