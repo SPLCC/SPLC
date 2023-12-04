@@ -37,7 +37,7 @@ int splc_getopt(int nargc, char *nargv[], char *ostr)
     if (splc_optopt == '-') /* no support for '--option' type */
     {
         if (splc_opterror)
-            SPLC_FWARN_NOLOC(SPLM_ERR_UNIV, "unsupported option format: %s\n", nargv[splc_optind]);
+            SPLC_FMSG_NOLOC(SPLM_ERR_UNIV, "unsupported option format: %s\n", nargv[splc_optind]);
 
         splc_optfull = ++arg;
         ++splc_optind;

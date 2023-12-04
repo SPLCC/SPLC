@@ -105,7 +105,7 @@ extern int splcf_no_diagnostics_color;
     } while (0)
 
 /* Call this to print an error */
-#define SPLC_ERROR(type, _location, _msg)                                                                              \
+#define SPLC_MSG(type, _location, _msg)                                                                                \
     do                                                                                                                 \
     {                                                                                                                  \
         size_t needed = strlen(_msg) + 1;                                                                              \
@@ -117,7 +117,7 @@ extern int splcf_no_diagnostics_color;
     } while (0)
 
 /* Call this to print an error without location */
-#define SPLC_ERROR_NOLOC(type, _msg)                                                                                   \
+#define SPLC_MSG_NOLOC(type, _msg)                                                                                     \
     do                                                                                                                 \
     {                                                                                                                  \
         size_t needed = strlen(_msg) + 1;                                                                              \
@@ -129,7 +129,7 @@ extern int splcf_no_diagnostics_color;
     } while (0)
 
 /* Call this to print a formatted error */
-#define SPLC_FERROR(type, _location, _msg, ...)                                                                        \
+#define SPLC_FMSG(type, _location, _msg, ...)                                                                          \
     do                                                                                                                 \
     {                                                                                                                  \
         size_t needed = snprintf(NULL, 0, _msg, __VA_ARGS__) + 1;                                                      \
@@ -141,7 +141,7 @@ extern int splcf_no_diagnostics_color;
     } while (0)
 
 /* Call this to print a formatted error without location */
-#define SPLC_FERROR_NOLOC(type, _msg, ...)                                                                             \
+#define SPLC_FMSG_NOLOC(type, _msg, ...)                                                                               \
     do                                                                                                                 \
     {                                                                                                                  \
         size_t needed = snprintf(NULL, 0, _msg, __VA_ARGS__) + 1;                                                      \
@@ -152,100 +152,44 @@ extern int splcf_no_diagnostics_color;
         free(buffer);                                                                                                  \
     } while (0)
 
-/* Call this to print a warning */
-#define SPLC_WARN(type, _location, _msg)                                                                               \
+/* Call this to print an error with location if condition is true */
+#define SPLC_COND_MSG(cond, type, _location, _msg)                                                                     \
     do                                                                                                                 \
     {                                                                                                                  \
-        size_t needed = strlen(_msg) + 1;                                                                              \
-        char *buffer = (char *)malloc(needed);                                                                         \
-        SPLC_ALLOC_PTR_CHECK(buffer, "cannot allocate memory for printing error");                                     \
-        memcpy(buffer, _msg, needed);                                                                                  \
-        splc_internal_handle_msg(type, _location, buffer);                                                             \
-        free(buffer);                                                                                                  \
+        if (!!((cond)))                                                                                                 \
+        {                                                                                                              \
+            SPLC_MSG(type, _location, _msg);                                                                           \
+        }                                                                                                              \
     } while (0)
 
-/* Call this to print a warning without location */
-#define SPLC_WARN_NOLOC(type, _msg)                                                                                    \
+/* Call this to print an error without location if condition is true */
+#define SPLC_COND_MSG_NO_LOC(cond, type, _msg)                                                                         \
     do                                                                                                                 \
     {                                                                                                                  \
-        size_t needed = strlen(_msg) + 1;                                                                              \
-        char *buffer = (char *)malloc(needed);                                                                         \
-        SPLC_ALLOC_PTR_CHECK(buffer, "cannot allocate memory for printing error");                                     \
-        memcpy(buffer, _msg, needed);                                                                                  \
-        splc_internal_handle_msg(type, SPLC_INVALID_LOC, buffer);                                                      \
-        free(buffer);                                                                                                  \
+        if (!!((cond)))                                                                                                 \
+        {                                                                                                              \
+            SPLC_MSG_NOLOC(type, _msg);                                                                                \
+        }                                                                                                              \
     } while (0)
 
-/* Call this to print a formatted warning */
-#define SPLC_FWARN(type, _location, _msg, ...)                                                                         \
+/* Call this to print a formatted error location if condition is true */
+#define SPLC_COND_FMSG(cond, type, _location, _msg, ...)                                                               \
     do                                                                                                                 \
     {                                                                                                                  \
-        size_t needed = snprintf(NULL, 0, _msg, __VA_ARGS__) + 1;                                                      \
-        char *buffer = (char *)malloc(needed);                                                                         \
-        SPLC_ALLOC_PTR_CHECK(buffer, "cannot allocate memory for printing error");                                     \
-        sprintf(buffer, _msg, __VA_ARGS__);                                                                            \
-        splc_internal_handle_msg(type, _location, buffer);                                                             \
-        free(buffer);                                                                                                  \
+        if (!!((cond)))                                                                                                 \
+        {                                                                                                              \
+            SPLC_FMSG(type, _location, _msg, __VA_ARGS__);                                                             \
+        }                                                                                                              \
     } while (0)
 
-/* Call this to print a formatted warning */
-#define SPLC_FWARN_NOLOC(type, _msg, ...)                                                                              \
+/* Call this to print a formatted error without location if condition is true */
+#define SPLC_COND_FMSG_NO_LOC(cond, type, _msg, ...)                                                                   \
     do                                                                                                                 \
     {                                                                                                                  \
-        size_t needed = snprintf(NULL, 0, _msg, __VA_ARGS__) + 1;                                                      \
-        char *buffer = (char *)malloc(needed);                                                                         \
-        SPLC_ALLOC_PTR_CHECK(buffer, "cannot allocate memory for printing error");                                     \
-        sprintf(buffer, _msg, __VA_ARGS__);                                                                            \
-        splc_internal_handle_msg(type, SPLC_INVALID_LOC, buffer);                                                      \
-        free(buffer);                                                                                                  \
-    } while (0)
-
-/* Call this to print a note */
-#define SPLC_NOTE(_location, _msg)                                                                                     \
-    do                                                                                                                 \
-    {                                                                                                                  \
-        size_t needed = strlen(_msg) + 1;                                                                              \
-        char *buffer = (char *)malloc(needed);                                                                         \
-        SPLC_ALLOC_PTR_CHECK(buffer, "cannot allocate memory for printing error");                                     \
-        memcpy(buffer, _msg, needed);                                                                                  \
-        splc_internal_handle_msg(SPLM_NOTE, _location, buffer);                                                        \
-        free(buffer);                                                                                                  \
-    } while (0)
-
-/* Call this to print a note without location */
-#define SPLC_NOTE_NOLOC(_msg)                                                                                          \
-    do                                                                                                                 \
-    {                                                                                                                  \
-        size_t needed = strlen(_msg) + 1;                                                                              \
-        char *buffer = (char *)malloc(needed);                                                                         \
-        SPLC_ALLOC_PTR_CHECK(buffer, "cannot allocate memory for printing error");                                     \
-        memcpy(buffer, _msg, needed);                                                                                  \
-        splc_internal_handle_msg(SPLM_NOTE, SPLC_INVALID_LOC, buffer);                                                 \
-        free(buffer);                                                                                                  \
-    } while (0)
-
-/* Call this to print a formatted note */
-#define SPLC_FNOTE(_location, _msg, ...)                                                                               \
-    do                                                                                                                 \
-    {                                                                                                                  \
-        size_t needed = snprintf(NULL, 0, _msg, __VA_ARGS__) + 1;                                                      \
-        char *buffer = (char *)malloc(needed);                                                                         \
-        SPLC_ALLOC_PTR_CHECK(buffer, "cannot allocate memory for printing error");                                     \
-        sprintf(buffer, _msg, __VA_ARGS__);                                                                            \
-        splc_internal_handle_msg(SPLM_NOTE, _location, buffer);                                                        \
-        free(buffer);                                                                                                  \
-    } while (0)
-
-/* Call this to print a formatted note */
-#define SPLC_FNOTE_NOLOC(_msg, ...)                                                                                    \
-    do                                                                                                                 \
-    {                                                                                                                  \
-        size_t needed = snprintf(NULL, 0, _msg, __VA_ARGS__) + 1;                                                      \
-        char *buffer = (char *)malloc(needed);                                                                         \
-        SPLC_ALLOC_PTR_CHECK(buffer, "cannot allocate memory for printing error");                                     \
-        sprintf(buffer, _msg, __VA_ARGS__);                                                                            \
-        splc_internal_handle_msg(SPLM_NOTE, SPLC_INVALID_LOC, buffer);                                                 \
-        free(buffer);                                                                                                  \
+        if (!!((cond)))                                                                                                 \
+        {                                                                                                              \
+            SPLC_FMSG_NOLOC(type, _msg, __VA_ARGS__);                                                                  \
+        }                                                                                                              \
     } while (0)
 
 #ifndef SPLC_DISABLE_DIAG

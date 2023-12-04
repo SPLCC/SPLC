@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 
     if (splc_src_file_cnt == 0)
     {
-        SPLC_ERROR_NOLOC(SPLM_ERR_FATAL, "no input file\ncompilation terminated.");
+        SPLC_MSG_NOLOC(SPLM_ERR_FATAL, "no input file\ncompilation terminated.");
         exit(1);
     }
 
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 
         if (current_trans_unit->root == NULL)
         {
-            SPLC_ERROR_NOLOC(SPLM_ERR_FATAL, "failed to parse file: the translation unit return is NULL.");
+            SPLC_MSG_NOLOC(SPLM_ERR_FATAL, "failed to parse file: the translation unit return is NULL.");
         }
 
         if (!err_count)
