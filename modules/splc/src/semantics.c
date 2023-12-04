@@ -175,7 +175,7 @@ static void register_struct_spec(splc_trans_unit tunit, ast_node node, int root_
         }
         if (id == INT_MAX)
             SPLC_FFAIL("number of anonymous struct reached maximum limit: \033[1m%d\033[0m.", INT_MAX);
-        
+
         decl_name = new_name;
     }
 
@@ -245,7 +245,7 @@ static void register_simple_comp_stmt(splc_trans_unit tunit, ast_node node, int 
     node->symtable = top_sym_table; // Linked
 }
 
-/* Wrapper function for register self-contained statements such as 
+/* Wrapper function for register self-contained statements such as
    SPLT_ITER_STMT,  */
 static void register_self_contained_stmt(splc_trans_unit tunit, ast_node node, int root_env_idx)
 {
@@ -253,7 +253,8 @@ static void register_self_contained_stmt(splc_trans_unit tunit, ast_node node, i
     int current_env_idx = tunit->nenvs - 1;
 
     // DONE: register declarations if it is a for loop
-    if (node->type == SPLT_ITER_STMT && node->children[0]->type == SPLT_FOR && // for-loop-body is always placed at third (no punctuators)
+    if (node->type == SPLT_ITER_STMT &&
+        node->children[0]->type == SPLT_FOR && // for-loop-body is always placed at third (no punctuators)
         node->children[1]->num_child > 0 && node->children[1]->children[0]->type == SPLT_INIT_EXPR)
     {
         ast_node init_expr = node->children[1]->children[0];
@@ -295,7 +296,8 @@ static void register_function_def(splc_trans_unit tunit, ast_node node, int root
     if (node->num_child == 3)
         is_defining = 1; // GUARANTEED
 
-    if ((existing = lut_find(tunit->envs[root_env_idx], func_name, SPLE_FUNC)) != NULL && is_defining && existing->is_defined)
+    if ((existing = lut_find(tunit->envs[root_env_idx], func_name, SPLE_FUNC)) != NULL && is_defining &&
+        existing->is_defined)
     {
         SPLC_FERROR(SPLM_ERR_SEM_4, node->location, "redefinition of function '\033[1m%s\033[0m'", func_name);
     }
@@ -334,7 +336,7 @@ static void experimental_expr_dispatch(splc_trans_unit tunit, ast_node node, int
    - `SPLT_EXT_DECLTN`
    - `SPLT_FUNC_DEF`
    - `SPLT_ITER_STMT` for handling extra variable outside of `SPLT_COMP_STMT`
-   - `SPLT_COMP_STMT` for handling compound statements, creating a new environment. 
+   - `SPLT_COMP_STMT` for handling compound statements, creating a new environment.
      If you do not need to create a separate environment, do not call this to dispatch it.
    - `SPLT_STMT` for handling general statements
    - `SPLT_EXPR` for handling expressions
@@ -605,29 +607,29 @@ static void legacy_ast_search(ast_node node, ast_node fa_node, splc_trans_unit t
         {
             SPLC_FERROR(SPLM_ERR_SEM_1, node->location, "variable `%s` is undefined", var_name);
         }
-        else
-        {
-            // SPLC_DIAG("checking indexing operator.");
-            // check unvalid use of indexing operator
-            // TODO: check the tree structrue of nodes and figure out the exact fault
-            //(but the array structure is diffrent in declaration and usage)
-            ast_node var_node = var_entry->root;
-            int decl_num = (var_node->num_child) / 3; // declared number of level
-            int use_num = 0; // used number of level
-            ast_node tmp_node = node->father; // root SPLT_EXPR
-            while (tmp_node->type == SPLT_EXPR && (tmp_node->children[(tmp_node->num_child) - 1])->type == SPLT_RSB)
-            {
-                use_num++;
-                tmp_node = tmp_node->father;
-                if ((tmp_node->children[0])->type != SPLT_EXPR)
-                    break;
-            }
-            if (decl_num < use_num)
-            {
-                SPLC_FERROR(SPLM_ERR_SEM_10, node->location,
-                            "applying indexing operation on non-array type variable `%s`", var_name);
-            }
-        }
+        // else
+        // {
+        //     // SPLC_DIAG("checking indexing operator.");
+        //     // check unvalid use of indexing operator
+        //     // TODO: check the tree structrue of nodes and figure out the exact fault
+        //     //(but the array structure is diffrent in declaration and usage)
+        //     ast_node var_node = var_entry->root;
+        //     int decl_num = (var_node->num_child) / 3; // declared number of level
+        //     int use_num = 0;                          // used number of level
+        //     ast_node tmp_node = node->father;         // root SPLT_EXPR
+        //     while (tmp_node->type == SPLT_EXPR && (tmp_node->children[(tmp_node->num_child) - 1])->type == SPLT_RSB)
+        //     {
+        //         use_num++;
+        //         tmp_node = tmp_node->father;
+        //         if ((tmp_node->children[0])->type != SPLT_EXPR)
+        //             break;
+        //     }
+        //     if (decl_num < use_num)
+        //     {
+        //         SPLC_FERROR(SPLM_ERR_SEM_10, node->location,
+        //                     "applying indexing operation on non-array type variable `%s`", var_name);
+        //     }
+        // }
     }
 
     // check errors when using functions
@@ -722,6 +724,18 @@ expr_entry sem_new_expr_entry()
     return ent;
 }
 
+int find_array_decl_num(ast_node node)
+{
+    size_t i;
+    for (i = 0; i < node->num_child; ++i)
+        if (node->children[i]->type == SPLT_LSB)
+            break;
+    if (i == node->num_child)
+        return 0;
+
+    return node->num_child / 3;
+}
+
 expr_entry sem_lut2expr(lut_entry ent)
 {
     if (ent == NULL)
@@ -731,6 +745,9 @@ expr_entry sem_lut2expr(lut_entry ent)
     expr_entry result = sem_new_expr_entry();
     result->spec_type = ent->spec_type;
     result->extra_type = ent->extra_type;
+    result->decl_num = find_array_decl_num(ent->root);
+    result->is_indexing = 0;
+    result->level = 0;
 
     return result;
 }
@@ -890,6 +907,7 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit)
 
                 if (node->children[1]->type == SPLT_ASSIGN)
                 {
+                    SPLC_FDIAG("assignment, lhs=<%d, %d>, rhs=<%d, %d>", left->decl_num, left->level, right->decl_num, right->level);
                     // Literal as left
                     if (left->spec_type == splc_token2str(SPLT_LTR_INT) ||
                         left->spec_type == splc_token2str(SPLT_LTR_FLOAT) ||
@@ -902,17 +920,26 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit)
 
                     // struct can be assigned but cannot be computed
                     else if ((left->extra_type == SPLE_STRUCT_DEC || right->extra_type == SPLE_STRUCT_DEC) &&
-                             left->spec_type != right->spec_type)
+                             strcmp(left->spec_type, right->spec_type) != 0)
                     {
                         SPLC_ERROR(SPLM_ERR_SEM_5, node->location, "unmatching type on both sides of assignment");
                         return NULL;
                     }
                 }
 
+                if (!(left->decl_num - left->level == right->decl_num - right->level))
+                {
+                    SPLC_ERROR(SPLM_ERR_SEM_5, node->location, "\033[1mwhat are you fucking doing?\033[0m Unmatched level of dereferencing on operands");
+                    return NULL;
+                }
+
+
+                // SPLC_DIAG("Escaped assignment lhs check.");
                 if (!are_types_equal(left->spec_type, right->spec_type, SPLT_TYPE_INT, SPLT_LTR_INT) &&
                     !are_types_equal(left->spec_type, right->spec_type, SPLT_TYPE_FLOAT, SPLT_LTR_FLOAT) &&
                     !are_types_equal(left->spec_type, right->spec_type, SPLT_TYPE_CHAR, SPLT_LTR_CHAR))
                 {
+                    // SPLC_DIAG("Entering decl check.");
                     if (node->children[1]->type == SPLT_ASSIGN)
                     {
                         SPLC_ERROR(SPLM_ERR_SEM_5, node->location, "unmatching type on both sides of assignment ");
@@ -930,16 +957,30 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit)
         }
         else if (node->num_child == 4)
         {
-
-            // array
-            expr_entry ent = sem_process_expr(node->children[2], tunit);
-            if (ent == NULL || (strcmp(ent->spec_type, splc_token2str(SPLT_TYPE_INT)) != 0 &&
-                                strcmp(ent->spec_type, splc_token2str(SPLT_LTR_INT)) != 0))
+            // check expr indexing on
+            expr_entry postfix = sem_process_expr(node->children[0], tunit);
+            if (postfix->decl_num == 0 || postfix->decl_num != 0 && postfix->level == postfix->decl_num)
+            {
+                SPLC_ERROR(SPLM_ERR_SEM_10, node->children[1]->location,
+                           "cannot index on non-array variable");
+                return NULL;
+            }
+            else
+            {
+                SPLC_FDIAG("examining indexing operation with decl_num=%d, current level=%d", postfix->decl_num, postfix->level);
+            }
+            // check index
+            expr_entry expr = sem_process_expr(node->children[2], tunit);
+            if (expr == NULL || (strcmp(expr->spec_type, splc_token2str(SPLT_TYPE_INT)) != 0 &&
+                                 strcmp(expr->spec_type, splc_token2str(SPLT_LTR_INT)) != 0))
             {
                 SPLC_ERROR(SPLM_ERR_SEM_12, node->children[2]->location,
                            "array indexing with a non-integer type expression");
+                return NULL;
             }
-            return sem_process_expr(node->children[0], tunit);
+            postfix->is_indexing = 1;
+            postfix->level++;
+            return postfix;
         }
     }
 
