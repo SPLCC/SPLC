@@ -996,9 +996,11 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit, const in
         ast_node dir_decltr = node->children[0]->children[0]->children[0]; // TODO: delete this all
         ast_node init_expr = node->children[2]->children[0];
         SPLC_ASSERT(dir_decltr->type == SPLT_ID);
-        SPLC_ASSERT(init_expr->type == SPLT_EXPR);
+        SPLC_ASSERT(SPLT_IS_EXPR(init_expr->type));
         expr_entry left = sem_process_expr(dir_decltr, tunit, msg_cond);
         expr_entry right = sem_process_expr(init_expr, tunit, msg_cond);
+        SPLC_ASSERT(left != NULL);
+        SPLC_ASSERT(right != NULL);
 
         if (left == NULL || right == NULL)
         {
