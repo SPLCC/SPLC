@@ -999,9 +999,7 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit, const in
         SPLC_ASSERT(SPLT_IS_EXPR(init_expr->type));
         expr_entry left = sem_process_expr(dir_decltr, tunit, msg_cond);
         expr_entry right = sem_process_expr(init_expr, tunit, msg_cond);
-        SPLC_ASSERT(left != NULL);
-        SPLC_ASSERT(right != NULL);
-
+        
         if (left == NULL || right == NULL)
         {
             return NULL;
