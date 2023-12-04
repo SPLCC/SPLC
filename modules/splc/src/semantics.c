@@ -181,8 +181,8 @@ static void register_struct_spec(splc_trans_unit tunit, ast_node node, int root_
 
     if (existing != NULL && is_defining && existing->is_defined) // Only if it is redefined should we do this
     {
-        SPLC_FERROR(SPLM_ERR_SEM_15, node->location, "redefinition of struct/union %s", decl_name);
-        SPLC_NOTE(existing->first_occur, "previously defined here.");
+        SPLC_FMSG(SPLM_ERR_SEM_15, node->location, "redefinition of struct/union %s", decl_name);
+        SPLC_MSG(SPLM_NOTE, existing->first_occur, "previously defined here.");
     }
     else
     {
@@ -299,7 +299,7 @@ static void register_function_def(splc_trans_unit tunit, ast_node node, int root
     if ((existing = lut_find(tunit->envs[root_env_idx], func_name, SPLE_FUNC)) != NULL && is_defining &&
         existing->is_defined)
     {
-        SPLC_FERROR(SPLM_ERR_SEM_4, node->location, "redefinition of function '\033[1m%s\033[0m'", func_name);
+        SPLC_FMSG(SPLM_ERR_SEM_4, node->location, "redefinition of function '\033[1m%s\033[0m'", func_name);
     }
     else
     {
@@ -435,7 +435,7 @@ static void legacy_ast_search(ast_node node, ast_node fa_node, splc_trans_unit t
         }
         if (struct_union_undefined)
         {
-            SPLC_FERROR(SPLM_ERR_SEM_15, node->location, "redefinition of struct/union %s", struct_union_name);
+            SPLC_FMSG(SPLM_ERR_SEM_15, node->location, "redefinition of struct/union %s", struct_union_name);
             // SPLC_FDIAG("Error type 15 at line %d: redefinition of %s\n", node->location.linebegin,
             // struct_union_name);
         }
@@ -545,7 +545,7 @@ static void legacy_ast_search(ast_node node, ast_node fa_node, splc_trans_unit t
         }
         if (var_is_redefined)
         {
-            SPLC_FERROR(SPLM_ERR_SEM_3, node->location, "redefinition of variable `%s`", var_name);
+            SPLC_FMSG(SPLM_ERR_SEM_3, node->location, "redefinition of variable `%s`", var_name);
         }
         else
         {
@@ -566,7 +566,7 @@ static void legacy_ast_search(ast_node node, ast_node fa_node, splc_trans_unit t
         }
         if (func_is_redefined)
         {
-            SPLC_FERROR(SPLM_ERR_SEM_4, node->location, "redefinition of function '\033[1m%s\033[0m'", func_name);
+            SPLC_FMSG(SPLM_ERR_SEM_4, node->location, "redefinition of function '\033[1m%s\033[0m'", func_name);
         }
         else
         {
@@ -605,7 +605,7 @@ static void legacy_ast_search(ast_node node, ast_node fa_node, splc_trans_unit t
         }
         if (!var_is_defined)
         {
-            SPLC_FERROR(SPLM_ERR_SEM_1, node->location, "variable `%s` is undefined", var_name);
+            SPLC_FMSG(SPLM_ERR_SEM_1, node->location, "variable `%s` is undefined", var_name);
         }
         // else
         // {
@@ -626,7 +626,7 @@ static void legacy_ast_search(ast_node node, ast_node fa_node, splc_trans_unit t
         //     }
         //     if (decl_num < use_num)
         //     {
-        //         SPLC_FERROR(SPLM_ERR_SEM_10, node->location,
+        //         SPLC_FMSG(SPLM_ERR_SEM_10, node->location,
         //                     "applying indexing operation on non-array type variable `%s`", var_name);
         //     }
         // }
@@ -650,11 +650,11 @@ static void legacy_ast_search(ast_node node, ast_node fa_node, splc_trans_unit t
         }
         if (!func_is_defined && !func_name_is_defined)
         {
-            SPLC_FERROR(SPLM_ERR_SEM_2, node->location, "function %s is undefined", func_name);
+            SPLC_FMSG(SPLM_ERR_SEM_2, node->location, "function %s is undefined", func_name);
         }
         else if (!func_is_defined && func_name_is_defined)
         {
-            SPLC_FERROR(SPLM_ERR_SEM_11, node->location, "applying function invocation operator on name %s\n",
+            SPLC_FMSG(SPLM_ERR_SEM_11, node->location, "applying function invocation operator on name %s\n",
                         func_name);
         }
     }
@@ -770,7 +770,7 @@ expr_entry sem_process_expr_dot(const expr_entry struct_var_ent, const ast_node 
             else
             {
                 // no specific member in the struct declaration
-                SPLC_ERROR(SPLM_ERR_SEM_13, node->children[2]->location, "accessing an undefined structure member");
+                SPLC_MSG(SPLM_ERR_SEM_13, node->children[2]->location, "accessing an undefined structure member");
                 return NULL;
             }
         }
@@ -782,7 +782,7 @@ expr_entry sem_process_expr_dot(const expr_entry struct_var_ent, const ast_node 
     }
     else
     {
-        SPLC_ERROR(SPLM_ERR_SEM_13, node->children[1]->location, "accessing members of a non-structure variable");
+        SPLC_MSG(SPLM_ERR_SEM_13, node->children[1]->location, "accessing members of a non-structure variable");
         return NULL;
     }
 }
@@ -872,7 +872,7 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit)
             expr_entry ent = sem_process_expr(expr_node, tunit);
             if (!is_computable(ent))
             {
-                SPLC_ERROR(SPLM_ERR_SEM_7, node->location, "unmatching operands");
+                SPLC_MSG(SPLM_ERR_SEM_7, node->location, "unmatching operands");
             }
             return ent;
         }
@@ -913,7 +913,7 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit)
                         left->spec_type == splc_token2str(SPLT_LTR_FLOAT) ||
                         left->spec_type == splc_token2str(SPLT_LTR_CHAR))
                     {
-                        SPLC_ERROR(SPLM_ERR_SEM_6, node->children[0]->location,
+                        SPLC_MSG(SPLM_ERR_SEM_6, node->children[0]->location,
                                    "rvalue appears on the left-hand side of the assignment operator");
                         return NULL;
                     }
@@ -922,14 +922,14 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit)
                     else if ((left->extra_type == SPLE_STRUCT_DEC || right->extra_type == SPLE_STRUCT_DEC) &&
                              strcmp(left->spec_type, right->spec_type) != 0)
                     {
-                        SPLC_ERROR(SPLM_ERR_SEM_5, node->location, "unmatching type on both sides of assignment");
+                        SPLC_MSG(SPLM_ERR_SEM_5, node->location, "unmatching type on both sides of assignment");
                         return NULL;
                     }
                 }
 
                 if (!(left->decl_num - left->level == right->decl_num - right->level))
                 {
-                    SPLC_ERROR(SPLM_ERR_SEM_5, node->location, "\033[1mwhat are you fucking doing?\033[0m Unmatched level of dereferencing on operands");
+                    SPLC_MSG(SPLM_ERR_SEM_5, node->location, "\033[1mwhat are you fucking doing?\033[0m Unmatched level of dereferencing on operands");
                     return NULL;
                 }
 
@@ -942,12 +942,12 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit)
                     // SPLC_DIAG("Entering decl check.");
                     if (node->children[1]->type == SPLT_ASSIGN)
                     {
-                        SPLC_ERROR(SPLM_ERR_SEM_5, node->location, "unmatching type on both sides of assignment ");
+                        SPLC_MSG(SPLM_ERR_SEM_5, node->location, "unmatching type on both sides of assignment ");
                         return NULL;
                     }
                     else
                     {
-                        SPLC_ERROR(SPLM_ERR_SEM_7, node->location, "unmatching operand");
+                        SPLC_MSG(SPLM_ERR_SEM_7, node->location, "unmatching operand");
                         return NULL;
                     }
                 }
@@ -961,7 +961,7 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit)
             expr_entry postfix = sem_process_expr(node->children[0], tunit);
             if (postfix->decl_num == 0 || postfix->decl_num != 0 && postfix->level == postfix->decl_num)
             {
-                SPLC_ERROR(SPLM_ERR_SEM_10, node->children[1]->location,
+                SPLC_MSG(SPLM_ERR_SEM_10, node->children[1]->location,
                            "cannot index on non-array variable");
                 return NULL;
             }
@@ -974,7 +974,7 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit)
             if (expr == NULL || (strcmp(expr->spec_type, splc_token2str(SPLT_TYPE_INT)) != 0 &&
                                  strcmp(expr->spec_type, splc_token2str(SPLT_LTR_INT)) != 0))
             {
-                SPLC_ERROR(SPLM_ERR_SEM_12, node->children[2]->location,
+                SPLC_MSG(SPLM_ERR_SEM_12, node->children[2]->location,
                            "array indexing with a non-integer type expression");
                 return NULL;
             }
@@ -1041,7 +1041,7 @@ void sem_process_func_return_bottom_up(ast_node node, splc_trans_unit tunit)
                 !(ret_ent->extra_type == SPLE_STRUCT_DEC && func_ent->extra_type == SPLE_STRUCT_DEC &&
                   (strcmp(ret_ent->spec_type, func_ent->spec_type) == 0)))
             {
-                SPLC_ERROR(SPLM_ERR_SEM_8, jump_stmt_node->location, "incompatible return type");
+                SPLC_MSG(SPLM_ERR_SEM_8, jump_stmt_node->location, "incompatible return type");
             }
         }
         return;
@@ -1075,7 +1075,7 @@ void sem_process_func_arg(ast_node node, splc_trans_unit tunit)
         // empty paramList
         if (arg_list->num_child != 0)
         {
-            SPLC_FERROR(SPLM_ERR_SEM_9, arg_list->location, "invalid argument number, except %d, got %ld", 0,
+            SPLC_FMSG(SPLM_ERR_SEM_9, arg_list->location, "invalid argument number, except %d, got %ld", 0,
                         arg_list->num_child);
         }
         return;
@@ -1084,7 +1084,7 @@ void sem_process_func_arg(ast_node node, splc_trans_unit tunit)
     ast_node param_list = param_type_list->children[0];
     if (param_list->num_child != arg_list->num_child)
     {
-        SPLC_FERROR(SPLM_ERR_SEM_9, arg_list->location, "invalid argument number, except %ld, got %ld",
+        SPLC_FMSG(SPLM_ERR_SEM_9, arg_list->location, "invalid argument number, except %ld, got %ld",
                     param_list->num_child, arg_list->num_child);
         return;
     }
@@ -1108,7 +1108,7 @@ void sem_process_func_arg(ast_node node, splc_trans_unit tunit)
                 continue;
             }
 
-            SPLC_FERROR(SPLM_ERR_SEM_9, arg_list->children[i]->location, "invalid argument type, except `%s`, got `%s`",
+            SPLC_FMSG(SPLM_ERR_SEM_9, arg_list->children[i]->location, "invalid argument type, except `%s`, got `%s`",
                         param_expr->spec_type, arg_expr->spec_type);
         }
     }
@@ -1139,9 +1139,9 @@ void sem_process_func_return_top_down(ast_node node, splc_trans_unit tunit)
         {
             // no return but not void function
             if (jump_stmt_node == NULL)
-                SPLC_ERROR(SPLM_ERR_SEM_8, node->children[0]->location, "incompatible return type");
+                SPLC_MSG(SPLM_ERR_SEM_8, node->children[0]->location, "incompatible return type");
             else
-                SPLC_ERROR(SPLM_ERR_SEM_8, jump_stmt_node->location, "incompatible return type");
+                SPLC_MSG(SPLM_ERR_SEM_8, jump_stmt_node->location, "incompatible return type");
         }
         else
         {
@@ -1155,7 +1155,7 @@ void sem_process_func_return_top_down(ast_node node, splc_trans_unit tunit)
                     !(ret_ent->extra_type == SPLE_STRUCT_DEC && func_ent->extra_type == SPLE_STRUCT_DEC &&
                       (strcmp(ret_ent->spec_type, func_ent->spec_type) == 0)))
                 {
-                    SPLC_ERROR(SPLM_ERR_SEM_8, jump_stmt_node->location, "incompatible return type");
+                    SPLC_MSG(SPLM_ERR_SEM_8, jump_stmt_node->location, "incompatible return type");
                 }
             }
         }

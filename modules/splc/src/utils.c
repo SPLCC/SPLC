@@ -151,7 +151,7 @@ static void _builtin_splc_handle_msg(splc_msg_t type, const splc_loc *const loca
         FILE *file = NULL;
         if ((file = fopen(orig_file, "r")) == NULL)
         {
-            SPLC_FERROR_NOLOC(SPLM_ERR_FATAL, "file no longer exists: %s\n", orig_file);
+            SPLC_FMSG_NOLOC(SPLM_ERR_FATAL, "file no longer exists: %s\n", orig_file);
             return;
         }
         line = fetchline(file, location->linebegin);
@@ -320,11 +320,11 @@ static int _builtin_splc_enter_file_buffer(const char *restrict _filename, const
             "failed to include file. Please check whether the path exists or this program has access right.";
         if (location != NULL)
         {
-            SPLC_ERROR(SPLM_ERR_FATAL, *location, msg);
+            SPLC_MSG(SPLM_ERR_FATAL, *location, msg);
         }
         else
         {
-            SPLC_ERROR_NOLOC(SPLM_ERR_FATAL, msg);
+            SPLC_MSG_NOLOC(SPLM_ERR_FATAL, msg);
         }
         return -1;
     }

@@ -87,7 +87,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 
     /* <IN_CL_COMMENT><<EOF>> { */
-        /* SPLC_ERROR(SPLM_ERR_UNIV, SPLC_YY2LOC_CF_D(yylloc), "unclosed comment"); */
+        /* SPLC_MSG(SPLM_ERR_UNIV, SPLC_YY2LOC_CF_D(yylloc), "unclosed comment"); */
         /* BEGIN(INITIAL); */
     /* } */
 
@@ -166,7 +166,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 
 <IN_PPD_INCL>. {
-    SPLC_WARN(SPLM_Wuniv, SPLC_YY2LOC_CF_D(yylloc), "extra tokens at end of #include directive");
+    SPLC_MSG(SPLM_Wuniv, SPLC_YY2LOC_CF_D(yylloc), "extra tokens at end of #include directive");
 }
 
 <IN_PPD_INCL>\r?\n {
@@ -177,7 +177,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 <IN_PPD_DEFINE>{identifier} {
     ppd_macro_pt = SPLC_YY2LOC_CF_D(yylloc);
     ppd_macro_name = strdup(yytext);
-    SPLC_FWARN(SPLM_Wuniv, ppd_macro_pt, "detected macro definition '\033[1m%s\033[0m'. This is an experimental feature.", ppd_macro_name);
+    SPLC_FMSG(SPLM_Wuniv, ppd_macro_pt, "detected macro definition '\033[1m%s\033[0m'. This is an experimental feature.", ppd_macro_name);
     yy_pop_state();
     yy_push_state(IN_PPD_DEFINE_BODY);
 }
@@ -262,7 +262,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 
 <IN_STRING><<EOF>> {
-    SPLC_ERROR(SPLM_ERR_UNIV, SPLC_YY2LOC_CF_D(yylloc), "unclosed string literal");
+    SPLC_MSG(SPLM_ERR_UNIV, SPLC_YY2LOC_CF_D(yylloc), "unclosed string literal");
     yy_pop_state();
 }
 
@@ -315,14 +315,14 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     if (errno == ERANGE)
     {
         errno = 0;
-        SPLC_WARN(SPLM_Woverflow, SPLC_YY2LOC_CF_D(yylloc), "overflow in floating-point constant");
+        SPLC_MSG(SPLM_Woverflow, SPLC_YY2LOC_CF_D(yylloc), "overflow in floating-point constant");
     }
     return LTR_FLOAT;
 }
 
 <INITIAL>[0-9]*\.[0-9]+([eE]|[-+]|[\.])+ {
     yylval = ast_create_leaf_node(SPLT_LTR_FLOAT, SPLC_YY2LOC_CF_D(yylloc));
-    SPLC_ERROR(SPLM_ERR_SYN_A, SPLC_YY2LOC_CF_D(yylloc), "too many decimal points or exponential indicators");
+    SPLC_MSG(SPLM_ERR_SYN_A, SPLC_YY2LOC_CF_D(yylloc), "too many decimal points or exponential indicators");
     yylval->float_val = 0.0f;
     return LTR_FLOAT;
 }
@@ -332,13 +332,13 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     yylval = ast_create_leaf_node(SPLT_LTR_INT, SPLC_YY2LOC_CF_D(yylloc));
     if (yyleng > 1 && yytext[0] == '0') 
     {
-        SPLC_ERROR(SPLM_ERR_SYN_A, SPLC_YY2LOC_CF_D(yylloc), "decimal integer cannot start with 0");
+        SPLC_MSG(SPLM_ERR_SYN_A, SPLC_YY2LOC_CF_D(yylloc), "decimal integer cannot start with 0");
     }
     yylval->ull_val = strtoul(yytext, NULL, 10);
     if (errno == ERANGE || yylval->ull_val > (unsigned long)(-(long)INT_MIN))
     {
         errno = 0;
-        SPLC_WARN(SPLM_Woverflow, SPLC_YY2LOC_CF_D(yylloc), "overflow in integer constant");
+        SPLC_MSG(SPLM_Woverflow, SPLC_YY2LOC_CF_D(yylloc), "overflow in integer constant");
     }
     return LTR_INT;
 }
@@ -347,13 +347,13 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     yylval = ast_create_leaf_node(SPLT_LTR_INT, SPLC_YY2LOC_CF_D(yylloc));
     if (yyleng > 3 && yytext[2] == '0')
     {
-        SPLC_ERROR(SPLM_ERR_SYN_A, SPLC_YY2LOC_CF_D(yylloc), "hexadecimal integer cannot start with 0");
+        SPLC_MSG(SPLM_ERR_SYN_A, SPLC_YY2LOC_CF_D(yylloc), "hexadecimal integer cannot start with 0");
     }
     yylval->ull_val = strtoul(yytext, NULL, 16);
     if (errno == ERANGE)
     {
         errno = 0;
-        SPLC_WARN(SPLM_Woverflow, SPLC_YY2LOC_CF_D(yylloc), "overflow in integer constant");
+        SPLC_MSG(SPLM_Woverflow, SPLC_YY2LOC_CF_D(yylloc), "overflow in integer constant");
     }
     return LTR_INT;
 }
@@ -361,14 +361,14 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     /* SPL: invalid hexadecimal integer */
 <INITIAL>0[xX][0-9a-fA-F]{9,} {
     yylval = ast_create_leaf_node(SPLT_LTR_INT, SPLC_YY2LOC_CF_D(yylloc));
-    SPLC_WARN(SPLM_Woverflow, SPLC_YY2LOC_CF_D(yylloc), "overflow in integer constant");
+    SPLC_MSG(SPLM_Woverflow, SPLC_YY2LOC_CF_D(yylloc), "overflow in integer constant");
     yylval->ull_val = 0;
     return LTR_INT;
 }
 
     /* =================== SPL: char =================== */
 <INITIAL>0[xX][0-9a-zA-Z]+ {
-    SPLC_ERROR(SPLM_ERR_SYN_A, SPLC_YY2LOC_CF_D(yylloc), "hexadecimal integer contains invalid characters");
+    SPLC_MSG(SPLM_ERR_SYN_A, SPLC_YY2LOC_CF_D(yylloc), "hexadecimal integer contains invalid characters");
     yylval = ast_create_leaf_node(SPLT_LTR_INT, SPLC_YY2LOC_CF_D(yylloc));
     return LTR_INT;
 }
@@ -381,7 +381,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 
 <INITIAL>'\\x[0-9a-zA-Z]*' {
     yylval = ast_create_leaf_node(SPLT_LTR_CHAR, SPLC_YY2LOC_CF_D(yylloc));
-    SPLC_ERROR(SPLM_ERR_SYN_A, SPLC_YY2LOC_CF_D(yylloc), "invalid form of octal-form character");
+    SPLC_MSG(SPLM_ERR_SYN_A, SPLC_YY2LOC_CF_D(yylloc), "invalid form of octal-form character");
     yylval->val = (void *)strndup(yytext + 1, strlen(yytext) - 2);
     return LTR_CHAR;
 }
@@ -402,7 +402,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     {
         if (ent != NULL && buffer_stack_check_node_exists(ent->id))
         {
-            SPLC_FWARN(SPLM_Wuniv, SPLC_YY2LOC_CF_D(yylloc), "repeated expansion of macro \033[1m%s\033[0m is forbidden and will be ignored.", ent->id);
+            SPLC_FMSG(SPLM_Wuniv, SPLC_YY2LOC_CF_D(yylloc), "repeated expansion of macro \033[1m%s\033[0m is forbidden and will be ignored.", ent->id);
         }
         if (sem_test_typedef_name(textcopy))
         {
@@ -422,7 +422,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 <INITIAL>[0-9][a-zA-Z0-9_]* {
     yylval = ast_create_leaf_node(SPLT_ID, SPLC_YY2LOC_CF_D(yylloc));
     yylval->val = (void *)strdup(yytext);       
-    SPLC_ERROR(SPLM_ERR_SYN_A, SPLC_YY2LOC_CF_D(yylloc), "identifier name cannot start with digits");
+    SPLC_MSG(SPLM_ERR_SYN_A, SPLC_YY2LOC_CF_D(yylloc), "identifier name cannot start with digits");
     return ID;
 }
 
@@ -507,7 +507,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 <INITIAL>. {
     yylval = ast_create_leaf_node(SPLT_ID, SPLC_YY2LOC_CF_D(yylloc));
     yylval->val = (void *)strdup(yytext);
-    SPLC_ERROR(SPLM_ERR_SYN_A, SPLC_YY2LOC_CF_D(yylloc), "unknown lexeme");
+    SPLC_MSG(SPLM_ERR_SYN_A, SPLC_YY2LOC_CF_D(yylloc), "unknown lexeme");
     return ID;
 }
 
@@ -518,7 +518,7 @@ int yywrap()
 {
     if (YY_START == IN_CL_COMMENT)
     {
-        SPLC_ERROR(SPLM_ERR_UNIV, SPLC_YY2LOC_CF_D(yylloc), "unclosed comment at the end of file");
+        SPLC_MSG(SPLM_ERR_UNIV, SPLC_YY2LOC_CF_D(yylloc), "unclosed comment at the end of file");
     }
     int op = splc_pop_buffer();
     if (op == 0)
