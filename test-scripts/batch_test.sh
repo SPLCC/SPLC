@@ -17,7 +17,7 @@ process_directory() {
             filename=$(basename "$file" .spl)
 
             # Call bin/splc with the input file and redirect the output to a .out file
-            bin/splc "$file" -v -t
+            bin/splc "$file"
             
             echo
         fi
