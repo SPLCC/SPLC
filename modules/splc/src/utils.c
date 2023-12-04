@@ -248,11 +248,11 @@ static void _builtin_print_file_trace(util_yy_buffer_node node)
     util_yy_buffer_node top = node;
     const char *suffix = (top->next->next == NULL) ? ":\n" : ",\n";
     const char *prefix = "";
-    if (SPLC_IS_BUFFER_FILE(splc_buffer_node_stack))
+    if (SPLC_IS_BUFFER_FILE(splc_all_buffer_nodes[node->fid]))
     {
         prefix = "In file included from ";
     }
-    else if (SPLC_IS_BUFFER_CHAR_ARRAY(splc_buffer_node_stack))
+    else if (SPLC_IS_BUFFER_CHAR_ARRAY(splc_all_buffer_nodes[node->fid]))
     {
         prefix = "In expansion of macro ";
     }
@@ -260,7 +260,7 @@ static void _builtin_print_file_trace(util_yy_buffer_node node)
     top = top->next;
     while (top && !SPLC_IS_LOC_ROOT(top->location))
     {
-        if (SPLC_IS_BUFFER_CHAR_ARRAY(splc_buffer_node_stack))
+        if (SPLC_IS_BUFFER_CHAR_ARRAY(top))
         {
             prefix = "macro ";
         }

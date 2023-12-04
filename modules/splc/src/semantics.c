@@ -999,7 +999,7 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit, const in
         SPLC_ASSERT(SPLT_IS_EXPR(init_expr->type));
         expr_entry left = sem_process_expr(dir_decltr, tunit, msg_cond);
         expr_entry right = sem_process_expr(init_expr, tunit, msg_cond);
-        
+
         if (left == NULL || right == NULL)
         {
             return NULL;
@@ -1031,7 +1031,7 @@ expr_entry sem_process_expr(const ast_node node, splc_trans_unit tunit, const in
         if (!(left->decl_num - left->level == right->decl_num - right->level))
         {
             SPLC_COND_MSG(msg_cond, SPLM_ERR_SEM_5, node->location,
-                          "\033[1mwhat are you fucking doing?\033[0m Unmatched level of dereferencing on operands");
+                          "Unmatched level of dereferencing on operands");
             return NULL;
         }
 
