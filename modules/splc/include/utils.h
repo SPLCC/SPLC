@@ -156,7 +156,7 @@ extern int splcf_no_diagnostics_color;
 #define SPLC_COND_MSG(cond, type, _location, _msg)                                                                     \
     do                                                                                                                 \
     {                                                                                                                  \
-        if (!((cond)))                                                                                                 \
+        if (!!((cond)))                                                                                                 \
         {                                                                                                              \
             SPLC_MSG(type, _location, _msg);                                                                           \
         }                                                                                                              \
@@ -166,7 +166,7 @@ extern int splcf_no_diagnostics_color;
 #define SPLC_COND_MSG_NO_LOC(cond, type, _msg)                                                                         \
     do                                                                                                                 \
     {                                                                                                                  \
-        if (!((cond)))                                                                                                 \
+        if (!!((cond)))                                                                                                 \
         {                                                                                                              \
             SPLC_MSG_NOLOC(type, _msg);                                                                                \
         }                                                                                                              \
@@ -176,7 +176,7 @@ extern int splcf_no_diagnostics_color;
 #define SPLC_COND_FMSG(cond, type, _location, _msg, ...)                                                               \
     do                                                                                                                 \
     {                                                                                                                  \
-        if (!((cond)))                                                                                                 \
+        if (!!((cond)))                                                                                                 \
         {                                                                                                              \
             SPLC_FMSG(type, _location, _msg, __VA_ARGS__);                                                             \
         }                                                                                                              \
@@ -186,7 +186,7 @@ extern int splcf_no_diagnostics_color;
 #define SPLC_COND_FMSG_NO_LOC(cond, type, _msg, ...)                                                                   \
     do                                                                                                                 \
     {                                                                                                                  \
-        if (!((cond)))                                                                                                 \
+        if (!!((cond)))                                                                                                 \
         {                                                                                                              \
             SPLC_FMSG_NOLOC(type, _msg, __VA_ARGS__);                                                                  \
         }                                                                                                              \
