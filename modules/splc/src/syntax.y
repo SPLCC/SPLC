@@ -1,10 +1,13 @@
 %language "c++"
-%code requires {}
+%require "3.6"
+%code requires {
+    // #include <FlexLexer.h>
+}
 %define parse.error detailed
 /* %define api.value.type {} */
 %locations
-%define api.location.file "include/ast/location.hpp"
-%define api.location.include {<ast/location.hpp>}
+%define api.parser.class {yyFlexLexer}
+%define api.location.file "../include/ast/location.hpp"
 
 %token LTR_INT LTR_FLOAT LTR_CHAR
 %token TYPE_VOID TYPE_INT TYPE_SIGNED TYPE_UNSIGNED TYPE_LONG TYPE_FLOAT TYPE_CHAR STR_UNIT

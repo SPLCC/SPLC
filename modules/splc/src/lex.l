@@ -1,30 +1,8 @@
 %option c++
 %option yylineno
 %option stack
-%{    
-    // TODO: define YY_USER_ACTION
-    int yynewfile = 0;
-    int yycolno = 1;
-
-    #define YY_USER_ACTION \
-        yylloc.first_line = (yynewfile == 1) ? 1 : yylloc.last_line; \
-        yylloc.first_column = (yynewfile == 1) ? 1 : yylloc.last_column; \
-        if (yynewfile == 1) { \
-            yynewfile = 0; \
-        } \
-        yylloc.last_line = yylloc.first_line; \
-        yylloc.last_column = yylloc.first_column; \
-        for (int i = 0; yytext[i] != '\0'; ++i) { \
-            if (yytext[i] == '\n') { \
-                yylloc.last_line++; \
-                yylloc.last_column = 1; \
-                yycolno = 1; \
-            } \
-            else { \
-                yylloc.last_column++; \
-                yycolno++; \
-            } \
-        }
+%{   
+    // #include <syntax.tab.hpp>
 %}
 
 /* In cross-line comment */
