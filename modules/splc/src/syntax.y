@@ -1,20 +1,10 @@
-%code requires {
-    #include "splcdef.h"
-    #include "ast.h"
-    #include "lut.h"
-    #include "semantics.h"
-    #include "utils.h"
-
-    #include <stdio.h>
-    #include <stdlib.h>
-    #include <string.h>
-
-    extern int yylex (void);
-    void yyerror(const char*);
-}
+%language "c++"
+%code requires {}
 %define parse.error detailed
-%define api.value.type { ast_node }
+/* %define api.value.type {} */
 %locations
+%define api.location.file "include/ast/location.hpp"
+%define api.location.include {<ast/location.hpp>}
 
 %token LTR_INT LTR_FLOAT LTR_CHAR
 %token TYPE_VOID TYPE_INT TYPE_SIGNED TYPE_UNSIGNED TYPE_LONG TYPE_FLOAT TYPE_CHAR STR_UNIT
@@ -61,7 +51,7 @@
 %right NOT BW_NOT DPLUS DMINUS DEREF ADDROF SIZEOF
 %left LP RP LSB RSB DOT POST_INCR POST_DECR
 
-/* %destructor { destruct_node($$); } <> */
+/* %destructor {} <> */
 
 /* Reference: https://learn.microsoft.com/en-us/cpp/c-language/ */
 /* Many of the C language features are not implemented here. */
@@ -69,72 +59,70 @@
 %%
 /* Entire translation unit */
 translation-unit: 
-      external-declaration-list {
-        current_trans_unit->root = $$ = ast_create_parent_node(SPLT_TRANS_UNIT, 1, $1);
-      }
-    | { current_trans_unit->root = $$ = NULL; }
+      external-declaration-list {}
+    | {}
     ;
 
 /* External definition list: Recursive definition */
 external-declaration-list: 
-      external-declaration { $$ = ast_create_parent_node(SPLT_EXT_DECLTN_LIST, 1, $1); }
-    | external-declaration-list external-declaration { $$ = ast_add_child($1, $2); }
+      external-declaration {}
+    | external-declaration-list external-declaration {}
     ;
 
-/* External definition list: A single unit of one of {variables, structs, functions}. */
+/* External definition list: A single unit of one of {}. */
 external-declaration: 
-      SEMI { $$ = ast_create_parent_node(SPLT_EXT_DECLTN, 1, $1); }
-    | declaration { $$ = ast_create_parent_node(SPLT_EXT_DECLTN, 1, $1); }
-    | function-definition { $$ = ast_create_parent_node(SPLT_EXT_DECLTN, 1, $1); }
+      SEMI {}
+    | declaration {}
+    | function-definition {}
     ;
 
 declaration-specifiers:
-      storage-class-specifier { $$ = ast_create_parent_node(SPLT_DECLTN_SPEC, 1, $1); }
-    | type-specifier { $$ = ast_create_parent_node(SPLT_DECLTN_SPEC, 1, $1); }
-    | type-qualifier { $$ = ast_create_parent_node(SPLT_DECLTN_SPEC, 1, $1); }
-    | function-specifier { $$ = ast_create_parent_node(SPLT_DECLTN_SPEC, 1, $1); }
-    | declaration-specifiers type-specifier { $$ = ast_add_child($1, $2); }
-    | declaration-specifiers storage-class-specifier { $$ = ast_add_child($1, $2); }
-    | declaration-specifiers type-qualifier { $$ = ast_add_child($1, $2); }
-    | declaration-specifiers function-specifier { $$ = ast_add_child($1, $2); }
+      storage-class-specifier {}
+    | type-specifier {}
+    | type-qualifier {}
+    | function-specifier {}
+    | declaration-specifiers type-specifier {}
+    | declaration-specifiers storage-class-specifier {}
+    | declaration-specifiers type-qualifier {}
+    | declaration-specifiers function-specifier {}
     ;
 
 storage-class-specifier:
-      AUTO { $$ = ast_create_parent_node(SPLT_STRG_SPEC, 1, $1); }
-    | EXTERN { $$ = ast_create_parent_node(SPLT_STRG_SPEC, 1, $1); }
-    | REGISTER { $$ = ast_create_parent_node(SPLT_STRG_SPEC, 1, $1); }
-    | STATIC { $$ = ast_create_parent_node(SPLT_STRG_SPEC, 1, $1); }
-    | TYPEDEF { $$ = ast_create_parent_node(SPLT_STRG_SPEC, 1, $1); }
+      AUTO {}
+    | EXTERN {}
+    | REGISTER {}
+    | STATIC {}
+    | TYPEDEF {}
     ;
 
 specifier-qualifier-list:
-      type-specifier { $$ = ast_create_parent_node(SPLT_SPEC_QUAL_LIST, 1, $1); }
-    | type-qualifier { $$ = ast_create_parent_node(SPLT_SPEC_QUAL_LIST, 1, $1); }
-    | specifier-qualifier-list type-specifier { $$ = ast_add_child($1, $2); }
-    | specifier-qualifier-list type-qualifier { $$ = ast_add_child($1, $2); }
+      type-specifier {}
+    | type-qualifier {}
+    | specifier-qualifier-list type-specifier {}
+    | specifier-qualifier-list type-qualifier {}
     ;
 
 type-specifier: 
-      builtin-type-specifier { $$ = ast_create_parent_node(SPLT_TYPE_SPEC, 1, $1); }
-    /* | identifier { $$ = ast_create_parent_node(SPLT_TYPE_SPEC, 1, $1); } */
-    | struct-or-union-specifier { $$ = ast_create_parent_node(SPLT_TYPE_SPEC, 1, $1); }
-    | enum-specifier { $$ = ast_create_parent_node(SPLT_TYPE_SPEC, 1, $1); }
-    | TYPEDEF_NAME { $$ = ast_create_parent_node(SPLT_TYPE_SPEC, 1, $1); }
+      builtin-type-specifier {}
+    /* | identifier {} */
+    | struct-or-union-specifier {}
+    | enum-specifier {}
+    | TYPEDEF_NAME {}
     ;
 
 function-specifier:
-      INLINE { $$ = ast_create_parent_node(SPLT_FUNC_SPEC, 1, $1); }
+      INLINE {}
     ;
 
 type-qualifier:
-      KWD_CONST { $$ = ast_create_parent_node(SPLT_TYPE_QUAL, 1, $1); }
-    | RESTRICT { $$ = ast_create_parent_node(SPLT_TYPE_QUAL, 1, $1); }
-    | VOLATILE { $$ = ast_create_parent_node(SPLT_TYPE_QUAL, 1, $1); }
+      KWD_CONST {}
+    | RESTRICT {}
+    | VOLATILE {}
     ;
 
 type-name:
-      specifier-qualifier-list { $$ = ast_create_parent_node(SPLT_TYPENAME, 1, $1); }
-    | specifier-qualifier-list abstract-declarator { $$ = ast_create_parent_node(SPLT_TYPENAME, 2, $1, $2); }
+      specifier-qualifier-list {}
+    | specifier-qualifier-list abstract-declarator {}
     ;
 
 builtin-type-specifier:
@@ -148,23 +136,23 @@ builtin-type-specifier:
     ;
 
 abstract-declarator:
-      pointer { $$ = ast_create_parent_node(SPLT_ABS_DEC, 1, $1); }
-    | pointer direct-abstract-declarator { $$ = ast_create_parent_node(SPLT_ABS_DEC, 2, $1, $2); }
+      pointer {}
+    | pointer direct-abstract-declarator {}
     ;
 
 direct-abstract-declarator:
-      LP abstract-declarator RP { $$ = ast_create_parent_node(SPLT_DIR_ABS_DEC, 3, $1, $2, $3); }
-    | direct-abstract-declarator LSB assignment-expression RSB { $$ = ast_add_children($1, 3, $2, $3, $4); }
-    | direct-abstract-declarator LSB RSB { $$ = ast_add_children($1, 2, $2, $3); }
-    | direct-abstract-declarator LSB error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect ']' here"); $$ = ast_add_children($1, 1, $2); yyerrok; }
-    | direct-abstract-declarator RSB { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_STARTLOC($2), "expect '[' here"); $$ = ast_add_children($1, 1, $2); yyerrok; } 
+      LP abstract-declarator RP {}
+    | direct-abstract-declarator LSB assignment-expression RSB {}
+    | direct-abstract-declarator LSB RSB {}
+    | direct-abstract-declarator LSB error {}
+    | direct-abstract-declarator RSB {} 
     ;
 
 /* Specify a structure */
 struct-or-union-specifier: 
-      struct-or-union identifier { $$ = ast_create_parent_node(SPLT_STRUCT_UNION_SPEC, 2, $1, $2); }
-    | struct-or-union struct-declaration-body { $$ = ast_create_parent_node(SPLT_STRUCT_UNION_SPEC, 2, $1, $2); }
-    | struct-or-union identifier struct-declaration-body { $$ = ast_create_parent_node(SPLT_STRUCT_UNION_SPEC, 3, $1, $2, $3); }
+      struct-or-union identifier {}
+    | struct-or-union struct-declaration-body {}
+    | struct-or-union identifier struct-declaration-body {}
     ;
 
 struct-or-union:
@@ -173,71 +161,71 @@ struct-or-union:
     ;
 
 struct-declaration-body:
-      LC RC {$$ = ast_create_parent_node(SPLT_STRUCT_DECLTN_BODY, 2, $1, $2); }
-    | LC struct-declaration-list RC {$$ = ast_create_parent_node(SPLT_STRUCT_DECLTN_BODY, 3, $1, $2, $3); }
+      LC RC {}
+    | LC struct-declaration-list RC {}
 
-    | LC error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($1), "expect token '}'"); $$ = ast_create_parent_node(SPLT_STRUCT_DECLTN_BODY, 1, $1); yyerrok; }
-    | LC struct-declaration-list error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect token '}'"); $$ = ast_create_parent_node(SPLT_STRUCT_DECLTN_BODY, 2, $1, $2); yyerrok; }
+    | LC error {}
+    | LC struct-declaration-list error {}
     ;
 
 struct-declaration-list:
-      struct-declaration { $$ = ast_create_parent_node(SPLT_STRUCT_DECLTN_LIST, 1, $1); }
-    | struct-declaration-list struct-declaration { $$ = ast_add_child($1, $2); }
+      struct-declaration {}
+    | struct-declaration-list struct-declaration {}
     ;
 
 struct-declaration:
-      specifier-qualifier-list SEMI { $$ = ast_create_parent_node(SPLT_STRUCT_DECLTN, 2, $1, $2); }
-    | specifier-qualifier-list struct-declarator-list SEMI { $$ = ast_create_parent_node(SPLT_STRUCT_DECLTN, 3, $1, $2, $3); }
+      specifier-qualifier-list SEMI {}
+    | specifier-qualifier-list struct-declarator-list SEMI {}
 
-    | specifier-qualifier-list error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($1), "expect ';' here"); $$ = ast_create_parent_node(SPLT_STRUCT_DECLTN, 1, $1); yyerrok; }
-    | specifier-qualifier-list struct-declarator-list error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect ';' here"); $$ = ast_create_parent_node(SPLT_STRUCT_DECLTN, 2, $1, $2); yyerrok; }
+    | specifier-qualifier-list error {}
+    | specifier-qualifier-list struct-declarator-list error {}
     ;
 
 struct-declarator-list:
-      struct-declarator { $$ = ast_create_parent_node(SPLT_STRUCT_DEC_LIST, 1, $1); }
-    | struct-declarator-list COMMA struct-declarator { $$ = ast_add_children($1, 2, $2, $3); }
+      struct-declarator {}
+    | struct-declarator-list COMMA struct-declarator {}
 
-    | struct-declarator-list COMMA error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect struct declarator here");; $$ = ast_add_child($1, $2); yyerrok; }
+    | struct-declarator-list COMMA error {}
     ;
 
 struct-declarator:
-      declarator { $$ = ast_create_parent_node(SPLT_STRUCT_DEC, 1, $1); }
-    | COLON constant-expression { $$ = ast_create_parent_node(SPLT_STRUCT_DEC, 2, $1, $2); }
-    | declarator COLON constant-expression { $$ = ast_create_parent_node(SPLT_STRUCT_DEC, 3, $1, $2, $3); }
+      declarator {}
+    | COLON constant-expression {}
+    | declarator COLON constant-expression {}
 
-    | COLON error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($1), "expect expression here"); $$ = ast_create_parent_node(SPLT_STRUCT_DEC, 1, $1); yyerrok; }
-    | declarator COLON error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect expression here"); $$ = ast_create_parent_node(SPLT_STRUCT_DEC, 2, $1, $2); yyerrok; }
+    | COLON error {}
+    | declarator COLON error {}
     ;
 
 enum-specifier:
-      KWD_ENUM identifier { $$ = ast_create_parent_node(SPLT_ENUM_SPEC, 2, $1, $2); }
-    | KWD_ENUM enumerator-body { $$ = ast_create_parent_node(SPLT_ENUM_SPEC, 2, $1, $2); }
-    | KWD_ENUM identifier enumerator-body { $$ = ast_create_parent_node(SPLT_ENUM_SPEC, 3, $1, $2, $3); }
+      KWD_ENUM identifier {}
+    | KWD_ENUM enumerator-body {}
+    | KWD_ENUM identifier enumerator-body {}
     
-    | KWD_ENUM error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($1), "expect identifier here"); $$ = ast_create_parent_node(SPLT_ENUM_SPEC, 1, $1); yyerrok; }
+    | KWD_ENUM error {}
     ;
 
 enumerator-body:
-      LC RC { $$ = ast_create_parent_node(SPLT_ENUM_BODY, 2, $1, $2); }
-    | LC enumerator-list RC { $$ = ast_create_parent_node(SPLT_ENUM_BODY, 3, $1, $2, $3); }
-    | LC enumerator-list COMMA RC { $$ = ast_create_parent_node(SPLT_ENUM_BODY, 4, $1, $2, $3, $4); }
+      LC RC {}
+    | LC enumerator-list RC {}
+    | LC enumerator-list COMMA RC {}
 
-    | LC error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($1), "expect token ',' or '}'"); $$ = ast_create_parent_node(SPLT_ENUM_BODY, 1, $1); yyerrok; }
-    | LC enumerator-list error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect token ',' or '}'"); $$ = ast_create_parent_node(SPLT_ENUM_BODY, 2, $1, $2); yyerrok; }
+    | LC error {}
+    | LC enumerator-list error {}
     ;
 
 enumerator-list:
-      enumerator { $$ = ast_create_parent_node(SPLT_ENUM_LIST, 1, $1); }
-    | enumerator-list COMMA enumerator { $$ = ast_add_children($1, 2, $2, $3); }
+      enumerator {}
+    | enumerator-list COMMA enumerator {}
 
-    | COMMA enumerator { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_STARTLOC($1), "expect identifier here ");; $$ = ast_create_parent_node(SPLT_ENUM_LIST, 2, $1, $2); yyerrok; }
+    | COMMA enumerator {}
     ;
 
 enumerator:
-      enumeration-constant { $$ = ast_create_parent_node(SPLT_ENUM, 1, $1); }
-    | enumeration-constant ASSIGN constant-expression { $$ = ast_create_parent_node(SPLT_ENUM, 3, $1, $2, $3); }
+      enumeration-constant {}
+    | enumeration-constant ASSIGN constant-expression {}
 
-    | enumeration-constant ASSIGN error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect a constant expression"); $$ = ast_create_parent_node(SPLT_ENUM, 2, $1, $2); yyerrok; }
+    | enumeration-constant ASSIGN error {}
     ;
 
 enumeration-constant:
@@ -246,330 +234,304 @@ enumeration-constant:
 
 /* Single variable declaration */
 declarator: 
-      pointer direct-declarator { $$ = ast_create_parent_node(SPLT_DEC, 2, $1, $2); }
-    | direct-declarator { $$ = ast_create_parent_node(SPLT_DEC, 1, $1); }
+      pointer direct-declarator {}
+    | direct-declarator {}
     ;
 
 direct-declarator:
-      identifier { $$ = ast_create_parent_node(SPLT_DIR_DEC, 1, $1); }
-    | LP declarator RP { $$ = ast_create_parent_node(SPLT_DIR_DEC, 3, $1, $2, $3); }
-    | direct-declarator LSB assignment-expression RSB { $$ = ast_add_children($1, 3, $2, $3, $4); }
-    | direct-declarator LSB RSB { $$ = ast_add_children($1, 2, $2, $3); }
+      identifier {}
+    | LP declarator RP {}
+    | direct-declarator LSB assignment-expression RSB {}
+    | direct-declarator LSB RSB {}
 
-    | direct-declarator LSB assignment-expression error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "missing closing bracket ']'"); $$ = ast_add_children($1, 2, $2, $3); yyerrok; } 
-    /* | direct-declarator error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@2), "expect '[' here"); $$ = ast_create_parent_node(SPLT_DIR_DEC, 0); yyerrok; }  */
-    | direct-declarator RSB { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_STARTLOC($2), "expect '[' here"); $$ = ast_add_children($1, 1, $2); yyerrok; } 
+    | direct-declarator LSB assignment-expression error {} 
+    /* | direct-declarator error {}  */
+    | direct-declarator RSB {} 
     ;
 
 pointer:
-      ASTRK { $$ = ast_create_parent_node(SPLT_PTR, 1, $1); }
-    | ASTRK type-qualifier-list { $$ = ast_create_parent_node(SPLT_PTR, 2, $1, $2); }
-    | pointer ASTRK { $$ = ast_add_child($1, $2); }
-    | pointer ASTRK type-qualifier-list { $$ = ast_add_children($1, 2, $2, $3); }
+      ASTRK {}
+    | ASTRK type-qualifier-list {}
+    | pointer ASTRK {}
+    | pointer ASTRK type-qualifier-list {}
     ;
 
 type-qualifier-list:
-      type-qualifier { $$ = ast_create_parent_node(SPLT_TYPE_QUAL_LIST, 1, $1); } 
-    | type-qualifier-list type-qualifier { $$ = ast_add_child($1, $2); }
+      type-qualifier {} 
+    | type-qualifier-list type-qualifier {}
     ;
 
 /* Definition: List of definitions. Recursive definition. */
 /* declaration-list: 
-      declaration { $$ = ast_create_parent_node(SPLT_DECLTN_LIST, 1, $1); }
-    | declaration-list declaration { $$ = ast_add_child($1, $2); }
+      declaration {}
+    | declaration-list declaration {}
     ; */
 
 /* Definition: Base */
 declaration: 
-      direct-declaration SEMI { $$ = ast_create_parent_node(SPLT_DECLTN, 2, $1, $2); }
-    | direct-declaration error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($1), "missing semicolon ';'"); $$ = ast_create_parent_node(SPLT_DECLTN, 1, $1); yyerrok; }
+      direct-declaration SEMI {}
+    | direct-declaration error {}
     ;
 
 direct-declaration:
-      declaration-specifiers { $$ = ast_create_parent_node(SPLT_DIR_DECLTN, 1, $1); }
-    | declaration-specifiers init-declarator-list { 
-          $$ = ast_create_parent_node(SPLT_DIR_DECLTN, 2, $1, $2); 
-          // EXPERIMENTAL
-          sem_register_typedef($$);
-      }
+      declaration-specifiers {}
+    | declaration-specifiers init-declarator-list {}
     ;
 
 /* Definition: Declaration of multiple variable.  */ 
 init-declarator-list: 
-      init-declarator { $$ = ast_create_parent_node(SPLT_INIT_DEC_LIST, 1, $1); }
-    | init-declarator COMMA init-declarator-list { $$ = ast_create_parent_node(SPLT_INIT_DEC_LIST, 3, $1, $2, $3); }
+      init-declarator {}
+    | init-declarator COMMA init-declarator-list {}
 
-    | init-declarator COMMA { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_L(@2), "expect declarator"); $$ = ast_create_parent_node(SPLT_INIT_DEC_LIST, 2, $1, $2); yyerrok; }
-    | COMMA init-declarator-list { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@2), "expect declarator"); $$ = ast_create_parent_node(SPLT_INIT_DEC_LIST, 2, $1, $2); yyerrok; }
-    | COMMA { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "expect declarator"); $$ = ast_create_parent_node(SPLT_INIT_DEC_LIST, 1, $1); yyerrok; }
+    | init-declarator COMMA {}
+    | COMMA init-declarator-list {}
+    | COMMA {}
     ;
 
 /* Definition: Single declaration unit. */
 init-declarator: 
-      declarator { $$ = ast_create_parent_node(SPLT_INIT_DEC, 1, $1); }
-    | declarator ASSIGN initializer { $$ = ast_create_parent_node(SPLT_INIT_DEC, 3, $1, $2, $3); }
-    | declarator ASSIGN error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "invalid initialization"); $$ = ast_create_parent_node(SPLT_INIT_DEC, 0); yyerrok; }
+      declarator {}
+    | declarator ASSIGN initializer {}
+    | declarator ASSIGN error {}
     ;
 
 initializer:
-      assignment-expression { $$ = ast_create_parent_node(SPLT_INIT, 1, $1); }
-    | LC initializer-list RC { $$ = ast_create_parent_node(SPLT_INIT, 3, $1, $2, $3); }
-    | LC initializer-list COMMA RC { $$ = ast_create_parent_node(SPLT_INIT, 4, $1, $2, $3, $4); }
-    | LC initializer-list error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect token '}' or ','"); $$ = ast_create_parent_node(SPLT_INIT, 2, $1, $2); }
+      assignment-expression {}
+    | LC initializer-list RC {}
+    | LC initializer-list COMMA RC {}
+    | LC initializer-list error {}
     ;
 
 initializer-list:
-      initializer { $$ = ast_create_parent_node(SPLT_INIT_LIST, 1, $1); }
-    | designation initializer { $$ = ast_create_parent_node(SPLT_INIT_LIST, 2, $1, $2); }
-    | initializer-list COMMA designation initializer { $$ = ast_add_children($1, 3, $2, $3, $4); }
-    | initializer-list COMMA initializer { $$ = ast_add_children($1, 2, $2, $3); }
+      initializer {}
+    | designation initializer {}
+    | initializer-list COMMA designation initializer {}
+    | initializer-list COMMA initializer {}
 
-    | designation error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($1), "expect initializer"); $$ = ast_create_parent_node(SPLT_INIT_LIST, 1, $1); yyerrok; }
-    | initializer-list COMMA error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect initializer"); $$ = ast_create_parent_node(SPLT_INIT_LIST, 2, $1, $2); }
+    | designation error {}
+    | initializer-list COMMA error {}
     ;
 
 designation:
-      designator-list ASSIGN { $$ = ast_create_parent_node(SPLT_DESGTN, 2, $1, $2); }
+      designator-list ASSIGN {}
     ;
 
 designator-list:
-      designator { $$ = ast_create_parent_node(SPLT_DESG_LIST, 1, $1); }
-    | designator-list designator { $$ = ast_create_parent_node(SPLT_DESG_LIST, 2, $1, $2); }
+      designator {}
+    | designator-list designator {}
     ;
 
 designator:
-      LSB constant-expression RSB { $$ = ast_create_parent_node(SPLT_DESG, 3, $1, $2, $3); }
-    | DOT identifier { $$ = ast_create_parent_node(SPLT_DESG, 2, $1, $2); }
+      LSB constant-expression RSB {}
+    | DOT identifier {}
 
-    | LSB constant-expression error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect ']'"); $$ = ast_create_parent_node(SPLT_DESG, 2, $1, $2); yyerrok; }
-    | DOT error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($1), "expect valid identifier"); $$ = ast_create_parent_node(SPLT_DESG, 1, $1); yyerrok; }
+    | LSB constant-expression error {}
+    | DOT error {}
     ;
 
 function-definition:
-      declaration-specifiers function-declarator compound-statement { 
-          $$ = ast_create_parent_node(SPLT_FUNC_DEF, 3, $1, $2, $3); 
-          // EXPERIMENTAL
-          sem_register_typedef($$);
-      }
-    | function-declarator compound-statement { 
-          SPLC_MSG(SPLM_Wimplicit_int, SPLC_AST_GET_STARTLOC($1), "function is missing a specifier and will default to 'int'");
-          ast_node dummy_node = ast_create_leaf_node(SPLT_TYPE_INT, SPLC_AST_GET_STARTLOC($1));
-          ast_node type_spec = ast_create_parent_node(SPLT_TYPE_SPEC, 1, dummy_node);
-          ast_node decl_specs = ast_create_parent_node(SPLT_DECLTN_SPEC, 1, dummy_node);
-          $$ = ast_create_parent_node(SPLT_FUNC_DEF, 3, dummy_node, $1, $2); 
-          // EXPERIMENTAL
-          sem_register_typedef($$);
-      } 
-    | declaration-specifiers function-declarator SEMI { 
-          $$ = ast_create_parent_node(SPLT_FUNC_DEF, 3, $1, $2, $3); 
-          // EXPERIMENTAL
-          sem_register_typedef($$);
-      }
+      declaration-specifiers function-declarator compound-statement {}
+    | function-declarator compound-statement {} 
+    | declaration-specifiers function-declarator SEMI {}
 
-    | declaration-specifiers function-declarator error { 
-          SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_STARTLOC($3), "missing valid function body. Did you forget to put '{'?"); 
-          $$ = ast_create_parent_node(SPLT_FUNC_DEF, 2, $1, $2);
-          // EXPERIMENTAL
-          sem_register_typedef($$);
-          yyerrok; 
-      }
+    | declaration-specifiers function-declarator error {}
     ;
 
 /* Function: Function name and body. */
 function-declarator: 
-      direct-function-declarator { $$ = ast_create_parent_node(SPLT_FUNC_DEC, 1, $1); }
-    | pointer direct-function-declarator { $$ = ast_create_parent_node(SPLT_FUNC_DEC, 2, $1, $2); }
+      direct-function-declarator {}
+    | pointer direct-function-declarator {}
     ;
 
 direct-function-declarator:
-      direct-declarator-for-function LP parameter-type-list RP { $$ = ast_create_parent_node(SPLT_DIR_FUNC_DEC, 4, $1, $2, $3, $4); }
-    /* | direct-declarator-for-function LP RP { $$ = ast_create_parent_node(SPLT_DIR_FUNC_DEC, 3, $1, $2, $3); } */
+      direct-declarator-for-function LP parameter-type-list RP {}
+    /* | direct-declarator-for-function LP RP {} */
 
-    /* | direct-declarator-for-function LP error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_I(@3), "invalid parameter declaration ')'"); $$ = ast_create_parent_node(SPLT_DIR_FUNC_DEC, 0); yyerrok; } */
-    | direct-declarator-for-function LP parameter-type-list error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($3), "missing closing parenthesis ')'"); $$ = ast_create_parent_node(SPLT_DIR_FUNC_DEC, 0); yyerrok; }
-    /* | direct-declarator-for-function LP error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "missing closing parenthesis ')'"); $$ = ast_create_parent_node(SPLT_DIR_FUNC_DEC, 0); yyerrok; } */
+    /* | direct-declarator-for-function LP error {} */
+    | direct-declarator-for-function LP parameter-type-list error {}
+    /* | direct-declarator-for-function LP error {} */
 
-    | LP parameter-type-list RP { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "missing identifier for function"); $$ = ast_create_parent_node(SPLT_DIR_FUNC_DEC, 3, $1, $2, $3); yyerrok; }
-    /* | LP RP { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "missing identifier for function"); $$ = ast_create_parent_node(SPLT_DIR_FUNC_DEC, 2, $1, $2); yyerrok; } */
+    | LP parameter-type-list RP {}
+    /* | LP RP {} */
     ;
 
 direct-declarator-for-function:
-      identifier { $$ = ast_create_parent_node(SPLT_DIR_DEC, 1, $1); }
+      identifier {}
     ;
 
 /* List of variables names */
 parameter-type-list: 
-      { $$ = ast_create_leaf_node(SPLT_PARAM_TYPE_LIST, SPLC_YY2LOC_CF_1_PNT_I(@$)); }
-    | parameter-list { $$ = ast_create_parent_node(SPLT_PARAM_TYPE_LIST, 1, $1); }
-    | parameter-list COMMA ELLIPSIS { $$ = ast_create_parent_node(SPLT_PARAM_TYPE_LIST, 3, $1, $2, $3); }
+      {}
+    | parameter-list {}
+    | parameter-list COMMA ELLIPSIS {}
     ;
 
 parameter-list:
-      parameter-declaration { $$ = ast_create_parent_node(SPLT_PARAM_LIST, 1, $1); }
-    | parameter-list COMMA parameter-declaration { $$ = ast_add_children($1, 2, $2, $3); }
+      parameter-declaration {}
+    | parameter-list COMMA parameter-declaration {}
 
-    | parameter-list COMMA error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_L(@2), "expect parameter delcaration"); $$ = ast_add_child($1, $2); yyerrok; }
-    | COMMA { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "expect parameter delcaration"); $$ = ast_create_parent_node(SPLT_PARAM_LIST, 1, $1); yyerrok; }
+    | parameter-list COMMA error {}
+    | COMMA {}
     ;
 
 /* Parameter declaration */ 
 parameter-declaration: 
-      declaration-specifiers declarator { $$ = ast_create_parent_node(SPLT_PARAM_DEC, 2, $1, $2); }
-    | declaration-specifiers abstract-declarator { $$ = ast_create_parent_node(SPLT_PARAM_DEC, 2, $1, $2); }
-    | declaration-specifiers { $$ = ast_create_parent_node(SPLT_PARAM_DEC, 1, $1); }
+      declaration-specifiers declarator {}
+    | declaration-specifiers abstract-declarator {}
+    | declaration-specifiers {}
 
-    /* | error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_STARTLOC($1), "missing specifier"); $$ = ast_create_parent_node(SPLT_PARAM_DEC, 0); yyerrok; } */
+    /* | error {} */
     ;
 
 /* Compound statement: A new scope. */
 compound-statement: 
       /* LC general-statement-list RC */
-      LC general-statement-list RC { $$ = ast_create_parent_node(SPLT_COMP_STMT, 3, $1, $2, $3); }
-    | LC general-statement-list error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "missing closing bracket '}' "); $$ = ast_create_parent_node(SPLT_COMP_STMT, 0); yyerrok; }
-    /* | error RC { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "missing opening bracket '{' "); $$ = ast_create_parent_node(SPLT_COMP_STMT, 0); yyerrok; } */
+      LC general-statement-list RC {}
+    | LC general-statement-list error {}
+    /* | error RC { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "missing opening bracket '{} */
 
       /* LC RC */
-    | LC RC { $$ = ast_create_parent_node(SPLT_COMP_STMT, 2, $1, $2); }
-    | LC error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($1), "missing closing bracket '}' "); $$ = ast_create_parent_node(SPLT_COMP_STMT, 0); yyerrok; }
+    | LC RC {}
+    | LC error {}
     ;
 
 /* wrapper for C99 standard for statements */
 general-statement-list: 
-      statement { $$ = ast_create_parent_node(SPLT_GEN_STMT_LIST, 1, $1); }
-    | declaration { $$ = ast_create_parent_node(SPLT_GEN_STMT_LIST, 1, $1); }
-    | general-statement-list statement { $$ = ast_add_child($1, $2); }
-    | general-statement-list declaration { $$ = ast_add_child($1, $2); }
+      statement {}
+    | declaration {}
+    | general-statement-list statement {}
+    | general-statement-list declaration {}
     ;
 
 /* Statement: List of statements. Recursive definition. */
 /* statement-list: 
-      statement { $$ = ast_create_parent_node(SPLT_STMT_LIST, 1, $1); }
-    | statement-list statement { $$ = ast_create_parent_node(SPLT_STMT_LIST, 2, $1, $2); } 
+      statement {}
+    | statement-list statement {} 
     ; */
 
 /* Statement: A single statement. */
 statement: 
-      SEMI { $$ = ast_create_parent_node(SPLT_STMT, 1, $1); }
-    | compound-statement { $$ = ast_create_parent_node(SPLT_STMT, 1, $1); }
-    | expression-statement { $$ = ast_create_parent_node(SPLT_STMT, 1, $1); }
-    | selection-statement { $$ = ast_create_parent_node(SPLT_STMT, 1, $1); }
-    | iteration-statement { $$ = ast_create_parent_node(SPLT_STMT, 1, $1); }
-    | labeled-statement { $$ = ast_create_parent_node(SPLT_STMT, 1, $1); }
-    | jump-statement { $$ = ast_create_parent_node(SPLT_STMT, 1, $1); }
+      SEMI {}
+    | compound-statement {}
+    | expression-statement {}
+    | selection-statement {}
+    | iteration-statement {}
+    | labeled-statement {}
+    | jump-statement {}
 
-    /* | error SEMI { $$ = ast_create_parent_node(SPLT_STMT, 0); yyerrok; } */
+    /* | error SEMI {} */
     ;
 
 expression-statement:
-      expression SEMI { $$ = ast_create_parent_node(SPLT_EXPR_STMT, 2, $1, $2); }
-    | expression error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($1), "missing semicolon ';'"); $$ = ast_create_parent_node(SPLT_EXPR_STMT, 0); yyerrok; }
+      expression SEMI {}
+    | expression error {}
     ;
 
 selection-statement:
-      IF LP expression RP statement %prec THEN { $$ = ast_create_parent_node(SPLT_SEL_STMT, 5, $1, $2, $3, $4, $5); }
+      IF LP expression RP statement %prec THEN {}
 
-    | IF error RP statement %prec THEN { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@2), "expect '(' here"); $$ = ast_create_parent_node(SPLT_SEL_STMT, 3, $1, $3, $4); yyerrok; }
-    | IF LP RP statement %prec THEN { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_L(@2), "expect an expression"); $$ = ast_create_parent_node(SPLT_SEL_STMT, 4, $1, $2, $3, $4); yyerrok; }
-    | IF LP expression RP error %prec THEN { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_L(@4), "if requires at least one statement to be executed"); $$ = ast_create_parent_node(SPLT_SEL_STMT, 4, $1, $2, $3, $4); yyerrok; }
-    | IF LP RP error %prec THEN { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_L(@2), "expect an expression"); $$ = ast_create_parent_node(SPLT_SEL_STMT, 3, $1, $2, $3); yyerrok; }
+    | IF error RP statement %prec THEN {}
+    | IF LP RP statement %prec THEN {}
+    | IF LP expression RP error %prec THEN {}
+    | IF LP RP error %prec THEN {}
     
-    | IF LP expression RP statement ELSE statement %prec ELSE { $$ = ast_create_parent_node(SPLT_SEL_STMT, 7, $1, $2, $3, $4, $5, $6, $7); }
+    | IF LP expression RP statement ELSE statement %prec ELSE {}
 
-    | IF error RP statement ELSE statement %prec ELSE { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@2), "expect '(' here"); $$ = ast_create_parent_node(SPLT_SEL_STMT, 0); yyerrok; }
-    | IF LP expression RP statement ELSE error %prec ELSE { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($6), "expect a statement"); $$ = ast_create_parent_node(SPLT_SEL_STMT, 6, $1, $2, $3, $4, $5, $6); yyerrok; }
-    | IF LP RP statement ELSE statement %prec ELSE { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect an expression"); $$ = ast_create_parent_node(SPLT_SEL_STMT, 6, $1, $2, $3, $4, $5, $6); yyerrok; }
-    | IF LP RP statement ELSE error %prec ELSE { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($3), "expect expression and statement"); $$ = ast_create_parent_node(SPLT_SEL_STMT, 5, $1, $2, $3, $4, $5); yyerrok; }
-    | IF LP expression error %prec ELSE { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_L(@3), "missing closing parenthesis ')'"); $$ = ast_create_parent_node(SPLT_SEL_STMT, 0); yyerrok; }
-    | ELSE statement { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_I(@1), "dangling else is not allowed"); $$ = ast_create_parent_node(SPLT_SEL_STMT, 2, $1, $2); yyerrok; }
+    | IF error RP statement ELSE statement %prec ELSE {}
+    | IF LP expression RP statement ELSE error %prec ELSE {}
+    | IF LP RP statement ELSE statement %prec ELSE {}
+    | IF LP RP statement ELSE error %prec ELSE {}
+    | IF LP expression error %prec ELSE {}
+    | ELSE statement {}
 
-    | SWITCH LP expression RP statement { $$ = ast_create_parent_node(SPLT_SEL_STMT, 5, $1, $2, $3, $4, $5); }
-    /* | SWITCH LP expression statement { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_L(@3), "missing opening parenthese '('"); $$ = ast_create_parent_node(SPLT_SEL_STMT, 0); yyerrok; } */
-    | SWITCH error RP statement { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@2), "missing opening parenthese '('"); $$ = ast_create_parent_node(SPLT_SEL_STMT, 3, $1, $3, $4); yyerrok; }
+    | SWITCH LP expression RP statement {}
+    /* | SWITCH LP expression statement {} */
+    | SWITCH error RP statement {}
     ;
 
 labeled-statement:
-      identifier COLON statement { $$ = ast_create_parent_node(SPLT_LABELED_STMT, 3, $1, $2, $3); }
-    | CASE constant-expression COLON statement { $$ = ast_create_parent_node(SPLT_LABELED_STMT, 3, $1, $2, $3); }
-    | DEFAULT COLON statement { $$ = ast_create_parent_node(SPLT_LABELED_STMT, 3, $1, $2, $3); }
+      identifier COLON statement {}
+    | CASE constant-expression COLON statement {}
+    | DEFAULT COLON statement {}
 
-    | COLON statement { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "missing a label"); $$ = ast_create_parent_node(SPLT_LABELED_STMT, 0); yyerrok; }
+    | COLON statement {}
     ;
 
 jump-statement:
-      GOTO identifier SEMI { $$ = ast_create_parent_node(SPLT_JUMP_STMT, 3, $1, $2, $3); }
-    | CONTINUE SEMI { $$ = ast_create_parent_node(SPLT_JUMP_STMT, 2, $1, $2); }
-    | BREAK SEMI { $$ = ast_create_parent_node(SPLT_JUMP_STMT, 2, $1, $2); }
-    | RETURN expression SEMI { $$ = ast_create_parent_node(SPLT_JUMP_STMT, 3, $1, $2, $3); }
-    | RETURN expression error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "missing semicolon ';'"); $$ = ast_create_parent_node(SPLT_JUMP_STMT, 2, $1, $2); yyerrok; }
-    | RETURN SEMI { $$ = ast_create_parent_node(SPLT_JUMP_STMT, 2, $1, $2); }
+      GOTO identifier SEMI {}
+    | CONTINUE SEMI {}
+    | BREAK SEMI {}
+    | RETURN expression SEMI {}
+    | RETURN expression error {}
+    | RETURN SEMI {}
 
-    | RETURN error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($1), "missing expression in return statement"); $$ = ast_create_parent_node(SPLT_JUMP_STMT, 2, $1, $2); yyerrok; }
+    | RETURN error {}
     ;
 
 iteration-statement:
-      WHILE LP expression RP statement { $$ = ast_create_parent_node(SPLT_ITER_STMT, 5, $1, $2, $3, $4, $5); }
-    | WHILE error RP statement { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@2), "expect '(' here"); $$ = ast_create_parent_node(SPLT_ITER_STMT, 0); yyerrok; }
-    | WHILE LP expression RP error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($4), "while loop requires at least one statement to be executed"); $$ = ast_create_parent_node(SPLT_ITER_STMT, 0); yyerrok; }
-    | WHILE LP expression error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($3), "missing closing parenthesis ')'"); $$ = ast_create_parent_node(SPLT_ITER_STMT, 0); yyerrok;  }
+      WHILE LP expression RP statement {}
+    | WHILE error RP statement {}
+    | WHILE LP expression RP error {}
+    | WHILE LP expression error {}
     
-    | DO statement WHILE LP expression RP SEMI { $$ = ast_create_parent_node(SPLT_ITER_STMT, 7, $1, $2, $3, $4, $5, $6, $7); }
-    | DO statement WHILE LP error SEMI { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_STARTLOC($6), "missing closing parenthesis ')'"); $$ = ast_create_parent_node(SPLT_ITER_STMT, 5, $1, $2, $3, $4, $6); yyerrok;  }
+    | DO statement WHILE LP expression RP SEMI {}
+    | DO statement WHILE LP error SEMI {}
 
-    | FOR LP for-loop-body RP statement { $$ = ast_create_parent_node(SPLT_ITER_STMT, 5, $1, $2, $3, $4, $5); }
-    | FOR LP for-loop-body RP error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($4), "for loop requires at least one statement to be executed"); $$ = ast_create_parent_node(SPLT_ITER_STMT, 0); yyerrok; }
-    | FOR LP for-loop-body error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($3), "missing closing parenthesis ')'"); $$ = ast_create_parent_node(SPLT_ITER_STMT, 0); yyerrok; }
+    | FOR LP for-loop-body RP statement {}
+    | FOR LP for-loop-body RP error {}
+    | FOR LP for-loop-body error {}
     ;
 
 for-loop-body: // TODO: add constant expressions 
-      initialization-expression SEMI expression SEMI expression { $$ = ast_create_parent_node(SPLT_FOR_LOOP_BODY, 5, $1, $2, $3, $4, $5); }
+      initialization-expression SEMI expression SEMI expression {}
 
-    | SEMI expression SEMI expression { $$ = ast_create_parent_node(SPLT_FOR_LOOP_BODY, 4, $1, $2, $3, $4); } 
-    | initialization-expression SEMI expression SEMI { $$ = ast_create_parent_node(SPLT_FOR_LOOP_BODY, 4, $1, $2, $3, $4); }
-    | initialization-expression SEMI SEMI expression { $$ = ast_create_parent_node(SPLT_FOR_LOOP_BODY, 4, $1, $2, $3, $4); }
+    | SEMI expression SEMI expression {} 
+    | initialization-expression SEMI expression SEMI {}
+    | initialization-expression SEMI SEMI expression {}
 
-    | SEMI expression SEMI { $$ = ast_create_parent_node(SPLT_FOR_LOOP_BODY, 3, $1, $2, $3); }
-    | SEMI SEMI expression { $$ = ast_create_parent_node(SPLT_FOR_LOOP_BODY, 3, $1, $2, $3); }
-    /* | definition SEMI { $$ = ast_create_parent_node(SPLT_FOR_LOOP_BODY, 2, $1, $2); } */
-    | initialization-expression SEMI SEMI { $$ = ast_create_parent_node(SPLT_FOR_LOOP_BODY, 3, $1, $2, $3); }
+    | SEMI expression SEMI {}
+    | SEMI SEMI expression {}
+    /* | definition SEMI {} */
+    | initialization-expression SEMI SEMI {}
     
-    | SEMI SEMI { $$ = ast_create_parent_node(SPLT_FOR_LOOP_BODY, 2, $1, $2); }
+    | SEMI SEMI {}
     ;
 
 constant-expression: 
-      conditional-expression { $$ = ast_create_parent_node(SPLT_CONST_EXPR, 1, $1); }
+      conditional-expression {}
     ;
 
 constant:
-      LTR_INT { $$ = ast_create_parent_node(SPLT_CONSTANT, 1, $1); }
-    | LTR_FLOAT { $$ = ast_create_parent_node(SPLT_CONSTANT, 1, $1); }
-    | LTR_CHAR { $$ = ast_create_parent_node(SPLT_CONSTANT, 1, $1); }
+      LTR_INT {}
+    | LTR_FLOAT {}
+    | LTR_CHAR {}
     ;
 
 primary-expression:
       identifier
-    | constant { $$ = ast_create_parent_node(SPLT_EXPR, 1, $1); }
-    | string-literal { $$ = ast_create_parent_node(SPLT_EXPR, 1, $1); }
-    | LP expression RP { $$ = ast_create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
-    | LP expression error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect ')'"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
-    /* | LP expression { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_L(@2), "missing closing parenthesis ')'"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; } */
+    | constant {}
+    | string-literal {}
+    | LP expression RP {}
+    | LP expression error {}
+    /* | LP expression {} */
     ;
 
 postfix-expression:
       primary-expression
-    | postfix-expression LSB expression RSB { $$ = ast_create_parent_node(SPLT_EXPR, 4, $1, $2, $3, $4); }
-    | postfix-expression LP argument-list RP { $$ = ast_create_parent_node(SPLT_CALL_EXPR, 4, $1, $2, $3, $4); }
-    /* | postfix-expression LP RP { $$ = ast_create_parent_node(SPLT_CALL_EXPR, 3, $1, $2, $3); } */
-    | postfix-expression member-access-operator identifier { $$ = ast_create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
-    | postfix-expression DPLUS { $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); }
-    | postfix-expression DMINUS { $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); }
-    | LP type-name RP LC initializer-list RC { $$ = ast_create_parent_node(SPLT_EXPR, 6, $1, $2, $3, $4, $5, $6); }
-    | LP type-name RP LC initializer-list COMMA RC { $$ = ast_create_parent_node(SPLT_EXPR, 7, $1, $2, $3, $4, $5, $6, $7); }
+    | postfix-expression LSB expression RSB {}
+    | postfix-expression LP argument-list RP {}
+    /* | postfix-expression LP RP {} */
+    | postfix-expression member-access-operator identifier {}
+    | postfix-expression DPLUS {}
+    | postfix-expression DMINUS {}
+    | LP type-name RP LC initializer-list RC {}
+    | LP type-name RP LC initializer-list COMMA RC {}
 
-    | postfix-expression LSB expression error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($3), "expect ']'"); $$ = ast_create_parent_node(SPLT_EXPR, 3, $1, $2, $3); yyerrok; }
-    | postfix-expression LP argument-list error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($3), "expect ')'"); $$ = ast_create_parent_node(SPLT_CALL_EXPR, 3, $1, $2, $3); yyerrok; }
-    | postfix-expression member-access-operator { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_L(@2), "expect an identifier"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
-    | RARROW identifier { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
-    | LP type-name RP LC initializer-list error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($5), "expect token ',' and '}' "); $$ = ast_create_parent_node(SPLT_EXPR, 5, $1, $2, $3, $4, $5); yyerrok; }
+    | postfix-expression LSB expression error {}
+    | postfix-expression LP argument-list error {}
+    | postfix-expression member-access-operator {}
+    | RARROW identifier {}
+    | LP type-name RP LC initializer-list error {}
     ;
 
 member-access-operator:
@@ -579,19 +541,19 @@ member-access-operator:
 
 unary-expression:
       postfix-expression
-    | DPLUS unary-expression { $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); }
-    | DMINUS unary-expression { $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); }
-    | unary-operator cast-expression %prec UPLUS { $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); }
-    | SIZEOF unary-expression { $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); }
-    | SIZEOF LP type-name RP { $$ = ast_create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
+    | DPLUS unary-expression {}
+    | DMINUS unary-expression {}
+    | unary-operator cast-expression %prec UPLUS {}
+    | SIZEOF unary-expression {}
+    | SIZEOF LP type-name RP {}
 
-    | BW_AND error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 1, $1); yyerrok; }
-    | ASTRK error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 1, $1); yyerrok; }
-    | BW_NOT error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 1, $1); yyerrok; }
-    | NOT error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 1, $1); yyerrok; }
-    | DPLUS error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 1, $1); yyerrok; }
-    | DMINUS error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 1, $1); yyerrok; }
-    | SIZEOF error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 1, $1); yyerrok; }
+    | BW_AND error {}
+    | ASTRK error {}
+    | BW_NOT error {}
+    | NOT error {}
+    | DPLUS error {}
+    | DMINUS error {}
+    | SIZEOF error {}
     /* | SIZEOF LP unary-expression RP {} */
     ;
 
@@ -606,18 +568,18 @@ unary-operator: /* Take the default behavior, that is, `$$ = $1` */
 
 cast-expression:
       unary-expression
-    | LP type-name RP cast-expression { $$ = ast_create_parent_node(SPLT_CAST_EXPR, 4, $1, $2, $3, $4); }
+    | LP type-name RP cast-expression {}
 
-    | LP type-name RP error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($3), "expect an expression"); $$ = ast_create_parent_node(SPLT_CAST_EXPR, 3, $1, $2, $3); yyerrok; }
-    | LP type-name error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect ')'"); $$ = ast_create_parent_node(SPLT_CAST_EXPR, 2, $1, $2); yyerrok; }
+    | LP type-name RP error {}
+    | LP type-name error {}
     ;
 
 multiplicative-expression:
       cast-expression
-    | multiplicative-expression multiplicative-operator cast-expression { $$ = ast_create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
+    | multiplicative-expression multiplicative-operator cast-expression {}
 
-    | multiplicative-expression multiplicative-operator error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
-    | division-operator cast-expression { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
+    | multiplicative-expression multiplicative-operator error {}
+    | division-operator cast-expression {}
     ;
   
 multiplicative-operator:
@@ -632,9 +594,9 @@ division-operator:
 
 additive-expression:
       multiplicative-expression
-    | additive-expression additive-operator multiplicative-expression { $$ = ast_create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
+    | additive-expression additive-operator multiplicative-expression {}
 
-    | additive-expression additive-operator error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
+    | additive-expression additive-operator error {}
     ;
 
 additive-operator:
@@ -644,10 +606,10 @@ additive-operator:
 
 shift-expression:
       additive-expression
-    | shift-expression shift-operator additive-expression { $$ = ast_create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
+    | shift-expression shift-operator additive-expression {}
 
-    | shift-expression shift-operator error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
-    | shift-operator additive-expression { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
+    | shift-expression shift-operator error {}
+    | shift-operator additive-expression {}
     ;
   
 shift-operator:
@@ -657,10 +619,10 @@ shift-operator:
 
 relational-expression:
       shift-expression
-    | relational-expression relational-operator shift-expression { $$ = ast_create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
+    | relational-expression relational-operator shift-expression {}
 
-    | relational-expression relational-operator error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
-    | relational-operator shift-expression { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
+    | relational-expression relational-operator error {}
+    | relational-operator shift-expression {}
     ;
 
 relational-operator:
@@ -672,10 +634,10 @@ relational-operator:
 
 equality-expression:
       relational-expression
-    | equality-expression equality-operator relational-expression { $$ = ast_create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
+    | equality-expression equality-operator relational-expression {}
 
-    | equality-expression equality-operator error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
-    | equality-operator relational-expression { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
+    | equality-expression equality-operator error {}
+    | equality-operator relational-expression {}
     ;
 
 equality-operator:
@@ -685,62 +647,62 @@ equality-operator:
 
 BW-AND-expression:
       equality-expression
-    | BW-AND-expression BW_AND equality-expression { $$ = ast_create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
+    | BW-AND-expression BW_AND equality-expression {}
 
-    | BW-AND-expression BW_AND error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
+    | BW-AND-expression BW_AND error {}
     ;
 
 BW-XOR-expression:
       BW-AND-expression
-    | BW-XOR-expression BW_XOR BW-AND-expression { $$ = ast_create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
+    | BW-XOR-expression BW_XOR BW-AND-expression {}
 
-    | BW-XOR-expression BW_XOR error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
-    | BW_XOR BW-AND-expression { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_STARTLOC($1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
+    | BW-XOR-expression BW_XOR error {}
+    | BW_XOR BW-AND-expression {}
     ;
 
 BW-OR-expression:
       BW-XOR-expression
-    | BW-OR-expression BW_OR BW-XOR-expression { $$ = ast_create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
+    | BW-OR-expression BW_OR BW-XOR-expression {}
 
-    | BW-OR-expression BW_OR error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
-    | BW_OR BW-XOR-expression { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_STARTLOC($1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
+    | BW-OR-expression BW_OR error {}
+    | BW_OR BW-XOR-expression {}
     ;
 
 logical-AND-expression:
       BW-OR-expression
-    | logical-AND-expression AND BW-OR-expression { $$ = ast_create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
+    | logical-AND-expression AND BW-OR-expression {}
 
-    | logical-AND-expression AND error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
-    | AND BW-OR-expression { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_STARTLOC($1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
+    | logical-AND-expression AND error {}
+    | AND BW-OR-expression {}
     ;
 
 logical-OR-expression:
       logical-AND-expression
-    | logical-OR-expression OR logical-AND-expression { $$ = ast_create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
+    | logical-OR-expression OR logical-AND-expression {}
 
-    | logical-OR-expression OR error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
-    | OR logical-AND-expression { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_STARTLOC($1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
+    | logical-OR-expression OR error {}
+    | OR logical-AND-expression {}
     ;
 
 conditional-expression:
-      logical-OR-expression { if (!SPLT_IS_EXPR($1->type)) $$ = ast_create_parent_node(SPLT_EXPR, 1, $1); else $$ = $1; }
-    | logical-OR-expression QM expression COLON conditional-expression { $$ = ast_create_parent_node(SPLT_EXPR, 5, $1, $2, $3, $4, $5); }
+      logical-OR-expression {}
+    | logical-OR-expression QM expression COLON conditional-expression {}
 
-    | logical-OR-expression QM COLON conditional-expression { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_L(@2), "expect an expression"); $$ = ast_create_parent_node(SPLT_EXPR, 4, $1, $2, $3, $4); yyerrok; }
-    | logical-OR-expression QM expression COLON { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_L(@4), "expect an expression"); $$ = ast_create_parent_node(SPLT_EXPR, 4, $1, $2, $3, $4); yyerrok; }
-    | QM error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_STARTLOC($1), "expect an expression"); $$ = ast_create_parent_node(SPLT_EXPR, 1, $1); yyerrok; }
+    | logical-OR-expression QM COLON conditional-expression {}
+    | logical-OR-expression QM expression COLON {}
+    | QM error {}
     ;
 
 assignment-expression:
-      conditional-expression { if (!SPLT_IS_EXPR($1->type)) $$ = ast_create_parent_node(SPLT_EXPR, 1, $1); else $$ = $1; }
+      conditional-expression {}
     
-    | conditional-expression assignment-operator assignment-expression { $$ = ast_create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
-    | conditional-expression assignment-operator error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
-    | assignment-operator assignment-expression { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
+    | conditional-expression assignment-operator assignment-expression {}
+    | conditional-expression assignment-operator error {}
+    | assignment-operator assignment-expression {}
     
-    /* | unary-expression assignment-operator assignment-expression { $$ = ast_create_parent_node(SPLT_EXPR, 3, $1, $2, $3); } */
-    /* | unary-expression assignment-operator error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; } */
-    /* | assignment-operator assignment-expression { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; } */
+    /* | unary-expression assignment-operator assignment-expression {} */
+    /* | unary-expression assignment-operator error {} */
+    /* | assignment-operator assignment-expression {} */
     ;
     
 assignment-operator: /* Use the default behavior to pass the value */
@@ -759,40 +721,35 @@ assignment-operator: /* Use the default behavior to pass the value */
 
 /* expressions */
 expression: 
-      assignment-expression { if (!SPLT_IS_EXPR($1->type)) $$ = ast_create_parent_node(SPLT_EXPR, 1, $1); else $$ = $1; }
-    | expression COMMA assignment-expression { $$ = ast_create_parent_node(SPLT_EXPR, 3, $1, $2, $3); }
+      assignment-expression {}
+    | expression COMMA assignment-expression {}
 
-    | expression COMMA error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
-    | COMMA assignment-expression { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "expect an operand"); $$ = ast_create_parent_node(SPLT_EXPR, 2, $1, $2); yyerrok; }
+    | expression COMMA error {}
+    | COMMA assignment-expression {}
     ;
   
 initialization-expression:
-      expression { $$ = ast_create_parent_node(SPLT_INIT_EXPR, 1, $1); }
-    | direct-declaration { $$ = ast_create_parent_node(SPLT_INIT_EXPR, 1, $1); }
+      expression {}
+    | direct-declaration {}
     ;
 
 /* Argument: List of arguments */
 argument-list: 
-      { $$ = ast_create_leaf_node(SPLT_ARG_LIST, SPLC_YY2LOC_CF_1_PNT_F(@$)); }
-    | argument-list COMMA assignment-expression { $$ = ast_add_children($1, 2, $2, $3); }
-    | assignment-expression { $$ = ast_create_parent_node(SPLT_ARG_LIST, 1, $1); }
+      {}
+    | argument-list COMMA assignment-expression {}
+    | assignment-expression {}
 
-    | argument-list COMMA error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_AST_GET_ENDLOC($2), "incomplete call expression is not allowed"); $$ = ast_create_parent_node(SPLT_ARG_LIST, 2, $1, $2); yyerrok; }
-    /* | error { SPLC_MSG(SPLM_ERR_SYN_B, SPLC_YY2LOC_CF_1_PNT_F(@1), "invalid argument list"); $$ = ast_create_parent_node(SPLT_ARG_LIST, 0); yyerrok; } */
+    | argument-list COMMA error {}
+    /* | error {} */
     ;
 
 /* String intermediate expression. Allowing concatenation of strings. */
 string-literal: 
-      STR_UNIT { $$ = ast_create_parent_node(SPLT_LTR_STR, 1, $1); }
-    | string-literal STR_UNIT { $$ = ast_add_child($1, $2); }
+      STR_UNIT {}
+    | string-literal STR_UNIT {}
     ;
 
 identifier:
-      ID { $$ = $1; }
+      ID {}
     ;
 %%
-
-void yyerror(const char *s) {
-    // suppressed
-    SPLC_FDIAG("%s at line %d", s, yylloc.first_line);
-}
