@@ -1,5 +1,6 @@
-BasedOnStyle: Microsoft
+BasedOnStyle: LLVM
 IndentWidth: 4
 Language: Cpp
 AlignAfterOpenBracket: Align
-BraceBreakingStyle: Stroustrup
+BreakBeforeBraces: Stroustrup
+AlwaysBreakTemplateDeclarations: Yes

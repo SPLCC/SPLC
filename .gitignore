@@ -13,3 +13,6 @@ basic_test.sh
 syntax.tab.h
 syntax.tab.c
 syntax.output
+
+# Stop MacOS from polluting the environment
+**/.DS_Store

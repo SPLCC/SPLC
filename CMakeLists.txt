@@ -13,6 +13,8 @@ project(SPLCC)
 add_subdirectory(modules/splc)
 add_subdirectory(modules/libspl)
 
+set(CMAKE_CXX_STANDARD 17)
+
 # Add compile options
 if (MSVC)
   add_compile_options(/W4 "$<$<CONFIG:DEBUG>:/O0;/g3;/ggdb>" "$<$<CONFIG:RELEASE>:/O3>")
