@@ -9,7 +9,7 @@ std::mutex logStreamMutex;
 // TODO: consider change logStream
 std::ostream &logStream = std::cerr;
 
-void handleMessage(const Level level, const location &loc,
+void handleMessage(const Level level, const Location &loc,
                    const std::string &msg, const std::string &exMsg)
 {
     std::lock_guard<std::mutex> lockGuard{logStreamMutex};

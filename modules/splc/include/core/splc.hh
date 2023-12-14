@@ -18,7 +18,6 @@
 #endif
 
 #include "parser.hh"
-#include "location.hh"
 
 // Include core utilities
 
@@ -27,14 +26,8 @@
 #include "system.hh"
 #include "utils.hh"
 
-#include "../ast.hh"
-#include "../context.hh"
-#include "../driver.hh"
-#include "../scanner.hh"
-#include "../trans_unit.hh"
-
 namespace splc {
 
-} /* namespace splc */
+} // namespace splc
 
 #endif /* __SPLC_CORE_SPLC_HH__ */

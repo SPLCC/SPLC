@@ -10,7 +10,7 @@
 #include "level.hh"
 #include "trace_type.hh"
 
-#include "location.hh"
+#include "core/utils/location_wrapper.hh"
 
 namespace splc::utils::logging {
 
@@ -20,7 +20,7 @@ extern std::mutex logStreamMutex;
 
 extern std::ostream &logStream;
 
-void handleMessage(const Level level, const location &loc,
+void handleMessage(const Level level, const Location &loc,
                    const std::string &msg, const std::string &exMsg);
 
 } // namespace internal

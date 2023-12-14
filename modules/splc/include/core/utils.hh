@@ -1,8 +1,9 @@
 #ifndef __SPLC_CORE_UTILS_HH__
 #define __SPLC_CORE_UTILS_HH__ 1
 
-#include "utils/logging.hh"
 #include "utils/cmd_parser.hh"
+#include "utils/location_wrapper.hh"
+#include "utils/logging.hh"
 
 namespace splc::utils {
 // TODO:

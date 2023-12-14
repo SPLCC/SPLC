@@ -4,7 +4,7 @@
 // https://stackoverflow.com/questions/35606354/multiple-parsers-in-flex-bison-include-fails
 #include "core/splc.hh"
 
-#include "location.hh"
+#include "core/utils/location_wrapper.hh"
 #include "parser.hh"
 
 namespace splc {

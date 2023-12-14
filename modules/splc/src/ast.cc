@@ -3,7 +3,7 @@
 namespace splc::ast {
 
 template <class... Children>
-Ptr<ASTNode> ASTNode::createParentNode(TokenType type, const location &loc,
+Ptr<ASTNode> ASTNode::createParentNode(TokenType type, const Location &loc,
                                        Children &...children)
 {
     Ptr<ASTNode> parentNode = createPtr<ASTNode>(type, loc);
@@ -12,7 +12,7 @@ Ptr<ASTNode> ASTNode::createParentNode(TokenType type, const location &loc,
 }
 
 template <class... Children>
-Ptr<ASTNode> ASTNode::createParentNode(TokenType type, const location &loc,
+Ptr<ASTNode> ASTNode::createParentNode(TokenType type, const Location &loc,
                                        Children &&...children)
 {
     Ptr<ASTNode> parentNode = createPtr<ASTNode>(type, loc);

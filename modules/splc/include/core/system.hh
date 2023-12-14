@@ -7,25 +7,25 @@
 #include <stdexcept>
 #include <string>
 
-#include "location.hh"
-#include "splc.hh"
+#include "core/utils/location_wrapper.hh"
+#include "parser.hh"
 
 namespace splc {
 class RuntimeError : public std::runtime_error {
   public:
     RuntimeError() = delete;
     RuntimeError(int code_, const std::string &msg_);
-    RuntimeError(int code_, const location &loc_, const std::string &msg_);
+    RuntimeError(int code_, const Location &loc_, const std::string &msg_);
     virtual const char *what() const noexcept override;
 
     int getCode() const noexcept { return code; }
-    const location &getLocation() const noexcept { return loc; }
+    const Location &getLocation() const noexcept { return loc; }
     const std::string &getMsg() const noexcept { return msg; }
 
   private:
     void formatMessage();
     int code;
-    location loc;
+    Location loc;
     std::string msg;
 };
 
@@ -36,7 +36,7 @@ using SyntaxError = splc::Parser::syntax_error;
  */
 class SemanticError : public std::runtime_error {
   public:
-    SemanticError(const location &loc_, std::string &m)
+    SemanticError(const Location &loc_, std::string &m)
         : std::runtime_error(m), loc(loc_)
     {
     }
@@ -46,7 +46,7 @@ class SemanticError : public std::runtime_error {
     {
     }
 
-    location loc;
+    Location loc;
 };
 
 } /* end namespace splc */

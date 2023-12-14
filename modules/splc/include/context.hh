@@ -24,11 +24,11 @@ class Context {
   private:
     BufferType type;
     std::string name;
-    location intrLocation; // Interrupt location
+    Location intrLocation; // Interrupt Location
 };
 
 /** \brief This class handles context management during parsing.
- *  In effect, this class holds context information related to file inclusion
+ * In detail, this class holds context information related to file inclusion
  * and macro expansion.
  *
  */

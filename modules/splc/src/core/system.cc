@@ -10,7 +10,7 @@ RuntimeError::RuntimeError(int code_, const std::string &msg_)
 {
 }
 
-RuntimeError::RuntimeError(int code_, const location &loc_,
+RuntimeError::RuntimeError(int code_, const Location &loc_,
                            const std::string &msg_)
     : std::runtime_error{msg_}, code{code_}, loc{loc_}, msg{msg_}
 {

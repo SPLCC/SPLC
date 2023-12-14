@@ -13,17 +13,17 @@ namespace splc::ast {
 class ASTNode {
   public:
     ASTNode() : type{TokenType::YYEMPTY} {}
-    ASTNode(const TokenType type_, const location &loc_)
+    ASTNode(const TokenType type_, const Location &loc_)
         : type{type_}, loc{loc_}
     {
     }
 
     template <class... Children>
-    static Ptr<ASTNode> createParentNode(TokenType type, const location &loc,
+    static Ptr<ASTNode> createParentNode(TokenType type, const Location &loc,
                                          Children &...children);
 
     template <class... Children>
-    static Ptr<ASTNode> createParentNode(TokenType type, const location &loc,
+    static Ptr<ASTNode> createParentNode(TokenType type, const Location &loc,
                                          Children &&...children);
 
     Ptr<ASTNode> getFirstChild(TokenType type);
@@ -33,13 +33,13 @@ class ASTNode {
 
     Ptr<ASTNode> getParent() { return parent; }
     std::vector<Ptr<ASTNode>> &getChildren() { return children; }
-    location &getLocation() { return loc; }
+    Location &getLocation() { return loc; }
 
   private:
     TokenType type;
     Ptr<ASTNode> parent;
     std::vector<Ptr<ASTNode>> children;
-    location loc;
+    Location loc;
 };
 
 } // namespace splc::ast
