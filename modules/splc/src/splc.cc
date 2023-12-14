@@ -2,6 +2,7 @@
 #include <cstring>
 #include <iostream>
 
+#include "ast.hh"
 #include "driver.hh"
 
 int main(const int argc, const char **argv)
@@ -32,6 +33,10 @@ int main(const int argc, const char **argv)
         driver.parse(argv[1]);
     }
     driver.print(std::cout) << "\n";
+
+    // test
+    decltype(splc::ast::createNode(splc::ast::SymbolType::CHAR, splc::Location{})) node0;
+    auto node = splc::ast::createNode(splc::ast::SymbolType::CHAR, splc::Location{}, node0);
 
     return (EXIT_SUCCESS);
 }

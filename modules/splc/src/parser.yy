@@ -1,6 +1,6 @@
 %skeleton "lalr1.cc"
 %require  "3.8.2"
-%debug 
+%define parse.trace // This is required for runtime traces. For example, symbol_name.
 
 %define api.namespace {splc}
 %define api.parser.class {Parser}
@@ -21,6 +21,7 @@
    #include <fstream>
    
    /* include for all driver functions */
+   #include "core/splc.hh"
    #include "driver.hh"
 
 #undef yylex
@@ -66,5 +67,6 @@ item
 
 void splc::Parser::error(const location_type &l, const std::string &err_message)
 {
-   std::cerr << "Error: " << err_message << " at " << l << "\n";
+   SPLC_LOG_ERROR(l, err_message);
 }
+

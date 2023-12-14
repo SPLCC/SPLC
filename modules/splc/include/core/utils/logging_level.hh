@@ -66,8 +66,12 @@ static inline std::ostream &operator<<(std::ostream &os, Level level)
 
 class LevelColorManipulator {
   public:
-    LevelColorManipulator(Level level_) : level{level_} {}
+    friend inline LevelColorManipulator getLevelColor(Level level);
+
     Level level;
+
+  private:
+    LevelColorManipulator(Level level_) : level{level_} {}
 };
 
 static inline std::ostream &operator<<(std::ostream &os,
@@ -107,7 +111,7 @@ static inline std::ostream &operator<<(std::ostream &os,
     return os;
 }
 
-static inline LevelColorManipulator getLevelColor(Level level)
+inline LevelColorManipulator getLevelColor(Level level)
 {
     return LevelColorManipulator{level};
 }

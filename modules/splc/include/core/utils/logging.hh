@@ -7,7 +7,7 @@
 #include <string>
 
 #include "cont_seq.hh"
-#include "level.hh"
+#include "logging_level.hh"
 #include "trace_type.hh"
 
 #include "core/utils/location_wrapper.hh"

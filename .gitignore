@@ -5,6 +5,7 @@ build/
 test.spl
 
 a.out
+test.in
 test.out
 test.c
 test.o

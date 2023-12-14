@@ -37,14 +37,15 @@ class Driver {
 
   private:
     void tryParse(const std::string &filename, std::istream &stream);
+    
+    Ptr<splc::Parser> parser;
+    Ptr<splc::Scanner> scanner;
 
     std::size_t chars = 0;
     std::size_t words = 0;
     std::size_t lines = 0;
     std::size_t uppercase = 0;
     std::size_t lowercase = 0;
-    Ptr<splc::Parser> parser;
-    Ptr<splc::Scanner> scanner;
 };
 
 } // namespace splc
