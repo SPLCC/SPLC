@@ -4,3 +4,4 @@ Language: Cpp
 AlignAfterOpenBracket: Align
 BreakBeforeBraces: Stroustrup
 AlwaysBreakTemplateDeclarations: Yes
+AlignConsecutiveMacros: true
