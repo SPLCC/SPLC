@@ -14,7 +14,7 @@ namespace splc {
 
 class Driver {
   public:
-    Driver() = default;
+    Driver();
 
     /**
      * parse - parse from a file
@@ -37,9 +37,11 @@ class Driver {
 
   private:
     void tryParse(const std::string &filename, std::istream &stream);
-    
-    Ptr<splc::Parser> parser;
-    Ptr<splc::Scanner> scanner;
+
+    context::ContextManager contextManager;
+
+    Ptr<Parser> parser;
+    Ptr<Scanner> scanner;
 
     std::size_t chars = 0;
     std::size_t words = 0;

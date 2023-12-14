@@ -21,8 +21,6 @@ const char *RuntimeError::what() const noexcept { return msg.c_str(); }
 
 void RuntimeError::formatMessage()
 {
-    // Transform multiline messages
-    // From OpenCV 4.x
     std::stringstream ss;
     // TODO: format this message
 }

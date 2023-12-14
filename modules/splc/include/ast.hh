@@ -37,8 +37,8 @@ class Node {
 
     Ptr<Node> findFirstChild(SymbolType type) noexcept;
 
-    std::vector<Ptr<Node>> &getChildren() noexcept { return children; }
-    Location &getLocation() noexcept { return loc; }
+    auto &getChildren() noexcept { return children; }
+    auto &getLocation() noexcept { return loc; }
 
     auto &getVariant() noexcept { return value; }
 
@@ -46,7 +46,7 @@ class Node {
     {
         return value.valueless_by_exception();
     }
-    
+
     template <class T>
     auto getValue()
     {
@@ -83,11 +83,15 @@ class Node {
 
     class ASTNodeRecursiveManipulator {
       public:
-        friend ASTNodeRecursiveManipulator treePrint(Ptr<Node> node);
-        Ptr<Node> node;
+        friend ASTNodeRecursiveManipulator
+        treePrintTransform(Ptr<const Node> node);
+
+        friend std::ostream &operator<<(std::ostream &os,
+                                        Node::ASTNodeRecursiveManipulator &m);
 
       private:
-        ASTNodeRecursiveManipulator(Ptr<Node> node_) : node{node_} {}
+        ASTNodeRecursiveManipulator(Ptr<const Node> &node_) : node{node_} {}
+        const Ptr<const Node> node;
     };
 };
 
@@ -106,22 +110,29 @@ inline Ptr<Node> createNode(SymbolType type, const Location &loc,
 
 inline std::ostream &operator<<(std::ostream &os, Node &node)
 {
+    using ControlSeq = utils::logging::ControlSeq;
+    os << ControlSeq::Bold;
     // TODO:
     return os;
 }
 
-inline Node::ASTNodeRecursiveManipulator treePrint(Ptr<Node> node)
+inline Node::ASTNodeRecursiveManipulator
+treePrintTransform(Ptr<const Node> node)
 {
     return {node};
 }
 
-static inline std::ostream &operator<<(std::ostream &os,
-                                       Node::ASTNodeRecursiveManipulator &m)
+inline void recursivePrintNode(std::ostream &os, const Ptr<const Node> node)
+{
+    // TODO:
+}
+
+inline std::ostream &operator<<(std::ostream &os,
+                                Node::ASTNodeRecursiveManipulator &m)
 {
     using ControlSeq = utils::logging::ControlSeq;
 
-    // TODO:
-    os << ControlSeq::Bold;
+    recursivePrintNode(os, m.node);
 
     return os;
 }

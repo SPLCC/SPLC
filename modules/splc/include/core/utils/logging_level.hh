@@ -67,15 +67,21 @@ static inline std::ostream &operator<<(std::ostream &os, Level level)
 class LevelColorManipulator {
   public:
     friend inline LevelColorManipulator getLevelColor(Level level);
-
-    Level level;
+    friend std::ostream &operator<<(std::ostream &os,
+                                    const LevelColorManipulator &m);
 
   private:
     LevelColorManipulator(Level level_) : level{level_} {}
+    Level level;
 };
 
-static inline std::ostream &operator<<(std::ostream &os,
-                                       const LevelColorManipulator &m)
+inline LevelColorManipulator getLevelColor(Level level)
+{
+    return LevelColorManipulator{level};
+}
+
+inline std::ostream &operator<<(std::ostream &os,
+                                const LevelColorManipulator &m)
 {
     if (m.level == Level::Empty) {
         return os;
@@ -109,11 +115,6 @@ static inline std::ostream &operator<<(std::ostream &os,
     }
 
     return os;
-}
-
-inline LevelColorManipulator getLevelColor(Level level)
-{
-    return LevelColorManipulator{level};
 }
 
 } // namespace splc::utils::logging
