@@ -33,8 +33,8 @@ void Driver::parse(const std::string &streamName, std::istream &stream)
 
 void Driver::tryParse(const std::string &filename, std::istream &stream)
 {
-    scanner.reset(new Scanner(filename, &stream));
-    parser.reset(new Parser((*scanner), (*this)));
+    scanner = createPtr<Scanner>(filename, &stream);
+    parser = createPtr<Parser>(contextManager, (*this), (*scanner));
 
     const int accept{0};
 

@@ -79,8 +79,8 @@ class ContextManager {
     auto &getAllFileContext() { return allFileContexts; }
 
   private:
-    std::vector<Ptr<Context>>
-        contextStack; // This will store macro contexts for checking
+    std::vector<Ptr<Context>> contextStack;    // This will store macro contexts
+                                               // for checking
     std::vector<Ptr<Context>> allFileContexts; // Ideally, no macro substitution
                                                // would be stored in there
 

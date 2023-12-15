@@ -9,11 +9,16 @@
    namespace splc {
       class Driver;
       class Scanner;
+
+      namespace context {
+         class ContextManager;
+      }
    }
 }
 
-%parse-param { Scanner  &scanner  }
-%parse-param { Driver  &driver  }
+%parse-param { context::ContextManager  &contextManager  }
+%parse-param { Driver                   &driver  }
+%parse-param { Scanner                  &scanner  }
 
 %code{
    #include <iostream>
@@ -24,8 +29,8 @@
    #include "core/splc.hh"
    #include "driver.hh"
 
-#undef yylex
-#define yylex scanner.yylex
+   #undef yylex
+   #define yylex scanner.yylex
 }
 
 %define api.symbol.prefix {} // The empty prefix is generally invalid, but there is namespace in C++.
