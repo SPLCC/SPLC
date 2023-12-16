@@ -1,5 +1,5 @@
-#ifndef __SPLC_DRIVER_HH__
-#define __SPLC_DRIVER_HH__ 1
+#ifndef __SPLC_IO_DRIVER_HH__
+#define __SPLC_IO_DRIVER_HH__ 1
 
 #include <cstddef>
 #include <istream>
@@ -12,7 +12,7 @@
 #include "IO/Parser.hh"
 #include "IO/Scanner.hh"
 
-namespace splc {
+namespace splc::IO {
 
 class Driver {
   public:
@@ -52,4 +52,4 @@ class Driver {
 };
 
 } // namespace splc
-#endif /* __SPLC_DRIVER_HH__ */
+#endif /* __SPLC_IO_DRIVER_HH__ */

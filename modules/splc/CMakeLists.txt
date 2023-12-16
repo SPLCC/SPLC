@@ -22,6 +22,7 @@ file(MAKE_DIRECTORY ${GENERATED_SRC_DIR_IO})
 list(APPEND SPLC_INCL_DIR include ${GENERATED_INCL_DIR})
 
 aux_source_directory(src/IO SRC_FILES_IO)
+aux_source_directory(src/Analysis SRC_FILES_ANALYSIS)
 aux_source_directory(src/AST SRC_FILES_AST)
 aux_source_directory(src/IR SRC_FILES_IR)
 aux_source_directory(src/Core SRC_FILES_CORE)
@@ -55,6 +56,16 @@ set_target_properties(splc_AST PROPERTIES
 file(GLOB splc_AST_HEADER_FILES "${SPLC_INCL_DIR}/AST/*.hh")
 set_target_properties(splc_AST PROPERTIES 
     PUBLIC_HEADER "${splc_AST_HEADER_FILES}")
+
+# splc_Analysis
+add_library(splc_Analysis SHARED ${SRC_FILES_ANALYSIS})
+target_include_directories(splc_Analysis PUBLIC ${SPLC_INCL_DIR})
+add_dependencies(splc_Analysis splc_IO)
+set_target_properties(splc_Analysis PROPERTIES 
+    ARCHIVE_OUTPUT_DIRECTORY ${GENERATED_LIB_DIR})
+file(GLOB splc_Analysis_HEADER_FILES "${SPLC_INCL_DIR}/Analysis/*.hh")
+set_target_properties(splc_Analysis PROPERTIES 
+    PUBLIC_HEADER "${splc_Analysis_HEADER_FILES}")
 
 # splc_IR shared library
 add_library(splc_IR SHARED ${SRC_FILES_IR})

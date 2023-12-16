@@ -1,17 +1,17 @@
 %{
 
 /* Implementation of yyFlexScanner */
-#include "Core/Utils.hh"
+#include "Core/splc.hh"
 #include "IO/Scanner.hh"
 #undef  YY_DECL
-#define YY_DECL int splc::Scanner::yylex(splc::Parser::value_type *const lval, splc::Parser::location_type *loc)
+#define YY_DECL int splc::IO::Scanner::yylex(splc::IO::Parser::value_type *const lval, splc::IO::Parser::location_type *loc)
 
 /* Required std headers */
 #include <string>
 #include <iostream>
 
 /* typedef to make the returns for the tokens shorter */
-using Token = splc::Parser::token;
+using Token = splc::IO::Parser::token;
 
 /* define yyterminate as this instead of NULL */
 // #define yyterminate() return( Token::END )
@@ -25,7 +25,7 @@ using Token = splc::Parser::token;
 %option c++
 %option prefix="Splc"
 %option never-interactive
-%option yyclass="splc::Scanner"
+%option yyclass="splc::IO::Scanner"
 %option noyywrap
 %option debug
 %option nodefault

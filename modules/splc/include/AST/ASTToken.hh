@@ -2,15 +2,13 @@
 #define __SPLC_AST_TOKEN_HH__ 1
 
 #include <iostream>
-#include <map>
-#include <vector>
 
 #include "Core/Utils.hh"
 #include "IO/Parser.hh"
 
 namespace splc {
 
-using ASTSymbolType = Parser::symbol_kind::symbol_kind_type;
+using ASTSymbolType = IO::Parser::symbol_kind::symbol_kind_type;
 
 template <class... Types>
 concept AllAreASTSymbolType =
@@ -27,7 +25,7 @@ bool isASTSymbolTypeOneOfThem(ASTSymbolType type, SourceTypes &&...otherTypes)
 
 inline std::string_view getASTSymbolName(ASTSymbolType sym)
 {
-    return Parser::symbol_name(sym);
+    return IO::Parser::symbol_name(sym);
 }
 
 class ASTSymbolColorManipulator {

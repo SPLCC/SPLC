@@ -24,7 +24,7 @@ int main(const int argc, const char **argv)
         return (EXIT_SUCCESS);
     }
 
-    splc::Driver driver;
+    splc::IO::Driver driver;
 
     /** example for piping input from terminal, i.e., using cat **/
     if (std::strncmp(argv[1], "-o", 2) == 0) {

@@ -1,5 +1,5 @@
-#ifndef __SPLC_CONTEXT_HH__
-#define __SPLC_CONTEXT_HH__ 1
+#ifndef __SPLC_IO_CONTEXT_HH__
+#define __SPLC_IO_CONTEXT_HH__ 1
 
 #include <fstream>
 #include <iostream>
@@ -12,7 +12,7 @@
 
 #include "AST/ASTNode.hh"
 
-namespace splc::context {
+namespace splc::IO {
 
 enum BufferType {
     File,
@@ -81,6 +81,6 @@ class ContextManager {
     int errorCount;
 };
 
-} // namespace splc::context
+} // namespace splc::IO
 
-#endif /* __SPLC_CONTEXT_HH__ */
+#endif /* __SPLC_IO_CONTEXT_HH__ */

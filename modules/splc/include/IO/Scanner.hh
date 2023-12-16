@@ -1,5 +1,5 @@
-#ifndef __SPLC_SCANNER_HH__
-#define __SPLC_SCANNER_HH__ 1
+#ifndef __SPLC_IO_SCANNER_HH__
+#define __SPLC_IO_SCANNER_HH__ 1
 
 // https://stackoverflow.com/questions/35606354/multiple-parsers-in-flex-bison-include-fails
 #include "Core/splc.hh"
@@ -7,7 +7,7 @@
 #include "Core/Utils/LocationWrapper.hh"
 #include "IO/Parser.hh"
 
-namespace splc {
+namespace splc::IO {
 
 class Scanner : public SplcFlexLexer {
   public:
@@ -20,15 +20,15 @@ class Scanner : public SplcFlexLexer {
     using FlexLexer::yylex;
 
     /**
-     * The main procedure called by `splc::Parser` to get tokens.
+     * The main procedure called by `splc::IO::Parser` to get tokens.
      * `YY_DECL` is defined to be this function in Lexer.ll.
      * Method body created by flex in lexer.cc.
      *
      * \param lval Pointer to the semantic value of this token.
      * \param location The location of this token.
      * */
-    virtual int yylex(splc::Parser::value_type *const lval,
-                      splc::Parser::location_type *location);
+    virtual int yylex(splc::IO::Parser::value_type *const lval,
+                      splc::IO::Parser::location_type *location);
 
     /**
      * The main procedure for `yyFlexLexer` to switch to a different
@@ -41,9 +41,9 @@ class Scanner : public SplcFlexLexer {
     std::string filename;
 
     /* yyval ptr */
-    splc::Parser::value_type *yylval = nullptr;
+    splc::IO::Parser::value_type *yylval = nullptr;
 };
 
 } // namespace splc
 
-#endif /* __SPLC_SCANNER_HH__ */
+#endif /* __SPLC_IO_SCANNER_HH__ */

@@ -2,7 +2,7 @@
 %require  "3.8.2"
 %define parse.trace // This is required for runtime traces. For example, symbol_name.
 
-%define api.namespace {splc}
+%define api.namespace {splc::IO}
 %define api.parser.class {Parser}
 /* %define api.header.include { "IO/Parser.hh" } */
 %define parse.assert
@@ -10,10 +10,15 @@
 %code requires{
     /* Code section there will be placed directly inside `IO/Parser.hh`. */
     namespace splc {
-        class Driver;
-        class Scanner;
-        class TranslationManager;
-    }
+    
+    class TranslationManager;
+
+    namespace IO {
+    class Driver;
+    class Scanner;
+    } // namespace splc::IO
+
+    } // namespace splc
 }
 
 %parse-param { TranslationManager  &translationManager }
@@ -71,7 +76,7 @@ item
 %%
 
 
-void splc::Parser::error(const location_type &l, const std::string &err_message)
+void splc::IO::Parser::error(const location_type &l, const std::string &err_message)
 {
    SPLC_LOG_ERROR(l, err_message);
 }

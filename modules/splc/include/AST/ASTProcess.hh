@@ -7,24 +7,16 @@
 
 #include "Core/splc.hh"
 
+#include "AST/ASTBase.hh"
 #include "AST/ASTNode.hh"
 
 namespace splc {
 
 namespace ASTProcess {
 
-Ptr<ASTNode> removeASTPunctuators(Ptr<ASTNode> node)
-{
-    // TODO: Preprocess AST, or just throw away all punctuators at initial
-    // (which seems to be a good idea)
-    return node;
-}
+Ptr<ASTNode> removeASTPunctuators(Ptr<ASTNode> node);
 
-Ptr<ASTNode> semanticAnalysis(Ptr<ASTNode> node)
-{
-    // TODO: just delete this
-    return node;
-}
+Ptr<ASTNode> semanticAnalysis(Ptr<ASTNode> node);
 
 } // namespace ASTProcess
 

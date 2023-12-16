@@ -29,7 +29,7 @@ class RuntimeError : public std::runtime_error {
     std::string msg;
 };
 
-using SyntaxError = splc::Parser::syntax_error;
+using SyntaxError = splc::IO::Parser::syntax_error;
 
 /**  @brief This class represents the general semantic error encountered during
  *   semantically analyzing the entire syntax tree.

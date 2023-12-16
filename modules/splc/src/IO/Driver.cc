@@ -5,7 +5,7 @@
 #include "IO/Driver.hh"
 #include "AST/TranslationManager.hh"
 
-namespace splc {
+namespace splc::IO {
 
 Driver::Driver()
 {

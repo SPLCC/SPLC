@@ -7,8 +7,8 @@ namespace splc {
 
 namespace utils {
 
-using Position = position;
-using Location = location;
+using Position = splc::IO::position;
+using Location = splc::IO::location;
 
 } // namespace utils
 
