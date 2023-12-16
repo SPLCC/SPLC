@@ -1,12 +1,17 @@
-#ifndef __SPLC_TRANSLATION_UNIT_HH__
-#define __SPLC_TRANSLATION_UNIT_HH__ 1
+#ifndef __SPLC_AST_TRANSLATION_UNIT_HH__
+#define __SPLC_AST_TRANSLATION_UNIT_HH__ 1
 
 #include "Core/splc.hh"
 
 namespace splc {
 
-class TranslationUnit {};
+class TranslationUnit {
+  public:
+    TranslationUnit() = default;
 
-} // namespace splc::module
+    
+};
 
-#endif /* __SPLC_TRANSLATION_UNIT_HH__ */
+} // namespace splc
+
+#endif /* __SPLC_AST_TRANSLATION_UNIT_HH__ */

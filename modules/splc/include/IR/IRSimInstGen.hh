@@ -3,7 +3,17 @@
 
 #include <string>
 
+#include "AST/ASTNode.hh"
+
 namespace splc::IR {
+    
+class IRManager {
+  public:
+    IRManager() = default;
+
+  private:
+    
+};
 
 } // namespace splc::IR
 

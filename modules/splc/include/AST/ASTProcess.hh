@@ -1,5 +1,5 @@
-#ifndef __SPLC_AST_PROCESS_HH__
-#define __SPLC_AST_PROCESS_HH__ 1
+#ifndef __SPLC_AST_AST_PROCESS_HH__
+#define __SPLC_AST_AST_PROCESS_HH__ 1
 
 #include <iostream>
 #include <map>
@@ -22,4 +22,4 @@ Ptr<ASTNode> semanticAnalysis(Ptr<ASTNode> node);
 
 } // namespace splc
 
-#endif /* __SPLC_AST_PROCESS_HH__ */
+#endif /* __SPLC_AST_AST_PROCESS_HH__ */

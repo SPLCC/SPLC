@@ -3,8 +3,6 @@
 
 namespace splc {
 
-
-
 } /* namespace splc */
 
 #endif /* __SPLC_AST_EXPR_HH__ */

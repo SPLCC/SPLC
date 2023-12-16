@@ -1,5 +1,5 @@
-#ifndef __SPLC_IO_CONTEXT_HH__
-#define __SPLC_IO_CONTEXT_HH__ 1
+#ifndef __SPLC_AST_CONTEXT_MANAGER_HH__
+#define __SPLC_AST_CONTEXT_MANAGER_HH__ 1
 
 #include <fstream>
 #include <iostream>
@@ -10,41 +10,18 @@
 
 #include "Core/splc.hh"
 
-#include "AST/ASTNode.hh"
+#include "AST/ASTContext.hh"
 
-namespace splc::IO {
-
-enum BufferType {
-    File,
-    MacroExpansion,
-};
-
-class Context {
-  public:
-    Context() = delete;
-    Context(BufferType type_, const std::string &name_,
-            const Location &intrLocation);
-
-    const auto &getType() { return type; }
-    std::string_view getName() { return {name}; }
-    const auto &getIntrLocation() { return intrLocation; }
-    std::string_view getContent() { return {content}; }
-
-  private:
-    const BufferType type;
-    const std::string name;
-    const Location intrLocation; // Interrupt Location
-    const std::string content;
-};
+namespace splc {
 
 /** This class handles context management during parsing.
  * In detail, this class holds context information related to file inclusion
  * and macro expansion.
  *
  */
-class ContextManager {
+class ASTContextManager {
   public:
-    ContextManager();
+    ASTContextManager();
 
     /**
      * Push a new file into context manager. If no such file exist, throw
@@ -63,7 +40,7 @@ class ContextManager {
      */
     int popContext();
 
-    bool isContextExist(BufferType type_, std::string_view contextName_);
+    bool isContextExist(ASTContextBufferType type_, std::string_view contextName_);
 
     auto &getTopContext() { return *contextStack.rbegin(); }
 
@@ -72,15 +49,12 @@ class ContextManager {
     auto &getAllFileContext() { return allFileContexts; }
 
   private:
-    std::vector<Ptr<Context>> contextStack;    // This will store macro contexts
+    std::vector<Ptr<ASTContext>> contextStack;    // This will store macro contexts
                                                // for checking
-    std::vector<Ptr<Context>> allFileContexts; // Ideally, no macro substitution
+    std::vector<Ptr<ASTContext>> allFileContexts; // Ideally, no macro substitution
                                                // would be stored in there
-
-    int warningCount;
-    int errorCount;
 };
 
-} // namespace splc::IO
+} // namespace splc
 
-#endif /* __SPLC_IO_CONTEXT_HH__ */
+#endif /* __SPLC_AST_CONTEXT_MANAGER_HH__ */

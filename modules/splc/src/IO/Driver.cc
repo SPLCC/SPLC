@@ -1,7 +1,9 @@
 #include <cassert>
 #include <cctype>
 #include <fstream>
+#include <string_view>
 
+#include "Core/Utils.hh"
 #include "IO/Driver.hh"
 #include "AST/TranslationManager.hh"
 
@@ -12,9 +14,9 @@ Driver::Driver()
     translationManager = createPtr<TranslationManager>();
 }
 
-void Driver::parse(const char *const filename)
+void Driver::parse(const std::string &filename)
 {
-    assert(filename != nullptr);
+    SPLC_ASSERT(!filename.empty());
     std::ifstream in_file(filename);
     if (!in_file.good()) {
         exit(EXIT_FAILURE);

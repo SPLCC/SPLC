@@ -22,7 +22,8 @@ class Driver {
      * Parse from a file
      * \param filename valid string with input file
      */
-    void parse(const char *const filename);
+    void parse(const std::string &filename);
+
     /**
      * Parse from a c++ input stream
      * \param is std::istream&, valid input stream

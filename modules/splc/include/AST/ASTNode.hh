@@ -1,5 +1,5 @@
-#ifndef __SPLC_AST_NODE_HH__
-#define __SPLC_AST_NODE_HH__ 1
+#ifndef __SPLC_AST_AST_NODE_HH__
+#define __SPLC_AST_AST_NODE_HH__ 1
 
 #include <iostream>
 #include <map>
@@ -251,4 +251,4 @@ inline std::ostream &operator<<(std::ostream &os,
 
 } // namespace splc
 
-#endif /* __SPLC_AST_NODE_HH__ */
+#endif /* __SPLC_AST_AST_NODE_HH__ */

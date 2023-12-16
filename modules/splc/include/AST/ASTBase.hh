@@ -1,5 +1,5 @@
-#ifndef __SPLC_AST_BASE_HH__
-#define __SPLC_AST_BASE_HH__ 1
+#ifndef __SPLC_AST_AST_BASE_HH__
+#define __SPLC_AST_AST_BASE_HH__ 1
 
 #include <AST/ASTToken.hh>
 
@@ -7,4 +7,4 @@ namespace splc {
 
 } // namespace splc
 
-#endif /* __SPLC_AST_BASE_HH__ */
+#endif /* __SPLC_AST_AST_BASE_HH__ */

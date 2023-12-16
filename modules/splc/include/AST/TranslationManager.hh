@@ -1,5 +1,7 @@
-#ifndef __SPLC_TRANSLATION_UNIT_HH__
-#define __SPLC_TRANSLATION_UNIT_HH__ 1
+#ifndef __SPLC_AST_TRANSLATION_MANAGER_HH__
+#define __SPLC_AST_TRANSLATION_MANAGER_HH__ 1
+
+#include <vector>
 
 #include "Core/splc.hh"
 
@@ -10,8 +12,11 @@ namespace splc {
 class TranslationManager {
   public:
     TranslationManager() = default;
+
+  private:
+    
 };
 
 } // namespace splc::module
 
-#endif /* __SPLC_TRANSLATION_UNIT_HH__ */
+#endif /* __SPLC_AST_TRANSLATION_MANAGER_HH__ */
