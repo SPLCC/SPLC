@@ -26,9 +26,9 @@ using Token = splc::IO::Parser::token;
 %option prefix="Splc"
 %option never-interactive
 %option yyclass="splc::IO::Scanner"
-%option noyywrap
 %option debug
 %option nodefault
+%option stack
 
 /* Token section */
 %%
@@ -58,6 +58,11 @@ using Token = splc::IO::Parser::token;
             }
 
 .           {
-                SPLC_LOG_ERROR(*loc, "Unrecognized symbol");
+                return ( Token::CHAR );
             }
 %%
+
+int yyFlexLexer::yywrap()
+{
+    return 1;
+}

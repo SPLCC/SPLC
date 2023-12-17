@@ -24,17 +24,17 @@ namespace splc::utils {
     do {                                                                       \
         if (!(cond)) {                                                         \
             SPLC_LOG_FATAL_ERROR(                                              \
-                Location{}, "Assertion ("                                      \
-                                << #cond << ") failed at " << __FILE__         \
-                                << ", line "                                   \
-                                << __LINE__ __SPLC_LOG_FUNCTION_STREAM__);     \
+                nullptr, "Assertion ("                                         \
+                             << #cond << ") failed at " << __FILE__            \
+                             << ", line "                                      \
+                             << __LINE__ __SPLC_LOG_FUNCTION_STREAM__);        \
             exit(SPLC_EXIT_ASSERTION_FAILURE);                                 \
         }                                                                      \
     } while (0)
 
 #define SPLC_ERROR(msg)                                                        \
     do {                                                                       \
-        SPLC_LOG_FATAL_ERROR(Location{}, msg);                                 \
+        SPLC_LOG_FATAL_ERROR(nullptr, msg);                                    \
         exit(SPLC_EXIT_ERROR);                                                 \
     } while (0)
 

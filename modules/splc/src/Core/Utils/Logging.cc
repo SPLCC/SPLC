@@ -14,7 +14,7 @@ std::ostream &getLogStream()
     return *logStream;
 }
 
-void handleMessage(const Level level, const Location &loc,
+void handleMessage(const Level level, const Location *const locPtr,
                    const std::string &msg, const std::string &exMsg)
 {
     std::lock_guard<std::mutex> lockGuard{logStreamMutex};
@@ -22,8 +22,8 @@ void handleMessage(const Level level, const Location &loc,
     std::ostream &localLogStream = getLogStream();
     // Header
     localLogStream << ControlSeq::Bold;
-    if (loc.end.filename != nullptr) {
-        localLogStream << loc;
+    if (locPtr != nullptr && locPtr->end.filename != nullptr) {
+        localLogStream << *locPtr;
     }
     else {
         localLogStream << "splc";

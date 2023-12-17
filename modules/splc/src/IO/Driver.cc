@@ -3,16 +3,14 @@
 #include <fstream>
 #include <string_view>
 
-#include "Core/Utils.hh"
-#include "IO/Driver.hh"
 #include "AST/TranslationManager.hh"
+#include "Core/Utils.hh"
+#include "Core/Utils/Logging.hh"
+#include "IO/Driver.hh"
 
 namespace splc::IO {
 
-Driver::Driver()
-{
-    translationManager = createPtr<TranslationManager>();
-}
+Driver::Driver() { translationManager = createPtr<TranslationManager>(); }
 
 void Driver::parse(const std::string &filename)
 {
@@ -21,10 +19,27 @@ void Driver::parse(const std::string &filename)
     if (!in_file.good()) {
         exit(EXIT_FAILURE);
     }
-    tryParse(filename, in_file);
+    builtinParse(filename, in_file);
     return;
 }
 
+// TODO: remove experimental
+void Driver::parse(const std::vector<std::string> &filenameVector_)
+{
+    filenameVector = filenameVector_;
+    fileIndex = 0;
+    std::ifstream in_file(filenameVector[0]);
+    if (!in_file.good()) {
+        exit(EXIT_FAILURE);
+    }
+    fileIndex++;
+    SPLC_ASSERT(in_file.good());
+    SPLC_LOG_DEBUG(nullptr, "filename: " << filenameVector[0]);
+    builtinParse(filenameVector[0], in_file);
+    return;
+}
+
+// TODO: revise
 void Driver::parse(const std::string &streamName, std::istream &stream)
 {
     if (!stream.good() && stream.eof()) {
@@ -32,20 +47,39 @@ void Driver::parse(const std::string &streamName, std::istream &stream)
     }
     // else
     if (&stream == &std::cin) {
-        tryParse(streamName, stream);
+        builtinParse(streamName, stream);
     }
     return;
 }
 
-void Driver::tryParse(const std::string &filename, std::istream &stream)
+// TODO: remove experimental
+int Driver::parseWrap(int size) {
+    if (fileIndex >= filenameVector.capacity())
+    {
+        return 1;
+    }
+    else
+    {
+        std::ifstream *in_file = new std::ifstream(filenameVector[fileIndex++]);
+        std::string testString;
+        *in_file >> testString;
+        SPLC_LOG_DEBUG(nullptr, "test string: " << testString);
+        yy_buffer_state *newBuffer = scanner->yy_create_buffer(in_file, size);
+        // SPLC_LOG_DEBUG(nullptr, "buffer state: " << newBuffer);
+        scanner->yy_switch_to_buffer((newBuffer));
+        return 0;
+    }
+}
+
+void Driver::builtinParse(const std::string &bufferName, std::istream &stream)
 {
-    scanner = createPtr<Scanner>(filename, &stream);
-    parser = createPtr<Parser>((*translationManager), (*this), (*scanner));
+    scanner = createPtr<Scanner>(*this, &stream);
+    parser = createPtr<Parser>(*translationManager, *this, *scanner);
 
     const int accept{0};
 
     if (parser->parse() != accept) {
-        // TODO:
+        // TODO: revise
         std::cerr << "Parse failed!!\n";
     }
     return;
@@ -104,4 +138,4 @@ std::ostream &Driver::print(std::ostream &stream)
     return (stream);
 }
 
-} // namespace splc
+} // namespace splc::IO

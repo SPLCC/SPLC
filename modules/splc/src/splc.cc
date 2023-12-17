@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
@@ -33,7 +34,10 @@ int main(const int argc, const char **argv)
     /** example reading input from a file **/
     else {
         /** assume file, prod code, use stat to check **/
-        driver.parse(argv[1]);
+        std::vector<std::string> filenameVector;
+        filenameVector.resize(argc - 1);
+        std::transform(argv + 1, argv + argc, filenameVector.begin(), [](const char * str) { return std::string{str}; });
+        driver.parse(filenameVector);
     }
     driver.print(std::cout) << "\n";
 
@@ -51,6 +55,6 @@ int main(const int argc, const char **argv)
                       ASTProcess::semanticAnalysis);
 
     std::cout << treePrintTransform(node);
-    SPLC_ASSERT(0);
+    SPLC_ASSERT(std::string("23333").empty());
     return (EXIT_SUCCESS);
 }

@@ -78,6 +78,6 @@ item
 
 void splc::IO::Parser::error(const location_type &l, const std::string &err_message)
 {
-   SPLC_LOG_ERROR(l, err_message);
+    SPLC_LOG_ERROR(&l, err_message);
 }
 

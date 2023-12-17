@@ -5,15 +5,20 @@
 #include "Core/splc.hh"
 
 #include "Core/Utils/LocationWrapper.hh"
+
+#include "IO/IOBase.hh"
 #include "IO/Parser.hh"
+
+// TODO: remove experimental
+#include "IO/Driver.hh"
 
 namespace splc::IO {
 
 class Scanner : public SplcFlexLexer {
   public:
     // TODO: switch to translationManager
-    Scanner(const std::string &filename_, std::istream *in)
-        : filename{filename_}, SplcFlexLexer(in){};
+    Scanner(Driver& driver_, std::istream *in)
+        : driver{driver_}, SplcFlexLexer(in){};
     virtual ~Scanner(){};
 
     // get rid of override virtual function warning
@@ -35,9 +40,10 @@ class Scanner : public SplcFlexLexer {
      * input stream.
      *
      */
-    // virtual int yywrap();
+    virtual int yywrap();
 
   private:
+    Driver &driver;
     std::string filename;
 
     /* yyval ptr */

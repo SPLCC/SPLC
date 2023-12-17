@@ -22,7 +22,7 @@ extern std::ostream *logStream;
 
 std::ostream &getLogStream();
 
-void handleMessage(const Level level, const Location &loc,
+void handleMessage(const Level level, const Location *const locPtr,
                    const std::string &msg, const std::string &exMsg);
 
 } // namespace internal
@@ -31,40 +31,45 @@ void handleMessage(const Level level, const Location &loc,
 
 // TODO: check message system macros
 
-#define SPLC_LOG_DISPATCH(level, loc, exMsg, ...)                              \
+#define SPLC_LOG_DISPATCH(level, locPtr, exMsg, ...)                           \
     do {                                                                       \
         std::stringstream ss;                                                  \
         ss << __VA_ARGS__;                                                     \
         std::string msg = ss.str();                                            \
-        splc::utils::logging::internal::handleMessage(level, loc, msg, exMsg); \
+        splc::utils::logging::internal::handleMessage(level, locPtr, msg,      \
+                                                      exMsg);                  \
     } while (0)
 
-#define SPLC_LOG_DEBUG(loc, ...)                                               \
-    SPLC_LOG_DISPATCH(splc::utils::logging::Level::Debug, loc, "", __VA_ARGS__)
-
-#define SPLC_LOG_INFO(loc, ...)                                                \
-    SPLC_LOG_DISPATCH(splc::utils::logging::Level::Info, loc, "", __VA_ARGS__)
-
-#define SPLC_LOG_NOTE(loc, ...)                                                \
-    SPLC_LOG_DISPATCH(splc::utils::logging::Level::Note, loc, "", __VA_ARGS__)
-
-#define SPLC_LOG_WARN(loc, exMsg, ...)                                         \
-    SPLC_LOG_DISPATCH(splc::utils::logging::Level::Warning, loc, exMsg,        \
+#define SPLC_LOG_DEBUG(locPtr, ...)                                            \
+    SPLC_LOG_DISPATCH(splc::utils::logging::Level::Debug, locPtr, "",          \
                       __VA_ARGS__)
 
-#define SPLC_LOG_SYNTAX_ERROR(loc, ...)                                        \
-    SPLC_LOG_DISPATCH(splc::utils::logging::Level::SyntaxError, loc, "",       \
+#define SPLC_LOG_INFO(locPtr, ...)                                             \
+    SPLC_LOG_DISPATCH(splc::utils::logging::Level::Info, locPtr, "",           \
                       __VA_ARGS__)
 
-#define SPLC_LOG_SEMANTIC_ERROR(loc, ...)                                      \
-    SPLC_LOG_DISPATCH(splc::utils::logging::Level::SemanticError, loc, "",     \
+#define SPLC_LOG_NOTE(locPtr, ...)                                             \
+    SPLC_LOG_DISPATCH(splc::utils::logging::Level::Note, locPtr, "",           \
                       __VA_ARGS__)
 
-#define SPLC_LOG_ERROR(loc, ...)                                               \
-    SPLC_LOG_DISPATCH(splc::utils::logging::Level::Error, loc, "", __VA_ARGS__)
+#define SPLC_LOG_WARN(locPtr, exMsg, ...)                                      \
+    SPLC_LOG_DISPATCH(splc::utils::logging::Level::Warning, locPtr, exMsg,     \
+                      __VA_ARGS__)
 
-#define SPLC_LOG_FATAL_ERROR(loc, ...)                                         \
-    SPLC_LOG_DISPATCH(splc::utils::logging::Level::FatalError, loc, "",        \
+#define SPLC_LOG_SYNTAX_ERROR(locPtr, ...)                                     \
+    SPLC_LOG_DISPATCH(splc::utils::logging::Level::SyntaxError, locPtr, "",    \
+                      __VA_ARGS__)
+
+#define SPLC_LOG_SEMANTIC_ERROR(locPtr, ...)                                   \
+    SPLC_LOG_DISPATCH(splc::utils::logging::Level::SemanticError, locPtr, "",  \
+                      __VA_ARGS__)
+
+#define SPLC_LOG_ERROR(locPtr, ...)                                            \
+    SPLC_LOG_DISPATCH(splc::utils::logging::Level::Error, locPtr, "",          \
+                      __VA_ARGS__)
+
+#define SPLC_LOG_FATAL_ERROR(locPtr, ...)                                      \
+    SPLC_LOG_DISPATCH(splc::utils::logging::Level::FatalError, locPtr, "",     \
                       __VA_ARGS__)
 
 #endif /* __SPLC_UTILS_LOGGING_HH__ */

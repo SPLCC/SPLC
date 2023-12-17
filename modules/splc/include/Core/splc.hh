@@ -17,6 +17,7 @@
 #include <FlexLexer.h>
 #endif
 
+// #include "IO/Lexer.hh"
 #include "IO/Parser.hh"
 
 // Include core utilities
