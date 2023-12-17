@@ -11,7 +11,7 @@
 int main(const int argc, const char **argv)
 {
     /** check for the right # of arguments **/
-    if (argc != 2) {
+    if (argc < 2) {
         /** exit with failure condition **/
         return (EXIT_FAILURE);
     }
@@ -51,6 +51,6 @@ int main(const int argc, const char **argv)
                       ASTProcess::semanticAnalysis);
 
     std::cout << treePrintTransform(node);
-
+    SPLC_ASSERT(0);
     return (EXIT_SUCCESS);
 }

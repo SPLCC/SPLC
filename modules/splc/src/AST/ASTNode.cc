@@ -4,7 +4,7 @@ namespace splc {
 
 Ptr<ASTNode> ASTNode::findFirstChild(ASTSymbolType type) const noexcept
 {
-    // TODO:
+    // TODO: find the first available child
     return createPtr<ASTNode>();
 }
 

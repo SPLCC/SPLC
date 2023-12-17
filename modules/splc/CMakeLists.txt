@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.20)
 project(SPLC)
 
 find_package(FLEX 2.6.0)
@@ -42,7 +42,7 @@ BISON_TARGET(SPLC_Parser ${SRC_DIR_IO}/Parser.yy ${GENERATED_SRC_DIR_IO}/Parser.
 add_library(splc_IO SHARED ${FLEX_SPLC_Lexer_OUTPUTS} ${BISON_SPLC_Parser_OUTPUTS} ${SRC_FILES_IO})
 target_include_directories(splc_IO PUBLIC ${SPLC_INCL_DIR} ${GENERATED_INCL_DIR_IO})
 set_target_properties(splc_IO PROPERTIES 
-    ARCHIVE_OUTPUT_DIRECTORY ${GENERATED_LIB_DIR})
+    LIBRARY_OUTPUT_DIRECTORY ${GENERATED_LIB_DIR})
 file(GLOB splc_AST_HEADER_FILES "${SPLC_INCL_DIR}/IO/*.hh;${GENERATED_INCL_DIR_IO}/*.hh")
 set_target_properties(splc_IO PROPERTIES 
     PUBLIC_HEADER "${splc_IO_HEADER_FILES}")
@@ -52,7 +52,7 @@ add_library(splc_AST SHARED ${SRC_FILES_AST})
 target_include_directories(splc_AST PUBLIC ${SPLC_INCL_DIR})
 add_dependencies(splc_AST splc_IO)
 set_target_properties(splc_AST PROPERTIES 
-    ARCHIVE_OUTPUT_DIRECTORY ${GENERATED_LIB_DIR})
+    LIBRARY_OUTPUT_DIRECTORY ${GENERATED_LIB_DIR})
 file(GLOB splc_AST_HEADER_FILES "${SPLC_INCL_DIR}/AST/*.hh")
 set_target_properties(splc_AST PROPERTIES 
     PUBLIC_HEADER "${splc_AST_HEADER_FILES}")
@@ -62,7 +62,7 @@ add_library(splc_Analysis SHARED ${SRC_FILES_ANALYSIS})
 target_include_directories(splc_Analysis PUBLIC ${SPLC_INCL_DIR})
 add_dependencies(splc_Analysis splc_IO)
 set_target_properties(splc_Analysis PROPERTIES 
-    ARCHIVE_OUTPUT_DIRECTORY ${GENERATED_LIB_DIR})
+    LIBRARY_OUTPUT_DIRECTORY ${GENERATED_LIB_DIR})
 file(GLOB splc_Analysis_HEADER_FILES "${SPLC_INCL_DIR}/Analysis/*.hh")
 set_target_properties(splc_Analysis PROPERTIES 
     PUBLIC_HEADER "${splc_Analysis_HEADER_FILES}")
@@ -72,7 +72,7 @@ add_library(splc_IR SHARED ${SRC_FILES_IR})
 target_include_directories(splc_IR PUBLIC ${SPLC_INCL_DIR})
 add_dependencies(splc_IR splc_IO)
 set_target_properties(splc_IR PROPERTIES 
-    ARCHIVE_OUTPUT_DIRECTORY ${GENERATED_LIB_DIR})
+    LIBRARY_OUTPUT_DIRECTORY ${GENERATED_LIB_DIR})
 file(GLOB splc_IR_HEADER_FILES "${SPLC_INCL_DIR}/IR/*.hh")
 set_target_properties(splc_IR PROPERTIES 
     PUBLIC_HEADER "${splc_IR_HEADER_FILES}")
@@ -82,7 +82,7 @@ add_library(splc_Core SHARED ${SRC_FILES_CORE} ${SRC_FILES_CORE_UTILS})
 target_include_directories(splc_Core PUBLIC ${SPLC_INCL_DIR})
 add_dependencies(splc_Core splc_IO)
 set_target_properties(splc_Core PROPERTIES 
-    ARCHIVE_OUTPUT_DIRECTORY ${GENERATED_LIB_DIR})
+    LIBRARY_OUTPUT_DIRECTORY ${GENERATED_LIB_DIR})
 file(GLOB_RECURSE splc_Core_HEADER_FILES "${SPLC_INCL_DIR}/Core/*.hh")
 set_target_properties(splc_Core PROPERTIES 
     PUBLIC_HEADER "${splc_Core_HEADER_FILES}")

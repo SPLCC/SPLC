@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.20)
 
 if(" ${CMAKE_SOURCE_DIR}" STREQUAL " ${CMAKE_BINARY_DIR}")
   message(FATAL_ERROR "
@@ -8,12 +8,17 @@ FATAL: In-source builds are not allowed.
 endif()
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# =====================================
+# =  Project: SPL Compiler Collection
+# =====================================
 project(SPLCC)
 
 # Include the subdirectories containing other CMakeLists.txt files.
 add_subdirectory(modules/splc)
 add_subdirectory(modules/libspl)
+add_subdirectory(modules/ts)
 
 
 # Add compile options

@@ -18,7 +18,9 @@ namespace internal {
 
 extern std::mutex logStreamMutex;
 
-extern std::ostream &logStream;
+extern std::ostream *logStream;
+
+std::ostream &getLogStream();
 
 void handleMessage(const Level level, const Location &loc,
                    const std::string &msg, const std::string &exMsg);
