@@ -75,7 +75,7 @@ class Logger {
     template <class T>
     requires Streamable<T> Logger &operator<<(T &&val)
     {
-        // TODO: once gcc support full specialization, switch to it
+        // TODO: switch to full specialization, once gcc supports it
         if constexpr (std::is_same_v<LoggerTag, std::remove_cvref_t<T>>) {
             const LoggerTag &tag = dynamic_cast<const LoggerTag &>(val);
             if (tag.valid()) {
