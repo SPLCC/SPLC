@@ -3,7 +3,7 @@
 #include <fstream>
 #include <string_view>
 
-#include "AST/TranslationManager.hh"
+#include "Translation/TranslationManager.hh"
 #include "Core/Utils.hh"
 #include "Core/Utils/Logging.hh"
 #include "IO/Driver.hh"

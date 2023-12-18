@@ -33,7 +33,7 @@
     // include for all driver functions
     #include "Core/splc.hh"
 
-    #include "AST/TranslationManager.hh"
+    #include "Translation/TranslationManager.hh"
     #include "IO/Driver.hh"
 
     #undef yylex

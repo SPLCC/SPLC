@@ -1,13 +1,13 @@
-#ifndef __SPLC_AST_TRANSLATIONMANAGER_HH__
-#define __SPLC_AST_TRANSLATIONMANAGER_HH__ 1
+#ifndef __SPLC_TRANSLATION_TRANSLATIONMANAGER_HH__
+#define __SPLC_TRANSLATION_TRANSLATIONMANAGER_HH__ 1
 
-#include <vector>
 #include <string>
 #include <string_view>
+#include <vector>
 
 #include "Core/splc.hh"
 
-#include "AST/TranslationUnit.hh"
+#include "Translation/TranslationUnit.hh"
 
 namespace splc {
 
@@ -20,16 +20,16 @@ class TranslationManager {
     void endTranslationRecord();
 
     // TODO
-    void pushEnvironment();
+    void pushASTContext();
 
     // TODO
-    void popEnvironment();
+    void popASTContext();
 
     // TODO
-    void pushContext();
+    void pushTranslationContext();
 
     // TODO
-    void popContext();
+    void popTranslationContext();
 
     // TODO
     Ptr<TranslationUnit> getTranslationUnit();
@@ -38,6 +38,6 @@ class TranslationManager {
     Ptr<TranslationUnit> tunit;
 };
 
-} // namespace splc::module
+} // namespace splc
 
-#endif // __SPLC_AST_TRANSLATIONMANAGER_HH__
+#endif // __SPLC_TRANSLATION_TRANSLATIONMANAGER_HH__

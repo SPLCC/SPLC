@@ -24,6 +24,7 @@ list(APPEND SPLC_INCL_DIR include ${GENERATED_INCL_DIR})
 aux_source_directory(src/IO SRC_FILES_IO)
 aux_source_directory(src/Analysis SRC_FILES_ANALYSIS)
 aux_source_directory(src/AST SRC_FILES_AST)
+aux_source_directory(src/Translation SRC_FILES_TRANSLATION)
 aux_source_directory(src/IR SRC_FILES_IR)
 aux_source_directory(src/Core SRC_FILES_CORE)
 aux_source_directory(src/Core/Utils SRC_FILES_CORE_UTILS)
@@ -57,6 +58,16 @@ set_target_properties(splc_AST PROPERTIES
 file(GLOB splc_AST_HEADER_FILES "${SPLC_INCL_DIR}/AST/*.hh")
 set_target_properties(splc_AST PROPERTIES 
     PUBLIC_HEADER "${splc_AST_HEADER_FILES}")
+
+# splc_Translation shared library
+add_library(splc_Translation SHARED ${SRC_FILES_TRANSLATION})
+target_include_directories(splc_Translation PUBLIC ${SPLC_INCL_DIR})
+add_dependencies(splc_Translation splc_IO)
+set_target_properties(splc_Translation PROPERTIES 
+    LIBRARY_OUTPUT_DIRECTORY ${GENERATED_LIB_DIR})
+file(GLOB splc_Translation_HEADER_FILES "${SPLC_INCL_DIR}/Translation/*.hh")
+set_target_properties(splc_Translation PROPERTIES 
+    PUBLIC_HEADER "${splc_Translation_HEADER_FILES}")
 
 # splc_Analysis
 add_library(splc_Analysis SHARED ${SRC_FILES_ANALYSIS})

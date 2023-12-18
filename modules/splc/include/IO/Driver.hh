@@ -9,7 +9,7 @@
 
 #include "Core/splc.hh"
 
-#include "AST/TranslationManager.hh"
+#include "Translation/TranslationManager.hh"
 #include "IO/IOBase.hh"
 #include "IO/Parser.hh"
 #include "IO/Scanner.hh"

@@ -10,32 +10,32 @@
 
 #include "Core/splc.hh"
 
-#include "AST/ASTContext.hh"
+#include "Translation/TranslationContext.hh"
 
 namespace splc {
 
 /// \brief This class handles context management during parsing.
 /// In detail, this class holds context information related to file inclusion
 /// and macro expansion.
-class ASTContextManager {
+class TranslationContextManager {
   public:
-    ASTContextManager();
+    TranslationContextManager();
 
     /// \brief Push a new file into context manager. If no such file exist,
     /// throw a runtime error. \param intrLocation interrupt location
-    Ptr<ASTContext> pushContext(Location &intrLocation, std::string &fileName_);
+    Ptr<TranslationContext> pushContext(Location &intrLocation, std::string &fileName_);
 
     /// \brief Push a macro substitution into context manager, switching to
     /// macro substitution. \param intrLocation interrupt location
-    Ptr<ASTContext> pushContext(Location &intrLocation, std::string &macroName_,
+    Ptr<TranslationContext> pushContext(Location &intrLocation, std::string &macroName_,
                                 std::string &content_);
 
     /// Pop the topmost context.
     /// If there does not exist such context, or if all the contexts
     /// have already been popped off, return 1. Else, return 0.
-    Ptr<ASTContext> popContext();
+    Ptr<TranslationContext> popContext();
 
-    bool isContextExistInStack(ASTContextBufferType type_,
+    bool isContextExistInStack(TranslationContextBufferType type_,
                                std::string_view contextName_);
 
     inline auto &getContextStack() { return contextStack; }
@@ -43,21 +43,21 @@ class ASTContextManager {
     inline auto &getAllContexts() { return allContexts; }
 
     /// Provide a convenient way to access stack elements
-    inline Ptr<ASTContext> operator[](size_t idx)
+    inline Ptr<TranslationContext> operator[](size_t idx)
     {
         return contextStack[contextStack.size() - idx - 1];
     }
 
-    inline Ptr<const ASTContext> operator[](size_t idx) const
+    inline Ptr<const TranslationContext> operator[](size_t idx) const
     {
         return contextStack[contextStack.size() - idx - 1];
     }
 
   private:
-    std::vector<Ptr<ASTContext>> contextStack; /// This will store macro
+    std::vector<Ptr<TranslationContext>> contextStack; /// This will store macro
                                                /// contexts for checking
                                                /// repeated definitions
-    std::vector<Ptr<ASTContext>> allContexts;  /// Store all definitions
+    std::vector<Ptr<TranslationContext>> allContexts;  /// Store all definitions
 };
 
 } // namespace splc

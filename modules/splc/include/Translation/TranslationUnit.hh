@@ -1,10 +1,10 @@
 #include <type_traits>
-#ifndef __SPLC_AST_TRANSLATIONUNIT_HH__
-#define __SPLC_AST_TRANSLATIONUNIT_HH__ 1
+#ifndef __SPLC_TRANSLATION_TRANSLATIONUNIT_HH__
+#define __SPLC_TRANSLATION_TRANSLATIONUNIT_HH__ 1
 
 #include "Core/splc.hh"
 
-#include "AST/ASTContextManager.hh"
+#include "Translation/TranslationContextManager.hh"
 #include "AST/ASTNode.hh"
 
 namespace splc {
@@ -24,7 +24,7 @@ class TranslationUnit {
     TranslationUnit() = default;
 
   private:
-    ASTContextManager contextManager;
+    TranslationContextManager contextManager;
     Ptr<ASTNode> rootNode;
 
   public:
@@ -57,4 +57,4 @@ inline T &&applyTranslationUnitTransform(T &&unit, Functors &&...functors)
 
 } // namespace splc
 
-#endif /// __SPLC_AST_TRANSLATIONUNIT_HH__
+#endif /// __SPLC_TRANSLATION_TRANSLATIONUNIT_HH__
