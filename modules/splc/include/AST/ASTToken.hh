@@ -62,4 +62,4 @@ inline std::ostream &operator<<(std::ostream &os,
 
 } // namespace splc
 
-#endif /* __SPLC_AST_AST_TOKEN_HH__ */
+#endif // __SPLC_AST_AST_TOKEN_HH__

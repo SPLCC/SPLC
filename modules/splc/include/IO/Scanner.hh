@@ -24,32 +24,27 @@ class Scanner : public SplcFlexLexer {
     // get rid of override virtual function warning
     using FlexLexer::yylex;
 
-    /**
-     * The main procedure called by `splc::IO::Parser` to get tokens.
-     * `YY_DECL` is defined to be this function in Lexer.ll.
-     * Method body created by flex in lexer.cc.
-     *
-     * \param lval Pointer to the semantic value of this token.
-     * \param location The location of this token.
-     * */
+    /// The main procedure called by `splc::IO::Parser` to get tokens.
+    /// `YY_DECL` is defined to be this function in Lexer.ll.
+    /// Method body created by flex in lexer.cc.
+    /// 
+    /// \param lval Pointer to the semantic value of this token.
+    /// \param location The location of this token.
     virtual int yylex(splc::IO::Parser::value_type *const lval,
                       splc::IO::Parser::location_type *location);
 
-    /**
-     * The main procedure for `yyFlexLexer` to switch to a different
-     * input stream.
-     *
-     */
+    /// \brief The main procedure for `yyFlexLexer` to switch to a different
+    /// input stream.
     virtual int yywrap();
 
   private:
     Driver &driver;
     std::string filename;
 
-    /* yyval ptr */
+    /// yyval ptr
     splc::IO::Parser::value_type *yylval = nullptr;
 };
 
 } // namespace splc
 
-#endif /* __SPLC_IO_SCANNER_HH__ */
+#endif // __SPLC_IO_SCANNER_HH__

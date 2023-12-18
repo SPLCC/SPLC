@@ -9,4 +9,4 @@ namespace splc {
 
 } // namespace splc
 
-#endif /* __SPLC_ANALYSIS_UNUSED_VARIABLE_HH__ */
+#endif //  __SPLC_ANALYSIS_UNUSED_VARIABLE_HH__

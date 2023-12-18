@@ -31,9 +31,8 @@ class RuntimeError : public std::runtime_error {
 
 using SyntaxError = splc::IO::Parser::syntax_error;
 
-/**  @brief This class represents the general semantic error encountered during
- *   semantically analyzing the entire syntax tree.
- */
+/// \brief This class represents the general semantic error encountered during
+/// semantically analyzing the entire syntax tree.
 class SemanticError : public std::runtime_error {
   public:
     SemanticError(const Location &loc_, std::string &m)
@@ -49,6 +48,6 @@ class SemanticError : public std::runtime_error {
     Location loc;
 };
 
-} /* end namespace splc */
+} // namespace splc
 
-#endif /* __SPLC_CORE_SYSTEM_HH__ */
+#endif // __SPLC_CORE_SYSTEM_HH__

@@ -7,4 +7,4 @@ namespace splc {
 
 } // namespace splc
 
-#endif /* __SPLC_AST_TYPE_HH__ */
+#endif // __SPLC_AST_TYPE_HH__

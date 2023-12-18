@@ -38,4 +38,4 @@ namespace splc::utils {
         exit(SPLC_EXIT_ERROR);                                                 \
     } while (0)
 
-#endif /* __SPLC_CORE_UTILS_HH__ */
+#endif // __SPLC_CORE_UTILS_HH__

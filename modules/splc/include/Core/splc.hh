@@ -10,8 +10,8 @@
 
 // Include submodules
 
-/* Generated files */
-#ifndef yyFlexLexer /* avoid cancelling existing definitions */
+// Generated files
+#ifndef yyFlexLexer // avoid cancelling existing definitions
 #undef yyFlexLexer
 #define yyFlexLexer SplcFlexLexer
 #include <FlexLexer.h>
@@ -31,4 +31,4 @@ namespace splc {
 
 } // namespace splc
 
-#endif /* __SPLC_CORE_SPLC_HH__ */
+#endif // __SPLC_CORE_SPLC_HH__

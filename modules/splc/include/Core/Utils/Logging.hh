@@ -72,4 +72,4 @@ void handleMessage(const Level level, const Location *const locPtr,
     SPLC_LOG_DISPATCH(splc::utils::logging::Level::FatalError, locPtr, "",     \
                       __VA_ARGS__)
 
-#endif /* __SPLC_UTILS_LOGGING_HH__ */
+#endif // __SPLC_UTILS_LOGGING_HH__

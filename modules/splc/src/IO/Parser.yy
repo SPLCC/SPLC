@@ -4,11 +4,11 @@
 
 %define api.namespace {splc::IO}
 %define api.parser.class {Parser}
-/* %define api.header.include { "IO/Parser.hh" } */
+// %define api.header.include { "IO/Parser.hh" }
 %define parse.assert
 
 %code requires{
-    /* Code section there will be placed directly inside `IO/Parser.hh`. */
+    // Code section there will be placed directly inside `IO/Parser.hh`.
     namespace splc {
     
     class TranslationManager;
@@ -30,7 +30,7 @@
     #include <cstdlib>
     #include <fstream>
     
-    /* include for all driver functions */
+    // include for all driver functions
     #include "Core/splc.hh"
 
     #include "AST/TranslationManager.hh"
@@ -46,8 +46,8 @@
 %define api.location.file "../../include/Core/Utils/location.hh"
 
 
-/* Start of token definition section */
-/* %token END 0 */
+// Start of token definition section
+// %token END 0
 %token UPPER
 %token LOWER
 %token WORD
@@ -55,7 +55,7 @@
 %token CHAR
 
 
-/* Start of production section */
+// Start of production section
 %%
 
 list_option : | List;

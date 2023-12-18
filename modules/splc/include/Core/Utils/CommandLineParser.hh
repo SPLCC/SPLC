@@ -11,4 +11,4 @@ class CommandLineParser {
 
 } // namespace splc::utils
 
-#endif /* __SPLC_CORE_UTILS_COMMAND_LINE_PARSER_HH__ */
+#endif // __SPLC_CORE_UTILS_COMMAND_LINE_PARSER_HH__

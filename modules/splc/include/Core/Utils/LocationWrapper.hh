@@ -17,4 +17,4 @@ using Location = splc::utils::Location;
 
 } // namespace splc
 
-#endif /* __SPLC_CORE_UTILS_LOCATION_WRAPPER_HH__ */
+#endif // __SPLC_CORE_UTILS_LOCATION_WRAPPER_HH__

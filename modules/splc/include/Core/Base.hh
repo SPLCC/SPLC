@@ -5,11 +5,11 @@
 
 namespace splc {
 
-/* Convenient notation */
+// Convenient notation
 template <class T>
 using Ptr = std::shared_ptr<T>;
 
-/* Convenient notation */
+// Convenient notation
 template <class T, class... Args>
 auto createPtr(Args &&...args)
 {
@@ -24,6 +24,6 @@ struct overloaded : Ts... {
 template <class... Ts>
 overloaded(Ts...) -> overloaded<Ts...>;
 
-} /* namespace splc */
+} // namespace splc
 
-#endif /* __SPLC_CORE_BASE_HH__ */
+#endif // __SPLC_CORE_BASE_HH__

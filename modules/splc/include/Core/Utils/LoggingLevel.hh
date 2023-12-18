@@ -1,7 +1,10 @@
 #ifndef __SPLC_UTILS_LOGGING_LEVEL_HH__
 #define __SPLC_UTILS_LOGGING_LEVEL_HH__ 1
 
+#include <iostream>
 #include <string>
+
+#include "Core/Utils/ControlSequence.hh"
 
 namespace splc::utils::logging {
 
@@ -119,4 +122,4 @@ inline std::ostream &operator<<(std::ostream &os,
 
 } // namespace splc::utils::logging
 
-#endif /* __SPLC_UTILS_LOGGING_LEVEL_HH__ */
+#endif // __SPLC_UTILS_LOGGING_LEVEL_HH__

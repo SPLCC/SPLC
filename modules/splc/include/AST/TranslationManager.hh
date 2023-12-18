@@ -14,9 +14,9 @@ class TranslationManager {
     TranslationManager() = default;
 
   private:
-    
+    TranslationUnit tunit;
 };
 
 } // namespace splc::module
 
-#endif /* __SPLC_AST_TRANSLATION_MANAGER_HH__ */
+#endif // __SPLC_AST_TRANSLATION_MANAGER_HH__

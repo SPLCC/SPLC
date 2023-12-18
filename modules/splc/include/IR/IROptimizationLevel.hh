@@ -14,4 +14,4 @@ enum OptimizeLevel {
 
 } // namespace splc::IR
 
-#endif /* __SPLC_IR_OPTIMIZATION_LEVEL_HH__ */
+#endif // __SPLC_IR_OPTIMIZATION_LEVEL_HH__

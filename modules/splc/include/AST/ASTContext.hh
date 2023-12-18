@@ -17,18 +17,23 @@ enum ASTContextBufferType {
     MacroExpansion,
 };
 
-class ASTContext {
-  public:
+struct ASTContext {
+
     ASTContext() = delete;
+
     ASTContext(ASTContextBufferType type_, const std::string &name_,
-            const Location &intrLocation);
+               const Location &intrLocation_)
+        : type{type_}, name{name_}, intrLocation{intrLocation_}
+    {
+    }
 
-    const auto &getType() const { return type; }
-    std::string_view getName() const { return {name}; }
-    const auto &getIntrLocation() const { return intrLocation; }
-    std::string_view getContent() const { return {content}; }
+    ASTContext(ASTContextBufferType type_, const std::string &name_,
+               const Location &intrLocation_, const std::string &content_)
+        : type{type_}, name{name_},
+          intrLocation(intrLocation_), content{content_}
+    {
+    }
 
-  private:
     const ASTContextBufferType type;
     const std::string name;
     const Location intrLocation; // Interrupt Location
@@ -37,4 +42,4 @@ class ASTContext {
 
 } // namespace splc
 
-#endif /* __SPLC_AST_CONTEXT_HH__ */
+#endif // __SPLC_AST_CONTEXT_HH__

@@ -11,10 +11,9 @@ extern int splc::options::noDiagnosticColor;
 
 namespace splc::utils::logging {
 
-/** Type of control sequences. If `noDiagnosticColor` is nonzero, then
- * they won't take effect.
- *
- */
+/// \brief Type of control sequences. 
+/// If `noDiagnosticColor` is nonzero, then
+/// they won't take effect.
 enum ControlSeq {
     Black,
     BrightBlack,
@@ -127,4 +126,4 @@ static inline std::ostream &operator<<(std::ostream &os, ControlSeq seqType)
 }
 } // namespace splc::utils::logging
 
-#endif /* __SPLC_CORE_UTILS_CONTROL_SEQUENCE_HH__ */
+#endif // __SPLC_CORE_UTILS_CONTROL_SEQUENCE_HH__

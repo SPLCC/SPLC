@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cassert>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
@@ -11,14 +12,14 @@
 
 int main(const int argc, const char **argv)
 {
-    /** check for the right # of arguments **/
+    // check for the right # of arguments
     if (argc < 2) {
-        /** exit with failure condition **/
+        //  exit with failure condition
         return (EXIT_FAILURE);
     }
 
     if (std::strncmp(argv[1], "-h", 2) == 0) {
-        /** simple help menu **/
+        //  simple help menu
         std::cout << "use -o for pipe to std::cin\n";
         std::cout << "just give a filename to count from a file\n";
         std::cout << "use -h to get this menu\n";
@@ -27,13 +28,13 @@ int main(const int argc, const char **argv)
 
     splc::IO::Driver driver;
 
-    /** example for piping input from terminal, i.e., using cat **/
+    // example for piping input from terminal, i.e., using cat
     if (std::strncmp(argv[1], "-o", 2) == 0) {
         driver.parse("stdin", std::cin);
     }
-    /** example reading input from a file **/
+    // example reading input from a file
     else {
-        /** assume file, prod code, use stat to check **/
+        // assume file, prod code, use stat to check
         std::vector<std::string> filenameVector;
         filenameVector.resize(argc - 1);
         std::transform(argv + 1, argv + argc, filenameVector.begin(), [](const char * str) { return std::string{str}; });
@@ -49,12 +50,11 @@ int main(const int argc, const char **argv)
     auto node = splc::createASTNode(splc::ASTSymbolType::CHAR, splc::Location{},
                                     node0, node1);
 
-    node >> ASTProcess::removeASTPunctuators >> ASTProcess::semanticAnalysis;
+    static_cast<ASTNode &>(*node) >> ASTProcess::removeASTPunctuators;
 
-    applyASTTransform(node, ASTProcess::removeASTPunctuators,
-                      ASTProcess::semanticAnalysis);
+    applyASTTransform(*node, ASTProcess::removeASTPunctuators, ASTProcess::removeASTPunctuators);
 
-    std::cout << treePrintTransform(node);
+    std::cout << treePrintTransform(*node);
     SPLC_ASSERT(std::string("23333").empty());
     return (EXIT_SUCCESS);
 }

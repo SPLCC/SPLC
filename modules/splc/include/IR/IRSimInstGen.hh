@@ -17,4 +17,4 @@ class IRManager {
 
 } // namespace splc::IR
 
-#endif /* __SPLC_IR_SIM_INST_GEN_HH__ */
+#endif // __SPLC_IR_SIM_INST_GEN_HH__

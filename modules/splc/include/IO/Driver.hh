@@ -20,19 +20,15 @@ class Driver {
   public:
     Driver();
 
-    /**
-     * Parse from a file
-     * \param filename valid string with input file
-     */
+    /// Parse from a file
+    /// \param filename valid string with input file
     void parse(const std::string &filename);
 
     // TODO: remove experimental
     void parse(const std::vector<std::string> &filenameVector);
 
-    /**
-     * Parse from a c++ input stream
-     * \param is std::istream&, valid input stream
-     */
+    /// Parse from a c++ input stream
+    /// \param is std::istream&, valid input stream
     void parse(const std::string &streamName, std::istream &iss);
 
     // TODO: remove experimental
@@ -65,4 +61,4 @@ class Driver {
 };
 
 } // namespace splc::IO
-#endif /* __SPLC_IO_DRIVER_HH__ */
+#endif // __SPLC_IO_DRIVER_HH__
