@@ -44,10 +44,9 @@ concept IsValidASTNodeValue = (std::is_same_v<T, char> ||
 //      std::is_invocable_v<Functor, const double> ||
 //      std::is_invocable_v<Functor, const std::string>);
 
-
 /// \brief Class `ASTNode` describes a single node in the Abstract Syntax Tree
 /// (AST), and acts as the foundation of the parse tree.
-/// 
+///
 /// `ASTNode` accepts the following value types, if given:
 /// - `Char`
 /// - `Unsigned long long`
@@ -103,7 +102,7 @@ class ASTNode {
 
     auto &getVariant() noexcept { return value; }
 
-  private:
+  protected:
     ASTSymbolType type;
     std::vector<Ptr<ASTNode>> children;
     Location loc;
@@ -153,7 +152,7 @@ class ASTNode {
 
     friend void recursivePrintNode(std::ostream &os, const ASTNode &node,
                                    size_t depth);
-};
+}; // class: ASTNode
 
 inline bool isASTNodeAppendable(const Ptr<const ASTNode> &node)
 {

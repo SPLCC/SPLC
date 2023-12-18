@@ -14,9 +14,9 @@ enum Level {
     Info,
     Note,
     Warning,
+    Error,
     SyntaxError,
     SemanticError,
-    Error,
     FatalError,
 };
 
@@ -43,16 +43,16 @@ static inline std::ostream &operator<<(std::ostream &os, Level level)
         os << "warning";
         break;
     }
+    case Error: {
+        os << "error";
+        break;
+    }
     case SyntaxError: {
         os << "syntax error";
         break;
     }
     case SemanticError: {
         os << "semantic error";
-        break;
-    }
-    case Error: {
-        os << "error";
         break;
     }
     case FatalError: {
@@ -69,7 +69,7 @@ static inline std::ostream &operator<<(std::ostream &os, Level level)
 
 class LevelColorManipulator {
   public:
-    friend inline LevelColorManipulator getLevelColor(Level level);
+    friend LevelColorManipulator getLevelColor(Level level);
     friend std::ostream &operator<<(std::ostream &os,
                                     const LevelColorManipulator &m);
 
@@ -105,9 +105,9 @@ inline std::ostream &operator<<(std::ostream &os,
         os << ControlSeq::BrightMagenta;
         break;
     }
+    case Error:
     case SyntaxError:
     case SemanticError:
-    case Error:
     case FatalError: {
         os << ControlSeq::BrightRed;
     }

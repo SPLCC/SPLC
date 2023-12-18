@@ -5,10 +5,11 @@
 
 #include "Core/splc.hh"
 
+#include "Translation/TranslationBase.hh"
 #include "Translation/TranslationUnit.hh"
 
 namespace splc {
 
-} // namespace splc::module
+} // namespace splc
 
 #endif // __SPLC_TRANSLATION_TRANSLATIONUNITPROCESS_HH__

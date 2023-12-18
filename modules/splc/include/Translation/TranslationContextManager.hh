@@ -1,5 +1,5 @@
-#ifndef __SPLC_AST_CONTEXTMANAGER_HH__
-#define __SPLC_AST_CONTEXTMANAGER_HH__ 1
+#ifndef __SPLC_TRANSLATION_TRANSLATIONCONTEXTMANAGER_HH__
+#define __SPLC_TRANSLATION_TRANSLATIONCONTEXTMANAGER_HH__ 1
 
 #include <fstream>
 #include <iostream>
@@ -10,6 +10,7 @@
 
 #include "Core/splc.hh"
 
+#include "Translation/TranslationBase.hh"
 #include "Translation/TranslationContext.hh"
 
 namespace splc {
@@ -22,15 +23,19 @@ class TranslationContextManager {
     TranslationContextManager();
 
     /// \brief Push a new file into context manager. If no such file exist,
-    /// throw a runtime error. \param intrLocation interrupt location
-    Ptr<TranslationContext> pushContext(Location &intrLocation, std::string &fileName_);
+    /// throw a runtime error.
+    /// \param intrLocation interrupt location
+    Ptr<TranslationContext> pushContext(Location &intrLocation,
+                                        std::string &fileName_);
 
     /// \brief Push a macro substitution into context manager, switching to
-    /// macro substitution. \param intrLocation interrupt location
-    Ptr<TranslationContext> pushContext(Location &intrLocation, std::string &macroName_,
-                                std::string &content_);
+    /// macro substitution.
+    /// \param intrLocation interrupt location
+    Ptr<TranslationContext> pushContext(Location &intrLocation,
+                                        std::string &macroName_,
+                                        std::string &content_);
 
-    /// Pop the topmost context.
+    /// \brief Pop the topmost context.
     /// If there does not exist such context, or if all the contexts
     /// have already been popped off, return 1. Else, return 0.
     Ptr<TranslationContext> popContext();
@@ -38,28 +43,29 @@ class TranslationContextManager {
     bool isContextExistInStack(TranslationContextBufferType type_,
                                std::string_view contextName_);
 
-    inline auto &getContextStack() { return contextStack; }
+    auto &getContextStack() { return contextStack; }
 
-    inline auto &getAllContexts() { return allContexts; }
+    auto &getAllContexts() { return allContexts; }
 
     /// Provide a convenient way to access stack elements
-    inline Ptr<TranslationContext> operator[](size_t idx)
+    Ptr<TranslationContext> operator[](size_t idx)
     {
         return contextStack[contextStack.size() - idx - 1];
     }
 
-    inline Ptr<const TranslationContext> operator[](size_t idx) const
+    Ptr<const TranslationContext> operator[](size_t idx) const
     {
         return contextStack[contextStack.size() - idx - 1];
     }
 
   private:
-    std::vector<Ptr<TranslationContext>> contextStack; /// This will store macro
-                                               /// contexts for checking
-                                               /// repeated definitions
-    std::vector<Ptr<TranslationContext>> allContexts;  /// Store all definitions
+    /// This will store macro contexts for checking repeated definitions
+    std::vector<Ptr<TranslationContext>> contextStack;
+
+    /// Store all contexts
+    std::vector<Ptr<TranslationContext>> allContexts;
 };
 
 } // namespace splc
 
-#endif // __SPLC_AST_CONTEXTMANAGER_HH__
+#endif // __SPLC_TRANSLATION_TRANSLATIONCONTEXTMANAGER_HH__

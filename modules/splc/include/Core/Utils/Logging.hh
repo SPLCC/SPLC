@@ -1,3 +1,5 @@
+#include <type_traits>
+#include <utility>
 #ifndef __SPLC_UTILS_LOGGING_HH__
 #define __SPLC_UTILS_LOGGING_HH__ 1
 
@@ -12,9 +14,24 @@
 
 #include "Core/Utils/LocationWrapper.hh"
 
+#define SPLC_EXIT_ERROR             230
+#define SPLC_EXIT_ALLOC_FAILURE     232
+#define SPLC_EXIT_ASSERTION_FAILURE 233
+
 namespace splc::utils::logging {
 
 namespace internal {
+
+class LoggerTag;
+class Logger;
+class AssertionHelper;
+class ErrorHelper;
+
+template <class T>
+concept Streamable = requires(std::ostream &os, T &&t)
+{
+    os << std::forward<T>(t);
+};
 
 extern std::mutex logStreamMutex;
 
@@ -22,8 +39,104 @@ extern std::ostream *logStream;
 
 std::ostream &getLogStream();
 
-void handleMessage(const Level level, const Location *const locPtr,
-                   const std::string &msg, const std::string &exMsg);
+class LoggerTag {
+  public:
+    LoggerTag(std::string_view msg_) noexcept : msg{msg_} {}
+
+    bool valid() const noexcept { return !msg.empty(); }
+
+  protected:
+    std::string_view msg;
+
+  public:
+    friend class Logger;
+
+    friend std::ostream &operator<<(std::ostream &os, const LoggerTag &tag);
+};
+
+inline std::ostream &operator<<(std::ostream &os, const LoggerTag &tag)
+{
+    return os << tag.msg;
+}
+
+class Logger {
+  public:
+    /// Default empty constructor that outputs nothing.
+    Logger() noexcept;
+    Logger(const Level level_, const Location *const locPtr_) noexcept;
+
+    /// Just prevent users from doing stuff like storing this logger for
+    /// some mysterious purposes
+    Logger(Logger &other) = delete;
+    Logger &operator=(Logger &other) = delete;
+
+    ~Logger() noexcept;
+
+    template <class T>
+    requires Streamable<T> Logger &operator<<(T &&val)
+    {
+        // TODO: once gcc support full specialization, switch to it
+        if constexpr (std::is_same_v<LoggerTag, std::remove_cvref_t<T>>) {
+            const LoggerTag &tag = dynamic_cast<const LoggerTag &>(val);
+            if (tag.valid()) {
+                localLogStream << " [" << getLevelColor(level) << tag
+                               << ControlSeq::Reset << "]";
+            }
+        }
+        else {
+            localLogStream << std::forward<T>(val);
+        }
+        return *this;
+    }
+
+  protected:
+    std::ostream &localLogStream;
+    Level level;
+};
+
+// !Mysterious bug from gcc
+// template <>
+// inline Logger &Logger::operator<<(const LoggerTag &tag)
+// {
+//     if (tag.valid()) {
+//         localLogStream << " [" << getLevelColor(level) << tag << "]"
+//                        << ControlSeq::Reset;
+//     }
+//     return *this;
+// }
+
+class AssertionHelper : public Logger {
+  public:
+    AssertionHelper(bool cond_, const std::string &condText_,
+                    const std::string &file_, int line_,
+                    const std::string &functionName_) noexcept;
+
+    ~AssertionHelper() noexcept
+    {
+        if (!cond) {
+            localLogStream << std::endl;
+            exit(exitCode);
+        }
+    };
+
+  protected:
+    bool cond;
+    int exitCode;
+};
+
+class ErrorHelper : public Logger {
+  public:
+    ErrorHelper(int exitCode_) noexcept : exitCode{exitCode_} {}
+
+    ~ErrorHelper() noexcept
+    {
+        localLogStream << std::endl;
+        exit(exitCode);
+    };
+
+  protected:
+    int exitCode;
+};
 
 } // namespace internal
 
@@ -31,45 +144,54 @@ void handleMessage(const Level level, const Location *const locPtr,
 
 // TODO: check message system macros
 
-#define SPLC_LOG_DISPATCH(level, locPtr, exMsg, ...)                           \
-    do {                                                                       \
-        std::stringstream ss;                                                  \
-        ss << __VA_ARGS__;                                                     \
-        std::string msg = ss.str();                                            \
-        splc::utils::logging::internal::handleMessage(level, locPtr, msg,      \
-                                                      exMsg);                  \
-    } while (0)
+#define SPLC_LOGGER_TAG(msg)                                                   \
+    splc::utils::logging::internal::LoggerTag { msg }
 
-#define SPLC_LOG_DEBUG(locPtr, ...)                                            \
-    SPLC_LOG_DISPATCH(splc::utils::logging::Level::Debug, locPtr, "",          \
-                      __VA_ARGS__)
+#define SPLC_LOG_EMPTY_DISPATCH()                                              \
+    splc::utils::logging::internal::Logger {}
 
-#define SPLC_LOG_INFO(locPtr, ...)                                             \
-    SPLC_LOG_DISPATCH(splc::utils::logging::Level::Info, locPtr, "",           \
-                      __VA_ARGS__)
+#define SPLC_LOG_DISPATCH(level, locPtr)                                       \
+    splc::utils::logging::internal::Logger { level, locPtr }
 
-#define SPLC_LOG_NOTE(locPtr, ...)                                             \
-    SPLC_LOG_DISPATCH(splc::utils::logging::Level::Note, locPtr, "",           \
-                      __VA_ARGS__)
+#define SPLC_LOG_EMPTY() SPLC_LOG_EMPTY_DISPATCH()
 
-#define SPLC_LOG_WARN(locPtr, exMsg, ...)                                      \
-    SPLC_LOG_DISPATCH(splc::utils::logging::Level::Warning, locPtr, exMsg,     \
-                      __VA_ARGS__)
+#define SPLC_LOG_DEBUG(locPtr)                                                 \
+    SPLC_LOG_DISPATCH(splc::utils::logging::Level::Debug, locPtr)
 
-#define SPLC_LOG_SYNTAX_ERROR(locPtr, ...)                                     \
-    SPLC_LOG_DISPATCH(splc::utils::logging::Level::SyntaxError, locPtr, "",    \
-                      __VA_ARGS__)
+#define SPLC_LOG_INFO(locPtr)                                                  \
+    SPLC_LOG_DISPATCH(splc::utils::logging::Level::Info, locPtr)
 
-#define SPLC_LOG_SEMANTIC_ERROR(locPtr, ...)                                   \
-    SPLC_LOG_DISPATCH(splc::utils::logging::Level::SemanticError, locPtr, "",  \
-                      __VA_ARGS__)
+#define SPLC_LOG_NOTE(locPtr)                                                  \
+    SPLC_LOG_DISPATCH(splc::utils::logging::Level::Note, locPtr)
 
-#define SPLC_LOG_ERROR(locPtr, ...)                                            \
-    SPLC_LOG_DISPATCH(splc::utils::logging::Level::Error, locPtr, "",          \
-                      __VA_ARGS__)
+#define SPLC_LOG_WARN(locPtr)                                                  \
+    SPLC_LOG_DISPATCH(splc::utils::logging::Level::Warning, locPtr)
 
-#define SPLC_LOG_FATAL_ERROR(locPtr, ...)                                      \
-    SPLC_LOG_DISPATCH(splc::utils::logging::Level::FatalError, locPtr, "",     \
-                      __VA_ARGS__)
+#define SPLC_LOG_ERROR(locPtr)                                                 \
+    SPLC_LOG_DISPATCH(splc::utils::logging::Level::Error, locPtr)
+
+#define SPLC_LOG_SYNTAX_ERROR(locPtr)                                          \
+    SPLC_LOG_DISPATCH(splc::utils::logging::Level::SyntaxError, locPtr)
+
+#define SPLC_LOG_SEMANTIC_ERROR(locPtr)                                        \
+    SPLC_LOG_DISPATCH(splc::utils::logging::Level::SemanticError, locPtr)
+
+#define SPLC_LOG_FATAL_ERROR(locPtr)                                           \
+    SPLC_LOG_DISPATCH(splc::utils::logging::Level::FatalError, locPtr)
+
+#ifndef SPLC_NO_FUNCTION_MACRO
+#define __SPLC_LOG_FUNCTION__ __PRETTY_FUNCTION__
+#else
+#define __SPLC_LOG_FUNCTION__ ""
+#endif
+
+#define SPLC_ASSERT(cond)                                                      \
+    splc::utils::logging::internal::AssertionHelper                            \
+    {                                                                          \
+        cond, #cond, __FILE__, __LINE__, __SPLC_LOG_FUNCTION__                 \
+    }
+
+#define SPLC_ERROR()                                                           \
+    splc::utils::logging::internal::ErrorHelper {}
 
 #endif // __SPLC_UTILS_LOGGING_HH__

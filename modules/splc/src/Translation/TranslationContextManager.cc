@@ -4,19 +4,19 @@ namespace splc {
 
 TranslationContextManager::TranslationContextManager() {}
 
-Ptr<TranslationContext> TranslationContextManager::pushContext(Location &intrLoc,
-                                               std::string &fileName_)
+Ptr<TranslationContext>
+TranslationContextManager::pushContext(Location &intrLoc,
+                                       std::string &fileName_)
 {
-    Ptr<TranslationContext> context =
-        createPtr<TranslationContext>(TranslationContextBufferType::File, fileName_, intrLoc);
+    Ptr<TranslationContext> context = createPtr<TranslationContext>(
+        TranslationContextBufferType::File, fileName_, intrLoc);
     contextStack.push_back(context);
     allContexts.push_back(context);
     return context;
 }
 
-Ptr<TranslationContext> TranslationContextManager::pushContext(Location &intrLoc,
-                                               std::string &macroName_,
-                                               std::string &content_)
+Ptr<TranslationContext> TranslationContextManager::pushContext(
+    Location &intrLoc, std::string &macroName_, std::string &content_)
 {
     Ptr<TranslationContext> context = createPtr<TranslationContext>(
         TranslationContextBufferType::File, macroName_, intrLoc, content_);
@@ -32,12 +32,11 @@ Ptr<TranslationContext> TranslationContextManager::popContext()
     return context;
 }
 
-bool TranslationContextManager::isContextExistInStack(TranslationContextBufferType type_,
-                                              std::string_view contextName_)
+bool TranslationContextManager::isContextExistInStack(
+    TranslationContextBufferType type_, std::string_view contextName_)
 {
-    for (auto &contextPtr : contextStack)
-    {
-        if (contextPtr->name == contextName_)
+    for (auto &contextPtr : contextStack) {
+        if (contextPtr->type == type_ && contextPtr->name == contextName_)
             return true;
     }
     return false;

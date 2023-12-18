@@ -34,7 +34,7 @@ void Driver::parse(const std::vector<std::string> &filenameVector_)
     }
     fileIndex++;
     SPLC_ASSERT(in_file.good());
-    SPLC_LOG_DEBUG(nullptr, "filename: " << filenameVector[0]);
+    SPLC_LOG_DEBUG(nullptr) << "filename: " << filenameVector[0];
     builtinParse(filenameVector[0], in_file);
     return;
 }
@@ -63,9 +63,9 @@ int Driver::parseWrap(int size) {
         std::ifstream *in_file = new std::ifstream(filenameVector[fileIndex++]);
         std::string testString;
         *in_file >> testString;
-        SPLC_LOG_DEBUG(nullptr, "test string: " << testString);
+        SPLC_LOG_DEBUG(nullptr) << "test string: " << testString;
         yy_buffer_state *newBuffer = scanner->yy_create_buffer(in_file, size);
-        // SPLC_LOG_DEBUG(nullptr, "buffer state: " << newBuffer);
+        // SPLC_LOG_DEBUG(nullptr) << "buffer state: " << newBuffer;
         scanner->yy_switch_to_buffer((newBuffer));
         return 0;
     }

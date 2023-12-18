@@ -1,5 +1,5 @@
-#ifndef __SPLC_AST_ASTCONTEXT_HH__
-#define __SPLC_AST_ASTCONTEXT_HH__ 1
+#ifndef __SPLC_TRANSLATION_TRANSLATIONCONTEXT_HH__
+#define __SPLC_TRANSLATION_TRANSLATIONCONTEXT_HH__ 1
 
 #include <fstream>
 #include <iostream>
@@ -10,6 +10,8 @@
 
 #include "Core/splc.hh"
 
+#include "Translation/TranslationBase.hh"
+
 namespace splc {
 
 enum TranslationContextBufferType {
@@ -17,8 +19,8 @@ enum TranslationContextBufferType {
     MacroExpansion,
 };
 
-struct TranslationContext {
-
+class TranslationContext {
+  public:
     TranslationContext() = delete;
 
     TranslationContext(TranslationContextBufferType type_,
@@ -43,4 +45,4 @@ struct TranslationContext {
 
 } // namespace splc
 
-#endif // __SPLC_AST_ASTCONTEXT_HH__
+#endif // __SPLC_TRANSLATION_TRANSLATIONCONTEXT_HH__

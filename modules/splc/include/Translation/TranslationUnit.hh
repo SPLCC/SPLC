@@ -4,8 +4,10 @@
 
 #include "Core/splc.hh"
 
-#include "Translation/TranslationContextManager.hh"
 #include "AST/ASTNode.hh"
+
+#include "Translation/TranslationBase.hh"
+#include "Translation/TranslationContextManager.hh"
 
 namespace splc {
 
@@ -23,21 +25,28 @@ class TranslationUnit {
   public:
     TranslationUnit() = default;
 
-  private:
-    TranslationContextManager contextManager;
+  protected:
+    // TODO: add ASTContextManager?
+
+    /// Manages translation contexts, i.e., file inclusion and macro expansion.
+    TranslationContextManager translationContextManager;
+
+    /// Stores the root node of this translation unit.
     Ptr<ASTNode> rootNode;
 
   public:
-    /// Allow stream-like operation on ASTs for processing.
+    /// Allow stream-like operation on translation units for processing.
     template <class T, class Functor>
     requires IsTranslationUnit<T> && AllApplicableOnTranslationUnit<T, Functor>
     friend T &&operator>>(T &&unit, T && (*functor)(T &&));
 
+    /// Allow combined transforms on translation units for processing.
     template <class T, class... Functors>
     requires IsTranslationUnit<T> &&
         AllApplicableOnTranslationUnit<T, Functors...>
     friend T &&applyTranslationUnitTransform(T &&unit, Functors &&...functors);
 
+    friend class TranslationContextManager;
     friend class TranslationManager;
 };
 

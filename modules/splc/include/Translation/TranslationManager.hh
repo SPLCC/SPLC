@@ -7,6 +7,7 @@
 
 #include "Core/splc.hh"
 
+#include "Translation/TranslationBase.hh"
 #include "Translation/TranslationUnit.hh"
 
 namespace splc {
@@ -15,8 +16,10 @@ class TranslationManager {
   public:
     TranslationManager() = default;
 
+    // TODO
     void startTranslationRecord();
 
+    // TODO
     void endTranslationRecord();
 
     // TODO

@@ -55,6 +55,7 @@ int main(const int argc, const char **argv)
     applyASTTransform(*node, ASTProcess::removeASTPunctuators, ASTProcess::removeASTPunctuators);
 
     std::cout << treePrintTransform(*node);
+    SPLC_LOG_DEBUG(nullptr) << "Hi" << SPLC_LOGGER_TAG("debug");
     SPLC_ASSERT(std::string("23333").empty());
     return (EXIT_SUCCESS);
 }

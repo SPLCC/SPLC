@@ -42,7 +42,7 @@ class Driver {
 
     std::ostream &print(std::ostream &stream);
 
-  private:
+  protected:
     void builtinParse(const std::string &bufferName, std::istream &stream);
 
     Ptr<TranslationManager> translationManager;

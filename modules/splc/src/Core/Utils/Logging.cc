@@ -1,3 +1,5 @@
+#include <cstdlib>
+
 #include "Core/Utils/Logging.hh"
 
 namespace splc::utils::logging {
@@ -9,21 +11,19 @@ std::mutex logStreamMutex;
 // TODO: consider change logStream
 std::ostream *logStream = &std::cerr;
 
-std::ostream &getLogStream()
-{
-    return *logStream;
-}
+std::ostream &getLogStream() { return *logStream; }
 
-void handleMessage(const Level level, const Location *const locPtr,
-                   const std::string &msg, const std::string &exMsg)
+Logger::Logger() noexcept : localLogStream{*logStream}, level{Level::Empty}{}
+
+Logger::Logger(const Level level_, const Location *const locPtr_) noexcept
+    : localLogStream{*logStream}, level{level_}
 {
     std::lock_guard<std::mutex> lockGuard{logStreamMutex};
 
-    std::ostream &localLogStream = getLogStream();
     // Header
     localLogStream << ControlSeq::Bold;
-    if (locPtr != nullptr && locPtr->end.filename != nullptr) {
-        localLogStream << *locPtr;
+    if (locPtr_ != nullptr && locPtr_->end.filename != nullptr) {
+        localLogStream << *locPtr_;
     }
     else {
         localLogStream << "splc";
@@ -35,16 +35,31 @@ void handleMessage(const Level level, const Location *const locPtr,
         localLogStream << getLevelColor(level) << level << ControlSeq::Reset
                   << ": ";
     }
+}
 
-    localLogStream << msg;
+Logger::~Logger() noexcept
+{
+    // End this logstream
+    localLogStream << std::endl;
 
-    // Extra information
-    if (!exMsg.empty()) {
-        localLogStream << " [" << getLevelColor(level) << exMsg
-                  << ControlSeq::Reset;
+    if (level >= Level::Error) {
+        std::exit(EXIT_FAILURE);
     }
+}
 
-    localLogStream << "\n";
+AssertionHelper::AssertionHelper(bool cond_, const std::string &condText_,
+                                 const std::string &file_, int line_,
+                                 const std::string &functionName_) noexcept
+    : Logger{}, cond{cond_}, exitCode{SPLC_EXIT_ASSERTION_FAILURE}
+{
+    if (!cond) {
+        localLogStream << "Assertion failed at " << file_
+                       << ", line " << line_;
+        if (!functionName_.empty()) {
+            localLogStream << ", at function: " << functionName_;
+        }
+        localLogStream << "\n    " << condText_;
+    }
 }
 
 } // namespace internal

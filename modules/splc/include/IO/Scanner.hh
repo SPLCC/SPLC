@@ -37,7 +37,7 @@ class Scanner : public SplcFlexLexer {
     /// input stream.
     virtual int yywrap();
 
-  private:
+  protected:
     Driver &driver;
     std::string filename;
 
