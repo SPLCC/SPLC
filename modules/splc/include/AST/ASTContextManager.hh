@@ -1,5 +1,5 @@
-#ifndef __SPLC_AST_CONTEXT_MANAGER_HH__
-#define __SPLC_AST_CONTEXT_MANAGER_HH__ 1
+#ifndef __SPLC_AST_CONTEXTMANAGER_HH__
+#define __SPLC_AST_CONTEXTMANAGER_HH__ 1
 
 #include <fstream>
 #include <iostream>
@@ -62,4 +62,4 @@ class ASTContextManager {
 
 } // namespace splc
 
-#endif // __SPLC_AST_CONTEXT_MANAGER_HH__
+#endif // __SPLC_AST_CONTEXTMANAGER_HH__

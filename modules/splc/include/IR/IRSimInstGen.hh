@@ -1,5 +1,5 @@
-#ifndef __SPLC_IR_SIM_INST_GEN_HH__
-#define __SPLC_IR_SIM_INST_GEN_HH__ 1
+#ifndef __SPLC_IR_IRSIMINSTGEN_HH__
+#define __SPLC_IR_IRSIMINSTGEN_HH__ 1
 
 #include <string>
 
@@ -17,4 +17,4 @@ class IRManager {
 
 } // namespace splc::IR
 
-#endif // __SPLC_IR_SIM_INST_GEN_HH__
+#endif // __SPLC_IR_IRSIMINSTGEN_HH__

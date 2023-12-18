@@ -1,5 +1,5 @@
-#ifndef __SPLC_AST_CONTEXT_HH__
-#define __SPLC_AST_CONTEXT_HH__ 1
+#ifndef __SPLC_AST_ASTCONTEXT_HH__
+#define __SPLC_AST_ASTCONTEXT_HH__ 1
 
 #include <fstream>
 #include <iostream>
@@ -42,4 +42,4 @@ struct ASTContext {
 
 } // namespace splc
 
-#endif // __SPLC_AST_CONTEXT_HH__
+#endif // __SPLC_AST_ASTCONTEXT_HH__

@@ -1,5 +1,5 @@
-#ifndef __SPLC_CORE_UTILS_LOCATION_WRAPPER_HH__
-#define __SPLC_CORE_UTILS_LOCATION_WRAPPER_HH__ 1
+#ifndef __SPLC_CORE_UTILS_LOCATIONWRAPPER_HH__
+#define __SPLC_CORE_UTILS_LOCATIONWRAPPER_HH__ 1
 
 #include "Core/Utils/location.hh"
 
@@ -17,4 +17,4 @@ using Location = splc::utils::Location;
 
 } // namespace splc
 
-#endif // __SPLC_CORE_UTILS_LOCATION_WRAPPER_HH__
+#endif // __SPLC_CORE_UTILS_LOCATIONWRAPPER_HH__

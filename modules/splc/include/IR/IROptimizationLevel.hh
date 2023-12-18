@@ -1,5 +1,5 @@
-#ifndef __SPLC_IR_OPTIMIZATION_LEVEL_HH__
-#define __SPLC_IR_OPTIMIZATION_LEVEL_HH__ 1
+#ifndef __SPLC_IR_IROPTIMIZATIONLEVEL_HH__
+#define __SPLC_IR_IROPTIMIZATIONLEVEL_HH__ 1
 
 #include <string>
 
@@ -14,4 +14,4 @@ enum OptimizeLevel {
 
 } // namespace splc::IR
 
-#endif // __SPLC_IR_OPTIMIZATION_LEVEL_HH__
+#endif // __SPLC_IR_IROPTIMIZATIONLEVEL_HH__

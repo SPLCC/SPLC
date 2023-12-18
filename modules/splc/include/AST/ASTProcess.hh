@@ -1,5 +1,5 @@
-#ifndef __SPLC_AST_AST_PROCESS_HH__
-#define __SPLC_AST_AST_PROCESS_HH__ 1
+#ifndef __SPLC_AST_ASTPROCESS_HH__
+#define __SPLC_AST_ASTPROCESS_HH__ 1
 
 #include <iostream>
 #include <map>
@@ -20,4 +20,4 @@ ASTNode &removeASTPunctuators(ASTNode &node);
 
 } // namespace splc
 
-#endif // __SPLC_AST_AST_PROCESS_HH__
+#endif // __SPLC_AST_ASTPROCESS_HH__

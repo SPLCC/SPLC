@@ -1,5 +1,5 @@
-#ifndef __SPLC_AST_AST_TOKEN_HH__
-#define __SPLC_AST_AST_TOKEN_HH__ 1
+#ifndef __SPLC_AST_ASTTOKEN_HH__
+#define __SPLC_AST_ASTTOKEN_HH__ 1
 
 #include <iostream>
 
@@ -62,4 +62,4 @@ inline std::ostream &operator<<(std::ostream &os,
 
 } // namespace splc
 
-#endif // __SPLC_AST_AST_TOKEN_HH__
+#endif // __SPLC_AST_ASTTOKEN_HH__

@@ -1,5 +1,5 @@
-#ifndef __SPLC_CORE_UTILS_CONTROL_SEQUENCE_HH__
-#define __SPLC_CORE_UTILS_CONTROL_SEQUENCE_HH__ 1
+#ifndef __SPLC_CORE_UTILS_CONTROLSEQUENCE_HH__
+#define __SPLC_CORE_UTILS_CONTROLSEQUENCE_HH__ 1
 
 #include <iostream>
 #include <string>
@@ -126,4 +126,4 @@ static inline std::ostream &operator<<(std::ostream &os, ControlSeq seqType)
 }
 } // namespace splc::utils::logging
 
-#endif // __SPLC_CORE_UTILS_CONTROL_SEQUENCE_HH__
+#endif // __SPLC_CORE_UTILS_CONTROLSEQUENCE_HH__

@@ -1,5 +1,5 @@
-#ifndef __SPLC_CORE_UTILS_COMMAND_LINE_PARSER_HH__
-#define __SPLC_CORE_UTILS_COMMAND_LINE_PARSER_HH__ 1
+#ifndef __SPLC_CORE_UTILS_COMMANDLINEPARSER_HH__
+#define __SPLC_CORE_UTILS_COMMANDLINEPARSER_HH__ 1
 
 #include <memory>
 
@@ -11,4 +11,4 @@ class CommandLineParser {
 
 } // namespace splc::utils
 
-#endif // __SPLC_CORE_UTILS_COMMAND_LINE_PARSER_HH__
+#endif // __SPLC_CORE_UTILS_COMMANDLINEPARSER_HH__

@@ -1,5 +1,5 @@
-#ifndef __SPLC_UTILS_LOGGING_LEVEL_HH__
-#define __SPLC_UTILS_LOGGING_LEVEL_HH__ 1
+#ifndef __SPLC_UTILS_LOGGINGLEVEL_HH__
+#define __SPLC_UTILS_LOGGINGLEVEL_HH__ 1
 
 #include <iostream>
 #include <string>
@@ -122,4 +122,4 @@ inline std::ostream &operator<<(std::ostream &os,
 
 } // namespace splc::utils::logging
 
-#endif // __SPLC_UTILS_LOGGING_LEVEL_HH__
+#endif // __SPLC_UTILS_LOGGINGLEVEL_HH__

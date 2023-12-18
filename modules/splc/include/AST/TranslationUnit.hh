@@ -1,6 +1,6 @@
 #include <type_traits>
-#ifndef __SPLC_AST_TRANSLATION_UNIT_HH__
-#define __SPLC_AST_TRANSLATION_UNIT_HH__ 1
+#ifndef __SPLC_AST_TRANSLATIONUNIT_HH__
+#define __SPLC_AST_TRANSLATIONUNIT_HH__ 1
 
 #include "Core/splc.hh"
 
@@ -57,4 +57,4 @@ inline T &&applyTranslationUnitTransform(T &&unit, Functors &&...functors)
 
 } // namespace splc
 
-#endif /// __SPLC_AST_TRANSLATION_UNIT_HH__
+#endif /// __SPLC_AST_TRANSLATIONUNIT_HH__

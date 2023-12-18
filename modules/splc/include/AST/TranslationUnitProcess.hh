@@ -1,5 +1,5 @@
-#ifndef __SPLC_AST_TRANSLATION_UNIT_PROCESS_HH__
-#define __SPLC_AST_TRANSLATION_UNIT_PROCESS_HH__ 1
+#ifndef __SPLC_AST_TRANSLATIONUNITPROCESS_HH__
+#define __SPLC_AST_TRANSLATIONUNITPROCESS_HH__ 1
 
 #include <vector>
 
@@ -11,4 +11,4 @@ namespace splc {
 
 } // namespace splc::module
 
-#endif // __SPLC_AST_TRANSLATION_UNIT_PROCESS_HH__
+#endif // __SPLC_AST_TRANSLATIONUNITPROCESS_HH__

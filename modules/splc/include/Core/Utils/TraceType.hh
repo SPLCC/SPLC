@@ -1,5 +1,5 @@
-#ifndef __SPLC_UTILS_LOGGING_TRACE_TYPE_HH__
-#define __SPLC_UTILS_LOGGING_TRACE_TYPE_HH__ 1
+#ifndef __SPLC_UTILS_LOGGING_TRACETYPE_HH__
+#define __SPLC_UTILS_LOGGING_TRACETYPE_HH__ 1
 
 #include <iostream>
 #include <string>
@@ -42,4 +42,4 @@ static inline std::ostream &operator<<(std::ostream &os, TraceType type)
 
 } // namespace splc::utils::logging
 
-#endif // __SPLC_UTILS_LOGGING_TRACE_TYPE_HH__
+#endif // __SPLC_UTILS_LOGGING_TRACETYPE_HH__
