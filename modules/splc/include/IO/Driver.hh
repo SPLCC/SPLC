@@ -21,7 +21,7 @@ class Driver {
   public:
     Driver();
 
-    /// Parse from a file
+    /// \brief Parse from a file
     /// \param filename valid string with input file
     Ptr<TranslationUnit> parse(std::string_view filename);
 
@@ -47,10 +47,6 @@ class Driver {
     Ptr<TranslationManager> translationManager;
     Ptr<Parser> parser;
     Ptr<Scanner> scanner;
-
-    // TODO: remove experimental
-    std::vector<std::string> filenameVector;
-    size_t fileIndex;
 
     std::size_t chars = 0;
     std::size_t words = 0;

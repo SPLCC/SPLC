@@ -10,6 +10,12 @@
 #include "AST/ASTProcess.hh"
 #include "IO/Driver.hh"
 
+using splc::utils::logging::internal::Logger;
+
+Logger getLogger() {
+    return SPLC_LOG_DEBUG(nullptr);
+}
+
 int main(const int argc, const char **argv)
 {
     // check for the right # of arguments
@@ -33,7 +39,6 @@ int main(const int argc, const char **argv)
     filenameVector.resize(argc - 1);
     std::transform(argv + 1, argv + argc, filenameVector.begin(), [](const char * str) { return std::string{str}; });
     driver.parse(filenameVector[0]);
-    
     driver.print(std::cout) << "\n";
 
     using namespace splc;
@@ -49,7 +54,9 @@ int main(const int argc, const char **argv)
     applyASTTransform(*node, ASTProcess::removeASTPunctuators, ASTProcess::removeASTPunctuators);
 
     std::cout << treePrintTransform(*node);
-    SPLC_LOG_DEBUG(nullptr) << "Hi" << SPLC_LOGGER_TAG("debug");
+    SPLC_LOG_DEBUG(nullptr) << "Hi" << SPLC_LOGGER_TAG("debug tag");
+
     SPLC_ASSERT(std::string("23333").empty());
+    
     return (EXIT_SUCCESS);
 }

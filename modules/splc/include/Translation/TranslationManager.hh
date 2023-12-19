@@ -1,3 +1,4 @@
+#include "Core/Utils/LoggingLevel.hh"
 #include <cstddef>
 #ifndef __SPLC_TRANSLATION_TRANSLATIONMANAGER_HH__
 #define __SPLC_TRANSLATION_TRANSLATIONMANAGER_HH__ 1
@@ -52,18 +53,20 @@ class TranslationManager {
     }
 
     /// \brief Push a new translation context into the stack.
-    /// \param intrLoc The location where context switch occurred. Note that this location
-    ///                accepts `nullptr` for representing non-existing locations.
-    ///                Internally, a copy is maintained, so that the original location 
-    ///                will not be affected.
+    /// \param intrLoc The location where context switch occurred. Note that
+    /// this location
+    ///                accepts `nullptr` for representing non-existing
+    ///                locations. Internally, a copy is maintained, so that the
+    ///                original location will not be affected.
     Ptr<TranslationContext> pushTranslationContext(const Location *intrLoc_,
                                                    std::string_view fileName_);
 
     /// \brief Push a new translation context into the stack.
-    /// \param intrLoc The location where context switch occurred. Note that this location
-    ///                accepts `nullptr` for representing non-existing locations.
-    ///                Internally, a copy is maintained, so that the original location 
-    ///                will not be affected.
+    /// \param intrLoc The location where context switch occurred. Note that
+    /// this location
+    ///                accepts `nullptr` for representing non-existing
+    ///                locations. Internally, a copy is maintained, so that the
+    ///                original location will not be affected.
     Ptr<TranslationContext> pushTranslationContext(const Location *intrLoc_,
                                                    std::string_view macroName_,
                                                    std::string_view content_);
@@ -76,6 +79,21 @@ class TranslationManager {
     Ptr<TranslationUnit> tunit;
 };
 
+class TranslationLogger : public splc::utils::logging::internal::Logger {
+  public:
+    using Level = splc::utils::logging::Level;
+
+    TranslationLogger(const Ptr<const TranslationUnit> tunit_, const bool trace_,
+                      const Location *locPtr_, const Level level_);
+    
+    ~TranslationLogger();
+
+  private:
+    Ptr<const TranslationUnit> tunit;
+};
+
 } // namespace splc
+
+#define SPLC_TRANS_LOG_DEBUG(translationManager_, locPtr_)
 
 #endif // __SPLC_TRANSLATION_TRANSLATIONMANAGER_HH__

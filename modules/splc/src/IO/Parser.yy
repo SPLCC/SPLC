@@ -58,11 +58,12 @@
 // Start of production section
 %%
 
-list_option : | List;
+list_option : | List {}
+  ;
 
 List
-  : item
-  | List item
+  : item {}
+  | List item {}
   ;
 
 item

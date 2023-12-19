@@ -67,9 +67,14 @@ class Logger {
     Logger(const bool enable_, const Level level_,
            const Location *const locPtr_) noexcept;
 
-    /// Just prevent users from doing stuff like storing this logger for
-    /// some mysterious purposes
     Logger(Logger &other) = delete;
+    Logger(Logger &&other)
+        : enable{other.enable},
+          localLogStream{other.localLogStream}, level{other.level}
+    {
+        other.enable = false;
+    }
+
     Logger &operator=(Logger &other) = delete;
 
     ~Logger() noexcept;
@@ -94,6 +99,8 @@ class Logger {
     }
 
     bool isEnabled() const noexcept { return enable; }
+
+    void setEnabled(bool enable_) noexcept { enable = enable_; }
 
   protected:
     bool enable;
@@ -121,6 +128,7 @@ class AssertionHelper : public Logger {
     ~AssertionHelper() noexcept
     {
         if (Logger::isEnabled() && !cond) {
+            setEnabled(false);
             localLogStream << std::endl;
             exit(exitCode);
         }
@@ -137,6 +145,7 @@ class ErrorHelper : public Logger {
 
     ~ErrorHelper() noexcept
     {
+        setEnabled(false);
         localLogStream << std::endl;
         exit(exitCode);
     };

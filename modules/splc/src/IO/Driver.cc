@@ -66,7 +66,7 @@ Ptr<TranslationUnit> Driver::internalParse(Ptr<TranslationContext> initialContex
 
     if (parser->parse() != accept) {
         // TODO: revise
-        std::cerr << "Parse failed!!\n";
+        SPLC_LOG_DEBUG(nullptr) << "Parse failed.";
     }
     translationManager->endTranslationRecord();
 

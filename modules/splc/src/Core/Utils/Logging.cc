@@ -1,5 +1,6 @@
 #include <cstdlib>
 
+#include "Core/Utils/ControlSequence.hh"
 #include "Core/Utils/Logging.hh"
 
 namespace splc::utils::logging {
@@ -22,6 +23,9 @@ Logger::Logger(const bool enable_, const Level level_,
                const Location *const locPtr_) noexcept
     : enable(enable_), localLogStream{*logStream}, level{level_}
 {
+    if(!isEnabled())
+        return;
+
     std::lock_guard<std::mutex> lockGuard{logStreamMutex};
 
     // Header
@@ -44,24 +48,28 @@ Logger::Logger(const bool enable_, const Level level_,
 Logger::~Logger() noexcept
 {
     // End this logstream
-    localLogStream << std::endl;
-
-    if (level >= Level::Error) {
-        std::exit(EXIT_FAILURE);
+    if (isEnabled()) {
+        localLogStream << std::endl;
+        if (level >= Level::Error) {
+            std::exit(EXIT_FAILURE);
+        }
     }
 }
 
 AssertionHelper::AssertionHelper(bool cond_, const std::string &condText_,
                                  const std::string &file_, int line_,
                                  const std::string &functionName_) noexcept
-    : Logger{!cond_}, cond{cond_}, exitCode{SPLC_EXIT_ASSERTION_FAILURE}
+    : Logger{!cond_, Level::Error, nullptr}, cond{cond_},
+      exitCode{SPLC_EXIT_ASSERTION_FAILURE}
 {
     if (!cond) {
         localLogStream << "Assertion failed at " << file_ << ", line " << line_;
         if (!functionName_.empty()) {
             localLogStream << ", at function: " << functionName_;
         }
-        localLogStream << "\n    " << condText_;
+        localLogStream << "\nCondition evaluated to false: `"
+                       << ControlSeq::Bold << condText_ << ControlSeq::Reset
+                       << "'";
     }
 }
 
