@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <sstream>
 
 #include "Core/System.hh"
@@ -10,10 +11,11 @@ namespace splc {
 TranslationContextManager::TranslationContextManager() : contextID{0} {}
 
 Ptr<TranslationContext>
-TranslationContextManager::pushContext(const Location &intrLoc,
-                                       const std::string &fileName_)
+TranslationContextManager::pushContext(const Location *intrLoc,
+                                       std::string_view fileName_)
 {
-    Ptr<std::istream> inputStream = createPtr<std::ifstream>(fileName_);
+    Ptr<std::istream> inputStream =
+        createPtr<std::ifstream>(std::string{fileName_});
     if (!inputStream) {
         using ControlSeq = utils::logging::ControlSeq;
         SPLC_LOG_ERROR(nullptr) << ControlSeq::Bold << "no such file: '"
@@ -30,11 +32,12 @@ TranslationContextManager::pushContext(const Location &intrLoc,
 }
 
 Ptr<TranslationContext>
-TranslationContextManager::pushContext(const Location &intrLoc,
-                                       const std::string &macroName_,
-                                       const std::string &content_)
+TranslationContextManager::pushContext(const Location *intrLoc,
+                                       std::string_view macroName_,
+                                       std::string_view content_)
 {
-    Ptr<std::istream> inputStream = createPtr<std::istringstream>(content_);
+    Ptr<std::istream> inputStream =
+        createPtr<std::istringstream>(std::string{content_});
 
     Ptr<TranslationContext> context = createPtr<TranslationContext>(
         contextID++, TranslationContextBufferType::MacroExpansion, macroName_,

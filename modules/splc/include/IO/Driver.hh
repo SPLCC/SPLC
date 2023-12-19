@@ -1,3 +1,4 @@
+#include "Translation/TranslationBase.hh"
 #ifndef __SPLC_IO_DRIVER_HH__
 #define __SPLC_IO_DRIVER_HH__ 1
 
@@ -22,15 +23,15 @@ class Driver {
 
     /// Parse from a file
     /// \param filename valid string with input file
-    Ptr<TranslationUnit> parse(const std::string &filename);
+    Ptr<TranslationUnit> parse(std::string_view filename);
 
-    // TODO: remove experimental
-    Ptr<TranslationUnit> parse(const std::vector<std::string> &filenameVector);
+    // // TODO: remove experimental
+    // Ptr<TranslationUnit> parse(const std::vector<std::string> &filenameVector);
 
-    /// Parse from a c++ input stream
-    /// \param is std::istream&, valid input stream
-    Ptr<TranslationUnit> parse(const std::string &streamName,
-                               std::istream &iss);
+    // /// Parse from a c++ input stream
+    // /// \param is std::istream&, valid input stream
+    // Ptr<TranslationUnit> parse(const std::string &streamName,
+    //                            std::istream &iss);
 
     void add_upper();
     void add_lower();
@@ -41,8 +42,7 @@ class Driver {
     std::ostream &print(std::ostream &stream);
 
   protected:
-    Ptr<TranslationUnit> builtinParse(const std::string &bufferName,
-                                      std::istream &stream);
+    Ptr<TranslationUnit> internalParse(Ptr<TranslationContext> initialContext);
 
     Ptr<TranslationManager> translationManager;
     Ptr<Parser> parser;

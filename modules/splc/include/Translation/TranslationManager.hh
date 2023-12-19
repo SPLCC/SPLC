@@ -13,9 +13,9 @@
 
 namespace splc {
 
-/// \brief class `TranslationManager` is designed to decouple the tight cohesion between 
-/// the driver class and the scanner class. It provides basic facilities such as
-/// context switching, error reporting, and stuff.
+/// \brief class `TranslationManager` is designed to decouple the tight cohesion
+/// between the driver class and the scanner class. It provides basic facilities
+/// such as context switching, error reporting, and stuff.
 class TranslationManager {
   public:
     TranslationManager() = default;
@@ -26,14 +26,20 @@ class TranslationManager {
     // TODO
     void endTranslationRecord();
 
+    void reset();
+
+    // TODO
+    void getCurrentASTContext();
+
     // TODO
     void pushASTContext();
 
     // TODO
     void popASTContext();
 
-    // TODO
-    void getCurrentASTContext();
+    Ptr<TranslationContext> getCurrentTranslationContext();
+
+    const std::string &getCurrentTranslationContextName();
 
     bool translationContextStackEmpty() const
     {
@@ -45,20 +51,26 @@ class TranslationManager {
         return tunit->translationContextManager.contextStackSize();
     }
 
-    Ptr<TranslationContext>
-    pushTranslationContext(const Location &intrLoc_,
-                           const std::string &fileName_);
+    /// \brief Push a new translation context into the stack.
+    /// \param intrLoc The location where context switch occurred. Note that this location
+    ///                accepts `nullptr` for representing non-existing locations.
+    ///                Internally, a copy is maintained, so that the original location 
+    ///                will not be affected.
+    Ptr<TranslationContext> pushTranslationContext(const Location *intrLoc_,
+                                                   std::string_view fileName_);
 
-    Ptr<TranslationContext>
-    pushTranslationContext(const Location &intrLoc_,
-                           const std::string &macroName_,
-                           const std::string &content_);
+    /// \brief Push a new translation context into the stack.
+    /// \param intrLoc The location where context switch occurred. Note that this location
+    ///                accepts `nullptr` for representing non-existing locations.
+    ///                Internally, a copy is maintained, so that the original location 
+    ///                will not be affected.
+    Ptr<TranslationContext> pushTranslationContext(const Location *intrLoc_,
+                                                   std::string_view macroName_,
+                                                   std::string_view content_);
 
     Ptr<TranslationContext> popTranslationContext();
 
     Ptr<TranslationUnit> getTranslationUnit();
-
-    Ptr<TranslationContext> getCurrentTranslationContext();
 
   protected:
     Ptr<TranslationUnit> tunit;

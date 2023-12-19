@@ -13,6 +13,8 @@ void TranslationManager::startTranslationRecord()
 
 void TranslationManager::endTranslationRecord() {}
 
+void TranslationManager::reset() { tunit.reset(); }
+
 void TranslationManager::pushASTContext()
 {
     // TODO
@@ -28,9 +30,19 @@ void TranslationManager::getCurrentASTContext()
     // TODO
 }
 
+Ptr<TranslationContext> TranslationManager::getCurrentTranslationContext()
+{
+    return tunit->translationContextManager.getCurrentContext();
+}
+
+const std::string &TranslationManager::getCurrentTranslationContextName()
+{
+    return tunit->translationContextManager.getCurrentContext()->name;
+}
+
 Ptr<TranslationContext>
-TranslationManager::pushTranslationContext(const Location &intrLoc_,
-                                           const std::string &fileName_)
+TranslationManager::pushTranslationContext(const Location *intrLoc_,
+                                           std::string_view fileName_)
 {
     Ptr<TranslationContext> context =
         tunit->translationContextManager.pushContext(intrLoc_, fileName_);
@@ -38,9 +50,9 @@ TranslationManager::pushTranslationContext(const Location &intrLoc_,
 }
 
 Ptr<TranslationContext>
-TranslationManager::pushTranslationContext(const Location &intrLoc_,
-                                           const std::string &macroName_,
-                                           const std::string &content_)
+TranslationManager::pushTranslationContext(const Location *intrLoc_,
+                                           std::string_view macroName_,
+                                           std::string_view content_)
 {
     Ptr<TranslationContext> context =
         tunit->translationContextManager.pushContext(intrLoc_, macroName_,
@@ -57,11 +69,6 @@ Ptr<TranslationContext> TranslationManager::popTranslationContext()
         tunit->translationContextManager.popContext();
     // scanner->yypop_buffer_state();
     return context;
-}
-
-Ptr<TranslationContext> TranslationManager::getCurrentTranslationContext()
-{
-    return tunit->translationContextManager.getCurrentContext();
 }
 
 Ptr<TranslationUnit> TranslationManager::getTranslationUnit() { return tunit; }

@@ -3,64 +3,64 @@
 #include <fstream>
 #include <string_view>
 
+#include "Core/System.hh"
 #include "Core/Utils.hh"
 
 #include "IO/Driver.hh"
+#include "Translation/TranslationBase.hh"
 #include "Translation/TranslationManager.hh"
 
 namespace splc::IO {
 
 Driver::Driver() { translationManager = createPtr<TranslationManager>(); }
 
-Ptr<TranslationUnit> Driver::parse(const std::string &filename)
+Ptr<TranslationUnit> Driver::parse(std::string_view filename)
 {
-    SPLC_ASSERT(!filename.empty());
-    std::ifstream in_file(filename);
-    if (!in_file.good()) {
-        exit(EXIT_FAILURE);
-    }
-    Ptr<TranslationUnit> tunit = builtinParse(filename, in_file);
+    translationManager->startTranslationRecord();
+    Ptr<TranslationContext> context = translationManager->pushTranslationContext(nullptr, filename);
+    Ptr<TranslationUnit> tunit = internalParse(context);
     return tunit;
 }
 
-// TODO: remove experimental
-Ptr<TranslationUnit>
-Driver::parse(const std::vector<std::string> &filenameVector_)
-{
-    filenameVector = filenameVector_;
-    fileIndex = 0;
-    std::ifstream in_file(filenameVector[0]);
-    if (!in_file.good()) {
-        exit(EXIT_FAILURE);
-    }
-    fileIndex++;
-    SPLC_LOG_DEBUG(nullptr) << "parsing filename: " << filenameVector[0];
-    Ptr<TranslationUnit> tunit = builtinParse(filenameVector[0], in_file);
-    return tunit;
-}
+// // TODO: remove experimental
+// Ptr<TranslationUnit>
+// Driver::parse(const std::vector<std::string> &filenameVector_)
+// {
+//     filenameVector = filenameVector_;
+//     fileIndex = 0;
+//     std::ifstream in_file(filenameVector[0]);
+//     if (!in_file.good()) {
+//         exit(EXIT_FAILURE);
+//     }
+//     fileIndex++;
+//     SPLC_LOG_DEBUG(nullptr) << "parsing filename: " << filenameVector[0];
+
+//     Ptr<TranslationUnit> tunit = builtinParse(filenameVector[0], in_file);
+//     return tunit;
+// }
 
 // TODO: revise whether this should remain
-Ptr<TranslationUnit> Driver::parse(const std::string &streamName,
-                                   std::istream &stream)
-{
-    if (!stream.good() && stream.eof()) {
-        return {};
-    }
-    // else
-    if (&stream == &std::cin) {
-        Ptr<TranslationUnit> tunit = builtinParse(streamName, stream);
-        return tunit;
-    }
-    return {};
-}
+// Ptr<TranslationUnit> Driver::parse(const std::string &streamName,
+//                                    std::istream &stream)
+// {
+//     if (!stream.good() && stream.eof()) {
+//         return {};
+//     }
+//     // else
+//     if (&stream == &std::cin) {
+//         Ptr<TranslationUnit> tunit = builtinParse(streamName, stream);
+//         return tunit;
+//     }
+//     return {};
+// }
 
-Ptr<TranslationUnit> Driver::builtinParse(const std::string &bufferName,
-                                          std::istream &stream)
+Ptr<TranslationUnit> Driver::internalParse(Ptr<TranslationContext> initialContext)
 {
-    scanner = createPtr<Scanner>(*translationManager, &stream);
+    scanner = createPtr<Scanner>(*translationManager);
     parser = createPtr<Parser>(*translationManager, *this, *scanner);
-
-    translationManager->startTranslationRecord();
+    
+    yy_buffer_state *initialState = scanner->yy_create_buffer(initialContext->inputStream.get(), SPLC_BUF_SIZE);
+    scanner->yypush_buffer_state(initialState);
 
     const int accept{0};
 

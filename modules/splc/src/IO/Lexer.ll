@@ -34,8 +34,8 @@ using Token = splc::IO::Parser::token;
 %%
 %{          /** Code executed at the beginning of yylex **/
             yylval = lval;
-            loc->begin.filename = &filename;
-            loc->end.filename = &filename;
+            loc->begin.filename = &translationManager.getCurrentTranslationContextName();
+            loc->end.filename = &translationManager.getCurrentTranslationContextName();
 %}
 
 [a-z]       {

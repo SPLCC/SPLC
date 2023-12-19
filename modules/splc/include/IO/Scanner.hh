@@ -18,7 +18,7 @@ namespace splc::IO {
 class Scanner : public SplcFlexLexer {
   public:
     // TODO: switch to translationManager
-    Scanner(TranslationManager &translationManager_, std::istream *in)
+    Scanner(TranslationManager &translationManager_, std::istream *in = nullptr)
         : translationManager{translationManager_}, SplcFlexLexer{in} {};
     virtual ~Scanner(){};
 
@@ -40,7 +40,6 @@ class Scanner : public SplcFlexLexer {
 
   protected:
     TranslationManager &translationManager;
-    std::string filename;
 
     /// yyval ptr
     splc::IO::Parser::value_type *yylval = nullptr;

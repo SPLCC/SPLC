@@ -28,18 +28,12 @@ int main(const int argc, const char **argv)
 
     splc::IO::Driver driver;
 
-    // example for piping input from terminal, i.e., using cat
-    if (std::strncmp(argv[1], "-o", 2) == 0) {
-        driver.parse("stdin", std::cin);
-    }
-    // example reading input from a file
-    else {
-        // assume file, prod code, use stat to check
-        std::vector<std::string> filenameVector;
-        filenameVector.resize(argc - 1);
-        std::transform(argv + 1, argv + argc, filenameVector.begin(), [](const char * str) { return std::string{str}; });
-        driver.parse(filenameVector);
-    }
+    // assume file, prod code, use stat to check
+    std::vector<std::string> filenameVector;
+    filenameVector.resize(argc - 1);
+    std::transform(argv + 1, argv + argc, filenameVector.begin(), [](const char * str) { return std::string{str}; });
+    driver.parse(filenameVector[0]);
+    
     driver.print(std::cout) << "\n";
 
     using namespace splc;

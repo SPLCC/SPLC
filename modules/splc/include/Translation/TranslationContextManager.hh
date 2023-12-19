@@ -25,15 +25,15 @@ class TranslationContextManager {
     /// \brief Push a new file into context manager. If no such file exist,
     /// throw a runtime error.
     /// \param intrLocation interrupt location
-    Ptr<TranslationContext> pushContext(const Location &intrLocation,
-                                        const std::string &fileName_);
+    Ptr<TranslationContext> pushContext(const Location *intrLocation,
+                                        std::string_view fileName_);
 
     /// \brief Push a macro substitution into context manager, switching to
     /// macro substitution.
     /// \param intrLocation interrupt location
-    Ptr<TranslationContext> pushContext(const Location &intrLocation,
-                                        const std::string &macroName_,
-                                        const std::string &content_);
+    Ptr<TranslationContext> pushContext(const Location *intrLocation,
+                                        std::string_view macroName_,
+                                        std::string_view ontent_);
 
     /// \brief Pop the topmost context.
     /// If there does not exist such context, or if all the contexts
