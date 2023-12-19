@@ -1,12 +1,17 @@
 #include "IO/Scanner.hh"
-#include "Core/Utils/Logging.hh"
+
+// *This file constitute only part of the definition of class
+// `splc::IO::Scanner`. *The remaining implementation comes from `IO/lexer.ll".
 
 namespace splc::IO {
 
-int Scanner::yywrap()
+int splc::IO::Scanner::yywrap()
 {
-    int k = driver.parseWrap(SPLC_BUF_SIZE);
-    return k;
+    if (translationManager.translationContextStackSize()) {
+        Ptr<TranslationContext> context =
+            translationManager.popTranslationContext();
+    }
+    return translationManager.translationContextStackEmpty();
 }
 
 } // namespace splc::IO

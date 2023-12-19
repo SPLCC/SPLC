@@ -5,6 +5,11 @@
 
 namespace splc {
 
+class Type {
+  public:
+    
+};
+
 } // namespace splc
 
 #endif // __SPLC_AST_TYPE_HH__

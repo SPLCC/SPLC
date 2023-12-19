@@ -9,10 +9,10 @@
 
 #include "Core/splc.hh"
 
-#include "Translation/TranslationManager.hh"
 #include "IO/IOBase.hh"
 #include "IO/Parser.hh"
 #include "IO/Scanner.hh"
+#include "Translation/TranslationManager.hh"
 
 namespace splc::IO {
 
@@ -22,17 +22,15 @@ class Driver {
 
     /// Parse from a file
     /// \param filename valid string with input file
-    void parse(const std::string &filename);
+    Ptr<TranslationUnit> parse(const std::string &filename);
 
     // TODO: remove experimental
-    void parse(const std::vector<std::string> &filenameVector);
+    Ptr<TranslationUnit> parse(const std::vector<std::string> &filenameVector);
 
     /// Parse from a c++ input stream
     /// \param is std::istream&, valid input stream
-    void parse(const std::string &streamName, std::istream &iss);
-
-    // TODO: remove experimental
-    int parseWrap(int size);
+    Ptr<TranslationUnit> parse(const std::string &streamName,
+                               std::istream &iss);
 
     void add_upper();
     void add_lower();
@@ -43,7 +41,8 @@ class Driver {
     std::ostream &print(std::ostream &stream);
 
   protected:
-    void builtinParse(const std::string &bufferName, std::istream &stream);
+    Ptr<TranslationUnit> builtinParse(const std::string &bufferName,
+                                      std::istream &stream);
 
     Ptr<TranslationManager> translationManager;
     Ptr<Parser> parser;

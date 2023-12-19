@@ -9,6 +9,12 @@
 
 namespace splc {
 
+/// \brief `ASTContext` describes variables in a particular scope.
+class ASTContext {
+  public:
+    
+};
+
 } // namespace splc
 
 #endif // __SPLC_AST_ASTCONTEXT_HH__

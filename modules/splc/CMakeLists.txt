@@ -38,7 +38,7 @@ FLEX_TARGET(SPLC_Lexer ${SRC_DIR_IO}/Lexer.ll ${GENERATED_SRC_DIR_IO}/Lexer.cc)
 # FLEX_TARGET(SPLC_Lexer ${SRC_DIR_IO}/Lexer.ll ${GENERATED_SRC_DIR_IO}/Lexer.cc COMPILE_FLAGS DEFINES_FILE ${GENERATED_INCL_DIR_IO}/Lexer.hh)
 
 # Bison parser: Parser
-BISON_TARGET(SPLC_Parser ${SRC_DIR_IO}/Parser.yy ${GENERATED_SRC_DIR_IO}/Parser.cc COMPILE_FLAGS DEFINES_FILE ${GENERATED_INCL_DIR_IO}/Parser.hh)
+BISON_TARGET(SPLC_Parser ${SRC_DIR_IO}/Parser.yy ${GENERATED_SRC_DIR_IO}/Parser.cc COMPILE_FLAGS "-Wcex -Wmidrule-value" DEFINES_FILE ${GENERATED_INCL_DIR_IO}/Parser.hh)
 
 # splc_IO shared library
 add_library(splc_IO SHARED ${FLEX_SPLC_Lexer_OUTPUTS} ${BISON_SPLC_Parser_OUTPUTS} ${SRC_FILES_IO})
@@ -48,6 +48,16 @@ set_target_properties(splc_IO PROPERTIES
 file(GLOB splc_AST_HEADER_FILES "${SPLC_INCL_DIR}/IO/*.hh;${GENERATED_INCL_DIR_IO}/*.hh")
 set_target_properties(splc_IO PROPERTIES 
     PUBLIC_HEADER "${splc_IO_HEADER_FILES}")
+
+# splc_Core shared library
+add_library(splc_Core SHARED ${SRC_FILES_CORE} ${SRC_FILES_CORE_UTILS})
+target_include_directories(splc_Core PUBLIC ${SPLC_INCL_DIR})
+add_dependencies(splc_Core splc_IO)
+set_target_properties(splc_Core PROPERTIES 
+    LIBRARY_OUTPUT_DIRECTORY ${GENERATED_LIB_DIR})
+file(GLOB_RECURSE splc_Core_HEADER_FILES "${SPLC_INCL_DIR}/Core/*.hh")
+set_target_properties(splc_Core PROPERTIES 
+    PUBLIC_HEADER "${splc_Core_HEADER_FILES}")
     
 # splc_AST shared library
 add_library(splc_AST SHARED ${SRC_FILES_AST})
@@ -89,19 +99,9 @@ file(GLOB splc_IR_HEADER_FILES "${SPLC_INCL_DIR}/IR/*.hh")
 set_target_properties(splc_IR PROPERTIES 
     PUBLIC_HEADER "${splc_IR_HEADER_FILES}")
 
-# splc_Core shared library
-add_library(splc_Core SHARED ${SRC_FILES_CORE} ${SRC_FILES_CORE_UTILS})
-target_include_directories(splc_Core PUBLIC ${SPLC_INCL_DIR})
-add_dependencies(splc_Core splc_IO)
-set_target_properties(splc_Core PROPERTIES 
-    LIBRARY_OUTPUT_DIRECTORY ${GENERATED_LIB_DIR})
-file(GLOB_RECURSE splc_Core_HEADER_FILES "${SPLC_INCL_DIR}/Core/*.hh")
-set_target_properties(splc_Core PROPERTIES 
-    PUBLIC_HEADER "${splc_Core_HEADER_FILES}")
-
 # splc executable
 add_executable(splc ${SRC_FILES})
-target_link_libraries(splc splc_IO splc_AST splc_IR splc_Core)
+target_link_libraries(splc splc_IO splc_Core splc_AST splc_Translation splc_Analysis splc_IR)
 
 set_target_properties(splc PROPERTIES 
     RUNTIME_OUTPUT_DIRECTORY ${GENERATED_EXEC_DIR})

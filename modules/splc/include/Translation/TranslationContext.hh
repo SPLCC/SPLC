@@ -23,24 +23,25 @@ class TranslationContext {
   public:
     TranslationContext() = delete;
 
-    TranslationContext(TranslationContextBufferType type_,
+    TranslationContext(const int contextID_, TranslationContextBufferType type_,
                        const std::string &name_, const Location &intrLocation_,
                        Ptr<std::istream> inputStream_)
-        : type{type_}, name{name_}, intrLocation{intrLocation_}, content{},
-          inputStream{inputStream_}
+        : contextID{contextID_}, type{type_}, name{name_},
+          intrLocation{intrLocation_}, content{}, inputStream{inputStream_}
     {
     }
 
-    TranslationContext(TranslationContextBufferType type_,
+    TranslationContext(const int contextID_, TranslationContextBufferType type_,
                        const std::string &name_, const Location &intrLocation_,
                        const std::string &content_,
                        Ptr<std::istream> inputStream_)
-        : type{type_}, name{name_},
-          intrLocation(intrLocation_), content{content_},
-          inputStream{inputStream_}
+        : contextID{contextID_}, type{type_}, name{name_},
+          intrLocation(intrLocation_), content{content_}, inputStream{
+                                                              inputStream_}
     {
     }
 
+    const int contextID;
     const TranslationContextBufferType type;
     const std::string name;
     const Location intrLocation; // Interrupt Location

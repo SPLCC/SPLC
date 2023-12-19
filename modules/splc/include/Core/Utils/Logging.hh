@@ -63,8 +63,9 @@ inline std::ostream &operator<<(std::ostream &os, const LoggerTag &tag)
 class Logger {
   public:
     /// Default empty constructor that outputs nothing.
-    Logger() noexcept;
-    Logger(const Level level_, const Location *const locPtr_) noexcept;
+    Logger(const bool enable = false) noexcept;
+    Logger(const bool enable_, const Level level_,
+           const Location *const locPtr_) noexcept;
 
     /// Just prevent users from doing stuff like storing this logger for
     /// some mysterious purposes
@@ -76,21 +77,26 @@ class Logger {
     template <class T>
     requires Streamable<T> Logger &operator<<(T &&val)
     {
-        // TODO: switch to full specialization, once gcc supports it
-        if constexpr (std::is_same_v<LoggerTag, std::remove_cvref_t<T>>) {
-            const LoggerTag &tag = dynamic_cast<const LoggerTag &>(val);
-            if (tag.valid()) {
-                localLogStream << " [" << getLevelColor(level) << tag
-                               << ControlSeq::Reset << "]";
+        if (enable) {
+            // TODO: switch to full specialization, once gcc supports it
+            if constexpr (std::is_same_v<LoggerTag, std::remove_cvref_t<T>>) {
+                const LoggerTag &tag = dynamic_cast<const LoggerTag &>(val);
+                if (tag.valid()) {
+                    localLogStream << " [" << getLevelColor(level) << tag
+                                   << ControlSeq::Reset << "]";
+                }
             }
-        }
-        else {
-            localLogStream << std::forward<T>(val);
+            else {
+                localLogStream << std::forward<T>(val);
+            }
         }
         return *this;
     }
 
+    bool isEnabled() const noexcept { return enable; }
+
   protected:
+    bool enable;
     std::ostream &localLogStream;
     Level level;
 };
@@ -114,7 +120,7 @@ class AssertionHelper : public Logger {
 
     ~AssertionHelper() noexcept
     {
-        if (!cond) {
+        if (Logger::isEnabled() && !cond) {
             localLogStream << std::endl;
             exit(exitCode);
         }
@@ -127,7 +133,7 @@ class AssertionHelper : public Logger {
 
 class ErrorHelper : public Logger {
   public:
-    ErrorHelper(int exitCode_) noexcept : exitCode{exitCode_} {}
+    ErrorHelper(int exitCode_) noexcept : Logger{true}, exitCode{exitCode_} {}
 
     ~ErrorHelper() noexcept
     {
@@ -152,7 +158,7 @@ class ErrorHelper : public Logger {
     splc::utils::logging::internal::Logger {}
 
 #define SPLC_LOG_DISPATCH(level, locPtr)                                       \
-    splc::utils::logging::internal::Logger { level, locPtr }
+    splc::utils::logging::internal::Logger { true, level, locPtr }
 
 #define SPLC_LOG_EMPTY() SPLC_LOG_EMPTY_DISPATCH()
 

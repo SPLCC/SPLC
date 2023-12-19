@@ -9,16 +9,17 @@
 #include "IO/IOBase.hh"
 #include "IO/Parser.hh"
 
+#include "Translation/TranslationManager.hh"
+
 // TODO: remove experimental
-#include "IO/Driver.hh"
 
 namespace splc::IO {
 
 class Scanner : public SplcFlexLexer {
   public:
     // TODO: switch to translationManager
-    Scanner(Driver& driver_, std::istream *in)
-        : driver{driver_}, SplcFlexLexer(in){};
+    Scanner(TranslationManager &translationManager_, std::istream *in)
+        : translationManager{translationManager_}, SplcFlexLexer{in} {};
     virtual ~Scanner(){};
 
     // get rid of override virtual function warning
@@ -27,7 +28,7 @@ class Scanner : public SplcFlexLexer {
     /// The main procedure called by `splc::IO::Parser` to get tokens.
     /// `YY_DECL` is defined to be this function in Lexer.ll.
     /// Method body created by flex in lexer.cc.
-    /// 
+    ///
     /// \param lval Pointer to the semantic value of this token.
     /// \param location The location of this token.
     virtual int yylex(splc::IO::Parser::value_type *const lval,
@@ -38,13 +39,17 @@ class Scanner : public SplcFlexLexer {
     virtual int yywrap();
 
   protected:
-    Driver &driver;
+    TranslationManager &translationManager;
     std::string filename;
 
     /// yyval ptr
     splc::IO::Parser::value_type *yylval = nullptr;
+
+  public:
+    friend class Driver;
+    friend class Parser;
 };
 
-} // namespace splc
+} // namespace splc::IO
 
 #endif // __SPLC_IO_SCANNER_HH__

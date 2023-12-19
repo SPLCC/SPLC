@@ -50,7 +50,7 @@ int main(const int argc, const char **argv)
     auto node = splc::createASTNode(splc::ASTSymbolType::CHAR, splc::Location{},
                                     node0, node1);
 
-    static_cast<ASTNode &>(*node) >> ASTProcess::removeASTPunctuators;
+    *node >> ASTProcess::removeASTPunctuators >> ASTProcess::removeASTPunctuators;
 
     applyASTTransform(*node, ASTProcess::removeASTPunctuators, ASTProcess::removeASTPunctuators);
 

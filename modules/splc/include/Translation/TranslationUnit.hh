@@ -61,7 +61,7 @@ template <class T, class... Functors>
 requires IsTranslationUnit<T> && AllApplicableOnTranslationUnit<T, Functors...>
 inline T &&applyTranslationUnitTransform(T &&unit, Functors &&...functors)
 {
-    return (functors(std::forward<T>(unit)), ...);
+    return (std::forward<Functors>(functors)(std::forward<T>(unit)), ...);
 }
 
 } // namespace splc

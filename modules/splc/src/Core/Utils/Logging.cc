@@ -13,10 +13,14 @@ std::ostream *logStream = &std::cerr;
 
 std::ostream &getLogStream() { return *logStream; }
 
-Logger::Logger() noexcept : localLogStream{*logStream}, level{Level::Empty}{}
+Logger::Logger(const bool enable_) noexcept
+    : enable{enable_}, localLogStream{*logStream}, level{Level::Empty}
+{
+}
 
-Logger::Logger(const Level level_, const Location *const locPtr_) noexcept
-    : localLogStream{*logStream}, level{level_}
+Logger::Logger(const bool enable_, const Level level_,
+               const Location *const locPtr_) noexcept
+    : enable(enable_), localLogStream{*logStream}, level{level_}
 {
     std::lock_guard<std::mutex> lockGuard{logStreamMutex};
 
@@ -33,7 +37,7 @@ Logger::Logger(const Level level_, const Location *const locPtr_) noexcept
     // Body
     if (level != Level::Empty) {
         localLogStream << getLevelColor(level) << level << ControlSeq::Reset
-                  << ": ";
+                       << ": ";
     }
 }
 
@@ -50,11 +54,10 @@ Logger::~Logger() noexcept
 AssertionHelper::AssertionHelper(bool cond_, const std::string &condText_,
                                  const std::string &file_, int line_,
                                  const std::string &functionName_) noexcept
-    : Logger{}, cond{cond_}, exitCode{SPLC_EXIT_ASSERTION_FAILURE}
+    : Logger{!cond_}, cond{cond_}, exitCode{SPLC_EXIT_ASSERTION_FAILURE}
 {
     if (!cond) {
-        localLogStream << "Assertion failed at " << file_
-                       << ", line " << line_;
+        localLogStream << "Assertion failed at " << file_ << ", line " << line_;
         if (!functionName_.empty()) {
             localLogStream << ", at function: " << functionName_;
         }

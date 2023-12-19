@@ -136,17 +136,17 @@ class ASTNode {
     /// Print information of this single node.
     friend std::ostream &operator<<(std::ostream &os, const ASTNode &node);
 
-    class ASTNodeRecursiveManipulator {
+    class ASTNodeRecursivePrintManipulator {
       public:
-        friend ASTNodeRecursiveManipulator
+        friend ASTNodeRecursivePrintManipulator
         treePrintTransform(const ASTNode &node);
 
         friend std::ostream &
         operator<<(std::ostream &os,
-                   const ASTNode::ASTNodeRecursiveManipulator &m);
+                   const ASTNode::ASTNodeRecursivePrintManipulator &m);
 
       private:
-        ASTNodeRecursiveManipulator(const ASTNode &node_) : node{node_} {}
+        ASTNodeRecursivePrintManipulator(const ASTNode &node_) : node{node_} {}
         const ASTNode &node;
     };
 
@@ -225,7 +225,7 @@ inline std::ostream &operator<<(std::ostream &os, const ASTNode &node)
     return os;
 }
 
-inline ASTNode::ASTNodeRecursiveManipulator
+inline ASTNode::ASTNodeRecursivePrintManipulator
 treePrintTransform(const ASTNode &node)
 {
     return {node};
@@ -264,8 +264,8 @@ inline void recursivePrintNode(std::ostream &os, const ASTNode &node,
     }
 }
 
-inline std::ostream &operator<<(std::ostream &os,
-                                const ASTNode::ASTNodeRecursiveManipulator &m)
+inline std::ostream &
+operator<<(std::ostream &os, const ASTNode::ASTNodeRecursivePrintManipulator &m)
 {
     os << m.node << "\n";
     recursivePrintNode(os, m.node, 0);

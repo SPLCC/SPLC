@@ -25,15 +25,15 @@ class TranslationContextManager {
     /// \brief Push a new file into context manager. If no such file exist,
     /// throw a runtime error.
     /// \param intrLocation interrupt location
-    Ptr<TranslationContext> pushContext(Location &intrLocation,
-                                        std::string &fileName_);
+    Ptr<TranslationContext> pushContext(const Location &intrLocation,
+                                        const std::string &fileName_);
 
     /// \brief Push a macro substitution into context manager, switching to
     /// macro substitution.
     /// \param intrLocation interrupt location
-    Ptr<TranslationContext> pushContext(Location &intrLocation,
-                                        std::string &macroName_,
-                                        std::string &content_);
+    Ptr<TranslationContext> pushContext(const Location &intrLocation,
+                                        const std::string &macroName_,
+                                        const std::string &content_);
 
     /// \brief Pop the topmost context.
     /// If there does not exist such context, or if all the contexts
@@ -41,11 +41,23 @@ class TranslationContextManager {
     Ptr<TranslationContext> popContext();
 
     bool isContextExistInStack(TranslationContextBufferType type_,
-                               std::string_view contextName_);
+                               std::string_view contextName_) const;
 
-    auto &getContextStack() { return contextStack; }
+    bool contextStackEmpty() const { return contextStack.empty(); }
 
-    auto &getAllContexts() { return allContexts; }
+    size_t contextStackSize() const { return contextStack.size(); }
+
+    /// \brief Get the current (i.e., top) context
+    /// If the top context does not exists, return `nullptr`.
+    Ptr<TranslationContext> getCurrentContext()
+    {
+        if (contextStackEmpty()) {
+            return {};
+        }
+        else {
+            return contextStack.back();
+        }
+    }
 
     /// Provide a convenient way to access stack elements
     Ptr<TranslationContext> operator[](size_t idx)
@@ -58,12 +70,29 @@ class TranslationContextManager {
         return contextStack[contextStack.size() - idx - 1];
     }
 
+    std::vector<Ptr<TranslationContext>> &getContextStack()
+    {
+        return contextStack;
+    }
+
+    bool isAllContextsEmpty() const { return allContexts.empty(); }
+
+    size_t allContextsSize() const { return allContexts.size(); }
+
+    std::vector<Ptr<TranslationContext>> &getAllContexts()
+    {
+        return allContexts;
+    }
+
   private:
-    /// This will store macro contexts for checking repeated definitions
-    std::vector<Ptr<TranslationContext>> contextStack;
+    /// Internal index
+    int contextID;
 
     /// Store all contexts
     std::vector<Ptr<TranslationContext>> allContexts;
+
+    /// This will store macro contexts for checking repeated definitions
+    std::vector<Ptr<TranslationContext>> contextStack;
 };
 
 } // namespace splc

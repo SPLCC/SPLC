@@ -64,5 +64,6 @@ using Token = splc::IO::Parser::token;
 
 int yyFlexLexer::yywrap()
 {
+    // Inherit this method to let the code compile, but don't do anything.
     return 1;
 }
