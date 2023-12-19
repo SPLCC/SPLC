@@ -3,9 +3,9 @@
 #include <fstream>
 #include <string_view>
 
-#include "Translation/TranslationManager.hh"
 #include "Core/Utils.hh"
-#include "Core/Utils/Logging.hh"
+
+#include "Translation/TranslationManager.hh"
 #include "IO/Driver.hh"
 
 namespace splc::IO {
@@ -33,8 +33,7 @@ void Driver::parse(const std::vector<std::string> &filenameVector_)
         exit(EXIT_FAILURE);
     }
     fileIndex++;
-    SPLC_ASSERT(in_file.good());
-    SPLC_LOG_DEBUG(nullptr) << "filename: " << filenameVector[0];
+    SPLC_LOG_DEBUG(nullptr) << "parsing filename: " << filenameVector[0];
     builtinParse(filenameVector[0], in_file);
     return;
 }

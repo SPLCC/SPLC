@@ -1,3 +1,4 @@
+#include <exception>
 #include <type_traits>
 #include <utility>
 #ifndef __SPLC_UTILS_LOGGING_HH__

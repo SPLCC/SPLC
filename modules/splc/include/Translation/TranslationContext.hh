@@ -24,16 +24,20 @@ class TranslationContext {
     TranslationContext() = delete;
 
     TranslationContext(TranslationContextBufferType type_,
-                       const std::string &name_, const Location &intrLocation_)
-        : type{type_}, name{name_}, intrLocation{intrLocation_}
+                       const std::string &name_, const Location &intrLocation_,
+                       Ptr<std::istream> inputStream_)
+        : type{type_}, name{name_}, intrLocation{intrLocation_}, content{},
+          inputStream{inputStream_}
     {
     }
 
     TranslationContext(TranslationContextBufferType type_,
                        const std::string &name_, const Location &intrLocation_,
-                       const std::string &content_)
+                       const std::string &content_,
+                       Ptr<std::istream> inputStream_)
         : type{type_}, name{name_},
-          intrLocation(intrLocation_), content{content_}
+          intrLocation(intrLocation_), content{content_},
+          inputStream{inputStream_}
     {
     }
 
@@ -41,6 +45,7 @@ class TranslationContext {
     const std::string name;
     const Location intrLocation; // Interrupt Location
     const std::string content;
+    Ptr<std::istream> inputStream;
 };
 
 } // namespace splc
