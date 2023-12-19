@@ -10,6 +10,7 @@
 
 #include "Translation/TranslationBase.hh"
 #include "Translation/TranslationUnit.hh"
+#include "Translation/TranslationLogger.hh"
 
 namespace splc {
 

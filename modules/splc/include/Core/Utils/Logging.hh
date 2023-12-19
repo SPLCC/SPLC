@@ -29,7 +29,7 @@ class AssertionHelper;
 class ErrorHelper;
 
 template <class T>
-concept Streamable = requires(std::ostream &os, T &&t)
+concept IOStreamable = requires(std::ostream &os, T &&t)
 {
     os << std::forward<T>(t);
 };
@@ -69,8 +69,8 @@ class Logger {
 
     Logger(Logger &other) = delete;
     Logger(Logger &&other)
-        : enable{other.enable},
-          localLogStream{other.localLogStream}, level{other.level}
+        : enable{other.enable}, localLogStream{other.localLogStream},
+          level{other.level}, locPtr{other.locPtr}
     {
         other.enable = false;
     }
@@ -80,23 +80,14 @@ class Logger {
     ~Logger() noexcept;
 
     template <class T>
-    requires Streamable<T> Logger &operator<<(T &&val)
-    {
-        if (enable) {
-            // TODO: switch to full specialization, once gcc supports it
-            if constexpr (std::is_same_v<LoggerTag, std::remove_cvref_t<T>>) {
-                const LoggerTag &tag = dynamic_cast<const LoggerTag &>(val);
-                if (tag.valid()) {
-                    localLogStream << " [" << getLevelColor(level) << tag
-                                   << ControlSeq::Reset << "]";
-                }
-            }
-            else {
-                localLogStream << std::forward<T>(val);
-            }
-        }
-        return *this;
-    }
+    requires IOStreamable<T> Logger &operator<<(T &&val);
+
+    /// \brief Print initial message.
+    /// \example
+    /// \code
+    /// `splc: error: '
+    /// \endcode
+    virtual void printInitial();
 
     bool isEnabled() const noexcept { return enable; }
 
@@ -105,8 +96,29 @@ class Logger {
   protected:
     bool enable;
     std::ostream &localLogStream;
-    Level level;
+    const Level level;
+    const Location *const locPtr;
 };
+
+template <class T>
+requires IOStreamable<T>
+inline Logger &Logger::operator<<(T &&val)
+{
+    if (enable) {
+        // TODO: switch to full specialization, once gcc supports it
+        if constexpr (std::is_same_v<LoggerTag, std::remove_cvref_t<T>>) {
+            const LoggerTag &tag = dynamic_cast<const LoggerTag &>(val);
+            if (tag.valid()) {
+                localLogStream << " [" << getLevelColor(level) << tag
+                               << ControlSeq::Reset << "]";
+            }
+        }
+        else {
+            localLogStream << std::forward<T>(val);
+        }
+    }
+    return *this;
+}
 
 // !Mysterious bug from gcc
 // template <>

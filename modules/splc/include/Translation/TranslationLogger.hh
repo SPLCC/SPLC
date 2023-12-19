@@ -13,9 +13,12 @@ class TranslationLogger : public splc::utils::logging::internal::Logger {
 
     TranslationLogger(const Ptr<const TranslationUnit> tunit_,
                       const bool trace_, const Location *locPtr_,
-                      const Level level_);
+                      const Level level_)
+        : Logger{true, level_, locPtr_} {};
 
-    ~TranslationLogger();
+    virtual void printInitial();
+
+    ~TranslationLogger() = default;
 
   private:
     Ptr<const TranslationUnit> tunit;

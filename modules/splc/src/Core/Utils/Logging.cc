@@ -15,23 +15,29 @@ std::ostream *logStream = &std::cerr;
 std::ostream &getLogStream() { return *logStream; }
 
 Logger::Logger(const bool enable_) noexcept
-    : enable{enable_}, localLogStream{*logStream}, level{Level::Empty}
+    : enable{enable_},
+      localLogStream{*logStream}, level{Level::Empty}, locPtr{nullptr}
 {
 }
 
 Logger::Logger(const bool enable_, const Level level_,
                const Location *const locPtr_) noexcept
-    : enable(enable_), localLogStream{*logStream}, level{level_}
+    : enable(enable_), localLogStream{*logStream}, level{level_}, locPtr{
+                                                                      locPtr_}
 {
-    if(!isEnabled())
+    if (!isEnabled())
         return;
+    printInitial();
+}
 
+void Logger::printInitial()
+{
     std::lock_guard<std::mutex> lockGuard{logStreamMutex};
 
     // Header
     localLogStream << ControlSeq::Bold;
-    if (locPtr_ != nullptr && locPtr_->end.filename != nullptr) {
-        localLogStream << *locPtr_;
+    if (locPtr != nullptr && locPtr->end.filename != nullptr) {
+        localLogStream << *locPtr;
     }
     else {
         localLogStream << "splc";

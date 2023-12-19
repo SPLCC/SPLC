@@ -4,7 +4,7 @@
 #include "Core/splc.hh"
 #include "IO/Scanner.hh"
 #undef  YY_DECL
-#define YY_DECL int splc::IO::Scanner::yylex(splc::IO::Parser::value_type *const lval, splc::IO::Parser::location_type *loc)
+#define YY_DECL int splc::IO::Scanner::yylex(splc::IO::Parser::value_type *const lval, splc::utils::Location *loc)
 
 // Required std headers
 #include <string>

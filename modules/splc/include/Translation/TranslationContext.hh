@@ -45,6 +45,8 @@ class TranslationContext {
     const int contextID;
     const TranslationContextBufferType type;
     const std::string name;
+    const Ptr<const TranslationContext> parent;
+
     const Location intrLocation; // Interrupt Location
     const std::string content;
     Ptr<std::istream> inputStream;
