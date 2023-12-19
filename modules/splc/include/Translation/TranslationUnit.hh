@@ -24,7 +24,16 @@ concept AllApplicableOnTranslationUnit = IsTranslationUnit<T> &&
 
 class TranslationUnit {
   public:
-    TranslationUnit() = default;
+    TranslationUnit() : translationContextManager{}, rootNode{}, warningCount{0}, errorCount{0} {}
+    virtual ~TranslationUnit() = default;
+
+    TranslationContextManager &getTranslationContextManager() { return translationContextManager; }
+
+    const TranslationContextManager &getTranslationContextManager() const { return translationContextManager; }
+
+    Ptr<ASTNode> getRootNode() { return rootNode; }
+
+    Ptr<const ASTNode> getRootNode() const { return rootNode; }
 
   protected:
     // TODO: add ASTContextManager?
@@ -34,6 +43,9 @@ class TranslationUnit {
 
     /// Stores the root node of this translation unit.
     Ptr<ASTNode> rootNode;
+
+    int warningCount;
+    int errorCount;
 
   public:
     /// Allow stream-like operation on translation units for processing.
@@ -47,8 +59,10 @@ class TranslationUnit {
         AllApplicableOnTranslationUnit<T, Functors...>
     friend T &&applyTranslationUnitTransform(T &&unit, Functors &&...functors);
 
+  public:
     friend class TranslationContextManager;
     friend class TranslationManager;
+    friend class TranslationLogger;
 };
 
 template <class T, class Functor>

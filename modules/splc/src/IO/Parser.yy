@@ -9,6 +9,7 @@
 
 %code requires{
     // Code section there will be placed directly inside `IO/Parser.hh`.
+    #include "Core/Utils/LocationWrapper.hh"
     namespace splc {
     
     class TranslationManager;
@@ -33,8 +34,10 @@
     // include for all driver functions
     #include "Core/splc.hh"
 
-    #include "Translation/TranslationManager.hh"
     #include "IO/Driver.hh"
+
+    #include "Translation/TranslationManager.hh"
+    #include "Translation/TranslationLogHelper.hh"
 
     #undef yylex
     #define yylex scanner.yylex
@@ -42,8 +45,9 @@
 
 %define api.symbol.prefix {} // The empty prefix is generally invalid, but there is namespace in C++.
 %define api.value.type { std::string }
+// %define api.location.file "../../include/Core/Utils/location.hh"
+%define api.location.type { splc::Location }
 %locations
-%define api.location.file "../../include/Core/Utils/location.hh"
 
 
 // Start of token definition section
@@ -54,11 +58,10 @@
 %token NEWLINE
 %token CHAR
 
-
 // Start of production section
 %%
 
-list_option : | List {}
+list_option : | List { SPLC_TRLH_DEBUG(@1) << "Parsing finished."; }
   ;
 
 List

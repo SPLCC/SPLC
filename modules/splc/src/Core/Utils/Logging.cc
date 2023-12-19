@@ -36,7 +36,7 @@ void Logger::printInitial()
 
     // Header
     localLogStream << ControlSeq::Bold;
-    if (locPtr != nullptr && locPtr->end.filename != nullptr) {
+    if (locPtr != nullptr && *locPtr) {
         localLogStream << *locPtr;
     }
     else {

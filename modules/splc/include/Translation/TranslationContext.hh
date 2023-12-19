@@ -19,33 +19,44 @@ enum TranslationContextBufferType {
     MacroExpansion,
 };
 
+using TranslationContextIDType = utils::Location::ContextIDType;
+
+using TranslationContextKeyType = ContextKeyType;
+
 class TranslationContext {
   public:
     TranslationContext() = delete;
 
-    TranslationContext(const int contextID_, TranslationContextBufferType type_,
-                       std::string_view name_, const Location *intrLocation_,
+    TranslationContext(const TranslationContextIDType contextID_,
+                       TranslationContextBufferType type_,
+                       std::string_view name_, const TranslationContext *parent,
+                       const Location *intrLocation_,
                        Ptr<std::istream> inputStream_)
-        : contextID{contextID_}, type{type_}, name{name_},
+        : contextID{contextID_}, type{type_}, name{name_}, parent{parent},
           intrLocation(intrLocation_ ? *intrLocation_ : Location{}), content{},
           inputStream{inputStream_}
     {
     }
 
-    TranslationContext(const int contextID_, TranslationContextBufferType type_,
-                       std::string_view name_, const Location *intrLocation_,
-                       std::string_view content_,
+    TranslationContext(const TranslationContextIDType contextID_,
+                       TranslationContextBufferType type_,
+                       std::string_view name_, const TranslationContext *parent,
+                       const Location *intrLocation_, std::string_view content_,
                        Ptr<std::istream> inputStream_)
-        : contextID{contextID_}, type{type_}, name{name_},
+        : contextID{contextID_}, type{type_}, name{name_}, parent{parent},
           intrLocation(intrLocation_ ? *intrLocation_ : Location{}),
           content{content_}, inputStream{inputStream_}
     {
     }
 
-    const int contextID;
+    virtual ~TranslationContext() = default;
+
+    TranslationContextKeyType getKey() const { return {&name, contextID}; }
+
+    const TranslationContextIDType contextID;
     const TranslationContextBufferType type;
     const std::string name;
-    const Ptr<const TranslationContext> parent;
+    const TranslationContext *parent;
 
     const Location intrLocation; // Interrupt Location
     const std::string content;

@@ -1,5 +1,6 @@
 #include "Core/Base.hh"
 #include "Core/System.hh"
+
 #include "IO/Parser.hh"
 
 #include "Translation/TranslationManager.hh"
@@ -28,16 +29,6 @@ void TranslationManager::popASTContext()
 void TranslationManager::getCurrentASTContext()
 {
     // TODO
-}
-
-Ptr<TranslationContext> TranslationManager::getCurrentTranslationContext()
-{
-    return tunit->translationContextManager.getCurrentContext();
-}
-
-const std::string &TranslationManager::getCurrentTranslationContextName()
-{
-    return tunit->translationContextManager.getCurrentContext()->name;
 }
 
 Ptr<TranslationContext>

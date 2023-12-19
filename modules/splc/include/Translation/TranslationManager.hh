@@ -1,3 +1,4 @@
+#include "Core/Utils/LoggingLevel.hh"
 #ifndef __SPLC_TRANSLATION_TRANSLATIONMANAGER_HH__
 #define __SPLC_TRANSLATION_TRANSLATIONMANAGER_HH__ 1
 
@@ -10,7 +11,6 @@
 
 #include "Translation/TranslationBase.hh"
 #include "Translation/TranslationUnit.hh"
-#include "Translation/TranslationLogger.hh"
 
 namespace splc {
 
@@ -20,6 +20,7 @@ namespace splc {
 class TranslationManager {
   public:
     TranslationManager() = default;
+    virtual ~TranslationManager() = default;
 
     // TODO
     void startTranslationRecord();
@@ -38,9 +39,26 @@ class TranslationManager {
     // TODO
     void popASTContext();
 
-    Ptr<TranslationContext> getCurrentTranslationContext();
+    Ptr<TranslationContext> getCurrentTranslationContext() const noexcept
+    {
+        return tunit->translationContextManager[0];
+    }
 
-    const std::string &getCurrentTranslationContextName();
+    const std::string &getCurrentTranslationContextName() const noexcept
+    {
+        return tunit->translationContextManager[0]->name;
+    }
+
+    const TranslationContextIDType
+    getCurrentTranslationContextID() const noexcept
+    {
+        return tunit->translationContextManager[0]->contextID;
+    }
+
+    TranslationContextKeyType getCurrentTranslationContextKey() const noexcept
+    {
+        return tunit->translationContextManager.getCurrentContextKey();
+    }
 
     bool translationContextStackEmpty() const
     {
@@ -77,10 +95,10 @@ class TranslationManager {
 
   protected:
     Ptr<TranslationUnit> tunit;
+
+    // TODO: add settings and allow manager to retrieve include options and stuff
 };
 
 } // namespace splc
-
-#define SPLC_TRANS_LOG_DEBUG(translationManager_, locPtr_)
 
 #endif // __SPLC_TRANSLATION_TRANSLATIONMANAGER_HH__

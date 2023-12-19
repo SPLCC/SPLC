@@ -68,6 +68,8 @@ class ASTNode {
     {
     }
 
+    virtual ~ASTNode() = default;
+
     Ptr<ASTNode> findFirstChild(ASTSymbolType type) const noexcept;
 
     constexpr bool hasValue() const noexcept

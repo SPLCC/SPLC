@@ -1,8 +1,10 @@
+#include "IO/Parser.hh"
 #ifndef __SPLC_TRANSLATION_TRANSLATIONCONTEXTMANAGER_HH__
 #define __SPLC_TRANSLATION_TRANSLATIONCONTEXTMANAGER_HH__ 1
 
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <stack>
 #include <string>
 #include <string_view>
@@ -16,11 +18,22 @@
 namespace splc {
 
 /// \brief This class handles context management during parsing.
-/// In detail, this class holds context information related to file inclusion
-/// and macro expansion.
+/// In detail, this class holds context information related to file
+/// inclusion and macro expansion.
 class TranslationContextManager {
   public:
     TranslationContextManager();
+
+    ~TranslationContextManager() = default;
+
+    /// \brief Push `Ptr<TranslationContext` into context manager, switching to
+    ///        this context.
+    /// \warning This method will not add the given context to the context
+    /// stack,
+    ///          as the user is assumed to call this method IFF they are
+    ///          revisiting existing contexts.
+    /// \param intrLocation interrupt location
+    Ptr<TranslationContext> pushContext(Ptr<TranslationContext> context);
 
     /// \brief Push a new file into context manager. If no such file exist,
     /// throw a runtime error.
@@ -59,6 +72,12 @@ class TranslationContextManager {
         }
     }
 
+    TranslationContextKeyType getCurrentContextKey() const noexcept
+    {
+        auto key = contextStack.back()->getKey();
+        return key;
+    }
+
     /// Provide a convenient way to access stack elements
     Ptr<TranslationContext> operator[](size_t idx)
     {
@@ -84,15 +103,20 @@ class TranslationContextManager {
         return allContexts;
     }
 
-  private:
+  protected:
     /// Internal index
-    int contextID;
+    TranslationContextIDType contextID;
 
     /// Store all contexts
     std::vector<Ptr<TranslationContext>> allContexts;
 
     /// This will store macro contexts for checking repeated definitions
     std::vector<Ptr<TranslationContext>> contextStack;
+
+  public:
+    friend class TranslationUnit;
+    friend class TranslationManager;
+    friend class TranslationLogger;
 };
 
 } // namespace splc

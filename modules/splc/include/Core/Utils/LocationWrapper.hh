@@ -1,19 +1,17 @@
 #ifndef __SPLC_CORE_UTILS_LOCATIONWRAPPER_HH__
 #define __SPLC_CORE_UTILS_LOCATIONWRAPPER_HH__ 1
 
-#include "Core/Utils/location.hh"
+#include "Core/Utils/Location.hh"
 
 namespace splc {
 
 namespace utils {
 
-using Position = splc::IO::position;
-using Location = splc::IO::location;
-
 } // namespace utils
 
-using Position = splc::utils::Position;
-using Location = splc::utils::Location;
+using Position = utils::Position;
+using Location = utils::Location;
+using ContextKeyType = utils::Location::ContextKeyType;
 
 } // namespace splc
 

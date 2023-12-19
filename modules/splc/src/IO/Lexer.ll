@@ -1,10 +1,12 @@
 %{
 
+#undef  YY_DECL
+#define YY_DECL int splc::IO::Scanner::yylex(splc::IO::Parser::value_type *const yylval, splc::utils::Location *yyloc)
+
 // Implementation of yyFlexScanner
 #include "Core/splc.hh"
 #include "IO/Scanner.hh"
-#undef  YY_DECL
-#define YY_DECL int splc::IO::Scanner::yylex(splc::IO::Parser::value_type *const lval, splc::utils::Location *loc)
+#include "Translation/TranslationLogHelper.hh"
 
 // Required std headers
 #include <string>
@@ -17,7 +19,7 @@ using Token = splc::IO::Parser::token;
 // #define yyterminate() return( Token::END )
 
 // update location on matching
-#define YY_USER_ACTION loc->step(); loc->columns(yyleng);
+#define YY_USER_ACTION yyloc->step(); yyloc->columns(yyleng);
 
 %}
 
@@ -32,10 +34,9 @@ using Token = splc::IO::Parser::token;
 
 /* Token section */
 %%
-%{          /** Code executed at the beginning of yylex **/
-            yylval = lval;
-            loc->begin.filename = &translationManager.getCurrentTranslationContextName();
-            loc->end.filename = &translationManager.getCurrentTranslationContextName();
+%{          
+            /** Code executed at the beginning of yylex **/
+            yyloc->switchContext(translationManager.getCurrentTranslationContextKey());
 %}
 
 [a-z]       {
@@ -48,12 +49,13 @@ using Token = splc::IO::Parser::token;
 
 [a-zA-Z]+   {
                 *yylval = yytext;
+                SPLC_TRLHP_DEBUG(yyloc) << "get word: " << *yylval << ", yyleng=" << yyleng;
                 return( Token::WORD );
             }
 
 \n          {
                 // Update line number
-                loc->lines();
+                yyloc->lines();
                 return( Token::NEWLINE );
             }
 

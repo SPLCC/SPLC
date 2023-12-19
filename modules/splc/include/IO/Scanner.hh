@@ -8,16 +8,13 @@
 
 #include "Translation/TranslationManager.hh"
 
-// TODO: remove experimental
-
 namespace splc::IO {
 
 class Scanner : public SplcFlexLexer {
   public:
-    // TODO: switch to translationManager
     Scanner(TranslationManager &translationManager_, std::istream *in = nullptr)
         : translationManager{translationManager_}, SplcFlexLexer{in} {};
-    virtual ~Scanner(){};
+    virtual ~Scanner() = default;
 
     // get rid of override virtual function warning
     using FlexLexer::yylex;
@@ -28,8 +25,8 @@ class Scanner : public SplcFlexLexer {
     ///
     /// \param lval Pointer to the semantic value of this token.
     /// \param location The location of this token.
-    virtual int yylex(splc::IO::Parser::value_type *const lval,
-                      splc::IO::Parser::location_type *location);
+    virtual int yylex(splc::IO::Parser::value_type *const yylval,
+                      splc::IO::Parser::location_type *yyloc);
 
     /// \brief The main procedure for `yyFlexLexer` to switch to a different
     /// input stream.
@@ -38,8 +35,8 @@ class Scanner : public SplcFlexLexer {
   protected:
     TranslationManager &translationManager;
 
-    /// yyval ptr
-    splc::IO::Parser::value_type *yylval = nullptr;
+    /// Theoretically, this stores the same pointer as the input in
+    /// `yylex()`.
 
   public:
     friend class Driver;

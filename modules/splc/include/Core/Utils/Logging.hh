@@ -62,12 +62,17 @@ inline std::ostream &operator<<(std::ostream &os, const LoggerTag &tag)
 
 class Logger {
   public:
-    /// Default empty constructor that outputs nothing.
-    Logger(const bool enable = false) noexcept;
+    /// \brief Default empty constructor that outputs nothing.
+    /// A default parameter value cannot exist. This is used
+    /// to prevent users from implementing their copy constructors
+    /// incorrectly.
+    Logger(const bool enable) noexcept;
     Logger(const bool enable_, const Level level_,
            const Location *const locPtr_) noexcept;
 
     Logger(Logger &other) = delete;
+
+    /// \brief Move constructor that simply disables the output of the logger `other`.
     Logger(Logger &&other)
         : enable{other.enable}, localLogStream{other.localLogStream},
           level{other.level}, locPtr{other.locPtr}
@@ -77,7 +82,7 @@ class Logger {
 
     Logger &operator=(Logger &other) = delete;
 
-    ~Logger() noexcept;
+    virtual ~Logger() noexcept;
 
     template <class T>
     requires IOStreamable<T> Logger &operator<<(T &&val);
@@ -106,7 +111,7 @@ inline Logger &Logger::operator<<(T &&val)
 {
     if (enable) {
         // TODO: switch to full specialization, once gcc supports it
-        if constexpr (std::is_same_v<LoggerTag, std::remove_cvref_t<T>>) {
+        if constexpr (std::is_base_of_v<LoggerTag, T>) {
             const LoggerTag &tag = dynamic_cast<const LoggerTag &>(val);
             if (tag.valid()) {
                 localLogStream << " [" << getLevelColor(level) << tag
@@ -120,7 +125,7 @@ inline Logger &Logger::operator<<(T &&val)
     return *this;
 }
 
-// !Mysterious bug from gcc
+// !Mysterious bug in gcc
 // template <>
 // inline Logger &Logger::operator<<(const LoggerTag &tag)
 // {
@@ -136,6 +141,8 @@ class AssertionHelper : public Logger {
     AssertionHelper(bool cond_, const std::string &condText_,
                     const std::string &file_, int line_,
                     const std::string &functionName_) noexcept;
+    AssertionHelper(AssertionHelper &other) = delete;
+    AssertionHelper(AssertionHelper &&other) : Logger{std::move(other)} {}
 
     ~AssertionHelper() noexcept
     {
@@ -154,6 +161,8 @@ class AssertionHelper : public Logger {
 class ErrorHelper : public Logger {
   public:
     ErrorHelper(int exitCode_) noexcept : Logger{true}, exitCode{exitCode_} {}
+    ErrorHelper(ErrorHelper &other) = delete;
+    ErrorHelper(ErrorHelper &&other) : Logger{std::move(other)} {}
 
     ~ErrorHelper() noexcept
     {
@@ -173,39 +182,39 @@ class ErrorHelper : public Logger {
 // TODO: check message system macros
 
 #define SPLC_LOGGER_TAG(msg)                                                   \
-    splc::utils::logging::internal::LoggerTag { msg }
+    splc::utils::logging::internal::LoggerTag { (msg) }
 
 #define SPLC_LOG_EMPTY_DISPATCH()                                              \
     splc::utils::logging::internal::Logger {}
 
 #define SPLC_LOG_DISPATCH(level, locPtr)                                       \
-    splc::utils::logging::internal::Logger { true, level, locPtr }
+    splc::utils::logging::internal::Logger { true, level, (locPtr) }
 
 #define SPLC_LOG_EMPTY() SPLC_LOG_EMPTY_DISPATCH()
 
 #define SPLC_LOG_DEBUG(locPtr)                                                 \
-    SPLC_LOG_DISPATCH(splc::utils::logging::Level::Debug, locPtr)
+    SPLC_LOG_DISPATCH(splc::utils::logging::Level::Debug, (locPtr))
 
 #define SPLC_LOG_INFO(locPtr)                                                  \
-    SPLC_LOG_DISPATCH(splc::utils::logging::Level::Info, locPtr)
+    SPLC_LOG_DISPATCH(splc::utils::logging::Level::Info, (locPtr))
 
 #define SPLC_LOG_NOTE(locPtr)                                                  \
-    SPLC_LOG_DISPATCH(splc::utils::logging::Level::Note, locPtr)
+    SPLC_LOG_DISPATCH(splc::utils::logging::Level::Note, (locPtr))
 
 #define SPLC_LOG_WARN(locPtr)                                                  \
-    SPLC_LOG_DISPATCH(splc::utils::logging::Level::Warning, locPtr)
+    SPLC_LOG_DISPATCH(splc::utils::logging::Level::Warning, (locPtr))
 
 #define SPLC_LOG_ERROR(locPtr)                                                 \
-    SPLC_LOG_DISPATCH(splc::utils::logging::Level::Error, locPtr)
+    SPLC_LOG_DISPATCH(splc::utils::logging::Level::Error, (locPtr))
 
 #define SPLC_LOG_SYNTAX_ERROR(locPtr)                                          \
-    SPLC_LOG_DISPATCH(splc::utils::logging::Level::SyntaxError, locPtr)
+    SPLC_LOG_DISPATCH(splc::utils::logging::Level::SyntaxError, (locPtr))
 
 #define SPLC_LOG_SEMANTIC_ERROR(locPtr)                                        \
-    SPLC_LOG_DISPATCH(splc::utils::logging::Level::SemanticError, locPtr)
+    SPLC_LOG_DISPATCH(splc::utils::logging::Level::SemanticError, (locPtr))
 
 #define SPLC_LOG_FATAL_ERROR(locPtr)                                           \
-    SPLC_LOG_DISPATCH(splc::utils::logging::Level::FatalError, locPtr)
+    SPLC_LOG_DISPATCH(splc::utils::logging::Level::FatalError, (locPtr))
 
 #ifndef SPLC_NO_FUNCTION_MACRO
 #define __SPLC_LOG_FUNCTION__ __PRETTY_FUNCTION__
