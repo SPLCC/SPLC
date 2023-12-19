@@ -1,10 +1,7 @@
 #ifndef __SPLC_IO_SCANNER_HH__
 #define __SPLC_IO_SCANNER_HH__ 1
 
-// https://stackoverflow.com/questions/35606354/multiple-parsers-in-flex-bison-include-fails
 #include "Core/splc.hh"
-
-#include "Core/Utils/LocationWrapper.hh"
 
 #include "IO/IOBase.hh"
 #include "IO/Parser.hh"

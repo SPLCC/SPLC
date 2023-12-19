@@ -1,6 +1,7 @@
-#include <type_traits>
 #ifndef __SPLC_TRANSLATION_TRANSLATIONUNIT_HH__
 #define __SPLC_TRANSLATION_TRANSLATIONUNIT_HH__ 1
+
+#include <type_traits>
 
 #include "Core/splc.hh"
 

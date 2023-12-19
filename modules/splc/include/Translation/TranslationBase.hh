@@ -14,6 +14,7 @@ class TranslationContext;
 class TranslationContextManager;
 class TranslationUnit;
 class TranslationManager;
+class TranslationLogger;
 
 } // namespace splc
 

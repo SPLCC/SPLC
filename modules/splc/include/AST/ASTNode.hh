@@ -1,9 +1,9 @@
-#include <type_traits>
 #ifndef __SPLC_AST_ASTNODE_HH__
 #define __SPLC_AST_ASTNODE_HH__ 1
 
 #include <iostream>
 #include <map>
+#include <type_traits>
 #include <variant>
 #include <vector>
 

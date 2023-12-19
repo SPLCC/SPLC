@@ -1,13 +1,13 @@
-#include <exception>
-#include <type_traits>
-#include <utility>
 #ifndef __SPLC_UTILS_LOGGING_HH__
 #define __SPLC_UTILS_LOGGING_HH__ 1
 
+#include <exception>
 #include <iostream>
 #include <mutex>
 #include <sstream>
 #include <string>
+#include <type_traits>
+#include <utility>
 
 #include "ControlSequence.hh"
 #include "LoggingLevel.hh"

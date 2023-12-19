@@ -1,8 +1,7 @@
-#include "Core/Utils/LoggingLevel.hh"
-#include <cstddef>
 #ifndef __SPLC_TRANSLATION_TRANSLATIONMANAGER_HH__
 #define __SPLC_TRANSLATION_TRANSLATIONMANAGER_HH__ 1
 
+#include <cstddef>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -77,19 +76,6 @@ class TranslationManager {
 
   protected:
     Ptr<TranslationUnit> tunit;
-};
-
-class TranslationLogger : public splc::utils::logging::internal::Logger {
-  public:
-    using Level = splc::utils::logging::Level;
-
-    TranslationLogger(const Ptr<const TranslationUnit> tunit_, const bool trace_,
-                      const Location *locPtr_, const Level level_);
-    
-    ~TranslationLogger();
-
-  private:
-    Ptr<const TranslationUnit> tunit;
 };
 
 } // namespace splc

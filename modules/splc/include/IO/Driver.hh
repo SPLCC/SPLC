@@ -1,4 +1,3 @@
-#include "Translation/TranslationBase.hh"
 #ifndef __SPLC_IO_DRIVER_HH__
 #define __SPLC_IO_DRIVER_HH__ 1
 
@@ -13,6 +12,7 @@
 #include "IO/IOBase.hh"
 #include "IO/Parser.hh"
 #include "IO/Scanner.hh"
+#include "Translation/TranslationBase.hh"
 #include "Translation/TranslationManager.hh"
 
 namespace splc::IO {
