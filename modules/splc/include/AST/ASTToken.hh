@@ -16,8 +16,7 @@ concept AllAreASTSymbolType =
                     typename std::remove_reference<Types>::type> &&
      ...);
 
-template <class... SourceTypes>
-    requires AllAreASTSymbolType<SourceTypes...>
+template <AllAreASTSymbolType... SourceTypes>
 bool isASTSymbolTypeOneOfThem(ASTSymbolType type, SourceTypes &&...otherTypes)
 {
     return ((type == otherTypes) || ...);

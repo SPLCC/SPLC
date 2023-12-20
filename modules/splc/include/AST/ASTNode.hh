@@ -15,7 +15,8 @@ namespace splc {
 class ASTNode;
 
 template <class T>
-concept IsASTNode = (std::is_same_v<ASTNode, std::remove_cvref_t<T>>);
+concept IsASTNodeType =
+    (std::is_base_of_v<ASTNode, std::remove_reference_t<T>>);
 
 template <class... Children>
 concept AllArePtrASTNode =
@@ -24,7 +25,7 @@ concept AllArePtrASTNode =
      ...);
 
 template <class T, class... Functors>
-concept AllApplicableOnASTNode = IsASTNode<T> &&
+concept AllApplicableOnASTNode = IsASTNodeType<T> &&
     (std::is_invocable_r_v<T &&, Functors, T &&> &&...);
 
 template <typename T>
@@ -77,9 +78,11 @@ class ASTNode {
         return value.valueless_by_exception();
     }
 
-    template <class T>
-    requires IsValidASTNodeValue<T>
-    auto getValue() { return std::get<T>(value); }
+    template <IsValidASTNodeValue T>
+    auto getValue()
+    {
+        return std::get<T>(value);
+    }
 
     template <class Visitor>
     auto visitValue(Visitor &&vis) const
@@ -87,12 +90,13 @@ class ASTNode {
         return std::visit(vis, value);
     }
 
-    template <class T>
-    requires IsValidASTNodeValue<T>
-    void emplaceValue(T &&val) { value.emplace<T>(std::forward(val)); }
+    template <IsValidASTNodeValue T>
+    void emplaceValue(T &&val)
+    {
+        value.emplace<T>(std::forward(val));
+    }
 
-    template <class T>
-    requires IsValidASTNodeValue<T>
+    template <IsValidASTNodeValue T>
     constexpr bool holdsValueType() const noexcept
     {
         return std::holds_alternative<T>(value);
@@ -117,22 +121,21 @@ class ASTNode {
 
     /// \brief Create a new node, and add all following children `Ptr<ASTNode>`
     /// to the list of its children.
-    template <class... Children>
-    requires AllArePtrASTNode<Children...>
+    template <AllArePtrASTNode... Children>
     friend Ptr<ASTNode> createASTNode(ASTSymbolType type, const Location &loc,
                                       Children &&...children);
     ///
     /// Allow stream-like operation on ASTs for processing.
     ///
-    template <class T, class Functor>
-    requires IsASTNode<T> && AllApplicableOnASTNode<T, Functor>
+    template <IsASTNodeType T, class Functor>
+    requires AllApplicableOnASTNode<T, Functor>
     friend T &&operator>>(T &&node, Functor &&functor);
 
     /// Apply all `functors` on the target `node`, returning the transformed
     /// version. Transforms are applied in a sequential manner as given in the
     /// parameters.
-    template <class T, class... Functors>
-    requires IsASTNode<T> && AllApplicableOnASTNode<T, Functors...>
+    template <IsASTNodeType T, class... Functors>
+    requires AllApplicableOnASTNode<T, Functors...>
     friend ASTNode &applyASTTransform(ASTNode &node, Functors &&...functors);
 
     /// Print information of this single node.
@@ -163,8 +166,7 @@ inline bool isASTNodeAppendable(const Ptr<const ASTNode> &node)
                                   ASTSymbolType::YYEOF, ASTSymbolType::YYerror);
 }
 
-template <class... Children>
-requires AllArePtrASTNode<Children...>
+template <AllArePtrASTNode... Children>
 inline Ptr<ASTNode> createASTNode(ASTSymbolType type, const Location &loc,
                                   Children &&...children)
 {
@@ -176,15 +178,15 @@ inline Ptr<ASTNode> createASTNode(ASTSymbolType type, const Location &loc,
     return parentNode;
 }
 
-template <class T, class Functor>
-requires IsASTNode<T> && AllApplicableOnASTNode<T, Functor>
+template <IsASTNodeType T, class Functor>
+requires AllApplicableOnASTNode<T, Functor>
 inline T &&operator>>(T &&node, Functor &&functor)
 {
     return std::forward<Functor>(functor)(std::forward<T>(node));
 }
 
-template <class T, class... Functors>
-requires IsASTNode<T> && AllApplicableOnASTNode<T, Functors...>
+template <IsASTNodeType T, class... Functors>
+requires AllApplicableOnASTNode<T, Functors...>
 inline T &&applyASTTransform(T &&node, Functors &&...functors)
 {
     return (functors(std::forward<T>(node)), ...);

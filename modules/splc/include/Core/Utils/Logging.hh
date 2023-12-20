@@ -72,7 +72,8 @@ class Logger {
 
     Logger(Logger &other) = delete;
 
-    /// \brief Move constructor that simply disables the output of the logger `other`.
+    /// \brief Move constructor that simply disables the output of the logger
+    /// `other`.
     Logger(Logger &&other)
         : enable{other.enable}, localLogStream{other.localLogStream},
           level{other.level}, locPtr{other.locPtr}
@@ -84,8 +85,8 @@ class Logger {
 
     virtual ~Logger() noexcept;
 
-    template <class T>
-    requires IOStreamable<T> Logger &operator<<(T &&val);
+    template <IOStreamable T>
+    Logger &operator<<(T &&val);
 
     /// \brief Print initial message.
     /// \example
@@ -105,8 +106,7 @@ class Logger {
     const Location *const locPtr;
 };
 
-template <class T>
-requires IOStreamable<T>
+template <IOStreamable T>
 inline Logger &Logger::operator<<(T &&val)
 {
     if (enable) {
@@ -114,8 +114,9 @@ inline Logger &Logger::operator<<(T &&val)
         if constexpr (std::is_base_of_v<LoggerTag, T>) {
             const LoggerTag &tag = dynamic_cast<const LoggerTag &>(val);
             if (tag.valid()) {
-                localLogStream << " [" << getLevelColor(level) << ControlSeq::Bold << tag
-                               << ControlSeq::Reset << "]";
+                localLogStream << " [" << getLevelColor(level)
+                               << ControlSeq::Bold << tag << ControlSeq::Reset
+                               << "]";
             }
         }
         else {

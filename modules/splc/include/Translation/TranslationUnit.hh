@@ -24,12 +24,22 @@ concept AllApplicableOnTranslationUnit = IsTranslationUnit<T> &&
 
 class TranslationUnit {
   public:
-    TranslationUnit() : translationContextManager{}, rootNode{}, warningCount{0}, errorCount{0} {}
+    TranslationUnit()
+        : translationContextManager{}, rootNode{}, warningCount{0}, errorCount{
+                                                                        0}
+    {
+    }
     virtual ~TranslationUnit() = default;
 
-    TranslationContextManager &getTranslationContextManager() { return translationContextManager; }
+    TranslationContextManager &getTranslationContextManager()
+    {
+        return translationContextManager;
+    }
 
-    const TranslationContextManager &getTranslationContextManager() const { return translationContextManager; }
+    const TranslationContextManager &getTranslationContextManager() const
+    {
+        return translationContextManager;
+    }
 
     Ptr<ASTNode> getRootNode() { return rootNode; }
 
@@ -49,14 +59,13 @@ class TranslationUnit {
 
   public:
     /// Allow stream-like operation on translation units for processing.
-    template <class T, class Functor>
-    requires IsTranslationUnit<T> && AllApplicableOnTranslationUnit<T, Functor>
+    template <IsTranslationUnit T, class Functor>
+    requires AllApplicableOnTranslationUnit<T, Functor>
     friend T &&operator>>(T &&unit, T && (*functor)(T &&));
 
     /// Allow combined transforms on translation units for processing.
-    template <class T, class... Functors>
-    requires IsTranslationUnit<T> &&
-        AllApplicableOnTranslationUnit<T, Functors...>
+    template <IsTranslationUnit T, class... Functors>
+    requires AllApplicableOnTranslationUnit<T, Functors...>
     friend T &&applyTranslationUnitTransform(T &&unit, Functors &&...functors);
 
   public:
@@ -65,15 +74,15 @@ class TranslationUnit {
     friend class TranslationLogger;
 };
 
-template <class T, class Functor>
-requires IsTranslationUnit<T> && AllApplicableOnTranslationUnit<T, Functor>
+template <IsTranslationUnit T, class Functor>
+requires AllApplicableOnTranslationUnit<T, Functor>
 inline T &&operator>>(T &&unit, Functor &&functor)
 {
     return std::forward<Functor>(functor)(std::forward<T>(unit));
 }
 
-template <class T, class... Functors>
-requires IsTranslationUnit<T> && AllApplicableOnTranslationUnit<T, Functors...>
+template <IsTranslationUnit T, class... Functors>
+requires AllApplicableOnTranslationUnit<T, Functors...>
 inline T &&applyTranslationUnitTransform(T &&unit, Functors &&...functors)
 {
     return (std::forward<Functors>(functors)(std::forward<T>(unit)), ...);
