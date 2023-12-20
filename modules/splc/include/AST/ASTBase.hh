@@ -91,7 +91,8 @@ class AST : public std::enable_shared_from_this<AST> {
                                          ASTSymbolType::YYerror);
     }
 
-    void addChild(Ptr<AST> child) {
+    void addChild(Ptr<AST> child)
+    {
         children.push_back(child);
         child->parent = shared_from_this();
     }
@@ -100,7 +101,8 @@ class AST : public std::enable_shared_from_this<AST> {
     void addChildren(Children &&...children)
     {
         ((children && isASTAppendable(*std::static_pointer_cast<AST>(children))
-              ? addChild(std::static_pointer_cast<AST>(std::forward<Children>(children)))
+              ? addChild(std::static_pointer_cast<AST>(
+                    std::forward<Children>(children)))
               : void()),
          ...);
     }
