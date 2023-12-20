@@ -9,6 +9,9 @@ namespace splc {
 template <class T>
 using Ptr = std::shared_ptr<T>;
 
+template <class T>
+using WeakPtr = std::weak_ptr<T>;
+
 // Convenient notation
 template <class T, class... Args>
 auto createPtr(Args &&...args)

@@ -32,7 +32,7 @@ TranslationContextManager::pushContext(const Location *intrLoc,
 
     Ptr<TranslationContext> context = createPtr<TranslationContext>(
         contextID++, TranslationContextBufferType::File, fileName_,
-        contextStack.empty() ? nullptr : contextStack.back().get(), intrLoc,
+        contextStack.empty() ? nullptr : contextStack.back(), intrLoc,
         inputStream);
     contextStack.push_back(context);
     allContexts.push_back(context);
@@ -49,8 +49,8 @@ TranslationContextManager::pushContext(const Location *intrLoc,
 
     Ptr<TranslationContext> context = createPtr<TranslationContext>(
         contextID++, TranslationContextBufferType::MacroExpansion, macroName_,
-        contextStack.empty() ? nullptr : contextStack.back().get(), intrLoc,
-        content_, inputStream);
+        contextStack.empty() ? nullptr : contextStack.back(), intrLoc, content_,
+        inputStream);
     contextStack.push_back(context);
     allContexts.push_back(context);
     return context;

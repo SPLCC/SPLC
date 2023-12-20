@@ -1,4 +1,5 @@
 #include <memory>
+#include <utility>
 #ifndef __SPLC_AST_ASTBASE_HH__
 #define __SPLC_AST_ASTBASE_HH__ 1
 
@@ -18,10 +19,14 @@ class AST;
 template <class T>
 concept IsASTType = (std::is_base_of_v<AST, std::remove_reference_t<T>>);
 
+template <class T>
+concept IsPtrAST = requires(T &&t)
+{
+    std::static_pointer_cast<AST>(std::forward<T>(t));
+};
+
 template <class... Children>
-concept AllArePtrAST =
-    (std::is_same_v<Ptr<AST>, typename std::remove_reference_t<Children>> &&
-     ...);
+concept AllArePtrAST = (IsPtrAST<Children> && ...);
 
 template <class T, class... Functors>
 concept AllApplicableOnAST = IsASTType<T> &&
@@ -58,7 +63,7 @@ auto castToPtrASTBase(T &&t)
 /// - `Unsigned long long`
 /// - `Double`
 /// - `String`
-class AST {
+class AST : public std::enable_shared_from_this<AST> {
 
   public:
     /// This constructor should be called by AST internal method
@@ -78,6 +83,27 @@ class AST {
 
     // TODO(IR): determine code generation
     // virtual void codeGen();
+
+    static inline bool isASTAppendable(const AST &node)
+    {
+        return !isASTSymbolTypeOneOfThem(node.type, ASTSymbolType::YYEMPTY,
+                                         ASTSymbolType::YYEOF,
+                                         ASTSymbolType::YYerror);
+    }
+
+    void addChild(Ptr<AST> child) {
+        children.push_back(child);
+        child->parent = shared_from_this();
+    }
+
+    template <AllArePtrAST... Children>
+    void addChildren(Children &&...children)
+    {
+        ((children && isASTAppendable(*std::static_pointer_cast<AST>(children))
+              ? addChild(std::static_pointer_cast<AST>(std::forward<Children>(children)))
+              : void()),
+         ...);
+    }
 
     Ptr<AST> findFirstChild(ASTSymbolType type) const noexcept;
 
@@ -118,15 +144,13 @@ class AST {
 
   protected:
     ASTSymbolType type;
+    WeakPtr<AST> parent;
     std::vector<Ptr<AST>> children;
     Location loc;
     // TODO: add symbol table
     std::variant<unsigned long long, double, std::string> value;
 
   public:
-    /// Check if an AST is appendable.
-    friend bool isASTAppendable(const AST &node);
-
     /// \brief Create a new node, and add all following children `Ptr<AST>`
     /// to the list of its children.
     template <IsASTType ASTType, AllArePtrAST... Children>
@@ -167,22 +191,12 @@ class AST {
                                    size_t depth);
 }; // class: AST
 
-inline bool isASTAppendable(const AST &node)
-{
-    return !isASTSymbolTypeOneOfThem(node.type, ASTSymbolType::YYEMPTY,
-                                     ASTSymbolType::YYEOF,
-                                     ASTSymbolType::YYerror);
-}
-
 template <IsASTType ASTType, AllArePtrAST... Children>
 inline Ptr<ASTType> createAST(ASTSymbolType type, const Location &loc,
                               Children &&...children)
 {
     Ptr<ASTType> parentNode = createPtr<ASTType>(type, loc);
-    ((children && isASTAppendable(*static_cast<Ptr<AST>>(children))
-          ? parentNode->children.push_back(std::forward<Children>(children))
-          : void()),
-     ...);
+    parentNode->addChildren(std::forward<Children>(children)...);
     return parentNode;
 }
 

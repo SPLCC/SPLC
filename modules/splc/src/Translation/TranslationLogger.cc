@@ -128,7 +128,8 @@ void TranslationLogger::printContextStack(const TranslationContext *context,
                                           size_t depth) const
 {
     using ControlSeq = utils::logging::ControlSeq;
-    if (context->parent) {
+    if (context->parent.use_count()) {
+        auto ptr = context->parent.lock();
         if (depth == 0) {
             localLogStream << "In file included from ";
         }
@@ -140,9 +141,9 @@ void TranslationLogger::printContextStack(const TranslationContext *context,
         }
 
         // If there is still parent left
-        if (context->parent->parent) {
+        if (ptr->parent.use_count()) {
             localLogStream << ",\n";
-            printContextStack(context->parent, depth + 1);
+            printContextStack(ptr.get(), depth + 1);
         }
         else {
             localLogStream << ":\n";

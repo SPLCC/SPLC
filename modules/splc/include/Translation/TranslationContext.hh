@@ -1,8 +1,10 @@
+#include <memory>
 #ifndef __SPLC_TRANSLATION_TRANSLATIONCONTEXT_HH__
 #define __SPLC_TRANSLATION_TRANSLATIONCONTEXT_HH__ 1
 
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <stack>
 #include <string>
 #include <string_view>
@@ -23,13 +25,14 @@ using TranslationContextIDType = utils::Location::ContextIDType;
 
 using TranslationContextKeyType = ContextKeyType;
 
-class TranslationContext {
+class TranslationContext : std::enable_shared_from_this<TranslationContext> {
   public:
     TranslationContext() = delete;
 
     TranslationContext(const TranslationContextIDType contextID_,
                        TranslationContextBufferType type_,
-                       std::string_view name_, const TranslationContext *parent,
+                       std::string_view name_,
+                       WeakPtr<const TranslationContext> parent,
                        const Location *intrLocation_,
                        Ptr<std::istream> inputStream_)
         : contextID{contextID_}, type{type_}, name{name_}, parent{parent},
@@ -40,7 +43,8 @@ class TranslationContext {
 
     TranslationContext(const TranslationContextIDType contextID_,
                        TranslationContextBufferType type_,
-                       std::string_view name_, const TranslationContext *parent,
+                       std::string_view name_,
+                       WeakPtr<const TranslationContext> parent,
                        const Location *intrLocation_, std::string_view content_,
                        Ptr<std::istream> inputStream_)
         : contextID{contextID_}, type{type_}, name{name_}, parent{parent},
@@ -56,7 +60,7 @@ class TranslationContext {
     const TranslationContextIDType contextID;
     const TranslationContextBufferType type;
     const std::string name;
-    const TranslationContext *parent;
+    WeakPtr<const TranslationContext> parent;
 
     const Location intrLocation; // Interrupt Location
     const std::string content;
