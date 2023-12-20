@@ -171,7 +171,7 @@ class AST : public std::enable_shared_from_this<AST> {
     /// parameters.
     template <IsASTType T, class... Functors>
     requires AllApplicableOnAST<T, Functors...>
-    friend AST &applyASTTransform(AST &node, Functors &&...functors);
+    friend T &&applyASTTransform(T &&node, Functors &&...functors);
 
     /// Print information of this single node.
     friend std::ostream &operator<<(std::ostream &os, const AST &node);
