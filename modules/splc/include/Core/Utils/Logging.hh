@@ -114,7 +114,7 @@ inline Logger &Logger::operator<<(T &&val)
         if constexpr (std::is_base_of_v<LoggerTag, T>) {
             const LoggerTag &tag = dynamic_cast<const LoggerTag &>(val);
             if (tag.valid()) {
-                localLogStream << " [" << getLevelColor(level) << tag
+                localLogStream << " [" << getLevelColor(level) << ControlSeq::Bold << tag
                                << ControlSeq::Reset << "]";
             }
         }

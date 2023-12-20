@@ -2,29 +2,20 @@
 #include <string>
 
 #include "Core/Utils/LocationWrapper.hh"
+#include "Core/Utils/LoggingLevel.hh"
+
 #include "Translation/TranslationBase.hh"
 #include "Translation/TranslationLogger.hh"
 
 namespace splc {
 
-void printIndicator(std::ostream &os, utils::logging::Level level,
-                    size_t lineCnt, const std::string &lineStr, size_t start,
-                    size_t end)
+using namespace utils::logging;
+using Level = utils::logging::Level;
+using ControlSeq = utils::logging::ControlSeq;
+
+void printIndicatorUnderline(std::ostream &os, Level level, size_t start,
+                             size_t end)
 {
-    using namespace utils::logging;
-    using ControlSeq = utils::logging::ControlSeq;
-
-    // Sidebar: line counter
-    os << std::setw(8) << std::setfill(' ') << std::right << lineCnt << " | ";
-
-    // Actual content
-    os << lineStr.substr(0, start - 1);
-    os << ControlSeq::Bold << getLevelColor(level);
-    os << lineStr.substr(start - 1, end - start);
-    os << ControlSeq::Reset;
-    os << lineStr.substr(end - 1);
-    os << "\n";
-
     // Indicator
     os << "         | " << ControlSeq::Bold << getLevelColor(level);
 
@@ -41,12 +32,32 @@ void printIndicator(std::ostream &os, utils::logging::Level level,
     os << ControlSeq::Reset;
 }
 
+void printIndicatorStr(std::ostream &os, Level level, size_t lineCnt,
+                       const std::string &lineStr, size_t start, size_t end)
+{
+    // Sidebar: line counter
+    os << std::setw(8) << std::setfill(' ') << std::right << lineCnt << " | ";
+
+    // Actual content
+    os << lineStr.substr(0, start - 1);
+    os << ControlSeq::Bold << getLevelColor(level);
+    os << lineStr.substr(start - 1, end - start);
+    os << ControlSeq::Reset;
+    os << lineStr.substr(end - 1);
+}
+
+void printIndicator(std::ostream &os, Level level, size_t lineCnt,
+                    const std::string &lineStr, size_t start, size_t end)
+{
+    printIndicatorStr(os, level, lineCnt, lineStr, start, end);
+    os << "\n";
+    printIndicatorUnderline(os, level, start, end);
+}
+
 void printIndicator(std::ostream &os, utils::logging::Level level,
                     const Location &loc)
 {
-    using namespace utils::logging;
-    using ControlSeq = utils::logging::ControlSeq;
-
+    // TODO: just print more lines
     const std::string &filename = *loc.begin.contextName;
     std::string lineStr;
 
@@ -68,6 +79,7 @@ void printIndicator(std::ostream &os, utils::logging::Level level,
             break;
         }
     }
+
     if (lineStr.empty()) {
         SPLC_LOG_ERROR(nullptr)
             << "cannot retrieve line from location: " << ControlSeq::Bold << loc
