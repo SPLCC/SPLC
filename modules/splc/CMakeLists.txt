@@ -25,7 +25,7 @@ aux_source_directory(src/IO SRC_FILES_IO)
 aux_source_directory(src/Analysis SRC_FILES_ANALYSIS)
 aux_source_directory(src/AST SRC_FILES_AST)
 aux_source_directory(src/Translation SRC_FILES_TRANSLATION)
-aux_source_directory(src/IR SRC_FILES_IR)
+aux_source_directory(src/CodeGen SRC_FILES_CODEGEN)
 aux_source_directory(src/Core SRC_FILES_CORE)
 aux_source_directory(src/Core/Utils SRC_FILES_CORE_UTILS)
 aux_source_directory(src SRC_FILES)
@@ -89,19 +89,19 @@ file(GLOB splc_Analysis_HEADER_FILES "${SPLC_INCL_DIR}/Analysis/*.hh")
 set_target_properties(splc_Analysis PROPERTIES 
     PUBLIC_HEADER "${splc_Analysis_HEADER_FILES}")
 
-# splc_IR shared library
-add_library(splc_IR SHARED ${SRC_FILES_IR})
-target_include_directories(splc_IR PUBLIC ${SPLC_INCL_DIR})
-add_dependencies(splc_IR splc_IO)
-set_target_properties(splc_IR PROPERTIES 
+# splc_CodeGen shared library
+add_library(splc_CodeGen SHARED ${SRC_FILES_CODEGEN})
+target_include_directories(splc_CodeGen PUBLIC ${SPLC_INCL_DIR})
+add_dependencies(splc_CodeGen splc_IO)
+set_target_properties(splc_CodeGen PROPERTIES 
     LIBRARY_OUTPUT_DIRECTORY ${GENERATED_LIB_DIR})
-file(GLOB splc_IR_HEADER_FILES "${SPLC_INCL_DIR}/IR/*.hh")
-set_target_properties(splc_IR PROPERTIES 
-    PUBLIC_HEADER "${splc_IR_HEADER_FILES}")
+file(GLOB splc_CodeGen_HEADER_FILES "${SPLC_INCL_DIR}/CodeGen/*.hh")
+set_target_properties(splc_CodeGen PROPERTIES 
+    PUBLIC_HEADER "${splc_CodeGen_HEADER_FILES}")
 
 # splc executable
 add_executable(splc ${SRC_FILES})
-target_link_libraries(splc splc_IO splc_Core splc_AST splc_Translation splc_Analysis splc_IR)
+target_link_libraries(splc splc_IO splc_Core splc_AST splc_Translation splc_Analysis splc_CodeGen)
 
 set_target_properties(splc PROPERTIES 
     RUNTIME_OUTPUT_DIRECTORY ${GENERATED_EXEC_DIR})
