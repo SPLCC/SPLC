@@ -10,12 +10,6 @@
 #include "AST/ASTProcess.hh"
 #include "IO/Driver.hh"
 
-using splc::utils::logging::internal::Logger;
-
-Logger getLogger() {
-    return SPLC_LOG_DEBUG(nullptr);
-}
-
 int main(const int argc, const char **argv)
 {
     // check for the right # of arguments
