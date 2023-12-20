@@ -4,9 +4,10 @@
 #include <cstring>
 #include <iostream>
 
+#include "AST/AST.hh"
 #include "Core/splc.hh"
 
-#include "AST/ASTBase.hh"
+#include "AST/AST.hh"
 #include "AST/ASTProcess.hh"
 #include "IO/Driver.hh"
 
@@ -33,7 +34,10 @@ int main(const int argc, const char **argv)
     using splc::AST;
 
     // test
-    Ptr<AST> node0, node1;
+    auto node0 =
+        splc::createAST<AST>(splc::ASTSymbolType::CHAR, splc::Location{}, 1ULL);
+    auto node1 = splc::createAST<AST>(splc::ASTSymbolType::UPPER,
+                                      splc::Location{}, std::string{"hihihi"});
     auto node = splc::createAST<AST>(splc::ASTSymbolType::CHAR,
                                      splc::Location{}, node0, node1);
 

@@ -7,7 +7,7 @@
 
 #include "Core/splc.hh"
 
-#include "AST/ASTBase.hh"
+#include "AST/AST.hh"
 #include "AST/ASTToken.hh"
 
 namespace splc {

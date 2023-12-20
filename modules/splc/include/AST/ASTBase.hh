@@ -67,13 +67,14 @@ class AST : public std::enable_shared_from_this<AST> {
 
   public:
     /// This constructor should be called by AST internal method
-    AST() noexcept : type{ASTSymbolType::YYEMPTY} {}
+    explicit AST() noexcept : type{ASTSymbolType::YYEMPTY} {}
+
     AST(const ASTSymbolType type_, const Location &loc_)
     noexcept : type{type_}, loc{loc_}
     {
     }
 
-    template <class T>
+    template <IsValidASTValue T>
     AST(const ASTSymbolType type_, const Location &loc_, T &&value_)
         : type{type_}, loc{loc_}, value{value_}
     {
@@ -159,6 +160,12 @@ class AST : public std::enable_shared_from_this<AST> {
     friend Ptr<ASTType> createAST(ASTSymbolType type, const Location &loc,
                                   Children &&...children);
 
+    /// \brief Create a new node, and add all following children `Ptr<AST>`
+    /// to the list of its children.
+    template <IsASTType ASTType, IsValidASTValue T, AllArePtrAST... Children>
+    friend Ptr<ASTType> createAST(ASTSymbolType type, const Location &loc,
+                                  T &&value, Children &&...children);
+
     ///
     /// Allow stream-like operation on ASTs for processing.
     ///
@@ -202,6 +209,16 @@ inline Ptr<ASTType> createAST(ASTSymbolType type, const Location &loc,
     return parentNode;
 }
 
+template <IsASTType ASTType, IsValidASTValue T, AllArePtrAST... Children>
+inline Ptr<ASTType> createAST(ASTSymbolType type, const Location &loc,
+                              T &&value, Children &&...children)
+{
+    Ptr<ASTType> parentNode =
+        createPtr<ASTType>(type, loc, std::forward<T>(value));
+    parentNode->addChildren(std::forward<Children>(children)...);
+    return parentNode;
+}
+
 template <IsASTType T, class Functor>
 requires AllApplicableOnAST<T, Functor>
 inline T &&operator>>(T &&node, Functor &&functor)
@@ -227,8 +244,15 @@ inline std::ostream &operator<<(std::ostream &os, const AST &node)
     // TODO: print node address (allocated)
 
     // print node location
-    os << ControlSeq::BrightYellow << " <" << node.loc << ">"
-       << ControlSeq::Reset;
+    os << " <" << ControlSeq::BrightYellow;
+    if (node.loc.begin.contextName) {
+        // TODO: print contextname if appeared for the first time
+        os << node.loc;
+    }
+    else {
+        os << "<invalid sloc>";
+    }
+    os << ControlSeq::Reset << ">";
 
     // print node content
     // TODO: print symbol table
@@ -240,14 +264,12 @@ inline std::ostream &operator<<(std::ostream &os, const AST &node)
         os << " ";
         node.visitValue(overloaded{
             [&](const auto arg) { os << arg; },
-            [&](char arg) { os << ControlSeq::BrightCyan << arg; },
+            [&](char arg) { os << ControlSeq::Green << arg; },
             [&](const unsigned long long arg) {
-                os << ControlSeq::Green << arg;
+                os << ControlSeq::Blue << arg;
             },
             [&](const double arg) { os << ControlSeq::Green << arg; },
-            [&](std::string_view arg) {
-                os << ControlSeq::BrightCyan << arg;
-            }});
+            [&](const std::string &arg) { os << ControlSeq::Green << arg; }});
         os << ControlSeq::Reset;
     }
 
