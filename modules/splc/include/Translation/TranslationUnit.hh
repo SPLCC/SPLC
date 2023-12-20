@@ -5,7 +5,7 @@
 
 #include "Core/splc.hh"
 
-#include "AST/ASTNode.hh"
+#include "AST/ASTBase.hh"
 
 #include "Translation/TranslationBase.hh"
 #include "Translation/TranslationContextManager.hh"
@@ -41,9 +41,9 @@ class TranslationUnit {
         return translationContextManager;
     }
 
-    Ptr<ASTNode> getRootNode() { return rootNode; }
+    Ptr<AST> getRootNode() { return rootNode; }
 
-    Ptr<const ASTNode> getRootNode() const { return rootNode; }
+    Ptr<const AST> getRootNode() const { return rootNode; }
 
   protected:
     // TODO: add ASTContextManager?
@@ -52,7 +52,7 @@ class TranslationUnit {
     TranslationContextManager translationContextManager;
 
     /// Stores the root node of this translation unit.
-    Ptr<ASTNode> rootNode;
+    Ptr<AST> rootNode;
 
     int warningCount;
     int errorCount;

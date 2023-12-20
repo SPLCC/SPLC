@@ -7,14 +7,14 @@
 
 #include "Core/splc.hh"
 
-#include "AST/ASTNode.hh"
+#include "AST/ASTBase.hh"
 #include "AST/ASTToken.hh"
 
 namespace splc {
 
 namespace ASTProcess {
 
-ASTNode &removeASTPunctuators(ASTNode &node);
+AST &removeASTPunctuators(AST &node);
 
 } // namespace ASTProcess
 

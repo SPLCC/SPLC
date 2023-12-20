@@ -74,7 +74,7 @@ class Position {
     }
 
     /// Assign context information.
-    void switchContext(ContextKeyType keyType)
+    void switchToContext(ContextKeyType keyType)
     {
         contextName = keyType.first;
         contextID = keyType.second;
@@ -195,10 +195,10 @@ class Location {
     }
 
     /// Assign context information.
-    void switchContext(ContextKeyType keyType)
+    void switchToContext(ContextKeyType keyType)
     {
-        begin.switchContext(keyType);
-        end.switchContext(keyType);
+        begin.switchToContext(keyType);
+        end.switchToContext(keyType);
     }
 
     /// Convert to bool to check if this location is a valid one.

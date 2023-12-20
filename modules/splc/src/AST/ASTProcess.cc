@@ -2,7 +2,7 @@
 
 namespace splc::ASTProcess {
 
-ASTNode &removeASTPunctuators(ASTNode &node)
+AST &removeASTPunctuators(AST &node)
 {
     // TODO: Preprocess AST, or just throw away all punctuators at initial
     // (which seems to be a good idea)
