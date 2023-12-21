@@ -8,7 +8,7 @@
 
 namespace splc::utils::logging {
 
-enum Level {
+enum class Level {
     Empty,
     Debug,
     Info,
@@ -27,35 +27,35 @@ static inline std::ostream &operator<<(std::ostream &os, Level level)
     }
 
     switch (level) {
-    case Info: {
+    case Level::Info: {
         os << "info";
         break;
     }
-    case Debug: {
+    case Level::Debug: {
         os << "debug";
         break;
     }
-    case Note: {
+    case Level::Note: {
         os << "note";
         break;
     }
-    case Warning: {
+    case Level::Warning: {
         os << "warning";
         break;
     }
-    case Error: {
+    case Level::Error: {
         os << "error";
         break;
     }
-    case SyntaxError: {
+    case Level::SyntaxError: {
         os << "syntax error";
         break;
     }
-    case SemanticError: {
+    case Level::SemanticError: {
         os << "semantic error";
         break;
     }
-    case FatalError: {
+    case Level::FatalError: {
         os << "fatal error";
         break;
     }
@@ -93,26 +93,26 @@ inline std::ostream &operator<<(std::ostream &os,
     os << ControlSeq::Bold;
 
     switch (m.level) {
-    case Debug: {
+    case Level::Debug: {
         os << ControlSeq::BrightYellow;
         break;
     }
-    case Note: {
+    case Level::Note: {
         os << ControlSeq::BrightCyan;
         break;
     }
-    case Warning: {
+    case Level::Warning: {
         os << ControlSeq::BrightMagenta;
         break;
     }
-    case Error:
-    case SyntaxError:
-    case SemanticError:
-    case FatalError: {
+    case Level::Error:
+    case Level::SyntaxError:
+    case Level::SemanticError:
+    case Level::FatalError: {
         os << ControlSeq::BrightRed;
     }
 
-    case Info:
+    case Level::Info:
     default:
         break;
     }

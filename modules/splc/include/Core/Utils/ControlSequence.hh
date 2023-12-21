@@ -11,10 +11,10 @@ extern int splc::options::noDiagnosticColor;
 
 namespace splc::utils::logging {
 
-/// \brief Type of control sequences. 
+/// \brief Type of control sequences.
 /// If `noDiagnosticColor` is nonzero, then
 /// they won't take effect.
-enum ControlSeq {
+enum class ControlSeq {
     Black,
     BrightBlack,
     Red,
@@ -42,79 +42,79 @@ static inline std::ostream &operator<<(std::ostream &os, ControlSeq seqType)
         return os;
     }
     switch (seqType) {
-    case Black: {
+    case ControlSeq::Black: {
         os << "\x1B[30m";
         break;
     }
-    case BrightBlack: {
+    case ControlSeq::BrightBlack: {
         os << "\x1B[90m";
         break;
     }
-    case Red: {
+    case ControlSeq::Red: {
         os << "\x1B[31m";
         break;
     }
-    case BrightRed: {
+    case ControlSeq::BrightRed: {
         os << "\x1B[91m";
         break;
     }
-    case Green: {
+    case ControlSeq::Green: {
         os << "\x1B[32m";
         break;
     }
-    case BrightGreen: {
+    case ControlSeq::BrightGreen: {
         os << "\x1B[92m";
         break;
     }
-    case Yellow: {
+    case ControlSeq::Yellow: {
         os << "\x1B[33m";
         break;
     }
-    case BrightYellow: {
+    case ControlSeq::BrightYellow: {
         os << "\x1B[93m";
         break;
     }
-    case Blue: {
+    case ControlSeq::Blue: {
         os << "\x1B[34m";
         break;
     }
-    case BrightBlue: {
+    case ControlSeq::BrightBlue: {
         os << "\x1B[94m";
         break;
     }
-    case Magenta: {
+    case ControlSeq::Magenta: {
         os << "\x1B[35m";
         break;
     }
-    case BrightMagenta: {
+    case ControlSeq::BrightMagenta: {
         os << "\x1B[95m";
         break;
     }
-    case Cyan: {
+    case ControlSeq::Cyan: {
         os << "\x1B[36m";
         break;
     }
-    case BrightCyan: {
+    case ControlSeq::BrightCyan: {
         os << "\x1B[96m";
         break;
     }
-    case White: {
+    case ControlSeq::White: {
         os << "\x1B[37m";
         break;
     }
-    case BrightWhite: {
+    case ControlSeq::BrightWhite: {
         os << "\x1B[97m";
         break;
     }
-    case Default: {
+    case ControlSeq::Default: {
         os << "\x1B[39m";
         break;
     }
-    case Bold: {
+    case ControlSeq::Bold: {
         os << "\x1B[1m";
         break;
     }
-    case Reset: {
+    case ControlSeq::Reset: {
         os << "\x1B[0m";
         break;
     }

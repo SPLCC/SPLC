@@ -22,12 +22,13 @@ file(MAKE_DIRECTORY ${GENERATED_SRC_DIR_IO})
 list(APPEND SPLC_INCL_DIR include ${GENERATED_INCL_DIR})
 
 aux_source_directory(src/IO SRC_FILES_IO)
+aux_source_directory(src/Core SRC_FILES_CORE)
+aux_source_directory(src/Core/Utils SRC_FILES_CORE_UTILS)
+aux_source_directory(src/Basic SRC_FILES_BASIC)
 aux_source_directory(src/Analysis SRC_FILES_ANALYSIS)
 aux_source_directory(src/AST SRC_FILES_AST)
 aux_source_directory(src/Translation SRC_FILES_TRANSLATION)
 aux_source_directory(src/CodeGen SRC_FILES_CODEGEN)
-aux_source_directory(src/Core SRC_FILES_CORE)
-aux_source_directory(src/Core/Utils SRC_FILES_CORE_UTILS)
 aux_source_directory(src SRC_FILES)
 
 set(SRC_DIR src)
@@ -58,6 +59,16 @@ set_target_properties(splc_Core PROPERTIES
 file(GLOB_RECURSE splc_Core_HEADER_FILES "${SPLC_INCL_DIR}/Core/*.hh")
 set_target_properties(splc_Core PROPERTIES 
     PUBLIC_HEADER "${splc_Core_HEADER_FILES}")
+    
+# splc_Basic shared library
+add_library(splc_Basic SHARED ${SRC_FILES_BASIC})
+target_include_directories(splc_Basic PUBLIC ${SPLC_INCL_DIR})
+add_dependencies(splc_Basic splc_IO)
+set_target_properties(splc_Basic PROPERTIES 
+    LIBRARY_OUTPUT_DIRECTORY ${GENERATED_LIB_DIR})
+file(GLOB splc_Basic_HEADER_FILES "${SPLC_INCL_DIR}/Basic/*.hh")
+set_target_properties(splc_Basic PROPERTIES 
+    PUBLIC_HEADER "${splc_Basic_HEADER_FILES}")
     
 # splc_AST shared library
 add_library(splc_AST SHARED ${SRC_FILES_AST})

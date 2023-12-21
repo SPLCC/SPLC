@@ -83,7 +83,10 @@ class AST : public std::enable_shared_from_this<AST> {
     virtual ~AST() = default;
 
     // TODO(IR): determine code generation
-    // virtual void codeGen();
+    // virtual void genCode();
+
+    // TODO(sem): semantic analysis generation
+    // virtual void verify();
 
     static inline bool isASTAppendable(const AST &node)
     {
