@@ -1,4 +1,3 @@
-#include <memory>
 #ifndef __SPLC_TRANSLATION_TRANSLATIONCONTEXT_HH__
 #define __SPLC_TRANSLATION_TRANSLATIONCONTEXT_HH__ 1
 
@@ -20,10 +19,6 @@ enum TranslationContextBufferType {
     File,
     MacroExpansion,
 };
-
-using TranslationContextIDType = utils::Location::ContextIDType;
-
-using TranslationContextKeyType = ContextKeyType;
 
 class TranslationContext : std::enable_shared_from_this<TranslationContext> {
   public:
@@ -59,11 +54,11 @@ class TranslationContext : std::enable_shared_from_this<TranslationContext> {
 
     const TranslationContextIDType contextID;
     const TranslationContextBufferType type;
-    const std::string name;
+    const TranslationContextNameType name;
     WeakPtr<const TranslationContext> parent;
 
     const Location intrLocation; // Interrupt Location
-    const std::string content;
+    const MacroContentType content;
     Ptr<std::istream> inputStream;
 };
 

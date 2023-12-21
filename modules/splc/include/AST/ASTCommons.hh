@@ -23,8 +23,11 @@ typedef char ASTCharType;
 typedef unsigned long long ASTIntegralType;
 typedef double ASTFloatType;
 
+using ASTValueType =
+    std::variant<ASTCharType, ASTIntegralType, ASTFloatType, ASTIDType>;
+
 template <class T>
-concept IsASTType = (std::is_base_of_v<AST, std::remove_reference_t<T>>);
+concept IsBaseAST = (std::is_base_of_v<AST, std::remove_reference_t<T>>);
 
 template <class T>
 concept IsPtrAST = requires(T &&t)
@@ -36,7 +39,7 @@ template <class... Children>
 concept AllArePtrAST = (IsPtrAST<Children> && ...);
 
 template <class T, class... Functors>
-concept AllApplicableOnAST = IsASTType<T> &&
+concept AllApplicableOnAST = IsBaseAST<T> &&
     (std::is_invocable_r_v<T &&, Functors, T &&> &&...);
 
 template <class T>
@@ -52,6 +55,9 @@ auto castToPtrASTBase(T &&t)
     return std::static_pointer_cast<AST>(std::forward<T>(t));
 }
 
+// ASTProcessor forward decl
+class ASTProcessor;
+
 // template <class Functor>
 // concept IsValidASTValueVisitor =
 //     (std::is_invocable_v<Functor, char> ||
@@ -62,6 +68,12 @@ auto castToPtrASTBase(T &&t)
 //      std::is_invocable_v<Functor, const unsigned long long> ||
 //      std::is_invocable_v<Functor, const double> ||
 //      std::is_invocable_v<Functor, const std::string>);
+
+// Type forward decl
+class Type;
+
+template <class T>
+concept IsASTSymbolType = (std::is_base_of_v<Type, std::remove_reference_t<T>>);
 
 // Value forward decl
 class Value;

@@ -9,6 +9,7 @@
 #include "AST/ASTContextManager.hh"
 
 #include "Translation/TranslationBase.hh"
+#include "Translation/TranslationOption.hh"
 #include "Translation/TranslationContextManager.hh"
 
 namespace splc {
@@ -58,6 +59,8 @@ class TranslationUnit {
 
     int warningCount;
     int errorCount;
+
+    // TODO: add options and includes
 
   public:
     /// Allow stream-like operation on translation units for processing.

@@ -6,6 +6,7 @@
 #include "Core/splc.hh"
 
 #include "AST/ASTCommons.hh"
+#include "AST/Type.hh"
 
 namespace splc {
 
@@ -13,6 +14,12 @@ namespace splc {
 class Value : public std::enable_shared_from_this<Value> {
   public:
     // TODO
+    Value() = delete;
+    Value(Type type_) : type{type_} {}
+
+    Type type;
+    bool isLValue;
+    bool isRValue;
 };
 
 } // namespace splc

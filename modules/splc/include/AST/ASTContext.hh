@@ -8,6 +8,7 @@
 #include "Core/splc.hh"
 
 #include "AST/ASTCommons.hh"
+#include "AST/SymbolEntry.hh"
 
 namespace splc {
 
@@ -16,8 +17,18 @@ class ASTContext {
   public:
     ASTContext() = default;
 
+    ASTSymbolMap &getSymbolMap() { return symbolMap; }
+    const ASTSymbolMap &getSymbolMap() const { return symbolMap; }
+
   protected:
-    
+    ASTSymbolMap symbolMap;
+
+  public:
+    friend class AST;
+    friend class ASTProcessor;
+    friend class ASTContextManager;
+    friend class Type;
+    friend class Value;
 };
 
 } // namespace splc

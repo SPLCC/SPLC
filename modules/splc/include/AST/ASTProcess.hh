@@ -11,13 +11,11 @@
 
 namespace splc {
 
-namespace ASTProcess {
-
-AST &removeASTPunctuators(AST &node);
-
-AST &reduce(AST &node);
-
-} // namespace ASTProcess
+class ASTProcessor {
+  public:
+    static AST &removeASTPunctuators(AST &node);
+    static AST &reduce(AST &node);
+};
 
 } // namespace splc
 

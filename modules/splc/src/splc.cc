@@ -41,11 +41,11 @@ int main(const int argc, const char **argv)
     auto node = splc::makeAST<AST>(splc::ASTSymbolType::CHAR,
                                      splc::Location{}, node0, node1);
 
-    *node >> ASTProcess::removeASTPunctuators >>
-        ASTProcess::removeASTPunctuators;
+    *node >> ASTProcessor::removeASTPunctuators >>
+        ASTProcessor::removeASTPunctuators;
 
-    applyASTTransform(*node, ASTProcess::removeASTPunctuators,
-                      ASTProcess::removeASTPunctuators);
+    applyASTTransform(*node, ASTProcessor::removeASTPunctuators,
+                      ASTProcessor::removeASTPunctuators);
 
     std::cout << treePrintTransform(*node);
     SPLC_LOG_DEBUG(nullptr) << "Hi" << SPLC_LOGGER_TAG("debug tag");

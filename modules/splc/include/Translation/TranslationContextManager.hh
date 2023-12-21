@@ -29,9 +29,8 @@ class TranslationContextManager {
     /// \brief Push `Ptr<TranslationContext` into context manager, switching to
     ///        this context.
     /// \warning This method will not add the given context to the context
-    /// stack,
-    ///          as the user is assumed to call this method IFF they are
-    ///          revisiting existing contexts.
+    /// stack, as the user is assumed to call this method IFF they are
+    /// revisiting existing contexts.
     /// \param intrLocation interrupt location
     Ptr<TranslationContext> pushContext(Ptr<TranslationContext> context);
 
@@ -110,8 +109,11 @@ class TranslationContextManager {
     /// Store all contexts
     std::vector<Ptr<TranslationContext>> allContexts;
 
-    /// This will store macro contexts for checking repeated definitions
+    /// Store contexts for checking repeated inclusions
     std::vector<Ptr<TranslationContext>> contextStack;
+
+    /// Store macro variables that might be used.
+    MacroVarMap macroVarMap;
 
   public:
     friend class TranslationUnit;

@@ -10,6 +10,7 @@
 #include "Core/splc.hh"
 
 #include "Translation/TranslationBase.hh"
+#include "Translation/TranslationOption.hh"
 #include "Translation/TranslationUnit.hh"
 
 namespace splc {
@@ -96,7 +97,8 @@ class TranslationManager {
   protected:
     Ptr<TranslationUnit> tunit;
 
-    // TODO: add settings and allow manager to retrieve include options and stuff
+    // TODO: add options
+    // TODO: allow manager to retrieve include options and stuff
 };
 
 } // namespace splc

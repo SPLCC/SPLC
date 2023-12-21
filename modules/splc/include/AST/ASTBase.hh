@@ -47,8 +47,10 @@ class AST : public std::enable_shared_from_this<AST> {
     // TODO(IR): determine code generation (llvm IR)
     // virtual void genCode();
 
+    virtual Type getType() const noexcept;
+
     // TODO(sem): semantic analysis generation
-    virtual Ptr<Value> evaluate();
+    virtual Value evaluate() const noexcept;
 
     static inline bool isASTAppendable(const AST &node)
     {
@@ -67,8 +69,7 @@ class AST : public std::enable_shared_from_this<AST> {
     void addChildren(Children &&...children)
     {
         ((children && isASTAppendable(*castToPtrASTBase(children))
-              ? addChild(castToPtrASTBase(
-                    std::forward<Children>(children)))
+              ? addChild(castToPtrASTBase(std::forward<Children>(children)))
               : void()),
          ...);
     }
@@ -118,32 +119,32 @@ class AST : public std::enable_shared_from_this<AST> {
     std::vector<Ptr<AST>> children;
     Location loc;
     // TODO: add symbol table
-    std::variant<ASTCharType, ASTIntegralType, ASTFloatType, ASTIDType> value;
+    ASTValueType value;
 
   public:
     /// \brief Create a new node, and add all following children `Ptr<AST>`
     /// to the list of its children.
-    template <IsASTType ASTType, AllArePtrAST... Children>
+    template <IsBaseAST ASTType, AllArePtrAST... Children>
     friend Ptr<ASTType> makeAST(ASTSymbolType type, const Location &loc,
                                 Children &&...children);
 
     /// \brief Create a new node, and add all following children `Ptr<AST>`
     /// to the list of its children.
-    template <IsASTType ASTType, IsValidASTValue T, AllArePtrAST... Children>
+    template <IsBaseAST ASTType, IsValidASTValue T, AllArePtrAST... Children>
     friend Ptr<ASTType> makeAST(ASTSymbolType type, const Location &loc,
                                 T &&value, Children &&...children);
 
     ///
     /// Allow stream-like operation on ASTs for processing.
     ///
-    template <IsASTType T, class Functor>
+    template <IsBaseAST T, class Functor>
     requires AllApplicableOnAST<T, Functor>
     friend T &&operator>>(T &&node, Functor &&functor);
 
     /// Apply all `functors` on the target `node`, returning the transformed
     /// version. Transforms are applied in a sequential manner as given in the
     /// parameters.
-    template <IsASTType T, class... Functors>
+    template <IsBaseAST T, class... Functors>
     requires AllApplicableOnAST<T, Functors...>
     friend T &&applyASTTransform(T &&node, Functors &&...functors);
 
@@ -165,9 +166,15 @@ class AST : public std::enable_shared_from_this<AST> {
 
     friend void recursivePrintNode(std::ostream &os, const AST &node,
                                    size_t depth);
+
+    friend class ASTProcessor;
+    friend class ASTContext;
+    friend class ASTContextManager;
+    friend class Type;
+    friend class Value;
 }; // class: AST
 
-template <IsASTType ASTType, AllArePtrAST... Children>
+template <IsBaseAST ASTType, AllArePtrAST... Children>
 inline Ptr<ASTType> makeAST(ASTSymbolType type, const Location &loc,
                             Children &&...children)
 {
@@ -176,7 +183,7 @@ inline Ptr<ASTType> makeAST(ASTSymbolType type, const Location &loc,
     return parentNode;
 }
 
-template <IsASTType ASTType, IsValidASTValue T, AllArePtrAST... Children>
+template <IsBaseAST ASTType, IsValidASTValue T, AllArePtrAST... Children>
 inline Ptr<ASTType> makeAST(ASTSymbolType type, const Location &loc, T &&value,
                             Children &&...children)
 {
@@ -186,14 +193,14 @@ inline Ptr<ASTType> makeAST(ASTSymbolType type, const Location &loc, T &&value,
     return parentNode;
 }
 
-template <IsASTType T, class Functor>
+template <IsBaseAST T, class Functor>
 requires AllApplicableOnAST<T, Functor>
 inline T &&operator>>(T &&node, Functor &&functor)
 {
     return std::forward<Functor>(functor)(std::forward<T>(node));
 }
 
-template <IsASTType T, class... Functors>
+template <IsBaseAST T, class... Functors>
 requires AllApplicableOnAST<T, Functors...>
 inline T &&applyASTTransform(T &&node, Functors &&...functors)
 {

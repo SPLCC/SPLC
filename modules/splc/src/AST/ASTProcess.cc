@@ -1,18 +1,18 @@
 #include "AST/ASTProcess.hh"
 
-namespace splc::ASTProcess {
+namespace splc {
 
-AST &removeASTPunctuators(AST &node)
+AST &ASTProcessor::removeASTPunctuators(AST &node)
 {
     // TODO: Preprocess AST, or just throw away all punctuators at initial
     // (which seems to be a good idea)
     return node;
 }
 
-AST &reduce (AST &node)
+AST &ASTProcessor::reduce(AST &node)
 {
     // TODO: reduce AST by eliminating redundant nodes without side-effect
     return node;
 }
 
-} // namespace splc::ASTProcess
+} // namespace splc
