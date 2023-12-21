@@ -36,7 +36,7 @@ using Token = splc::IO::Parser::token;
 %%
 %{          
             /** Code executed at the beginning of yylex **/
-            yyloc->switchToContext(translationManager.getCurrentTranslationContextKey());
+            yyloc->switchToContext(translationManager.getCurrentTransContextKey());
 %}
 
 [a-z]       {

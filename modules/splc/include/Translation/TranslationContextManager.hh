@@ -26,15 +26,14 @@ class TranslationContextManager {
 
     ~TranslationContextManager() = default;
 
-    // TODO: allow create and retrieve macro contexts
-
     /// \brief Push `Ptr<TranslationContext` into context manager, switching to
     ///        this context.
     /// \warning This method will not add the given context to the context
     /// stack, as the user is assumed to call this method IFF they are
     /// revisiting existing contexts.
     /// \param intrLocation interrupt location
-    Ptr<TranslationContext> pushContext(Ptr<TranslationContext> context);
+    Ptr<TranslationContext> pushContext(const Location *intrLocation,
+                                        Ptr<TranslationContext> context);
 
     /// \brief Push a new file into context manager. If no such file exist,
     /// throw a runtime error.
@@ -45,14 +44,31 @@ class TranslationContextManager {
     /// \brief Push a macro substitution into context manager, switching to
     /// macro substitution.
     /// \param intrLocation interrupt location
-    Ptr<TranslationContext> pushContext(const Location *intrLocation,
-                                        std::string_view macroName_,
-                                        std::string_view ontent_);
+    Ptr<TranslationContext> pushMacroVarContext(const Location *intrLocation,
+                                                std::string_view macroVarName_);
 
     /// \brief Pop the topmost context.
     /// If there does not exist such context, or if all the contexts
     /// have already been popped off, return 1. Else, return 0.
     Ptr<TranslationContext> popContext();
+
+    bool isTransMacroVarPresent(std::string_view macroVarName_) const;
+
+    /// \brief Get macro var context from the context manager.
+    MacroVarConstEntry getMacroVarContext(std::string_view macroVarName_) const;
+
+    /// \brief Register a macro variable definition.
+    Ptr<TranslationContext>
+    registerMacroVarContext(const Location *regLocation,
+                            std::string_view macroVarName_,
+                            std::string_view content_);
+
+    /// \brief Unregister a macro variable definition.
+    Ptr<TranslationContext>
+    unregisterMacroVarContext(const Location *unRegLoc,
+                              std::string_view macroVarName_);
+
+    const MacroVarMap &getMacroMap() const { return macroVarMap; }
 
     bool isContextExistInStack(TranslationContextBufferType type_,
                                std::string_view contextName_) const;

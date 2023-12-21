@@ -1,9 +1,12 @@
 #include <filesystem>
 #include <sstream>
+#include <string>
+#include <utility>
 
 #include "Core/System.hh"
 #include "Core/Utils/ControlSequence.hh"
 
+#include "Translation/TranslationBase.hh"
 #include "Translation/TranslationContextManager.hh"
 
 namespace splc {
@@ -11,8 +14,11 @@ namespace splc {
 TranslationContextManager::TranslationContextManager() : contextID{0} {}
 
 Ptr<TranslationContext>
-TranslationContextManager::pushContext(Ptr<TranslationContext> context)
+TranslationContextManager::pushContext(const Location *intrLocation,
+                                       Ptr<TranslationContext> context)
 {
+    context->intrLocation =
+        intrLocation == nullptr ? Location{} : *intrLocation;
     contextStack.push_back(context);
     return context;
 }
@@ -30,8 +36,9 @@ TranslationContextManager::pushContext(const Location *intrLoc,
         return {};
     }
 
+    TranslationContextIDType newID = contextID++;
     Ptr<TranslationContext> context = makeSharedPtr<TranslationContext>(
-        contextID++, TranslationContextBufferType::File, fileName_,
+        newID, TranslationContextBufferType::File, fileName_,
         contextStack.empty() ? nullptr : contextStack.back(), intrLoc,
         inputStream);
     contextStack.push_back(context);
@@ -40,19 +47,23 @@ TranslationContextManager::pushContext(const Location *intrLoc,
 }
 
 Ptr<TranslationContext>
-TranslationContextManager::pushContext(const Location *intrLoc,
-                                       std::string_view macroName_,
-                                       std::string_view content_)
+TranslationContextManager::pushMacroVarContext(const Location *intrLoc,
+                                               std::string_view macroVarName_)
 {
+    // TODO: FIX
+    auto it = macroVarMap.find(macroVarName_);
+    if (it == macroVarMap.end()) {
+        using ControlSeq = utils::logging::ControlSeq;
+        SPLC_LOG_ERROR(intrLoc)
+            << "pushing undefined macro variable " << ControlSeq::Bold << "`"
+            << macroVarName_ << "'" << ControlSeq::Reset;
+        return {nullptr};
+    }
+    Ptr<TranslationContext> context = it->second.second;
     Ptr<std::istream> inputStream =
-        makeSharedPtr<std::istringstream>(std::string{content_});
+        makeSharedPtr<std::istringstream>(std::string{context->content});
 
-    Ptr<TranslationContext> context = makeSharedPtr<TranslationContext>(
-        contextID++, TranslationContextBufferType::MacroExpansion, macroName_,
-        contextStack.empty() ? nullptr : contextStack.back(), intrLoc, content_,
-        inputStream);
     contextStack.push_back(context);
-    allContexts.push_back(context);
     return context;
 }
 
@@ -72,6 +83,68 @@ bool TranslationContextManager::isContextExistInStack(
             return true;
     }
     return false;
+}
+
+bool TranslationContextManager::isTransMacroVarPresent(
+    std::string_view macroVarName_) const
+{
+    return (macroVarMap.find(macroVarName_) != macroVarMap.end());
+}
+
+/// \brief Get macro var context from the context manager.
+MacroVarConstEntry TranslationContextManager::getMacroVarContext(
+    std::string_view macroVarName_) const
+{
+    // If can be found
+    if (auto it = macroVarMap.find(macroVarName_); it != macroVarMap.end()) {
+        return it->second;
+    }
+    return {Location{}, nullptr};
+}
+
+/// \brief Register a macro variable definition.
+Ptr<TranslationContext> TranslationContextManager::registerMacroVarContext(
+    const Location *regLocation, std::string_view macroVarName_,
+    std::string_view content_)
+{
+    auto it = macroVarMap.find(macroVarName_);
+    if (it == macroVarMap.end()) {
+        TranslationContextIDType newID = contextID++;
+        Ptr<TranslationContext> context = makeSharedPtr<TranslationContext>(
+            newID, TranslationContextBufferType::MacroVarExpansion,
+            macroVarName_, contextStack.empty() ? nullptr : contextStack.back(),
+            regLocation, content_, nullptr);
+        allContexts.push_back(context);
+        macroVarMap.insert(
+            {std::string{macroVarName_},
+             {regLocation == nullptr ? Location{} : *regLocation, context}});
+        return context;
+    }
+
+    using ControlSeq = utils::logging::ControlSeq;
+    SPLC_LOG_ERROR(regLocation) << "redefinition of " << ControlSeq::Bold << "`"
+                                << macroVarName_ << "'" << ControlSeq::Reset;
+    SPLC_LOG_NOTE(&it->second.first) << "previously defined here";
+    return it->second.second;
+}
+
+/// \brief Unregister a macro variable definition.
+Ptr<TranslationContext> TranslationContextManager::unregisterMacroVarContext(
+    const Location *unRegLoc, std::string_view macroVarName_)
+{
+    auto it = macroVarMap.find(macroVarName_);
+    if (it == macroVarMap.end()) {
+        using ControlSeq = utils::logging::ControlSeq;
+        SPLC_LOG_ERROR(unRegLoc)
+            << "undefined macro variable " << ControlSeq::Bold << "`"
+            << macroVarName_ << "'" << ControlSeq::Reset;
+        return {nullptr};
+    }
+    Ptr<TranslationContext> context = it->second.second;
+
+    macroVarMap.erase(it);
+
+    return context;
 }
 
 } // namespace splc

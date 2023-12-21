@@ -14,7 +14,7 @@ Type AST::getType() const noexcept
     return {shared_from_this()};
 }
 
-Value AST::evaluate() const noexcept
+Value AST::evaluate()
 {
     // TODO: eval
     return {Type{shared_from_this()}};

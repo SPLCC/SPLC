@@ -15,9 +15,6 @@
 
 namespace splc {
 
-/// class AST forward decl
-class AST;
-
 typedef std::string ASTIDType;
 typedef char ASTCharType;
 typedef unsigned long long ASTIntegralType;
@@ -25,6 +22,16 @@ typedef double ASTFloatType;
 
 using ASTValueType =
     std::variant<ASTCharType, ASTIntegralType, ASTFloatType, ASTIDType>;
+
+template <class T>
+concept IsValidASTValue =
+    (std::is_same_v<ASTCharType, std::remove_cvref_t<T>> ||
+     std::is_same_v<ASTIntegralType, std::remove_cvref_t<T>> ||
+     std::is_same_v<ASTFloatType, std::remove_cvref_t<T>> ||
+     std::is_same_v<ASTIDType, std::remove_cvref_t<T>>);
+
+/// class AST forward decl
+class AST;
 
 template <class T>
 concept IsBaseAST = (std::is_base_of_v<AST, std::remove_reference_t<T>>);
@@ -41,13 +48,6 @@ concept AllArePtrAST = (IsPtrAST<Children> && ...);
 template <class T, class... Functors>
 concept AllApplicableOnAST = IsBaseAST<T> &&
     (std::is_invocable_r_v<T &&, Functors, T &&> &&...);
-
-template <class T>
-concept IsValidASTValue =
-    (std::is_same_v<ASTCharType, std::remove_cvref_t<T>> ||
-     std::is_same_v<ASTIntegralType, std::remove_cvref_t<T>> ||
-     std::is_same_v<ASTFloatType, std::remove_cvref_t<T>> ||
-     std::is_same_v<ASTIDType, std::remove_cvref_t<T>>);
 
 template <class T>
 auto castToPtrASTBase(T &&t)
@@ -78,9 +78,9 @@ concept IsASTSymbolType = (std::is_base_of_v<Type, std::remove_reference_t<T>>);
 // Value forward decl
 class Value;
 
-// SymbolTaEntry forward decl
+// SymbolEntry forward decl
 class SymbolEntry;
-using ASTSymbolMap = std::map<ASTIDType, SymbolEntry>;
+using ASTSymbolMap = std::map<ASTIDType, SymbolEntry, std::less<>>;
 
 // SymbolTable forward decl
 class SymbolTable;

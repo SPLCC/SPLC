@@ -17,7 +17,7 @@ Driver::Driver() { translationManager = makeSharedPtr<TranslationManager>(); }
 Ptr<TranslationUnit> Driver::parse(std::string_view filename)
 {
     translationManager->startTranslationRecord();
-    Ptr<TranslationContext> context = translationManager->pushTranslationContext(nullptr, filename);
+    Ptr<TranslationContext> context = translationManager->pushTransFileContext(nullptr, filename);
     Ptr<TranslationUnit> tunit = internalParse(context);
     return tunit;
 }
@@ -58,9 +58,7 @@ Ptr<TranslationUnit> Driver::internalParse(Ptr<TranslationContext> initialContex
 {
     scanner = makeSharedPtr<Scanner>(*translationManager);
     parser = makeSharedPtr<Parser>(*translationManager, *this, *scanner);
-    
-    yy_buffer_state *initialState = scanner->yy_create_buffer(initialContext->inputStream.get(), SPLC_BUF_SIZE);
-    scanner->yypush_buffer_state(initialState);
+    scanner->setInitialContext(initialContext);
 
     const int accept{0};
 
@@ -70,7 +68,7 @@ Ptr<TranslationUnit> Driver::internalParse(Ptr<TranslationContext> initialContex
     }
     translationManager->endTranslationRecord();
 
-    Ptr<TranslationUnit> tunit = translationManager->getTranslationUnit();
+    Ptr<TranslationUnit> tunit = translationManager->getTransUnit();
     return tunit;
 }
 

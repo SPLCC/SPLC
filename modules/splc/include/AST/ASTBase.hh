@@ -50,7 +50,7 @@ class AST : public std::enable_shared_from_this<AST> {
     virtual Type getType() const noexcept;
 
     // TODO(sem): semantic analysis generation
-    virtual Value evaluate() const noexcept;
+    virtual Value evaluate();
 
     static inline bool isASTAppendable(const AST &node)
     {

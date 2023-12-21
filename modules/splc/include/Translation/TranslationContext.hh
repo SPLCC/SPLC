@@ -17,7 +17,7 @@ namespace splc {
 
 enum TranslationContextBufferType {
     File,
-    MacroExpansion,
+    MacroVarExpansion,
 };
 
 class TranslationContext : std::enable_shared_from_this<TranslationContext> {
@@ -57,9 +57,11 @@ class TranslationContext : std::enable_shared_from_this<TranslationContext> {
     const TranslationContextNameType name;
     WeakPtr<const TranslationContext> parent;
 
-    const Location intrLocation; // Interrupt Location
+    mutable Location intrLocation; // Interrupt Location
     const MacroContentType content;
     Ptr<std::istream> inputStream;
+
+    friend class TranslationContextManager;
 };
 
 } // namespace splc

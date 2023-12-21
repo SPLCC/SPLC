@@ -32,8 +32,8 @@ void TranslationManager::getCurrentASTContext()
 }
 
 Ptr<TranslationContext>
-TranslationManager::pushTranslationContext(const Location *intrLoc_,
-                                           std::string_view fileName_)
+TranslationManager::pushTransFileContext(const Location *intrLoc_,
+                                         std::string_view fileName_)
 {
     Ptr<TranslationContext> context =
         tunit->translationContextManager.pushContext(intrLoc_, fileName_);
@@ -41,20 +41,16 @@ TranslationManager::pushTranslationContext(const Location *intrLoc_,
 }
 
 Ptr<TranslationContext>
-TranslationManager::pushTranslationContext(const Location *intrLoc_,
-                                           std::string_view macroName_,
-                                           std::string_view content_)
+TranslationManager::pushTransMacroVarContext(const Location *intrLoc_,
+                                             std::string_view macroVarName_)
 {
     Ptr<TranslationContext> context =
-        tunit->translationContextManager.pushContext(intrLoc_, macroName_,
-                                                     content_);
-    // yy_buffer_state *newState =
-    // scanner->yy_create_buffer(context->inputStream.get(), SPLC_BUF_SIZE);
-    // scanner->yypush_buffer_state(newState);
+        tunit->translationContextManager.pushMacroVarContext(intrLoc_,
+                                                             macroVarName_);
     return context;
 }
 
-Ptr<TranslationContext> TranslationManager::popTranslationContext()
+Ptr<TranslationContext> TranslationManager::popTransContext()
 {
     Ptr<TranslationContext> context =
         tunit->translationContextManager.popContext();
@@ -62,6 +58,37 @@ Ptr<TranslationContext> TranslationManager::popTranslationContext()
     return context;
 }
 
-Ptr<TranslationUnit> TranslationManager::getTranslationUnit() { return tunit; }
+bool TranslationManager::isTransMacroVarPresent(
+    std::string_view macroVarName_) const
+{
+    return tunit->translationContextManager.isTransMacroVarPresent(macroVarName_);
+}
+
+/// \brief Get macro var context from the context manager.
+MacroVarConstEntry TranslationManager::getTransMacroVarContext(
+    std::string_view macroVarName_) const
+{
+    return tunit->translationContextManager.getMacroVarContext(macroVarName_);
+}
+
+/// \brief Register a macro variable definition.
+Ptr<TranslationContext>
+TranslationManager::registerTransMacroVarContext(const Location *regLocation,
+                                                 std::string_view macroVarName_,
+                                                 std::string_view content_)
+{
+    return tunit->translationContextManager.registerMacroVarContext(
+        regLocation, macroVarName_, content_);
+}
+
+/// \brief Unregister a macro variable definition.
+Ptr<TranslationContext> TranslationManager::unregisterTransMacroVarContext(
+    const Location *unRegLoc, std::string_view macroVarName_)
+{
+    return tunit->translationContextManager.unregisterMacroVarContext(
+        unRegLoc, macroVarName_);
+}
+
+Ptr<TranslationUnit> TranslationManager::getTransUnit() { return tunit; }
 
 } // namespace splc

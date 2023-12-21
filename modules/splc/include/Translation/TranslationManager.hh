@@ -40,33 +40,32 @@ class TranslationManager {
     // TODO
     void popASTContext();
 
-    Ptr<TranslationContext> getCurrentTranslationContext() const noexcept
+    Ptr<TranslationContext> getCurrentTransContext() const noexcept
     {
         return tunit->translationContextManager[0];
     }
 
-    const std::string &getCurrentTranslationContextName() const noexcept
+    const std::string &getCurrentTransContextName() const noexcept
     {
         return tunit->translationContextManager[0]->name;
     }
 
-    const TranslationContextIDType
-    getCurrentTranslationContextID() const noexcept
+    const TranslationContextIDType getCurrentTransContextID() const noexcept
     {
         return tunit->translationContextManager[0]->contextID;
     }
 
-    TranslationContextKeyType getCurrentTranslationContextKey() const noexcept
+    TranslationContextKeyType getCurrentTransContextKey() const noexcept
     {
         return tunit->translationContextManager.getCurrentContextKey();
     }
 
-    bool translationContextStackEmpty() const
+    bool transContextStackEmpty() const
     {
         return tunit->translationContextManager.contextStackEmpty();
     }
 
-    size_t translationContextStackSize() const
+    size_t transContextStackSize() const
     {
         return tunit->translationContextManager.contextStackSize();
     }
@@ -77,8 +76,8 @@ class TranslationManager {
     ///                accepts `nullptr` for representing non-existing
     ///                locations. Internally, a copy is maintained, so that the
     ///                original location will not be affected.
-    Ptr<TranslationContext> pushTranslationContext(const Location *intrLoc_,
-                                                   std::string_view fileName_);
+    Ptr<TranslationContext> pushTransFileContext(const Location *intrLoc_,
+                                                 std::string_view fileName_);
 
     /// \brief Push a new translation context into the stack.
     /// \param intrLoc The location where context switch occurred. Note that
@@ -86,13 +85,30 @@ class TranslationManager {
     ///                accepts `nullptr` for representing non-existing
     ///                locations. Internally, a copy is maintained, so that the
     ///                original location will not be affected.
-    Ptr<TranslationContext> pushTranslationContext(const Location *intrLoc_,
-                                                   std::string_view macroName_,
-                                                   std::string_view content_);
+    Ptr<TranslationContext>
+    pushTransMacroVarContext(const Location *intrLoc_,
+                             std::string_view macroVarName_);
 
-    Ptr<TranslationContext> popTranslationContext();
+    Ptr<TranslationContext> popTransContext();
 
-    Ptr<TranslationUnit> getTranslationUnit();
+    bool isTransMacroVarPresent(std::string_view macroVarName_) const;
+
+    /// \brief Get macro var context from the context manager.
+    MacroVarConstEntry
+    getTransMacroVarContext(std::string_view macroVarName_) const;
+
+    /// \brief Register a macro variable definition.
+    Ptr<TranslationContext>
+    registerTransMacroVarContext(const Location *regLocation,
+                                 std::string_view macroVarName_,
+                                 std::string_view content_);
+
+    /// \brief Unregister a macro variable definition.
+    Ptr<TranslationContext>
+    unregisterTransMacroVarContext(const Location *unRegLoc,
+                                   std::string_view macroVarName_);
+
+    Ptr<TranslationUnit> getTransUnit();
 
   protected:
     Ptr<TranslationUnit> tunit;

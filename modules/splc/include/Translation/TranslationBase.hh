@@ -25,7 +25,9 @@ using TranslationContextIDType = utils::Location::ContextIDType;
 using TranslationContextKeyType = ContextKeyType;
 
 using MacroVarIDType = TranslationContextNameType;
-using MacroVarMap = std::map<MacroVarIDType, Ptr<TranslationContext>>;
+using MacroVarEntry = std::pair<Location, Ptr<TranslationContext>>;
+using MacroVarConstEntry = std::pair<Location, Ptr<const TranslationContext>>;
+using MacroVarMap = std::map<MacroVarIDType, MacroVarEntry, std::less<>>;
 using MacroContentType = std::string;
 
 } // namespace splc

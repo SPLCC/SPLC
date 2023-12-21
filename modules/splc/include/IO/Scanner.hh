@@ -32,7 +32,23 @@ class Scanner : public SplcFlexLexer {
     /// input stream.
     virtual int yywrap();
 
+    void setInitialContext(Ptr<TranslationContext> initialContext);
+    
+    /// \brief Push file context and switch to the included file.
+    void pushFileContext(const Location *intrLoc_, std::string_view fileName_);
+
+    /// \brief Push macro context and switch to macro substitution.
+    void pushMacroVarContext(const Location *intrLoc_, std::string_view macroVarName_);
+
+    bool isMacroVarContextPresent(std::string_view macroVarName_) const;
+
+    void registerMacroVarContext(const Location *regLocation, std::string_view macroVarName_, std::string_view content_);
+
+    void unregisterMacroVarContext(const Location *unRegLoc, std::string_view macroVarName_);
+
   protected:
+    void pushInternalBuffer(Ptr<TranslationContext> context);
+
     TranslationManager &translationManager;
 
     /// Theoretically, this stores the same pointer as the input in
