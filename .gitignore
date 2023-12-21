@@ -1,6 +1,7 @@
 .vscode
 
 # Project related
+.*
 build/
 test.spl
 
