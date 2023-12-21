@@ -21,10 +21,18 @@ class Type {
     // TODO: maybe refactor this
     Type() = delete;
 
-    Type(Ptr<const AST> declaration_) : declaration{declaration_} {}
+    /// \brief Construct a type. The end user is discouraged to use this
+    ///        constructor.
+    Type(Ptr<const AST> declRoot_) : declRoot{declRoot_} {}
+
+    /// \brief Construct a type.
+    static Type createType(Ptr<const AST> declRoot) { return {declRoot}; }
 
     /// \brief Compare two types. If they are equivalent, return true.
     static bool compareType(Type t1, Type t2);
+
+    /// \brief Compare two types. If they are equivalent, return true.
+    bool operator==(const Type &t2) { return compareType(*this, t2); }
 
     /// \brief Get the subtype of the given type.
     /// \example The direct subtype of type `int **p[3]` is `int **pp`, because
@@ -34,6 +42,8 @@ class Type {
     ///          `int **`, as calling `(*func)(int, int)` returns a second-level
     ///          pointer.
     static Type getSubType(Type t1);
+
+    Type getSubType();
 
     /// \brief Get the decayed type of type.
     /// The decayed type of type `T` is the true type of a parameter that a
@@ -48,11 +58,13 @@ class Type {
     ///   `const T *param`.
     static Type decay(Type t1);
 
+    Type decay();
+
     /// \brief Check if a implicit cast from `src` to `dst` is valid.
     ///        Warns if a lost of precision would occur.
     static bool implicitCast(Type dst, Type src);
 
-    Ptr<const AST> declaration; // The corresponding declaration, upon which
+    Ptr<const AST> declRoot; // The corresponding declaration, upon which
                                 // the type system acts.
 };
 

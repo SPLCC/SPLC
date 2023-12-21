@@ -1,3 +1,5 @@
+#include "AST/ASTSymbol.hh"
+#include "Core/Base.hh"
 #ifndef __SPLC_AST_ASTBASE_HH__
 #define __SPLC_AST_ASTBASE_HH__ 1
 
@@ -118,7 +120,7 @@ class AST : public std::enable_shared_from_this<AST> {
     WeakPtr<AST> parent;
     std::vector<Ptr<AST>> children;
     Location loc;
-    // TODO: add symbol table
+    Ptr<ASTContext> context;
     ASTValueType value;
 
   public:

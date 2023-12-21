@@ -32,6 +32,12 @@ class TranslationManager {
     void reset();
 
     // TODO
+    void setTransUnitRootAST(Ptr<AST> rootNode_)
+    {
+        tunit->rootNode = rootNode_;
+    }
+
+    // TODO
     void getCurrentASTContext();
 
     // TODO

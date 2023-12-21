@@ -25,17 +25,60 @@ class SymbolEntry {
 
     SymbolEntry() = delete;
 
-    SymbolEntry(bool defined_, Type type_, ASTValueType value_) : defined{defined_}, type{type_}, value{value_} {}
+    SymbolEntry(EntrySummary summary_, Type type_, bool defined_,
+                const Location *location_, ASTValueType value_)
+        : summary{summary_}, type{type_}, defined{defined_},
+          location{location_ == nullptr ? Location{} : *location_},
+          value{value_}
+    {
+    }
 
-    /// \brief Create a new symbol
-    static SymbolEntry createSymbolEntry(bool defined_, Type type_, ASTValueType value_) {
-        return {defined_, type_, value_};
+    /// \brief Create a new `SymbolEntry`.
+    static SymbolEntry createSymbolEntry(EntrySummary summary, Type type_,
+                                         bool defined_,
+                                         const Location *location_,
+                                         ASTValueType value_)
+    {
+        return {summary, type_, defined_, location_, value_};
+    }
+
+    constexpr bool hasValue() const noexcept
+    {
+        return !value.valueless_by_exception();
+    }
+
+    template <IsValidASTValue T>
+    auto getValue()
+    {
+        return std::get<T>(value);
+    }
+
+    template <class Visitor>
+    auto visitValue(Visitor &&vis) const
+    {
+        return std::visit(vis, value);
+    }
+
+    template <IsValidASTValue T>
+    void emplaceValue(T &&val)
+    {
+        value.emplace<T>(std::forward(val));
+    }
+
+    template <IsValidASTValue T>
+    constexpr bool holdsValueType() const noexcept
+    {
+        return std::holds_alternative<T>(value);
     }
 
     // TODO: maybe add some methods
-    bool defined;
+
+    EntrySummary summary;
     Type type;
     ASTValueType value;
+
+    bool defined; // If defined, set to true
+    Location location;
 };
 
 } // namespace splc

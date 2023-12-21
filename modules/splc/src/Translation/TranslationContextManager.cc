@@ -30,10 +30,7 @@ TranslationContextManager::pushContext(const Location *intrLoc,
     Ptr<std::istream> inputStream =
         makeSharedPtr<std::ifstream>(std::string{fileName_});
     if (!inputStream) {
-        using ControlSeq = utils::logging::ControlSeq;
-        SPLC_LOG_ERROR(nullptr) << ControlSeq::Bold << "no such file: '"
-                                << fileName_ << ControlSeq::Reset;
-        return {};
+        throw SemanticError{intrLoc, "no such file"};
     }
 
     TranslationContextIDType newID = contextID++;
@@ -69,7 +66,6 @@ TranslationContextManager::pushMacroVarContext(const Location *intrLoc,
 
 Ptr<TranslationContext> TranslationContextManager::popContext()
 {
-    SPLC_ASSERT(!contextStack.empty()) << "stack is empty.";
     Ptr<TranslationContext> context = contextStack.back();
     contextStack.pop_back();
     return context;
@@ -99,7 +95,7 @@ MacroVarConstEntry TranslationContextManager::getMacroVarContext(
     if (auto it = macroVarMap.find(macroVarName_); it != macroVarMap.end()) {
         return it->second;
     }
-    return {Location{}, nullptr};
+    throw SemanticError{nullptr, "redefining variable"};
 }
 
 /// \brief Register a macro variable definition.
@@ -107,25 +103,20 @@ Ptr<TranslationContext> TranslationContextManager::registerMacroVarContext(
     const Location *regLocation, std::string_view macroVarName_,
     std::string_view content_)
 {
-    auto it = macroVarMap.find(macroVarName_);
-    if (it == macroVarMap.end()) {
-        TranslationContextIDType newID = contextID++;
-        Ptr<TranslationContext> context = makeSharedPtr<TranslationContext>(
-            newID, TranslationContextBufferType::MacroVarExpansion,
-            macroVarName_, contextStack.empty() ? nullptr : contextStack.back(),
-            regLocation, content_, nullptr);
-        allContexts.push_back(context);
-        macroVarMap.insert(
-            {std::string{macroVarName_},
-             {regLocation == nullptr ? Location{} : *regLocation, context}});
-        return context;
+    if (auto it = macroVarMap.find(macroVarName_); it != macroVarMap.end()) {
+        throw SemanticError{&it->second.first, "redefining variable"};
     }
 
-    using ControlSeq = utils::logging::ControlSeq;
-    SPLC_LOG_ERROR(regLocation) << "redefinition of " << ControlSeq::Bold << "`"
-                                << macroVarName_ << "'" << ControlSeq::Reset;
-    SPLC_LOG_NOTE(&it->second.first) << "previously defined here";
-    return it->second.second;
+    TranslationContextIDType newID = contextID++;
+    Ptr<TranslationContext> context = makeSharedPtr<TranslationContext>(
+        newID, TranslationContextBufferType::MacroVarExpansion, macroVarName_,
+        contextStack.empty() ? nullptr : contextStack.back(), regLocation,
+        content_, nullptr);
+    allContexts.push_back(context);
+    macroVarMap.insert(
+        {std::string{macroVarName_},
+         {regLocation == nullptr ? Location{} : *regLocation, context}});
+    return context;
 }
 
 /// \brief Unregister a macro variable definition.
@@ -134,11 +125,7 @@ Ptr<TranslationContext> TranslationContextManager::unregisterMacroVarContext(
 {
     auto it = macroVarMap.find(macroVarName_);
     if (it == macroVarMap.end()) {
-        using ControlSeq = utils::logging::ControlSeq;
-        SPLC_LOG_ERROR(unRegLoc)
-            << "undefined macro variable " << ControlSeq::Bold << "`"
-            << macroVarName_ << "'" << ControlSeq::Reset;
-        return {nullptr};
+        throw SemanticError{unRegLoc, "undefining non-existing macro variable"};
     }
     Ptr<TranslationContext> context = it->second.second;
 

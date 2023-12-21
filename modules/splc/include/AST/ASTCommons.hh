@@ -87,9 +87,13 @@ class SymbolTable;
 
 // ASTContext forward decl
 class ASTContext;
+using ASTContextDepthType = int;
 
 // ASTContextManager forward decl
 class ASTContextManager;
+
+// Translation Unit forward decl
+class TranslationUnit;
 
 } // namespace splc
 

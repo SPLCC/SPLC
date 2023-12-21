@@ -35,8 +35,8 @@ using SyntaxError = splc::IO::Parser::syntax_error;
 /// semantically analyzing the entire syntax tree.
 class SemanticError : public std::runtime_error {
   public:
-    SemanticError(const Location &loc_, std::string &m)
-        : std::runtime_error(m), loc(loc_)
+    SemanticError(const Location *loc_, const std::string &m)
+        : std::runtime_error(m), loc{loc_ == nullptr ? Location{} : *loc_}
     {
     }
 
@@ -45,12 +45,13 @@ class SemanticError : public std::runtime_error {
     {
     }
 
-    Location loc;
+    const Location loc;
 };
 
 } // namespace splc
 
-///  Some mysterious designs in Flex prohibit us from using the Lexer.hh header, so it has been ignored.
-#define SPLC_BUF_SIZE 16384 
+///  Some mysterious designs in Flex prohibit us from using the Lexer.hh header,
+///  so it has been ignored.
+#define SPLC_BUF_SIZE 16384
 
 #endif // __SPLC_CORE_SYSTEM_HH__

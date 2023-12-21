@@ -30,25 +30,25 @@ int main(const int argc, const char **argv)
     driver.parse(filenameVector[0]);
     driver.print(std::cout) << "\n";
 
-    using namespace splc;
-    using splc::AST;
-
     // test
-    auto node0 =
-        splc::makeAST<AST>(splc::ASTSymbolType::CHAR, splc::Location{}, 1ULL);
-    auto node1 = splc::makeAST<AST>(splc::ASTSymbolType::UPPER,
-                                      splc::Location{}, std::string{"hihihi"});
-    auto node = splc::makeAST<AST>(splc::ASTSymbolType::CHAR,
-                                     splc::Location{}, node0, node1);
+    // using namespace splc;
+    // using splc::AST;
 
-    *node >> ASTProcessor::removeASTPunctuators >>
-        ASTProcessor::removeASTPunctuators;
+    // auto node0 =
+    //     splc::makeAST<AST>(splc::ASTSymbolType::CHAR, splc::Location{}, 1ULL);
+    // auto node1 = splc::makeAST<AST>(splc::ASTSymbolType::UPPER,
+    //                                   splc::Location{}, std::string{"hihihi"});
+    // auto node = splc::makeAST<AST>(splc::ASTSymbolType::CHAR,
+    //                                  splc::Location{}, node0, node1);
 
-    applyASTTransform(*node, ASTProcessor::removeASTPunctuators,
-                      ASTProcessor::removeASTPunctuators);
+    // *node >> ASTProcessor::removeASTPunctuators >>
+    //     ASTProcessor::removeASTPunctuators;
 
-    std::cout << treePrintTransform(*node);
-    SPLC_LOG_DEBUG(nullptr) << "Hi" << SPLC_LOGGER_TAG("debug tag");
+    // applyASTTransform(*node, ASTProcessor::removeASTPunctuators,
+    //                   ASTProcessor::removeASTPunctuators);
+
+    // std::cout << treePrintTransform(*node);
+    // SPLC_LOG_DEBUG(nullptr) << "Hi" << SPLC_LOGGER_TAG("debug tag");
 
     SPLC_ASSERT(std::string("23333").empty());
 

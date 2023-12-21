@@ -5,7 +5,7 @@
 
 #include "Core/splc.hh"
 
-#include "AST/AST.hh"
+#include "AST/ASTCommons.hh"
 #include "AST/ASTContextManager.hh"
 
 #include "Translation/TranslationBase.hh"

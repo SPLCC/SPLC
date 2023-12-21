@@ -61,13 +61,15 @@ Ptr<TranslationContext> TranslationManager::popTransContext()
 bool TranslationManager::isTransMacroVarPresent(
     std::string_view macroVarName_) const
 {
-    return tunit->translationContextManager.isTransMacroVarPresent(macroVarName_);
+    return tunit->translationContextManager.isTransMacroVarPresent(
+        macroVarName_);
 }
 
 /// \brief Get macro var context from the context manager.
 MacroVarConstEntry TranslationManager::getTransMacroVarContext(
     std::string_view macroVarName_) const
 {
+    // TODO: catch
     return tunit->translationContextManager.getMacroVarContext(macroVarName_);
 }
 
@@ -77,6 +79,7 @@ TranslationManager::registerTransMacroVarContext(const Location *regLocation,
                                                  std::string_view macroVarName_,
                                                  std::string_view content_)
 {
+    // TODO: catch
     return tunit->translationContextManager.registerMacroVarContext(
         regLocation, macroVarName_, content_);
 }
@@ -85,6 +88,7 @@ TranslationManager::registerTransMacroVarContext(const Location *regLocation,
 Ptr<TranslationContext> TranslationManager::unregisterTransMacroVarContext(
     const Location *unRegLoc, std::string_view macroVarName_)
 {
+    // TODO: catch
     return tunit->translationContextManager.unregisterMacroVarContext(
         unRegLoc, macroVarName_);
 }
