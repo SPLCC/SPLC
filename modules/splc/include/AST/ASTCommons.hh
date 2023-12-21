@@ -11,11 +11,11 @@
 
 #include <Core/splc.hh>
 
-#include <AST/ASTToken.hh>
+#include <AST/ASTSymbol.hh>
 
 namespace splc {
 
-/// class AST forward declaration
+/// class AST forward decl
 class AST;
 
 typedef std::string ASTIDType;
@@ -52,11 +52,6 @@ auto castToPtrASTBase(T &&t)
     return std::static_pointer_cast<AST>(std::forward<T>(t));
 }
 
-// ASTContext forward declaration
-class ASTContext;
-
-using ASTContextMap = std::map<ASTIDType, Ptr<AST>>;
-
 // template <class Functor>
 // concept IsValidASTValueVisitor =
 //     (std::is_invocable_v<Functor, char> ||
@@ -67,6 +62,19 @@ using ASTContextMap = std::map<ASTIDType, Ptr<AST>>;
 //      std::is_invocable_v<Functor, const unsigned long long> ||
 //      std::is_invocable_v<Functor, const double> ||
 //      std::is_invocable_v<Functor, const std::string>);
+
+// SymbolTaEntry forward decl
+class SymbolEntry;
+using ASTSymbolMap = std::map<ASTIDType, SymbolEntry>;
+
+// SymbolTable forward decl
+class SymbolTable;
+
+// ASTContext forward decl
+class ASTContext;
+
+// ASTContextManager forward decl
+class ASTContextManager;
 
 } // namespace splc
 

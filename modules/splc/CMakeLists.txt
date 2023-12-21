@@ -13,20 +13,18 @@ file(MAKE_DIRECTORY ${GENERATED_INCL_DIR})
 set(GENERATED_INCL_DIR_IO ${CMAKE_CURRENT_BINARY_DIR}/include/IO)
 file(MAKE_DIRECTORY ${GENERATED_INCL_DIR_IO})
 
-set(GENERATED_INCL_DIR_CORE_UTILS ${CMAKE_CURRENT_BINARY_DIR}/include/Core/Utils)
-file(MAKE_DIRECTORY ${GENERATED_INCL_DIR_CORE_UTILS})
-
 set(GENERATED_SRC_DIR_IO ${CMAKE_CURRENT_BINARY_DIR}/src/IO)
 file(MAKE_DIRECTORY ${GENERATED_SRC_DIR_IO})
 
-list(APPEND SPLC_INCL_DIR include ${GENERATED_INCL_DIR})
+set(SPLC_INCL_DIR include)
+list(APPEND SPLC_INCL_DIR ${GENERATED_INCL_DIR})
 
 aux_source_directory(src/IO SRC_FILES_IO)
 aux_source_directory(src/Core SRC_FILES_CORE)
 aux_source_directory(src/Core/Utils SRC_FILES_CORE_UTILS)
 aux_source_directory(src/Basic SRC_FILES_BASIC)
-aux_source_directory(src/Analysis SRC_FILES_ANALYSIS)
 aux_source_directory(src/AST SRC_FILES_AST)
+aux_source_directory(src/Analysis SRC_FILES_ANALYSIS)
 aux_source_directory(src/Translation SRC_FILES_TRANSLATION)
 aux_source_directory(src/CodeGen SRC_FILES_CODEGEN)
 aux_source_directory(src SRC_FILES)
@@ -80,16 +78,6 @@ file(GLOB splc_AST_HEADER_FILES "${SPLC_INCL_DIR}/AST/*.hh")
 set_target_properties(splc_AST PROPERTIES 
     PUBLIC_HEADER "${splc_AST_HEADER_FILES}")
 
-# splc_Translation shared library
-add_library(splc_Translation SHARED ${SRC_FILES_TRANSLATION})
-target_include_directories(splc_Translation PUBLIC ${SPLC_INCL_DIR})
-add_dependencies(splc_Translation splc_IO)
-set_target_properties(splc_Translation PROPERTIES 
-    LIBRARY_OUTPUT_DIRECTORY ${GENERATED_LIB_DIR})
-file(GLOB splc_Translation_HEADER_FILES "${SPLC_INCL_DIR}/Translation/*.hh")
-set_target_properties(splc_Translation PROPERTIES 
-    PUBLIC_HEADER "${splc_Translation_HEADER_FILES}")
-
 # splc_Analysis
 add_library(splc_Analysis SHARED ${SRC_FILES_ANALYSIS})
 target_include_directories(splc_Analysis PUBLIC ${SPLC_INCL_DIR})
@@ -99,6 +87,16 @@ set_target_properties(splc_Analysis PROPERTIES
 file(GLOB splc_Analysis_HEADER_FILES "${SPLC_INCL_DIR}/Analysis/*.hh")
 set_target_properties(splc_Analysis PROPERTIES 
     PUBLIC_HEADER "${splc_Analysis_HEADER_FILES}")
+
+# splc_Translation shared library
+add_library(splc_Translation SHARED ${SRC_FILES_TRANSLATION})
+target_include_directories(splc_Translation PUBLIC ${SPLC_INCL_DIR})
+add_dependencies(splc_Translation splc_IO)
+set_target_properties(splc_Translation PROPERTIES 
+    LIBRARY_OUTPUT_DIRECTORY ${GENERATED_LIB_DIR})
+file(GLOB splc_Translation_HEADER_FILES "${SPLC_INCL_DIR}/Translation/*.hh")
+set_target_properties(splc_Translation PROPERTIES 
+    PUBLIC_HEADER "${splc_Translation_HEADER_FILES}")
 
 # splc_CodeGen shared library
 add_library(splc_CodeGen SHARED ${SRC_FILES_CODEGEN})

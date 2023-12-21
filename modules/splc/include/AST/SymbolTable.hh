@@ -1,5 +1,5 @@
-#ifndef __SPLC_AST_SYMBOLTABLE_HH__
-#define __SPLC_AST_SYMBOLTABLE_HH__ 1
+#ifndef __SPLC_AST_VARTABLE_HH__
+#define __SPLC_AST_VARTABLE_HH__ 1
 
 #include "Core/splc.hh"
 
@@ -11,4 +11,4 @@ class SymbolTable {
 
 } // namespace splc
 
-#endif // __SPLC_AST_SYMBOLTABLE_HH__
+#endif // __SPLC_AST_VARTABLE_HH__

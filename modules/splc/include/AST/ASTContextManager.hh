@@ -7,8 +7,10 @@
 
 #include "Core/splc.hh"
 
+#include "AST/ASTCommons.hh"
+
 namespace splc {
-    
+
 } // namespace splc
 
 #endif // __SPLC_AST_ASTCONTEXTMANAGER_HH__

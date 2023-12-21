@@ -8,7 +8,6 @@
 #include "Core/splc.hh"
 
 #include "AST/AST.hh"
-#include "AST/ASTToken.hh"
 
 namespace splc {
 
