@@ -9,4 +9,10 @@ AST &removeASTPunctuators(AST &node)
     return node;
 }
 
+AST &reduce (AST &node)
+{
+    // TODO: reduce AST by eliminating redundant nodes without side-effect
+    return node;
+}
+
 } // namespace splc::ASTProcess

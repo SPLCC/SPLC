@@ -64,8 +64,8 @@ class AST : public std::enable_shared_from_this<AST> {
     template <AllArePtrAST... Children>
     void addChildren(Children &&...children)
     {
-        ((children && isASTAppendable(*std::static_pointer_cast<AST>(children))
-              ? addChild(std::static_pointer_cast<AST>(
+        ((children && isASTAppendable(*castToPtrASTBase(children))
+              ? addChild(castToPtrASTBase(
                     std::forward<Children>(children)))
               : void()),
          ...);

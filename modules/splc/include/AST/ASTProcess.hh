@@ -16,6 +16,8 @@ namespace ASTProcess {
 
 AST &removeASTPunctuators(AST &node);
 
+AST &reduce(AST &node);
+
 } // namespace ASTProcess
 
 } // namespace splc

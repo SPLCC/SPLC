@@ -39,19 +39,18 @@ template <class T, class... Functors>
 concept AllApplicableOnAST = IsASTType<T> &&
     (std::is_invocable_r_v<T &&, Functors, T &&> &&...);
 
-template <typename T>
+template <class T>
 concept IsValidASTValue =
     (std::is_same_v<ASTCharType, std::remove_cvref_t<T>> ||
      std::is_same_v<ASTIntegralType, std::remove_cvref_t<T>> ||
      std::is_same_v<ASTFloatType, std::remove_cvref_t<T>> ||
      std::is_same_v<ASTIDType, std::remove_cvref_t<T>>);
 
-template <typename T>
+template <class T>
 auto castToPtrASTBase(T &&t)
 {
-    return std::dynamic_pointer_cast<AST>(std::forward(t));
+    return std::static_pointer_cast<AST>(std::forward<T>(t));
 }
-
 
 // ASTContext forward declaration
 class ASTContext;
