@@ -9,7 +9,7 @@ namespace splc {
 
 void TranslationManager::startTranslationRecord()
 {
-    tunit = createPtr<TranslationUnit>();
+    tunit = makeSharedPtr<TranslationUnit>();
 }
 
 void TranslationManager::endTranslationRecord() {}

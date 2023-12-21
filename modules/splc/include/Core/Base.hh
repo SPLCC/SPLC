@@ -12,11 +12,20 @@ using Ptr = std::shared_ptr<T>;
 template <class T>
 using WeakPtr = std::weak_ptr<T>;
 
+template <class T>
+using UniquePtr = std::unique_ptr<T>;
+
 // Convenient notation
 template <class T, class... Args>
-auto createPtr(Args &&...args)
+Ptr<T> makeSharedPtr(Args &&...args)
 {
     return std::make_shared<T>(std::forward<Args>(args)...);
+}
+
+template <class T, class... Args>
+UniquePtr<T> makeUniquePtr(Args &&...args)
+{
+    return std::make_unique<T>(std::forward<Args>(args)...);
 }
 
 template <class... Ts>

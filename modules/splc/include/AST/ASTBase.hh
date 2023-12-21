@@ -1,59 +1,19 @@
-#include <memory>
-#include <utility>
 #ifndef __SPLC_AST_ASTBASE_HH__
 #define __SPLC_AST_ASTBASE_HH__ 1
 
 #include <iostream>
 #include <map>
+#include <memory>
 #include <type_traits>
+#include <utility>
 #include <variant>
 #include <vector>
 
-#include <AST/ASTToken.hh>
 #include <Core/splc.hh>
 
+#include <AST/ASTCommons.hh>
+
 namespace splc {
-
-class AST;
-
-template <class T>
-concept IsASTType = (std::is_base_of_v<AST, std::remove_reference_t<T>>);
-
-template <class T>
-concept IsPtrAST = requires(T &&t)
-{
-    std::static_pointer_cast<AST>(std::forward<T>(t));
-};
-
-template <class... Children>
-concept AllArePtrAST = (IsPtrAST<Children> && ...);
-
-template <class T, class... Functors>
-concept AllApplicableOnAST = IsASTType<T> &&
-    (std::is_invocable_r_v<T &&, Functors, T &&> &&...);
-
-template <typename T>
-concept IsValidASTValue = (std::is_same_v<T, char> ||
-                           std::is_same_v<T, unsigned long long> ||
-                           std::is_same_v<T, double> ||
-                           std::is_same_v<T, std::string>);
-
-template <typename T>
-auto castToPtrASTBase(T &&t)
-{
-    return std::dynamic_pointer_cast<AST>(std::forward(t));
-}
-
-// template <class Functor>
-// concept IsValidASTValueVisitor =
-//     (std::is_invocable_v<Functor, char> ||
-//      std::is_invocable_v<Functor, unsigned long long> ||
-//      std::is_invocable_v<Functor, double> ||
-//      std::is_invocable_v<Functor, std::string> ||
-//      std::is_invocable_v<Functor, const char> ||
-//      std::is_invocable_v<Functor, const unsigned long long> ||
-//      std::is_invocable_v<Functor, const double> ||
-//      std::is_invocable_v<Functor, const std::string>);
 
 /// \brief Class `AST` describes a single node in the Abstract Syntax Tree
 /// (AST), and acts as the foundation of the parse tree.
@@ -82,7 +42,7 @@ class AST : public std::enable_shared_from_this<AST> {
 
     virtual ~AST() = default;
 
-    // TODO(IR): determine code generation
+    // TODO(IR): determine code generation (llvm IR)
     // virtual void genCode();
 
     // TODO(sem): semantic analysis generation
@@ -142,6 +102,8 @@ class AST : public std::enable_shared_from_this<AST> {
         return std::holds_alternative<T>(value);
     }
 
+    auto getParent() noexcept { return parent; }
+
     auto &getChildren() noexcept { return children; }
 
     auto &getLocation() noexcept { return loc; }
@@ -154,20 +116,20 @@ class AST : public std::enable_shared_from_this<AST> {
     std::vector<Ptr<AST>> children;
     Location loc;
     // TODO: add symbol table
-    std::variant<unsigned long long, double, std::string> value;
+    std::variant<ASTCharType, ASTIntegralType, ASTFloatType, ASTIDType> value;
 
   public:
     /// \brief Create a new node, and add all following children `Ptr<AST>`
     /// to the list of its children.
     template <IsASTType ASTType, AllArePtrAST... Children>
-    friend Ptr<ASTType> createAST(ASTSymbolType type, const Location &loc,
-                                  Children &&...children);
+    friend Ptr<ASTType> makeAST(ASTSymbolType type, const Location &loc,
+                                Children &&...children);
 
     /// \brief Create a new node, and add all following children `Ptr<AST>`
     /// to the list of its children.
     template <IsASTType ASTType, IsValidASTValue T, AllArePtrAST... Children>
-    friend Ptr<ASTType> createAST(ASTSymbolType type, const Location &loc,
-                                  T &&value, Children &&...children);
+    friend Ptr<ASTType> makeAST(ASTSymbolType type, const Location &loc,
+                                T &&value, Children &&...children);
 
     ///
     /// Allow stream-like operation on ASTs for processing.
@@ -204,20 +166,20 @@ class AST : public std::enable_shared_from_this<AST> {
 }; // class: AST
 
 template <IsASTType ASTType, AllArePtrAST... Children>
-inline Ptr<ASTType> createAST(ASTSymbolType type, const Location &loc,
-                              Children &&...children)
+inline Ptr<ASTType> makeAST(ASTSymbolType type, const Location &loc,
+                            Children &&...children)
 {
-    Ptr<ASTType> parentNode = createPtr<ASTType>(type, loc);
+    Ptr<ASTType> parentNode = makeSharedPtr<ASTType>(type, loc);
     parentNode->addChildren(std::forward<Children>(children)...);
     return parentNode;
 }
 
 template <IsASTType ASTType, IsValidASTValue T, AllArePtrAST... Children>
-inline Ptr<ASTType> createAST(ASTSymbolType type, const Location &loc,
-                              T &&value, Children &&...children)
+inline Ptr<ASTType> makeAST(ASTSymbolType type, const Location &loc, T &&value,
+                            Children &&...children)
 {
     Ptr<ASTType> parentNode =
-        createPtr<ASTType>(type, loc, std::forward<T>(value));
+        makeSharedPtr<ASTType>(type, loc, std::forward<T>(value));
     parentNode->addChildren(std::forward<Children>(children)...);
     return parentNode;
 }
@@ -267,12 +229,10 @@ inline std::ostream &operator<<(std::ostream &os, const AST &node)
         os << " ";
         node.visitValue(overloaded{
             [&](const auto arg) { os << arg; },
-            [&](char arg) { os << ControlSeq::Green << arg; },
-            [&](const unsigned long long arg) {
-                os << ControlSeq::Blue << arg;
-            },
-            [&](const double arg) { os << ControlSeq::Green << arg; },
-            [&](const std::string &arg) { os << ControlSeq::Green << arg; }});
+            [&](ASTCharType arg) { os << ControlSeq::Green << arg; },
+            [&](ASTIntegralType arg) { os << ControlSeq::Blue << arg; },
+            [&](ASTFloatType arg) { os << ControlSeq::Green << arg; },
+            [&](const ASTIDType &arg) { os << ControlSeq::Green << arg; }});
         os << ControlSeq::Reset;
     }
 

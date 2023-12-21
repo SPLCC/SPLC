@@ -22,7 +22,7 @@ TranslationContextManager::pushContext(const Location *intrLoc,
                                        std::string_view fileName_)
 {
     Ptr<std::istream> inputStream =
-        createPtr<std::ifstream>(std::string{fileName_});
+        makeSharedPtr<std::ifstream>(std::string{fileName_});
     if (!inputStream) {
         using ControlSeq = utils::logging::ControlSeq;
         SPLC_LOG_ERROR(nullptr) << ControlSeq::Bold << "no such file: '"
@@ -30,7 +30,7 @@ TranslationContextManager::pushContext(const Location *intrLoc,
         return {};
     }
 
-    Ptr<TranslationContext> context = createPtr<TranslationContext>(
+    Ptr<TranslationContext> context = makeSharedPtr<TranslationContext>(
         contextID++, TranslationContextBufferType::File, fileName_,
         contextStack.empty() ? nullptr : contextStack.back(), intrLoc,
         inputStream);
@@ -45,9 +45,9 @@ TranslationContextManager::pushContext(const Location *intrLoc,
                                        std::string_view content_)
 {
     Ptr<std::istream> inputStream =
-        createPtr<std::istringstream>(std::string{content_});
+        makeSharedPtr<std::istringstream>(std::string{content_});
 
-    Ptr<TranslationContext> context = createPtr<TranslationContext>(
+    Ptr<TranslationContext> context = makeSharedPtr<TranslationContext>(
         contextID++, TranslationContextBufferType::MacroExpansion, macroName_,
         contextStack.empty() ? nullptr : contextStack.back(), intrLoc, content_,
         inputStream);

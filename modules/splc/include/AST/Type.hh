@@ -3,10 +3,15 @@
 
 #include "Core/splc.hh"
 
+#include "AST/ASTBase.hh"
+
 namespace splc {
 
 class Type {
   public:
+    Type() = delete;
+
+  protected:
     
 };
 

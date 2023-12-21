@@ -7,11 +7,16 @@
 
 #include "Core/splc.hh"
 
+#include "AST/ASTCommons.hh"
+
 namespace splc {
 
-/// \brief `ASTContext` describes variables in a particular scope.
+/// \brief `ASTContext` describes declarations in a particular scope.
 class ASTContext {
   public:
+    ASTContext() = default;
+
+  protected:
     
 };
 

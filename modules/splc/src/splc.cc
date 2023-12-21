@@ -35,10 +35,10 @@ int main(const int argc, const char **argv)
 
     // test
     auto node0 =
-        splc::createAST<AST>(splc::ASTSymbolType::CHAR, splc::Location{}, 1ULL);
-    auto node1 = splc::createAST<AST>(splc::ASTSymbolType::UPPER,
+        splc::makeAST<AST>(splc::ASTSymbolType::CHAR, splc::Location{}, 1ULL);
+    auto node1 = splc::makeAST<AST>(splc::ASTSymbolType::UPPER,
                                       splc::Location{}, std::string{"hihihi"});
-    auto node = splc::createAST<AST>(splc::ASTSymbolType::CHAR,
+    auto node = splc::makeAST<AST>(splc::ASTSymbolType::CHAR,
                                      splc::Location{}, node0, node1);
 
     *node >> ASTProcess::removeASTPunctuators >>

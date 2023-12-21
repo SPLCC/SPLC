@@ -61,7 +61,7 @@
 // Start of production section
 %%
 
-list_option : | List { SPLC_TRLH_DEBUG(@1) << "Parsing finished."; }
+list_option : | List { SPLC_TRLH_NOTE(@1) << "Parsing finished."; }
   ;
 
 List
@@ -82,6 +82,5 @@ item
 
 void splc::IO::Parser::error(const location_type &l, const std::string &err_message)
 {
-    SPLC_LOG_ERROR(&l) << err_message;
+    SPLC_TRLH_ERROR(l) << err_message;
 }
-

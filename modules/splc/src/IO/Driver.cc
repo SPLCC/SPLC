@@ -12,7 +12,7 @@
 
 namespace splc::IO {
 
-Driver::Driver() { translationManager = createPtr<TranslationManager>(); }
+Driver::Driver() { translationManager = makeSharedPtr<TranslationManager>(); }
 
 Ptr<TranslationUnit> Driver::parse(std::string_view filename)
 {
@@ -56,8 +56,8 @@ Ptr<TranslationUnit> Driver::parse(std::string_view filename)
 
 Ptr<TranslationUnit> Driver::internalParse(Ptr<TranslationContext> initialContext)
 {
-    scanner = createPtr<Scanner>(*translationManager);
-    parser = createPtr<Parser>(*translationManager, *this, *scanner);
+    scanner = makeSharedPtr<Scanner>(*translationManager);
+    parser = makeSharedPtr<Parser>(*translationManager, *this, *scanner);
     
     yy_buffer_state *initialState = scanner->yy_create_buffer(initialContext->inputStream.get(), SPLC_BUF_SIZE);
     scanner->yypush_buffer_state(initialState);
