@@ -36,6 +36,8 @@
 #include <iostream>
 #include <string>
 
+#include <Core/Base.hh>
+
 namespace splc::utils {
 
 /// A point in a source file.
@@ -48,8 +50,7 @@ class Position {
     /// Type for line and column numbers.
     typedef int CounterType;
 
-    using ContextKeyType =
-        std::pair<Position::ContextNameType *, Position::ContextIDType>;
+    using ContextKeyType = std::pair<ContextNameType *, ContextIDType>;
 
     /// Invalid context ID
     static const ContextIDType invalidContextID = -1;
@@ -201,6 +202,11 @@ class Location {
         end.switchToContext(keyType);
     }
 
+    void setParent(WeakPtr<Location> parent_)
+    {
+        parent = parent_;
+    }
+
     /// Convert to bool to check if this location is a valid one.
     /// \return true If this location is valid.
     operator bool() const { return begin && end; }
@@ -223,6 +229,7 @@ class Location {
     Position begin;
     /// End of the located region.
     Position end;
+    WeakPtr<Location> parent;
 };
 
 /// Join two locations, in place.
