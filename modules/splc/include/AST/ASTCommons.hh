@@ -63,6 +63,9 @@ auto castToPtrASTBase(T &&t)
 //      std::is_invocable_v<Functor, const double> ||
 //      std::is_invocable_v<Functor, const std::string>);
 
+// Value forward decl
+class Value;
+
 // SymbolTaEntry forward decl
 class SymbolEntry;
 using ASTSymbolMap = std::map<ASTIDType, SymbolEntry>;

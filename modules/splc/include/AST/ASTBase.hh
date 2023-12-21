@@ -12,6 +12,8 @@
 #include <Core/splc.hh>
 
 #include <AST/ASTCommons.hh>
+#include <AST/Type.hh>
+#include <AST/Value.hh>
 
 namespace splc {
 
@@ -46,7 +48,7 @@ class AST : public std::enable_shared_from_this<AST> {
     // virtual void genCode();
 
     // TODO(sem): semantic analysis generation
-    // virtual void verify();
+    virtual Ptr<Value> evaluate();
 
     static inline bool isASTAppendable(const AST &node)
     {

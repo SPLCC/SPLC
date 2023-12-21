@@ -3,17 +3,20 @@
 
 #include "Core/splc.hh"
 
-#include "AST/ASTBase.hh"
+#include "AST/ASTCommons.hh"
 
 namespace splc {
 
+/// \brief `Type` describes the type of a symbol inside SPL.
 class Type {
   public:
-    Type() = delete;
-
-  protected:
-    
+    // TODO
 };
+
+// TODO: add:
+//  - Type comparison
+//  - Type promotion
+//  - Implicit Cast/Explicit Cast
 
 } // namespace splc
 

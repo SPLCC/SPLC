@@ -8,4 +8,10 @@ Ptr<AST> AST::findFirstChild(ASTSymbolType type) const noexcept
     return makeSharedPtr<AST>();
 }
 
+Ptr<Value> AST::evaluate()
+{
+    // TODO: eval
+    return {};
+}
+
 } // namespace splc
