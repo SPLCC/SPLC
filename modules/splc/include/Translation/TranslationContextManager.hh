@@ -26,6 +26,8 @@ class TranslationContextManager {
 
     ~TranslationContextManager() = default;
 
+    // TODO: allow create and retrieve macro contexts
+
     /// \brief Push `Ptr<TranslationContext` into context manager, switching to
     ///        this context.
     /// \warning This method will not add the given context to the context

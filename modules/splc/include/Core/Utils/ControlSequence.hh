@@ -4,12 +4,15 @@
 #include <iostream>
 #include <string>
 
-#include "../Options.hh"
-#include "../System.hh"
+namespace splc {
 
-extern int splc::options::noDiagnosticColor;
+namespace options {
 
-namespace splc::utils::logging {
+extern int noDiagnosticColor;
+
+} // namespace options
+
+namespace utils::logging {
 
 /// \brief Type of control sequences.
 /// If `noDiagnosticColor` is nonzero, then
@@ -124,6 +127,6 @@ static inline std::ostream &operator<<(std::ostream &os, ControlSeq seqType)
     }
     return os;
 }
-} // namespace splc::utils::logging
-
+} // namespace utils::logging
+} // namespace splc
 #endif // __SPLC_CORE_UTILS_CONTROLSEQUENCE_HH__
