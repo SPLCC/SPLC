@@ -33,7 +33,9 @@ class SymbolEntry {
     {
     }
 
+    /// 
     /// \brief Create a new `SymbolEntry`.
+    /// 
     static SymbolEntry createSymbolEntry(EntrySummary summary, Type type_,
                                          bool defined_,
                                          const Location *location_,
@@ -77,7 +79,7 @@ class SymbolEntry {
     Type type;
     ASTValueType value;
 
-    bool defined; // If defined, set to true
+    bool defined; ///< If defined, set to true
     Location location;
 };
 

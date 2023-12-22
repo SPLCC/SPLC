@@ -17,53 +17,69 @@
 
 namespace splc {
 
+///
 /// \brief This class handles context management during parsing.
 /// In detail, this class holds context information related to file
 /// inclusion and macro expansion.
+///
 class TranslationContextManager {
   public:
     TranslationContextManager();
 
     ~TranslationContextManager() = default;
 
+    ///
     /// \brief Push `Ptr<TranslationContext` into context manager, switching to
     ///        this context.
     /// \warning This method will not add the given context to the context
     /// stack, as the user is assumed to call this method IFF they are
     /// revisiting existing contexts.
     /// \param intrLocation interrupt location
+    ///
     Ptr<TranslationContext> pushContext(const Location *intrLocation,
                                         Ptr<TranslationContext> context);
 
+    ///
     /// \brief Push a new file into context manager. If no such file exist,
     /// throw a runtime error.
     /// \param intrLocation interrupt location
+    ///
     Ptr<TranslationContext> pushContext(const Location *intrLocation,
                                         std::string_view fileName_);
 
+    ///
     /// \brief Push a macro substitution into context manager, switching to
     /// macro substitution.
     /// \param intrLocation interrupt location
+    ///
     Ptr<TranslationContext> pushMacroVarContext(const Location *intrLocation,
                                                 std::string_view macroVarName_);
 
+    ///
     /// \brief Pop the topmost context.
     /// If there does not exist such context, or if all the contexts
     /// have already been popped off, return 1. Else, return 0.
+    ///
     Ptr<TranslationContext> popContext();
 
     bool isTransMacroVarPresent(std::string_view macroVarName_) const;
 
+    ///
     /// \brief Get macro var context from the context manager.
+    ///
     MacroVarConstEntry getMacroVarContext(std::string_view macroVarName_) const;
 
+    ///
     /// \brief Register a macro variable definition.
+    ///
     Ptr<TranslationContext>
     registerMacroVarContext(const Location *regLocation,
                             std::string_view macroVarName_,
                             std::string_view content_);
 
+    ///
     /// \brief Unregister a macro variable definition.
+    ///
     Ptr<TranslationContext>
     unregisterMacroVarContext(const Location *unRegLoc,
                               std::string_view macroVarName_);
@@ -77,8 +93,10 @@ class TranslationContextManager {
 
     size_t contextStackSize() const { return contextStack.size(); }
 
+    ///
     /// \brief Get the current (i.e., top) context
     /// If the top context does not exists, return `nullptr`.
+    ///
     Ptr<TranslationContext> getCurrentContext()
     {
         if (contextStackEmpty()) {
@@ -94,7 +112,7 @@ class TranslationContextManager {
         return contextStack.back()->getKey();
     }
 
-    /// Provide a convenient way to access stack elements
+    /// \brief Provide a convenient way to access stack elements
     Ptr<TranslationContext> operator[](size_t idx)
     {
         return contextStack[contextStack.size() - idx - 1];
@@ -120,17 +138,14 @@ class TranslationContextManager {
     }
 
   protected:
-    /// Internal index
-    TranslationContextIDType contextID;
+    TranslationContextIDType contextID; ///< Internal index
 
-    /// Store all contexts
-    std::vector<Ptr<TranslationContext>> allContexts;
+    std::vector<Ptr<TranslationContext>> allContexts; ///< Store all contexts
 
-    /// Store contexts for checking repeated inclusions
-    std::vector<Ptr<TranslationContext>> contextStack;
+    std::vector<Ptr<TranslationContext>>
+        contextStack; ///< Store contexts for checking repeated inclusions
 
-    /// Store macro variables that might be used.
-    MacroVarMap macroVarMap;
+    MacroVarMap macroVarMap; ///< Store macro variables that might be used.
 
   public:
     friend class TranslationUnit;

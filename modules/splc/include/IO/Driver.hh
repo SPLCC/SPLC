@@ -23,8 +23,10 @@ class Driver {
 
     virtual ~Driver() = default;
 
+    ///
     /// \brief Parse from a file
     /// \param filename valid string with input file
+    ///
     Ptr<TranslationUnit> parse(std::string_view filename);
 
     // // TODO: remove experimental

@@ -62,18 +62,22 @@ inline std::ostream &operator<<(std::ostream &os, const LoggerTag &tag)
 
 class Logger {
   public:
+    ///
     /// \brief Default empty constructor that outputs nothing.
-    /// A default parameter value cannot exist. This is used
-    /// to prevent users from implementing their copy constructors
-    /// incorrectly.
+    ///        A default parameter value cannot exist. This is used
+    ///        to prevent users from implementing their copy constructors
+    ///        incorrectly.
+    ///
     Logger(const bool enable, const Level level_ = Level::Empty) noexcept;
     Logger(const bool enable_, const Level level_,
            const Location *const locPtr_, const bool trace_) noexcept;
 
     Logger(Logger &other) = delete;
 
+    ///
     /// \brief Move constructor that simply disables the output of the logger
-    /// `other`.
+    ///        `other`.
+    ///
     Logger(Logger &&other)
         : enable{other.enable}, level{other.level}, locPtr{other.locPtr},
           trace{other.trace}, localLogStream{other.localLogStream}
@@ -97,12 +101,14 @@ class Logger {
     virtual void printLocationStack(const Location *loc,
                                     size_t depth) const noexcept;
 
+    ///
     /// \brief Print initial message.
-    /// Implementation of this method must acquire the logstream mutex first.
+    ///        Implementation of this method must acquire the logstream mutex first.
     /// \example
     /// \code
     /// `splc: error: '
     /// \endcode
+    ///
     virtual void printInitial() const noexcept;
 
     bool enable;

@@ -15,9 +15,12 @@
 
 namespace splc {
 
-/// \brief class `TranslationManager` is designed to decouple the tight cohesion
+///
+/// \brief Manages the translation process.
+/// class `TranslationManager` is designed to decouple the tight cohesion
 /// between the driver class and the scanner class. It provides basic facilities
 /// such as context switching, error reporting, and stuff.
+///
 class TranslationManager {
   public:
     TranslationManager() = default;
@@ -76,21 +79,25 @@ class TranslationManager {
         return tunit->translationContextManager.contextStackSize();
     }
 
+    ///
     /// \brief Push a new translation context into the stack.
     /// \param intrLoc The location where context switch occurred. Note that
     /// this location
     ///                accepts `nullptr` for representing non-existing
     ///                locations. Internally, a copy is maintained, so that the
     ///                original location will not be affected.
+    ///
     Ptr<TranslationContext> pushTransFileContext(const Location *intrLoc_,
                                                  std::string_view fileName_);
 
+    ///
     /// \brief Push a new translation context into the stack.
     /// \param intrLoc The location where context switch occurred. Note that
     /// this location
     ///                accepts `nullptr` for representing non-existing
     ///                locations. Internally, a copy is maintained, so that the
     ///                original location will not be affected.
+    ///
     Ptr<TranslationContext>
     pushTransMacroVarContext(const Location *intrLoc_,
                              std::string_view macroVarName_);

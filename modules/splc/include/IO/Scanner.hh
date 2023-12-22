@@ -19,7 +19,9 @@ class Scanner : public SplcFlexLexer {
     // get rid of override virtual function warning
     using FlexLexer::yylex;
 
-    /// The main procedure called by `splc::IO::Parser` to get tokens.
+    ///
+    /// \brief The main procedure called by `splc::IO::Parser` to get tokens.
+    ///
     /// `YY_DECL` is defined to be this function in Lexer.ll.
     /// Method body created by flex in lexer.cc.
     ///
@@ -28,8 +30,10 @@ class Scanner : public SplcFlexLexer {
     virtual int yylex(splc::IO::Parser::value_type *const yylval,
                       splc::IO::Parser::location_type *yyloc);
 
+    ///
     /// \brief The main procedure for `yyFlexLexer` to switch to a different
-    /// input stream.
+    ///        input stream.
+    ///
     virtual int yywrap();
 
     void setInitialContext(Ptr<TranslationContext> initialContext);

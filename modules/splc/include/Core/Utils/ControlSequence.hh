@@ -14,9 +14,11 @@ extern int noDiagnosticColor;
 
 namespace utils::logging {
 
+///
 /// \brief Type of control sequences.
-/// If `noDiagnosticColor` is nonzero, then
-/// they won't take effect.
+///        If `noDiagnosticColor` is nonzero, then
+///        they won't take effect.
+///
 enum class ControlSeq {
     Black,
     BrightBlack,

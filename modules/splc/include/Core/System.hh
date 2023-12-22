@@ -31,8 +31,10 @@ class RuntimeError : public std::runtime_error {
 
 using SyntaxError = splc::IO::Parser::syntax_error;
 
+///
 /// \brief This class represents the general semantic error encountered during
 /// semantically analyzing the entire syntax tree.
+///
 class SemanticError : public std::runtime_error {
   public:
     SemanticError(const Location *loc_, const std::string &m)
@@ -50,8 +52,9 @@ class SemanticError : public std::runtime_error {
 
 } // namespace splc
 
-///  Some mysterious designs in Flex prohibit us from using the Lexer.hh header,
-///  so it has been ignored.
+/// Some mysterious designs in Flex
+/// prohibit us from using the
+/// Lexer.hh header, so it has been ignored.
 #define SPLC_BUF_SIZE 16384
 
 #endif // __SPLC_CORE_SYSTEM_HH__

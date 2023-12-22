@@ -78,7 +78,7 @@ class TranslationContext : std::enable_shared_from_this<TranslationContext> {
     const TranslationContextNameType name;
     WeakPtr<const TranslationContext> parent;
 
-    mutable Location intrLocation; // Interrupt Location
+    mutable Location intrLocation; ///< Interrupt Location
     const MacroContentType content;
     Ptr<std::istream> inputStream;
 

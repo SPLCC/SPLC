@@ -1,12 +1,9 @@
-#include "AST/ASTSymbol.hh"
-#include "Core/Base.hh"
 #ifndef __SPLC_AST_ASTBASE_HH__
 #define __SPLC_AST_ASTBASE_HH__ 1
 
+#include <functional>
 #include <iostream>
-#include <map>
 #include <memory>
-#include <type_traits>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -19,6 +16,7 @@
 
 namespace splc {
 
+/// 
 /// \brief Class `AST` describes a single node in the Abstract Syntax Tree
 /// (AST), and acts as the foundation of the parse tree.
 ///
@@ -27,19 +25,22 @@ namespace splc {
 /// - `Unsigned long long`
 /// - `Double`
 /// - `String`
+/// 
 class AST : public std::enable_shared_from_this<AST> {
 
   public:
-    /// This constructor should be called by AST internal method
+    /// 
+    /// \brief This constructor should be called by AST internal method
+    /// 
     explicit AST() noexcept : type{ASTSymbolType::YYEMPTY} {}
 
-    AST(const ASTSymbolType type_, const Location &loc_)
-    noexcept : type{type_}, loc{loc_}
+    AST(const ASTSymbolType type_, const Location &loc_) noexcept
+        : type{type_}, loc{loc_}
     {
     }
 
     template <IsValidASTValue T>
-    AST(const ASTSymbolType type_, const Location &loc_, T &&value_)
+    AST(const ASTSymbolType type_, const Location &loc_, T &&value_) noexcept
         : type{type_}, loc{loc_}, value{value_}
     {
     }
@@ -49,12 +50,19 @@ class AST : public std::enable_shared_from_this<AST> {
     // TODO(IR): determine code generation (llvm IR)
     // virtual void genCode();
 
-    virtual Type getType() const noexcept;
+    /// 
+    /// \brief Acquire a deep copy of the current Ptr<AST> method.
+    /// By default, all children are copied.
+    /// 
+    virtual Ptr<AST> copy(const std::function<bool(Ptr<const AST>)> &predicate =
+                              [](Ptr<const AST>) { return true; }) const;
+
+    virtual Type getType() const;
 
     // TODO(sem): semantic analysis generation
     virtual Value evaluate();
 
-    static inline bool isASTAppendable(const AST &node)
+    static inline bool isASTAppendable(const AST &node) noexcept
     {
         return !isASTSymbolTypeOneOfThem(node.type, ASTSymbolType::YYEMPTY,
                                          ASTSymbolType::YYEOF,
@@ -84,19 +92,19 @@ class AST : public std::enable_shared_from_this<AST> {
     }
 
     template <IsValidASTValue T>
-    auto getValue()
+    auto getValue() noexcept
     {
         return std::get<T>(value);
     }
 
     template <class Visitor>
-    auto visitValue(Visitor &&vis) const
+    auto visitValue(Visitor &&vis) const noexcept
     {
         return std::visit(vis, value);
     }
 
     template <IsValidASTValue T>
-    void emplaceValue(T &&val)
+    void emplaceValue(T &&val) noexcept
     {
         value.emplace<T>(std::forward(val));
     }
@@ -124,14 +132,18 @@ class AST : public std::enable_shared_from_this<AST> {
     ASTValueType value;
 
   public:
+    ///
     /// \brief Create a new node, and add all following children `Ptr<AST>`
     /// to the list of its children.
+    ///
     template <IsBaseAST ASTType, AllArePtrAST... Children>
     friend Ptr<ASTType> makeAST(ASTSymbolType type, const Location &loc,
                                 Children &&...children);
 
+    ///
     /// \brief Create a new node, and add all following children `Ptr<AST>`
     /// to the list of its children.
+    ///
     template <IsBaseAST ASTType, IsValidASTValue T, AllArePtrAST... Children>
     friend Ptr<ASTType> makeAST(ASTSymbolType type, const Location &loc,
                                 T &&value, Children &&...children);
@@ -140,26 +152,31 @@ class AST : public std::enable_shared_from_this<AST> {
     /// Allow stream-like operation on ASTs for processing.
     ///
     template <IsBaseAST T, class Functor>
-    requires AllApplicableOnAST<T, Functor>
+        requires AllApplicableOnAST<T, Functor>
     friend T &&operator>>(T &&node, Functor &&functor);
 
-    /// Apply all `functors` on the target `node`, returning the transformed
-    /// version. Transforms are applied in a sequential manner as given in the
-    /// parameters.
+    ///
+    /// \brief Apply all `functors` on the target `node`, returning the
+    /// transformed version. Transforms are applied in a sequential manner as
+    /// given in the parameters.
+    ///
     template <IsBaseAST T, class... Functors>
-    requires AllApplicableOnAST<T, Functors...>
+        requires AllApplicableOnAST<T, Functors...>
     friend T &&applyASTTransform(T &&node, Functors &&...functors);
 
+    ///
     /// Print information of this single node.
+    ///
     friend std::ostream &operator<<(std::ostream &os, const AST &node);
 
     class ASTRecursivePrintManipulator {
       public:
-        friend ASTRecursivePrintManipulator treePrintTransform(const AST &node);
+        friend ASTRecursivePrintManipulator
+        treePrintTransform(const AST &node) noexcept;
 
         friend std::ostream &
         operator<<(std::ostream &os,
-                   const AST::ASTRecursivePrintManipulator &m);
+                   const AST::ASTRecursivePrintManipulator &m) noexcept;
 
       private:
         ASTRecursivePrintManipulator(const AST &node_) : node{node_} {}
@@ -167,7 +184,7 @@ class AST : public std::enable_shared_from_this<AST> {
     };
 
     friend void recursivePrintNode(std::ostream &os, const AST &node,
-                                   size_t depth);
+                                   size_t depth) noexcept;
 
     friend class ASTProcessor;
     friend class ASTContext;
@@ -196,14 +213,14 @@ inline Ptr<ASTType> makeAST(ASTSymbolType type, const Location &loc, T &&value,
 }
 
 template <IsBaseAST T, class Functor>
-requires AllApplicableOnAST<T, Functor>
+    requires AllApplicableOnAST<T, Functor>
 inline T &&operator>>(T &&node, Functor &&functor)
 {
     return std::forward<Functor>(functor)(std::forward<T>(node));
 }
 
 template <IsBaseAST T, class... Functors>
-requires AllApplicableOnAST<T, Functors...>
+    requires AllApplicableOnAST<T, Functors...>
 inline T &&applyASTTransform(T &&node, Functors &&...functors)
 {
     return (functors(std::forward<T>(node)), ...);
@@ -241,7 +258,8 @@ inline std::ostream &operator<<(std::ostream &os, const AST &node)
         node.visitValue(overloaded{
             [&](const auto arg) { os << arg; },
             [&](ASTCharType arg) { os << ControlSeq::Green << arg; },
-            [&](ASTIntegralType arg) { os << ControlSeq::Blue << arg; },
+            [&](ASTSignedIntegralType arg) { os << ControlSeq::Blue << arg; },
+            [&](ASTUnsignedIntegralType arg) { os << ControlSeq::Blue << arg; },
             [&](ASTFloatType arg) { os << ControlSeq::Green << arg; },
             [&](const ASTIDType &arg) { os << ControlSeq::Green << arg; }});
         os << ControlSeq::Reset;
@@ -250,12 +268,14 @@ inline std::ostream &operator<<(std::ostream &os, const AST &node)
     return os;
 }
 
-inline AST::ASTRecursivePrintManipulator treePrintTransform(const AST &node)
+inline AST::ASTRecursivePrintManipulator
+treePrintTransform(const AST &node) noexcept
 {
     return {node};
 }
 
-inline void recursivePrintNode(std::ostream &os, const AST &node, size_t depth)
+inline void recursivePrintNode(std::ostream &os, const AST &node,
+                               size_t depth) noexcept
 {
     using namespace std::string_view_literals;
     using ControlSeq = utils::logging::ControlSeq;
@@ -287,8 +307,9 @@ inline void recursivePrintNode(std::ostream &os, const AST &node, size_t depth)
     }
 }
 
-inline std::ostream &operator<<(std::ostream &os,
-                                const AST::ASTRecursivePrintManipulator &m)
+inline std::ostream &
+operator<<(std::ostream &os,
+           const AST::ASTRecursivePrintManipulator &m) noexcept
 {
     os << m.node << "\n";
     recursivePrintNode(os, m.node, 0);

@@ -17,7 +17,9 @@ namespace splc {
 
 class ASTContextManager {
   public:
+    /// 
     /// \brief Push a context into the stack.
+    /// 
     Ptr<ASTContext> pushContext()
     {
         auto context = makeSharedPtr<ASTContext>(contextStack.size());
@@ -25,7 +27,9 @@ class ASTContextManager {
         return context;
     }
 
+    /// 
     /// \brief Pop a context and return from the stack.
+    /// 
     Ptr<ASTContext> popContext()
     {
         auto context = contextStack.back();
@@ -33,12 +37,16 @@ class ASTContextManager {
         return context;
     }
 
+    /// 
     /// \brief Register a `SymbolEntry` at the top context.
+    /// 
     void registerSymbol(SymbolEntry::EntrySummary summary_,
                         std::string_view name_, Type type_, bool defined_,
                         const Location *location_, ASTValueType value_);
 
+    /// 
     /// \brief Provide a convenient way to access stack elements
+    /// 
     Ptr<ASTContext> operator[](size_t idx)
     {
         return contextStack[contextStack.size() - idx - 1];

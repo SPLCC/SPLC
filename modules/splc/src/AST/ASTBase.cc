@@ -1,4 +1,8 @@
-#include "AST/AST.hh"
+#include "AST/ASTBase.hh"
+#include "Core/splc.hh"
+
+#include <algorithm>
+#include <iterator>
 
 namespace splc {
 
@@ -8,10 +12,37 @@ Ptr<AST> AST::findFirstChild(ASTSymbolType type) const noexcept
     return makeSharedPtr<AST>();
 }
 
-Type AST::getType() const noexcept
+Ptr<AST> AST::copy(const std::function<bool(Ptr<const AST>)> &predicate) const
+{
+    Ptr<AST> ret = makeSharedPtr<AST>();
+    ret->type = this->type;
+    ret->parent = this->parent;
+
+    // Copy child if and only if they satisfy the predicate.
+    std::vector<Ptr<AST>> newChildren;
+    newChildren.reserve(this->children.size());
+    std::copy_if(this->children.begin(), this->children.end(),
+                 std::back_inserter(newChildren),
+                 [&predicate](Ptr<AST> child) { return predicate(child); });
+
+    std::transform(
+        newChildren.begin(), newChildren.end(),
+        std::back_inserter(ret->children),
+        [&predicate](Ptr<AST> node) { return node->copy(predicate); });
+
+    ret->loc = this->loc;
+    ret->context = this->context; // TODO(verify): is this desirable?
+                                  // Copying the entire context may
+                                  // lead to filtered out contents
+    ret->value = this->value;
+
+    return ret;
+}
+
+Type AST::getType() const
 {
     // TODO: type
-    return {shared_from_this()};
+    return Type::makeType(shared_from_this());
 }
 
 Value AST::evaluate()

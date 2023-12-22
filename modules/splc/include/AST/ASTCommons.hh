@@ -17,37 +17,38 @@ namespace splc {
 
 typedef std::string ASTIDType;
 typedef char ASTCharType;
-typedef unsigned long long ASTIntegralType;
+typedef long long ASTSignedIntegralType;
+typedef unsigned long long ASTUnsignedIntegralType;
 typedef double ASTFloatType;
 
 using ASTValueType =
-    std::variant<ASTCharType, ASTIntegralType, ASTFloatType, ASTIDType>;
+    std::variant<ASTCharType, ASTSignedIntegralType, ASTUnsignedIntegralType,
+                 ASTFloatType, ASTIDType>;
 
 template <class T>
 concept IsValidASTValue =
     (std::is_same_v<ASTCharType, std::remove_cvref_t<T>> ||
-     std::is_same_v<ASTIntegralType, std::remove_cvref_t<T>> ||
+     std::is_same_v<ASTSignedIntegralType, std::remove_cvref_t<T>> ||
+     std::is_same_v<ASTUnsignedIntegralType, std::remove_cvref_t<T>> ||
      std::is_same_v<ASTFloatType, std::remove_cvref_t<T>> ||
      std::is_same_v<ASTIDType, std::remove_cvref_t<T>>);
 
-/// class AST forward decl
+// class AST forward decl
 class AST;
 
 template <class T>
 concept IsBaseAST = (std::is_base_of_v<AST, std::remove_reference_t<T>>);
 
 template <class T>
-concept IsPtrAST = requires(T &&t)
-{
-    std::static_pointer_cast<AST>(std::forward<T>(t));
-};
+concept IsPtrAST =
+    requires(T &&t) { std::static_pointer_cast<AST>(std::forward<T>(t)); };
 
 template <class... Children>
 concept AllArePtrAST = (IsPtrAST<Children> && ...);
 
 template <class T, class... Functors>
-concept AllApplicableOnAST = IsBaseAST<T> &&
-    (std::is_invocable_r_v<T &&, Functors, T &&> &&...);
+concept AllApplicableOnAST =
+    IsBaseAST<T> && (std::is_invocable_r_v<T &&, Functors, T &&> && ...);
 
 template <class T>
 auto castToPtrASTBase(T &&t)

@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <iterator>
 
 #include "AST/AST.hh"
 #include "Core/splc.hh"
@@ -24,8 +25,8 @@ int main(const int argc, const char **argv)
     // TODO(future): just parse the first file first
     // assume file, prod code, use stat to check
     std::vector<std::string> filenameVector;
-    filenameVector.resize(argc - 1);
-    std::transform(argv + 1, argv + argc, filenameVector.begin(),
+    filenameVector.reserve(argc - 1);
+    std::transform(argv + 1, argv + argc, std::back_inserter(filenameVector),
                    [](const char *str) { return std::string{str}; });
     driver.parse(filenameVector[0]);
     driver.print(std::cout) << "\n";

@@ -3,11 +3,9 @@
 
 namespace splc::options {
 
-/// if set to 1, enable diagnostic outputs
-extern int verbose;
+extern int verbose; ///< if set to 1, enable diagnostic outputs
 
-/// If 1, disable diagnostic colors */
-extern int noDiagnosticColor;
+extern int noDiagnosticColor; ///< If `1`, disable diagnostic colors
 
 } // namespace splc::options
 

@@ -297,7 +297,7 @@ inline Location operator-(Location res, Location::CounterType width)
 inline std::ostream &operator<<(std::ostream &ostr, const Location &loc)
 {
     // Location::CounterType end_col = 0 < loc.end.column ? loc.end.column - 1 :
-    // 0; // Exact location, deprecate
+    // 0; ///< Exact location, deprecate
     Location::CounterType end_col = loc.end.column;
     if (loc.end.contextName) {
         if (!loc.begin.contextName ||

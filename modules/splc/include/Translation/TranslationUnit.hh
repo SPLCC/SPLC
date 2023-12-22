@@ -51,11 +51,10 @@ class TranslationUnit {
   protected:
     // TODO: add ASTContextManager?
 
-    /// Manages translation contexts, i.e., file inclusion and macro expansion.
-    TranslationContextManager translationContextManager;
+    TranslationContextManager translationContextManager; ///< brief Manages translation contexts, i.e., file inclusion and macro expansion.
 
-    /// Stores the root node of this translation unit.
-    Ptr<AST> rootNode;
+
+    Ptr<AST> rootNode; ///< Stores the root node of this translation unit.
 
     int warningCount;
     int errorCount;
@@ -63,12 +62,12 @@ class TranslationUnit {
     // TODO: add options and includes
 
   public:
-    /// Allow stream-like operation on translation units for processing.
+    /// \brief Allow stream-like operation on translation units for processing.
     template <IsTranslationUnit T, class Functor>
     requires AllApplicableOnTranslationUnit<T, Functor>
     friend T &&operator>>(T &&unit, T && (*functor)(T &&));
 
-    /// Allow combined transforms on translation units for processing.
+    /// \brief Allow combined transforms on translation units for processing.
     template <IsTranslationUnit T, class... Functors>
     requires AllApplicableOnTranslationUnit<T, Functors...>
     friend T &&applyTranslationUnitTransform(T &&unit, Functors &&...functors);
