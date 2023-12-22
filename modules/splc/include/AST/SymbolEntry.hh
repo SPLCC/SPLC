@@ -26,7 +26,7 @@ class SymbolEntry {
 
     SymbolEntry() = delete;
 
-    SymbolEntry(EntrySummary summary_, Ptr<Type> type_, bool defined_,
+    SymbolEntry(EntrySummary summary_, Type *type_, bool defined_,
                 const Location *location_, ASTValueType value_, Ptr<AST> body_)
         : summary{summary_}, type{type_}, defined{defined_},
           location{location_ == nullptr ? Location{} : *location_},
@@ -37,7 +37,7 @@ class SymbolEntry {
     ///
     /// \brief Create a new `SymbolEntry`.
     ///
-    static SymbolEntry createSymbolEntry(EntrySummary summary, Ptr<Type> type_,
+    static SymbolEntry createSymbolEntry(EntrySummary summary, Type *type_,
                                          bool defined_,
                                          const Location *location_,
                                          ASTValueType value_,
@@ -78,7 +78,7 @@ class SymbolEntry {
     // TODO: maybe add some methods
 
     EntrySummary summary;
-    Ptr<Type> type;
+    Type *type;
     ASTValueType value; ///< The value of this symbol entry.
                         ///< If this symbol has a value, try const propagation.
     Ptr<AST> body; ///< If this is a function, there stores its body content.

@@ -29,10 +29,8 @@ class AssertionHelper;
 class ErrorHelper;
 
 template <class T>
-concept IOStreamable = requires(std::ostream &os, T &&t)
-{
-    os << std::forward<T>(t);
-};
+concept IOStreamable =
+    requires(std::ostream &os, T &&t) { os << std::forward<T>(t); };
 
 extern std::mutex logStreamMutex;
 
@@ -105,7 +103,8 @@ class Logger {
 
     ///
     /// \brief Print initial message.
-    ///        Implementation of this method must acquire the logstream mutex first.
+    ///        Implementation of this method must acquire the logstream mutex
+    ///        first.
     /// \example
     /// \code
     /// `splc: error: '
@@ -257,10 +256,10 @@ class ErrorHelper : public Logger {
 #define SPLC_ASSERT(cond)                                                      \
     splc::utils::logging::internal::AssertionHelper                            \
     {                                                                          \
-        cond, #cond, __FILE__, __LINE__, __SPLC_LOG_FUNCTION__                 \
+        (bool)(cond), #cond, __FILE__, __LINE__, __SPLC_LOG_FUNCTION__         \
     }
 
-#define SPLC_ERROR()                                                           \
-    splc::utils::logging::internal::ErrorHelper {}
+#define SPLC_ERROR(exitCode)                                                   \
+    splc::utils::logging::internal::ErrorHelper { exitCode }
 
 #endif // __SPLC_UTILS_LOGGING_HH__

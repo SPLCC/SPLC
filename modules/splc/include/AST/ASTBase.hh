@@ -64,10 +64,10 @@ class AST : public std::enable_shared_from_this<AST> {
             [](Ptr<const AST>) { return true; },
         const bool copyContext = true) const;
 
-    virtual Ptr<Type> getType() const;
+    virtual Type* getType() const;
 
     // TODO(sem): semantic analysis generation
-    virtual Ptr<Value> evaluate();
+    virtual Value evaluate();
 
     static inline bool isASTAppendable(const AST &node) noexcept
     {

@@ -10,16 +10,16 @@
 
 namespace splc {
 
-/// 
+///
 /// \brief `Value` represents the result of evaluation on AST.
-/// 
+///
 class Value : public std::enable_shared_from_this<Value> {
   public:
     // TODO
     Value() = delete;
-    Value(Ptr<Type> type_) : type{type_} {}
+    Value(Type *type_) : type{type_} {}
 
-    Ptr<Type> type;
+    Type *type;
     ASTValueType val; ///< Actual value, if any, through const propagation
     bool isLValue;
     bool isRValue;

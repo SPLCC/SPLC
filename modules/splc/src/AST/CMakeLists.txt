@@ -7,6 +7,7 @@ add_library(splc_AST SHARED
     ASTProcess.cc
     Expr.cc
     Type.cc
+    TypeCheck.cc
 )
 target_include_directories(splc_AST PUBLIC ${SPLC_INCL_DIR})
 add_dependencies(splc_AST splc_IO_Lexer_Parser)

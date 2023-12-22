@@ -12,6 +12,7 @@
 #include <Core/splc.hh>
 
 #include <AST/ASTSymbol.hh>
+#include <AST/TypeContext.hh>
 
 namespace splc {
 
@@ -69,12 +70,6 @@ class ASTProcessor;
 //      std::is_invocable_v<Functor, const unsigned long long> ||
 //      std::is_invocable_v<Functor, const double> ||
 //      std::is_invocable_v<Functor, const std::string>);
-
-// Type forward decl
-class Type;
-
-template <class T>
-concept IsSymbolType = (std::is_base_of_v<Type, std::remove_reference_t<T>>);
 
 // Value forward decl
 class Value;

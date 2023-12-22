@@ -44,16 +44,16 @@ Ptr<AST> AST::copy(const std::function<bool(Ptr<const AST>)> &predicate,
     return ret;
 }
 
-Ptr<Type> AST::getType() const
+Type *AST::getType() const
 {
     // TODO: type
-    return makeSharedPtr<Type>(shared_from_this());
+    return nullptr;
 }
 
-Ptr<Value> AST::evaluate()
+Value AST::evaluate()
 {
     // TODO: eval
-    return makeSharedPtr<Value>(makeSharedPtr<Type>(shared_from_this()));
+    return {nullptr};
 }
 
 } // namespace splc
