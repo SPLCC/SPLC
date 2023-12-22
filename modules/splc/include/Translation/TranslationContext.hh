@@ -50,7 +50,12 @@ class TranslationContext : std::enable_shared_from_this<TranslationContext> {
 
     virtual ~TranslationContext() = default;
 
-    TranslationContextKeyType getKey() const { return {&name, contextID}; }
+    TranslationContextKeyType getKey() const
+    {
+        return {&name, contextID,
+                parent.use_count() ? &(parent.lock().get()->intrLocation)
+                                   : nullptr};
+    }
 
     const TranslationContextIDType contextID;
     const TranslationContextBufferType type;

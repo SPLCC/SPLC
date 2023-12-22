@@ -91,8 +91,7 @@ class TranslationContextManager {
 
     TranslationContextKeyType getCurrentContextKey() const noexcept
     {
-        auto key = contextStack.back()->getKey();
-        return key;
+        return contextStack.back()->getKey();
     }
 
     /// Provide a convenient way to access stack elements

@@ -40,6 +40,9 @@
 
 namespace splc::utils {
 
+class Position;
+class Location;
+
 /// A point in a source file.
 class Position {
   public:
@@ -50,7 +53,7 @@ class Position {
     /// Type for line and column numbers.
     typedef int CounterType;
 
-    using ContextKeyType = std::pair<ContextNameType *, ContextIDType>;
+    using ContextKeyType = std::tuple<ContextNameType *, ContextIDType, const Location *>;
 
     /// Invalid context ID
     static const ContextIDType invalidContextID = -1;
@@ -77,8 +80,8 @@ class Position {
     /// Assign context information.
     void switchToContext(ContextKeyType keyType)
     {
-        contextName = keyType.first;
-        contextID = keyType.second;
+        contextName = std::get<0>(keyType);
+        contextID = std::get<1>(keyType);
     }
 
     /// Convert to bool to check if this position is a valid one.
@@ -174,25 +177,26 @@ class Location {
     static const ContextIDType invalidContextID = Position::invalidContextID;
 
     /// Construct a location from \a b to \a e.
-    Location(const Position &b, const Position &e) : begin(b), end(e) {}
+    Location(const Position &b, const Position &e) : begin(b), end(e), parent(nullptr)  {}
 
     /// Construct a 0-width location in \a p.
-    explicit Location(const Position &p = Position()) : begin(p), end(p) {}
+    explicit Location(const Position &p = Position()) : begin(p), end(p), parent(nullptr) {}
 
     /// Construct a 0-width location in \a f, \a l, \a c.
     explicit Location(ContextNameType *f, ContextIDType cid = invalidContextID,
-                      CounterType l = 1, CounterType c = 1)
-        : begin(f, cid, l, c), end(f, cid, l, c)
+                      CounterType l = 1, CounterType c = 1, const Location *parent_ = nullptr)
+        : begin(f, cid, l, c), end(f, cid, l, c), parent(parent_)
     {
     }
 
     /// Initialization.
     void initialize(ContextNameType *f = nullptr,
                     ContextIDType cid = invalidContextID, CounterType l = 1,
-                    CounterType c = 1)
+                    CounterType c = 1, const Location *parent_ = nullptr)
     {
         begin.initialize(f, cid, l, c);
         end = begin;
+        parent = parent_;
     }
 
     /// Assign context information.
@@ -202,7 +206,7 @@ class Location {
         end.switchToContext(keyType);
     }
 
-    void setParent(WeakPtr<Location> parent_)
+    void setParent(const Location *parent_)
     {
         parent = parent_;
     }
@@ -229,7 +233,7 @@ class Location {
     Position begin;
     /// End of the located region.
     Position end;
-    WeakPtr<Location> parent;
+    const Location *parent;
 };
 
 /// Join two locations, in place.
