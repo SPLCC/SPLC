@@ -51,7 +51,7 @@ TranslationContextManager::pushMacroVarContext(const Location *intrLoc,
     auto it = macroVarMap.find(macroVarName_);
     if (it == macroVarMap.end()) {
         using ControlSeq = utils::logging::ControlSeq;
-        SPLC_LOG_ERROR(intrLoc)
+        SPLC_LOG_ERROR(intrLoc, true)
             << "pushing undefined macro variable " << ControlSeq::Bold << "`"
             << macroVarName_ << "'" << ControlSeq::Reset;
         return {nullptr};

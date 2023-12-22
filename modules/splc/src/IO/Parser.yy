@@ -37,7 +37,6 @@
     #include "IO/Driver.hh"
 
     #include "Translation/TranslationManager.hh"
-    #include "Translation/TranslationLogHelper.hh"
 
     #undef yylex
     #define yylex scanner.yylex
@@ -61,7 +60,7 @@
 // Start of production section
 %%
 
-list_option : | List { SPLC_TRLH_NOTE(@1) << "Parsing finished."; }
+list_option : | List { SPLC_LOG_NOTE(&@1, true) << "Parsing finished."; }
   ;
 
 List
@@ -82,5 +81,5 @@ item
 
 void splc::IO::Parser::error(const location_type &l, const std::string &err_message)
 {
-    SPLC_TRLH_ERROR(l) << err_message;
+    SPLC_LOG_ERROR(&l, true) << err_message;
 }

@@ -37,6 +37,7 @@
 #include <string>
 
 #include <Core/Base.hh>
+#include <Core/Utils/TraceType.hh>
 
 namespace splc::utils {
 
@@ -52,26 +53,30 @@ class Position {
     typedef int ContextIDType;
     /// Type for line and column numbers.
     typedef int CounterType;
-
-    using ContextKeyType = std::tuple<ContextNameType *, ContextIDType, const Location *>;
+    using TraceType = logging::TraceType;
+    using ContextKeyType = std::tuple<ContextNameType *, TraceType,
+                                      ContextIDType, const Location *>;
 
     /// Invalid context ID
     static const ContextIDType invalidContextID = -1;
 
     /// Construct a position.
     explicit Position(ContextNameType *f = nullptr,
+                      TraceType tt = TraceType::Empty,
                       ContextIDType cid = invalidContextID, CounterType l = 1,
                       CounterType c = 1)
-        : contextName(f), contextID(cid), line(l), column(c)
+        : contextName(f), traceType(tt), contextID(cid), line(l), column(c)
     {
     }
 
     /// Initialization.
     void initialize(ContextNameType *fn = nullptr,
+                    TraceType tt = TraceType::Empty,
                     ContextIDType cid = invalidContextID, CounterType l = 1,
                     CounterType c = 1)
     {
         contextName = fn;
+        traceType = tt;
         contextID = cid;
         line = l;
         column = c;
@@ -81,7 +86,8 @@ class Position {
     void switchToContext(ContextKeyType keyType)
     {
         contextName = std::get<0>(keyType);
-        contextID = std::get<1>(keyType);
+        traceType = std::get<1>(keyType);
+        contextID = std::get<2>(keyType);
     }
 
     /// Convert to bool to check if this position is a valid one.
@@ -108,6 +114,8 @@ class Position {
 
     /// File name to which this position refers.
     ContextNameType *contextName;
+    /// Trace Type
+    TraceType traceType;
     /// Context ID
     ContextIDType contextID;
     /// Current line number.
@@ -171,30 +179,39 @@ class Location {
     /// Type for line and column numbers.
     typedef Position::CounterType CounterType;
     /// `ContextKeyType`, consisting of `ContextNameType` and `ContextIDType`.
+    using TraceType = logging::TraceType;
     /// Used for quick assigning of contexts
     using ContextKeyType = Position::ContextKeyType;
 
     static const ContextIDType invalidContextID = Position::invalidContextID;
 
     /// Construct a location from \a b to \a e.
-    Location(const Position &b, const Position &e) : begin(b), end(e), parent(nullptr)  {}
+    Location(const Position &b, const Position &e)
+        : begin(b), end(e), parent(nullptr)
+    {
+    }
 
     /// Construct a 0-width location in \a p.
-    explicit Location(const Position &p = Position()) : begin(p), end(p), parent(nullptr) {}
+    explicit Location(const Position &p = Position())
+        : begin(p), end(p), parent(nullptr)
+    {
+    }
 
     /// Construct a 0-width location in \a f, \a l, \a c.
     explicit Location(ContextNameType *f, ContextIDType cid = invalidContextID,
-                      CounterType l = 1, CounterType c = 1, const Location *parent_ = nullptr)
-        : begin(f, cid, l, c), end(f, cid, l, c), parent(parent_)
+                      TraceType tt = TraceType::Empty, CounterType l = 1,
+                      CounterType c = 1, const Location *parent_ = nullptr)
+        : begin(f, tt, cid, l, c), end(f, tt, cid, l, c), parent(parent_)
     {
     }
 
     /// Initialization.
     void initialize(ContextNameType *f = nullptr,
+                    TraceType tt = TraceType::Empty,
                     ContextIDType cid = invalidContextID, CounterType l = 1,
                     CounterType c = 1, const Location *parent_ = nullptr)
     {
-        begin.initialize(f, cid, l, c);
+        begin.initialize(f, tt, cid, l, c);
         end = begin;
         parent = parent_;
     }
@@ -206,10 +223,7 @@ class Location {
         end.switchToContext(keyType);
     }
 
-    void setParent(const Location *parent_)
-    {
-        parent = parent_;
-    }
+    void setParent(const Location *parent_) { parent = parent_; }
 
     /// Convert to bool to check if this location is a valid one.
     /// \return true If this location is valid.

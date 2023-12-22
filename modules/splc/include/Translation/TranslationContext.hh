@@ -15,7 +15,7 @@
 
 namespace splc {
 
-enum TranslationContextBufferType {
+enum class TranslationContextBufferType {
     File,
     MacroVarExpansion,
 };
@@ -52,9 +52,25 @@ class TranslationContext : std::enable_shared_from_this<TranslationContext> {
 
     TranslationContextKeyType getKey() const
     {
-        return {&name, contextID,
-                parent.use_count() ? &(parent.lock().get()->intrLocation)
-                                   : nullptr};
+        using utils::logging::TraceType;
+
+        auto n = &name;
+        auto cid = contextID;
+        TraceType tt;
+        switch (type) {
+        case TranslationContextBufferType::File:
+            tt = TraceType::FileInclusion;
+            break;
+        case TranslationContextBufferType::MacroVarExpansion:
+            tt = TraceType::MacroVar;
+            break;
+        default:
+            tt = TraceType::Empty;
+            break;
+        }
+        const Location *loc =
+            parent.use_count() ? &(parent.lock().get()->intrLocation) : nullptr;
+        return {n, tt, cid, loc};
     }
 
     const TranslationContextIDType contextID;

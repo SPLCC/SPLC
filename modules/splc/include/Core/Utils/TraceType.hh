@@ -7,7 +7,8 @@
 namespace splc::utils::logging {
 
 enum class TraceType {
-    Macro,
+    Empty,
+    MacroVar,
     FileInclusion,
     Struct,
     Function,
@@ -16,7 +17,7 @@ enum class TraceType {
 static inline std::ostream &operator<<(std::ostream &os, TraceType type)
 {
     switch (type) {
-    case TraceType::Macro: {
+    case TraceType::MacroVar: {
         os << "macro";
         break;
     }

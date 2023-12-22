@@ -6,7 +6,6 @@
 // Implementation of yyFlexScanner
 #include "Core/splc.hh"
 #include "IO/Scanner.hh"
-#include "Translation/TranslationLogHelper.hh"
 
 // Required std headers
 #include <string>
@@ -49,7 +48,7 @@ using Token = splc::IO::Parser::token;
 
 [a-zA-Z]+   {
                 *yylval = yytext;
-                SPLC_TRLHP_DEBUG(yyloc) << "get word: " << *yylval << ", yyleng=" << yyleng;
+                SPLC_LOG_DEBUG(yyloc, true) << "get word: " << *yylval << ", yyleng=" << yyleng;
                 return( Token::WORD );
             }
 

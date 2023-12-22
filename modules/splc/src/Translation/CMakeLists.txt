@@ -1,7 +1,6 @@
 add_library(splc_Translation SHARED
     TranslationContext.cc
     TranslationContextManager.cc
-    TranslationLogger.cc
     TranslationManager.cc
     TranslationUnit.cc
 )
