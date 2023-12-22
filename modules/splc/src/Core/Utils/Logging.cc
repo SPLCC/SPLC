@@ -196,7 +196,9 @@ AssertionHelper::AssertionHelper(bool cond_, const std::string &condText_,
       exitCode{SPLC_EXIT_ASSERTION_FAILURE}
 {
     if (!cond) {
-        localLogStream << "Assertion failed at " << file_ << ", line " << line_;
+        localLogStream << ControlSeq::BrightRed << ControlSeq::Bold
+                       << "Assertion failed" << ControlSeq::Reset << " at "
+                       << file_ << ", line " << line_;
         if (!functionName_.empty()) {
             localLogStream << ", at function: " << functionName_;
         }
