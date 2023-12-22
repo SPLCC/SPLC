@@ -48,35 +48,9 @@ class AST : public std::enable_shared_from_this<AST> {
 
     virtual ~AST() = default;
 
-    AST(const AST &other) {
-        *this = other;
-    }
+    virtual AST &operator=(const AST &other) = default;
 
-    AST(AST &&other) {
-        *this = other;
-    }
-
-    AST &operator=(const AST &other) {
-        if (&other == this)
-            return *this;
-        type = other.type;
-        parent = other.parent;
-        children = other.children;
-        loc = other.loc;
-        context = other.context;
-        value = other.value;
-        return *this;
-    }
-
-    virtual AST &operator=(AST &&other) {
-        type = std::move(other.type);
-        parent = std::move(other.parent);
-        children = std::move(other.children);
-        loc = std::move(other.loc);
-        context = std::move(other.context);
-        value = std::move(other.value);
-        return *this;
-    }
+    virtual AST &operator=(AST &&other) = default;
 
     // TODO(IR): determine code generation (llvm IR)
     // virtual void genCode();

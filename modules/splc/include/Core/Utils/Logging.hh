@@ -46,6 +46,8 @@ class LoggerTag {
 
     bool valid() const noexcept { return !msg.empty(); }
 
+    virtual ~LoggerTag() = default;
+
   protected:
     std::string_view msg;
 

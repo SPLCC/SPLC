@@ -35,6 +35,10 @@ class Type {
     ///
     Type(Ptr<const AST> declRoot_);
 
+    virtual Type &operator=(const Type &other) = default;
+
+    virtual Type &operator=(Type &&other) = default;
+
     ///
     /// \brief Compare two types. If they are equivalent, return true.
     ///
