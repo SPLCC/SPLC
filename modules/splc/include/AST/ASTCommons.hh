@@ -74,7 +74,7 @@ class ASTProcessor;
 class Type;
 
 template <class T>
-concept IsASTSymbolType = (std::is_base_of_v<Type, std::remove_reference_t<T>>);
+concept IsSymbolType = (std::is_base_of_v<Type, std::remove_reference_t<T>>);
 
 // Value forward decl
 class Value;

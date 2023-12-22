@@ -1,4 +1,5 @@
 #include "AST/ASTBase.hh"
+#include "Core/Base.hh"
 #include "Core/splc.hh"
 
 #include <algorithm>
@@ -43,16 +44,16 @@ Ptr<AST> AST::copy(const std::function<bool(Ptr<const AST>)> &predicate,
     return ret;
 }
 
-Type AST::getType() const
+Ptr<Type> AST::getType() const
 {
     // TODO: type
-    return Type::makeType(shared_from_this());
+    return makeSharedPtr<Type>(shared_from_this());
 }
 
-Value AST::evaluate()
+Ptr<Value> AST::evaluate()
 {
     // TODO: eval
-    return Type::makeType(shared_from_this());
+    return makeSharedPtr<Value>(makeSharedPtr<Type>(shared_from_this()));
 }
 
 } // namespace splc

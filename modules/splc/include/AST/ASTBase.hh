@@ -1,3 +1,4 @@
+#include "Core/Base.hh"
 #ifndef __SPLC_AST_ASTBASE_HH__
 #define __SPLC_AST_ASTBASE_HH__ 1
 
@@ -47,6 +48,36 @@ class AST : public std::enable_shared_from_this<AST> {
 
     virtual ~AST() = default;
 
+    AST(const AST &other) {
+        *this = other;
+    }
+
+    AST(AST &&other) {
+        *this = other;
+    }
+
+    AST &operator=(const AST &other) {
+        if (&other == this)
+            return *this;
+        type = other.type;
+        parent = other.parent;
+        children = other.children;
+        loc = other.loc;
+        context = other.context;
+        value = other.value;
+        return *this;
+    }
+
+    virtual AST &operator=(AST &&other) {
+        type = std::move(other.type);
+        parent = std::move(other.parent);
+        children = std::move(other.children);
+        loc = std::move(other.loc);
+        context = std::move(other.context);
+        value = std::move(other.value);
+        return *this;
+    }
+
     // TODO(IR): determine code generation (llvm IR)
     // virtual void genCode();
 
@@ -59,10 +90,10 @@ class AST : public std::enable_shared_from_this<AST> {
             [](Ptr<const AST>) { return true; },
         const bool copyContext = true) const;
 
-    virtual Type getType() const;
+    virtual Ptr<Type> getType() const;
 
     // TODO(sem): semantic analysis generation
-    virtual Value evaluate();
+    virtual Ptr<Value> evaluate();
 
     static inline bool isASTAppendable(const AST &node) noexcept
     {

@@ -17,9 +17,9 @@ class Value : public std::enable_shared_from_this<Value> {
   public:
     // TODO
     Value() = delete;
-    Value(Type type_) : type{type_} {}
+    Value(Ptr<Type> type_) : type{type_} {}
 
-    Type type;
+    Ptr<Type> type;
     ASTValueType val; ///< Actual value, if any, through const propagation
     bool isLValue;
     bool isRValue;

@@ -30,7 +30,7 @@ class TranslationContext : std::enable_shared_from_this<TranslationContext> {
                        WeakPtr<const TranslationContext> parent,
                        const Location *intrLocation_,
                        Ptr<std::istream> inputStream_)
-        : contextID{contextID_}, type{type_}, name{name_}, parent{parent},
+        : contextID{contextID_}, bufferType{type_}, name{name_}, parent{parent},
           intrLocation(intrLocation_ ? *intrLocation_ : Location{}), content{},
           inputStream{inputStream_}
     {
@@ -42,7 +42,7 @@ class TranslationContext : std::enable_shared_from_this<TranslationContext> {
                        WeakPtr<const TranslationContext> parent,
                        const Location *intrLocation_, std::string_view content_,
                        Ptr<std::istream> inputStream_)
-        : contextID{contextID_}, type{type_}, name{name_}, parent{parent},
+        : contextID{contextID_}, bufferType{type_}, name{name_}, parent{parent},
           intrLocation(intrLocation_ ? *intrLocation_ : Location{}),
           content{content_}, inputStream{inputStream_}
     {
@@ -57,7 +57,7 @@ class TranslationContext : std::enable_shared_from_this<TranslationContext> {
         auto n = &name;
         auto cid = contextID;
         TraceType tt;
-        switch (type) {
+        switch (bufferType) {
         case TranslationContextBufferType::File:
             tt = TraceType::FileInclusion;
             break;
@@ -74,7 +74,7 @@ class TranslationContext : std::enable_shared_from_this<TranslationContext> {
     }
 
     const TranslationContextIDType contextID;
-    const TranslationContextBufferType type;
+    const TranslationContextBufferType bufferType;
     const TranslationContextNameType name;
     WeakPtr<const TranslationContext> parent;
 

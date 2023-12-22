@@ -72,7 +72,7 @@ bool TranslationContextManager::isContextExistInStack(
     std::string_view contextName_) const noexcept
 {
     for (auto &contextPtr : contextStack) {
-        if (contextPtr->type == type_ && contextPtr->name == contextName_)
+        if (contextPtr->bufferType == type_ && contextPtr->name == contextName_)
             return true;
     }
     return false;

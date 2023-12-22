@@ -32,7 +32,7 @@ SymbolEntry ASTContextManager::getSymbol(std::string_view name_)
 
 SymbolEntry
 ASTContextManager::registerSymbol(SymbolEntry::EntrySummary summary_,
-                                  std::string_view name_, Type type_,
+                                  std::string_view name_, Ptr<Type> type_,
                                   bool defined_, const Location *location_,
                                   ASTValueType value_, Ptr<AST> body_)
 {

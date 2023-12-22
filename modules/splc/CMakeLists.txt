@@ -17,9 +17,15 @@ set(SPLC_INCL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 list(APPEND SPLC_INCL_DIR ${GENERATED_INCL_DIR})
 
 aux_source_directory(src SRC_FILES)
-
 set(SRC_DIR src)
-set(SRC_DIR_IO src/IO)
+
+# Lexer (based on FLEX) and Parser (based on BISON)
+flex_target(SPLC_Lexer src/IO/Lexer.ll ${CMAKE_CURRENT_BINARY_DIR}/src/IO/Lexer.cc)
+bison_target(SPLC_Parser src/IO/Parser.yy ${CMAKE_CURRENT_BINARY_DIR}/src/IO/Parser.cc COMPILE_FLAGS "-Wcex -Wmidrule-value" DEFINES_FILE ${GENERATED_INCL_DIR_IO}/Parser.hh)
+add_flex_bison_dependency(SPLC_Lexer SPLC_Parser)
+
+# add custom target for other libraries to depend on
+add_custom_target(splc_IO_Lexer_Parser DEPENDS ${FLEX_SPLC_Lexer_OUTPUTS} ${BISON_SPLC_Parser_OUTPUTS} COMMENT "Consolidating generated dependencies from Flex and Bison")
 
 add_subdirectory(src/IO)
 add_subdirectory(src/Core)

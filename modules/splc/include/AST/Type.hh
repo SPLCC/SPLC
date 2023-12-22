@@ -1,3 +1,4 @@
+#include "Core/Base.hh"
 #ifndef __SPLC_AST_TYPE_HH__
 #define __SPLC_AST_TYPE_HH__ 1
 
@@ -9,7 +10,6 @@
 #include "AST/ASTCommons.hh"
 
 namespace splc {
-
 /// \brief
 enum class TypeCastResult {
     WideningCast,
@@ -28,17 +28,19 @@ class Type {
     Type() = delete;
 
     ///
-    /// \brief Construct a type. A deep copy of the given declaration is used
-    ///        to construct the actual type.
+    /// \brief Construct a type by making a deep copy of `declRoot_` and store
+    /// inside. Internally, `makeType` will copy the given declaration with
+    /// necessary preprocessing, and then use the deep copy to construct this
+    /// type.
     ///
-    static Type makeType(Ptr<const AST> declRoot);
+    Type(Ptr<const AST> declRoot_);
 
     ///
     /// \brief Compare two types. If they are equivalent, return true.
     ///
-    TypeCastResult castTo(Type t2) const;
+    virtual TypeCastResult castTo(const Type &t2) const;
 
-    static TypeCastResult castType(Type dst, Type src)
+    static TypeCastResult castType(const Type &dst, const Type &src)
     {
         return src.castTo(dst);
     }
@@ -60,7 +62,7 @@ class Type {
     ///          `int **`, as calling `(*func)(int, int)` returns a second-level
     ///          pointer.
     ///
-    Type getSubType() const;
+    virtual Ptr<Type> getSubType() const;
 
     ///
     /// \brief Get the decayed type of type.
@@ -75,18 +77,15 @@ class Type {
     ///   cv-qualifier. For example, `const T *const var` becomes
     ///   `const T *param`.
     ///
-    Type decay() const;
+    virtual Ptr<Type> decay() const;
 
     Ptr<const AST> declRoot; ///< The corresponding declaration, upon which
                              ///< the type system acts.
+    int depth; ///< Depth of this type. 0 represents the base type.
+               ///< In practice, depth can be up to the maximum depth of the
+               ///< first direct-declarator.
 
   protected:
-    ///
-    /// \brief Construct a type. The end user shall not use this constructor.
-    /// Internally, `makeType` will copy the given declaration with necessary
-    /// preprocessing, and then use the deep copy to construct this type.
-    ///
-    Type(Ptr<const AST> declRoot_);
 };
 
 // TODO: add:
