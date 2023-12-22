@@ -14,6 +14,7 @@ namespace splc {
 class SymbolEntry {
   public:
     enum class EntrySummary {
+        All,
         Empty,
         Function,
         StructDecl,
@@ -26,22 +27,23 @@ class SymbolEntry {
     SymbolEntry() = delete;
 
     SymbolEntry(EntrySummary summary_, Type type_, bool defined_,
-                const Location *location_, ASTValueType value_)
+                const Location *location_, ASTValueType value_, Ptr<AST> body_)
         : summary{summary_}, type{type_}, defined{defined_},
           location{location_ == nullptr ? Location{} : *location_},
-          value{value_}
+          value{value_}, body{body_}
     {
     }
 
-    /// 
+    ///
     /// \brief Create a new `SymbolEntry`.
-    /// 
+    ///
     static SymbolEntry createSymbolEntry(EntrySummary summary, Type type_,
                                          bool defined_,
                                          const Location *location_,
-                                         ASTValueType value_)
+                                         ASTValueType value_,
+                                         Ptr<AST> body = nullptr)
     {
-        return {summary, type_, defined_, location_, value_};
+        return {summary, type_, defined_, location_, value_, body};
     }
 
     constexpr bool hasValue() const noexcept
@@ -77,7 +79,9 @@ class SymbolEntry {
 
     EntrySummary summary;
     Type type;
-    ASTValueType value;
+    ASTValueType value; ///< The value of this symbol entry.
+                        ///< If this symbol has a value, try const propagation.
+    Ptr<AST> body; ///< If this is a function, there stores its body content.
 
     bool defined; ///< If defined, set to true
     Location location;

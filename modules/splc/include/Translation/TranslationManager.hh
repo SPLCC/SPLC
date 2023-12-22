@@ -9,6 +9,8 @@
 
 #include "Core/splc.hh"
 
+#include "AST/ASTContextManager.hh"
+
 #include "Translation/TranslationBase.hh"
 #include "Translation/TranslationOption.hh"
 #include "Translation/TranslationUnit.hh"
@@ -24,6 +26,7 @@ namespace splc {
 class TranslationManager {
   public:
     TranslationManager() = default;
+
     virtual ~TranslationManager() = default;
 
     // TODO
@@ -34,22 +37,42 @@ class TranslationManager {
 
     void reset();
 
-    // TODO
     void setTransUnitRootAST(Ptr<AST> rootNode_)
     {
         tunit->rootNode = rootNode_;
     }
 
     // TODO
-    void getCurrentASTContext();
+    Ptr<ASTContext> getCurrentASTContext() noexcept
+    {
+        return tunit->astContextManager[0];
+    }
 
     // TODO
-    void pushASTContext();
+    void pushASTContext() noexcept { tunit->astContextManager.pushContext(); }
 
     // TODO
-    void popASTContext();
+    void popASTContext() noexcept { tunit->astContextManager.popContext(); }
 
-    Ptr<TranslationContext> getCurrentTransContext() const noexcept
+    bool isSymbolDeclared(std::string_view name_) const noexcept
+    {
+        return tunit->astContextManager.isSymbolDeclared(name_);
+    }
+
+    bool isSymbolDefined(std::string_view name_) const noexcept
+    {
+        return tunit->astContextManager.isSymbolDefined(name_);
+    }
+
+    SymbolEntry getSymbol(std::string_view name_);
+
+    SymbolEntry registerSymbol(SymbolEntry::EntrySummary summary_,
+                               std::string_view name_, Type type_,
+                               bool defined_, const Location *location_,
+                               ASTValueType value_ = ASTValueType{},
+                               Ptr<AST> body_ = nullptr);
+
+    Ptr<TranslationContext> getCurrentTransContext() noexcept
     {
         return tunit->translationContextManager[0];
     }
@@ -102,9 +125,19 @@ class TranslationManager {
     pushTransMacroVarContext(const Location *intrLoc_,
                              std::string_view macroVarName_);
 
-    Ptr<TranslationContext> popTransContext();
+    Ptr<TranslationContext> popTransContext() noexcept
+    {
+        Ptr<TranslationContext> context =
+            tunit->translationContextManager.popContext();
+        // scanner->yypop_buffer_state();
+        return context;
+    }
 
-    bool isTransMacroVarPresent(std::string_view macroVarName_) const;
+    bool isTransMacroVarPresent(std::string_view macroVarName_) const noexcept
+    {
+        return tunit->translationContextManager.isTransMacroVarPresent(
+            macroVarName_);
+    }
 
     /// \brief Get macro var context from the context manager.
     MacroVarConstEntry

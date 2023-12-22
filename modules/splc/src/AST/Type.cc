@@ -8,31 +8,28 @@ Type::Type(Ptr<const AST> newDeclRoot_) : declRoot(newDeclRoot_) {}
 Type Type::makeType(Ptr<const AST> declRoot)
 {
     // TODO: depending on the actual type, erase the unnecessary element.
-    return {declRoot->copy([](Ptr<const AST>) { return true; }, false)};
+    // - If it is a direct declaration (struct, union, other), store everything
+    // - If it is a function definition, store without its body.
+    return {declRoot->copy()};
 }
 
-bool Type::compareType(Type t1, Type t2)
+TypeCastResult Type::castTo(Type t2) const
 {
-    // TODO
-    return true;
+    if (this == &t2 || this->declRoot == t2.declRoot)
+        return TypeCastResult::Equivalent;
+    return TypeCastResult::Equivalent;
 }
 
-Type Type::getSubType(Type t1)
+Type Type::getSubType() const
 {
     // TODO
-    return {nullptr};
+    return makeType(this->declRoot);
 }
 
-Type Type::decay(Type t1)
+Type Type::decay() const
 {
     // TODO
-    return {nullptr};
-}
-
-bool Type::implicitCast(Type dst, Type src)
-{
-    // TODO
-    return true;
+    return makeType(this->declRoot);
 }
 
 } // namespace splc

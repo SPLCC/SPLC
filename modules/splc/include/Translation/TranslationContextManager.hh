@@ -58,11 +58,11 @@ class TranslationContextManager {
     ///
     /// \brief Pop the topmost context.
     /// If there does not exist such context, or if all the contexts
-    /// have already been popped off, return 1. Else, return 0.
+    /// have already been popped off, throw `SemanticError`
     ///
     Ptr<TranslationContext> popContext();
 
-    bool isTransMacroVarPresent(std::string_view macroVarName_) const;
+    bool isTransMacroVarPresent(std::string_view macroVarName_) const noexcept;
 
     ///
     /// \brief Get macro var context from the context manager.
@@ -84,14 +84,16 @@ class TranslationContextManager {
     unregisterMacroVarContext(const Location *unRegLoc,
                               std::string_view macroVarName_);
 
-    const MacroVarMap &getMacroMap() const { return macroVarMap; }
+    MacroVarMap &getMacroMap() noexcept { return macroVarMap; }
+
+    const MacroVarMap &getMacroMap() const noexcept { return macroVarMap; }
 
     bool isContextExistInStack(TranslationContextBufferType type_,
-                               std::string_view contextName_) const;
+                               std::string_view contextName_) const noexcept;
 
-    bool contextStackEmpty() const { return contextStack.empty(); }
+    bool contextStackEmpty() const noexcept { return contextStack.empty(); }
 
-    size_t contextStackSize() const { return contextStack.size(); }
+    size_t contextStackSize() const noexcept { return contextStack.size(); }
 
     ///
     /// \brief Get the current (i.e., top) context

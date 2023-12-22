@@ -12,7 +12,13 @@ namespace splc {
 
 /// \brief
 enum class TypeCastResult {
-
+    WideningCast,
+    WideningCastUCVQ,
+    Equivalent,
+    UCVQ, ///< Unequal CV qualifier
+    NarrowingCast,
+    NarrowingCastUCVQ,
+    Unequal,
 };
 
 /// \brief `Type` describes the type of a symbol inside SPL.
@@ -22,7 +28,7 @@ class Type {
     Type() = delete;
 
     ///
-    /// \brief Construct a type. A deep copy of the given declaration is used 
+    /// \brief Construct a type. A deep copy of the given declaration is used
     ///        to construct the actual type.
     ///
     static Type makeType(Ptr<const AST> declRoot);
@@ -30,12 +36,20 @@ class Type {
     ///
     /// \brief Compare two types. If they are equivalent, return true.
     ///
-    static bool compareType(Type t1, Type t2);
+    TypeCastResult castTo(Type t2) const;
+
+    static TypeCastResult castType(Type dst, Type src)
+    {
+        return src.castTo(dst);
+    }
 
     ///
     /// \brief Compare two types. If they are equivalent, return true.
     ///
-    bool operator==(const Type &t2) { return compareType(*this, t2); }
+    bool operator==(const Type &t2) const
+    {
+        return castTo(t2) == TypeCastResult::Equivalent;
+    }
 
     ///
     /// \brief Get the subtype of the given type.
@@ -46,9 +60,7 @@ class Type {
     ///          `int **`, as calling `(*func)(int, int)` returns a second-level
     ///          pointer.
     ///
-    static Type getSubType(Type t1);
-
-    Type getSubType();
+    Type getSubType() const;
 
     ///
     /// \brief Get the decayed type of type.
@@ -63,15 +75,7 @@ class Type {
     ///   cv-qualifier. For example, `const T *const var` becomes
     ///   `const T *param`.
     ///
-    static Type decay(Type t1);
-
-    Type decay();
-
-    ///
-    /// \brief Check if a implicit cast from `src` to `dst` is valid.
-    ///        Warns if a lost of precision would occur.
-    ///
-    static bool implicitCast(Type dst, Type src);
+    Type decay() const;
 
     Ptr<const AST> declRoot; ///< The corresponding declaration, upon which
                              ///< the type system acts.

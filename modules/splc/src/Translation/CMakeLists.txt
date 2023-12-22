@@ -11,3 +11,5 @@ set_target_properties(splc_Translation PROPERTIES
 file(GLOB splc_Translation_HEADER_FILES "${SPLC_INCL_DIR}/Translation/*.hh")
 set_target_properties(splc_Translation PROPERTIES 
     PUBLIC_HEADER "${splc_Translation_HEADER_FILES}")
+
+target_link_libraries(splc_Translation splc_AST)

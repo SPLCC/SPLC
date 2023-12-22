@@ -50,11 +50,7 @@ TranslationContextManager::pushMacroVarContext(const Location *intrLoc,
     // TODO: FIX
     auto it = macroVarMap.find(macroVarName_);
     if (it == macroVarMap.end()) {
-        using ControlSeq = utils::logging::ControlSeq;
-        SPLC_LOG_ERROR(intrLoc, true)
-            << "pushing undefined macro variable " << ControlSeq::Bold << "`"
-            << macroVarName_ << "'" << ControlSeq::Reset;
-        return {nullptr};
+        throw SemanticError(intrLoc, "pushing undefined macro variable");
     }
     Ptr<TranslationContext> context = it->second.second;
     Ptr<std::istream> inputStream =
@@ -72,7 +68,8 @@ Ptr<TranslationContext> TranslationContextManager::popContext()
 }
 
 bool TranslationContextManager::isContextExistInStack(
-    TranslationContextBufferType type_, std::string_view contextName_) const
+    TranslationContextBufferType type_,
+    std::string_view contextName_) const noexcept
 {
     for (auto &contextPtr : contextStack) {
         if (contextPtr->type == type_ && contextPtr->name == contextName_)
@@ -82,7 +79,7 @@ bool TranslationContextManager::isContextExistInStack(
 }
 
 bool TranslationContextManager::isTransMacroVarPresent(
-    std::string_view macroVarName_) const
+    std::string_view macroVarName_) const noexcept
 {
     return (macroVarMap.find(macroVarName_) != macroVarMap.end());
 }

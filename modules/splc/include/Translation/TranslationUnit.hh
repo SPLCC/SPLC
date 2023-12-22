@@ -9,8 +9,8 @@
 #include "AST/ASTContextManager.hh"
 
 #include "Translation/TranslationBase.hh"
-#include "Translation/TranslationOption.hh"
 #include "Translation/TranslationContextManager.hh"
+#include "Translation/TranslationOption.hh"
 
 namespace splc {
 
@@ -34,12 +34,13 @@ class TranslationUnit {
 
     virtual ~TranslationUnit() = default;
 
-    TranslationContextManager &getTranslationContextManager()
-    {
-        return translationContextManager;
-    }
+    auto &getASTContextManager() { return astContextManager; }
 
-    const TranslationContextManager &getTranslationContextManager() const
+    const auto &getASTContextManager() const { return astContextManager; }
+
+    auto &getTranslationContextManager() { return translationContextManager; }
+
+    const auto &getTranslationContextManager() const
     {
         return translationContextManager;
     }
@@ -49,10 +50,11 @@ class TranslationUnit {
     Ptr<const AST> getRootNode() const { return {rootNode}; }
 
   protected:
-    // TODO: add ASTContextManager?
-
-    TranslationContextManager translationContextManager; ///< brief Manages translation contexts, i.e., file inclusion and macro expansion.
-
+    ASTContextManager astContextManager; ///< Manages AST contexts, i.e., scopes
+                                         ///< and variable definitions.
+    TranslationContextManager
+        translationContextManager; ///< Manages translation contexts, i.e., file
+                                   ///< inclusion and macro expansion.
 
     Ptr<AST> rootNode; ///< Stores the root node of this translation unit.
 
