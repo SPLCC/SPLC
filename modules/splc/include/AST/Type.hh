@@ -22,15 +22,10 @@ class Type {
     Type() = delete;
 
     ///
-    /// \brief Construct a type. The end user is discouraged to use this
-    ///        constructor.
+    /// \brief Construct a type. A deep copy of the given declaration is used 
+    ///        to construct the actual type.
     ///
-    Type(Ptr<const AST> declRoot_) : declRoot{declRoot_} {}
-
-    ///
-    /// \brief Construct a type.
-    ///
-    static Type makeType(Ptr<const AST> declRoot) { return {declRoot}; }
+    static Type makeType(Ptr<const AST> declRoot);
 
     ///
     /// \brief Compare two types. If they are equivalent, return true.
@@ -80,6 +75,14 @@ class Type {
 
     Ptr<const AST> declRoot; ///< The corresponding declaration, upon which
                              ///< the type system acts.
+
+  protected:
+    ///
+    /// \brief Construct a type. The end user shall not use this constructor.
+    /// Internally, `makeType` will copy the given declaration with necessary
+    /// preprocessing, and then use the deep copy to construct this type.
+    ///
+    Type(Ptr<const AST> declRoot_);
 };
 
 // TODO: add:

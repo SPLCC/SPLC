@@ -16,7 +16,7 @@
 
 namespace splc {
 
-/// 
+///
 /// \brief Class `AST` describes a single node in the Abstract Syntax Tree
 /// (AST), and acts as the foundation of the parse tree.
 ///
@@ -25,13 +25,13 @@ namespace splc {
 /// - `Unsigned long long`
 /// - `Double`
 /// - `String`
-/// 
+///
 class AST : public std::enable_shared_from_this<AST> {
 
   public:
-    /// 
+    ///
     /// \brief This constructor should be called by AST internal method
-    /// 
+    ///
     explicit AST() noexcept : type{ASTSymbolType::YYEMPTY} {}
 
     AST(const ASTSymbolType type_, const Location &loc_) noexcept
@@ -50,12 +50,14 @@ class AST : public std::enable_shared_from_this<AST> {
     // TODO(IR): determine code generation (llvm IR)
     // virtual void genCode();
 
-    /// 
+    ///
     /// \brief Acquire a deep copy of the current Ptr<AST> method.
     /// By default, all children are copied.
-    /// 
-    virtual Ptr<AST> copy(const std::function<bool(Ptr<const AST>)> &predicate =
-                              [](Ptr<const AST>) { return true; }) const;
+    ///
+    virtual Ptr<AST> copy(
+        const std::function<bool(Ptr<const AST>)> &predicate =
+            [](Ptr<const AST>) { return true; },
+        const bool copyContext = true) const;
 
     virtual Type getType() const;
 
