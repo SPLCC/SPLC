@@ -245,7 +245,7 @@ class Type {
 
     Type *getArrayElementType() const
     {
-        assert(isArrayTy());
+        SPLC_ASSERT(isArrayTy()) << "getArrayElementType() called on non-array type.";
         return containedTys[0];
     }
 

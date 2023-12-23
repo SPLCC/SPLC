@@ -27,7 +27,7 @@ class SymbolEntry {
     SymbolEntry() = delete;
 
     SymbolEntry(EntrySummary summary_, Type *type_, bool defined_,
-                const Location *location_, ASTValueType value_, Ptr<AST> body_)
+                const Location *location_, ASTValueType value_, PtrAST body_)
         : summary{summary_}, type{type_}, defined{defined_},
           location{location_ == nullptr ? Location{} : *location_},
           value{value_}, body{body_}
@@ -41,7 +41,7 @@ class SymbolEntry {
                                          bool defined_,
                                          const Location *location_,
                                          ASTValueType value_,
-                                         Ptr<AST> body = nullptr)
+                                         PtrAST body = nullptr)
     {
         return {summary, type_, defined_, location_, value_, body};
     }
@@ -81,7 +81,7 @@ class SymbolEntry {
     Type *type;
     ASTValueType value; ///< The value of this symbol entry.
                         ///< If this symbol has a value, try const propagation.
-    Ptr<AST> body; ///< If this is a function, there stores its body content.
+    PtrAST body; ///< If this is a function, there stores its body content.
 
     bool defined; ///< If defined, set to true
     Location location;

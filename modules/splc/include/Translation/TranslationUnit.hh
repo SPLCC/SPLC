@@ -50,7 +50,9 @@ class TranslationUnit {
         return translationContextManager;
     }
 
-    Ptr<AST> getRootNode() { return rootNode; }
+    void setRootNode(PtrAST root) { rootNode = root; }
+
+    PtrAST getRootNode() { return rootNode; }
 
     Ptr<const AST> getRootNode() const { return {rootNode}; }
 
@@ -64,7 +66,7 @@ class TranslationUnit {
         translationContextManager; ///< Manages translation contexts, i.e., file
                                    ///< inclusion and macro expansion.
 
-    Ptr<AST> rootNode; ///< Stores the root node of this translation unit.
+    PtrAST rootNode; ///< Stores the root node of this translation unit.
 
     int warningCount;
     int errorCount;

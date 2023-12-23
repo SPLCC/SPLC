@@ -27,7 +27,7 @@ SymbolEntry ASTContext::getSymbol(std::string_view name_)
 SymbolEntry ASTContext::registerSymbol(SymbolEntry::EntrySummary summary_,
                                        std::string_view name_, Type *type_,
                                        bool defined_, const Location *location_,
-                                       ASTValueType value_, Ptr<AST> body_)
+                                       ASTValueType value_, PtrAST body_)
 {
     if (auto it = symbolMap.find(name_); it != symbolMap.end()) {
         throw SemanticError{&it->second.location,

@@ -8,11 +8,11 @@ namespace splc::IO {
 
 int Scanner::yywrap()
 {
-    if (!translationManager.transContextStackEmpty()) {
-        Ptr<TranslationContext> context = translationManager.popTransContext();
+    if (!transMgr.transContextStackEmpty()) {
+        Ptr<TranslationContext> context = transMgr.popTransContext();
     }
 
-    return translationManager.transContextStackEmpty();
+    return transMgr.transContextStackEmpty();
 }
 
 void Scanner::setInitialContext(Ptr<TranslationContext> initialContext)
@@ -21,24 +21,22 @@ void Scanner::setInitialContext(Ptr<TranslationContext> initialContext)
         pushInternalBuffer(initialContext);
 }
 
-/// \brief Push file context and switch to the included file.
 void Scanner::pushFileContext(const Location *intrLoc_,
                               std::string_view fileName_)
 {
     Ptr<TranslationContext> context =
-        translationManager.pushTransFileContext(intrLoc_, fileName_);
+        transMgr.pushTransFileContext(intrLoc_, fileName_);
 
     if (context)
         pushInternalBuffer(context);
 }
 
-/// \brief Push macro context and switch to macro substitution.
 void Scanner::pushMacroVarContext(const Location *intrLoc_,
                                   std::string_view macroVarName_)
 {
 
     Ptr<TranslationContext> context =
-        translationManager.pushTransMacroVarContext(intrLoc_, macroVarName_);
+        transMgr.pushTransMacroVarContext(intrLoc_, macroVarName_);
 
     if (context)
         pushInternalBuffer(context);
@@ -46,21 +44,21 @@ void Scanner::pushMacroVarContext(const Location *intrLoc_,
 
 bool Scanner::isMacroVarContextPresent(std::string_view macroVarName_) const
 {
-    return translationManager.isTransMacroVarPresent(macroVarName_);
+    return transMgr.isTransMacroVarPresent(macroVarName_);
 }
 
 void Scanner::registerMacroVarContext(const Location *regLocation,
                                       std::string_view macroVarName_,
                                       std::string_view content_)
 {
-    translationManager.registerTransMacroVarContext(regLocation, macroVarName_,
+    transMgr.registerTransMacroVarContext(regLocation, macroVarName_,
                                                     content_);
 }
 
 void Scanner::unregisterMacroVarContext(const Location *unRegLoc,
                                         std::string_view macroVarName_)
 {
-    translationManager.unregisterTransMacroVarContext(unRegLoc, macroVarName_);
+    transMgr.unregisterTransMacroVarContext(unRegLoc, macroVarName_);
 }
 
 void Scanner::pushInternalBuffer(Ptr<TranslationContext> context)

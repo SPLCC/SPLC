@@ -28,8 +28,9 @@ int main(const int argc, const char **argv)
     filenameVector.reserve(argc - 1);
     std::transform(argv + 1, argv + argc, std::back_inserter(filenameVector),
                    [](const char *str) { return std::string{str}; });
-    driver.parse(filenameVector[0]);
-    driver.print(std::cout) << "\n";
+    auto tunit = driver.parse(filenameVector[0]);
+
+    std::cout << splc::treePrintTransform(*tunit->getRootNode());
 
     // test
     // using namespace splc;

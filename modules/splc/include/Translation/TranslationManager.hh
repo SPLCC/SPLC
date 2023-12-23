@@ -35,13 +35,10 @@ class TranslationManager {
 
     void reset();
 
-    void setTransUnitRootAST(Ptr<AST> rootNode_)
-    {
-        tunit->rootNode = rootNode_;
-    }
+    void setTransUnitRootAST(PtrAST rootNode_) { tunit->rootNode = rootNode_; }
 
     ///
-    /// \brief Create a new node, and add all following children `Ptr<AST>`
+    /// \brief Create a new node, and add all following children `PtrAST`
     /// to the list of its children.
     ///
     template <IsBaseAST ASTType, AllArePtrAST... Children>
@@ -49,7 +46,7 @@ class TranslationManager {
                          Children &&...children);
 
     ///
-    /// \brief Create a new node, and add all following children `Ptr<AST>`
+    /// \brief Create a new node, and add all following children `PtrAST`
     /// to the list of its children.
     ///
     template <IsBaseAST ASTType, IsValidASTValue T, AllArePtrAST... Children>
@@ -85,7 +82,7 @@ class TranslationManager {
                                std::string_view name_, Type *type_,
                                bool defined_, const Location *location_,
                                ASTValueType value_ = ASTValueType{},
-                               Ptr<AST> body_ = nullptr);
+                               PtrAST body_ = nullptr);
 
     Ptr<TranslationContext> getCurrentTransContext() noexcept
     {
@@ -169,6 +166,12 @@ class TranslationManager {
     unregisterTransMacroVarContext(const Location *unRegLoc,
                                    std::string_view macroVarName_);
 
+    void setRootNode(PtrAST root) { tunit->setRootNode(root); }
+
+    PtrAST getRootNode() { return tunit->getRootNode(); }
+
+    Ptr<const AST> getRootNode() const { return tunit->getRootNode(); }
+
     Ptr<TranslationUnit> getTransUnit();
 
   protected:
@@ -183,8 +186,8 @@ inline Ptr<ASTType> TranslationManager::makeAST(ASTSymbolType type,
                                                 const Location &loc,
                                                 Children &&...children)
 {
-    auto parentNode =
-        makeAST(tunit->typeContext, loc, std::forward(children)...);
+    auto parentNode = splc::makeAST<ASTType>(
+        tunit->typeContext, type, loc, std::forward<Children>(children)...);
     return parentNode;
 }
 
@@ -193,8 +196,9 @@ inline Ptr<ASTType> TranslationManager::makeAST(ASTSymbolType type,
                                                 const Location &loc, T &&value,
                                                 Children &&...children)
 {
-    auto parentNode = makeAST(tunit->typeContext, loc, std::forward(value),
-                              std::forward(children)...);
+    auto parentNode = splc::makeAST<ASTType>(
+        tunit->typeContext, type, loc, std::forward<T>(value),
+        std::forward<Children>(children)...);
     return parentNode;
 }
 

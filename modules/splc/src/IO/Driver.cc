@@ -12,12 +12,12 @@
 
 namespace splc::IO {
 
-Driver::Driver() { translationManager = makeSharedPtr<TranslationManager>(); }
+Driver::Driver() { transMgr = makeSharedPtr<TranslationManager>(); }
 
 Ptr<TranslationUnit> Driver::parse(std::string_view filename)
 {
-    translationManager->startTranslationRecord();
-    Ptr<TranslationContext> context = translationManager->pushTransFileContext(nullptr, filename);
+    transMgr->startTranslationRecord();
+    Ptr<TranslationContext> context = transMgr->pushTransFileContext(nullptr, filename);
     Ptr<TranslationUnit> tunit = internalParse(context);
     return tunit;
 }
@@ -56,8 +56,8 @@ Ptr<TranslationUnit> Driver::parse(std::string_view filename)
 
 Ptr<TranslationUnit> Driver::internalParse(Ptr<TranslationContext> initialContext)
 {
-    scanner = makeSharedPtr<Scanner>(*translationManager);
-    parser = makeSharedPtr<Parser>(*translationManager, *this, *scanner);
+    scanner = makeSharedPtr<Scanner>(*transMgr);
+    parser = makeSharedPtr<Parser>(*transMgr, *this, *scanner);
     scanner->setInitialContext(initialContext);
 
     const int accept{0};
@@ -66,63 +66,9 @@ Ptr<TranslationUnit> Driver::internalParse(Ptr<TranslationContext> initialContex
         // TODO: revise
         SPLC_LOG_DEBUG(nullptr, false) << "Parse failed.";
     }
-    translationManager->endTranslationRecord();
-
-    Ptr<TranslationUnit> tunit = translationManager->getTransUnit();
+    transMgr->endTranslationRecord();
+    Ptr<TranslationUnit> tunit = transMgr->getTransUnit();
     return tunit;
-}
-
-void Driver::add_upper()
-{
-    uppercase++;
-    chars++;
-    words++;
-}
-
-void Driver::add_lower()
-{
-    lowercase++;
-    chars++;
-    words++;
-}
-
-void Driver::add_word(const std::string &word)
-{
-    words++;
-    chars += word.length();
-    for (const char &c : word) {
-        if (islower(c)) {
-            lowercase++;
-        }
-        else if (isupper(c)) {
-            uppercase++;
-        }
-    }
-}
-
-void Driver::add_newline()
-{
-    lines++;
-    chars++;
-}
-
-void Driver::add_char() { chars++; }
-
-std::ostream &Driver::print(std::ostream &stream)
-{
-    using SeqType = utils::logging::ControlSeq;
-    stream << SeqType::BrightRed << "Results: " << SeqType::Reset << "\n";
-    stream << SeqType::BrightBlue << "Uppercase: " << SeqType::Reset
-           << uppercase << "\n";
-    stream << SeqType::BrightBlue << "Lowercase: " << SeqType::Reset
-           << lowercase << "\n";
-    stream << SeqType::BrightBlue << "Lines: " << SeqType::Reset << lines
-           << "\n";
-    stream << SeqType::BrightBlue << "Words: " << SeqType::Reset << words
-           << "\n";
-    stream << SeqType::BrightBlue << "Characters: " << SeqType::Reset << chars
-           << "\n";
-    return (stream);
 }
 
 } // namespace splc::IO

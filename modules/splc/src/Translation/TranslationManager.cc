@@ -28,7 +28,7 @@ SymbolEntry
 TranslationManager::registerSymbol(SymbolEntry::EntrySummary summary_,
                                    std::string_view name_, Type *type_,
                                    bool defined_, const Location *location_,
-                                   ASTValueType value_, Ptr<AST> body_)
+                                   ASTValueType value_, PtrAST body_)
 {
     // TODO: catch
     auto ent = tunit->astContextManager.registerSymbol(

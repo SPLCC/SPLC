@@ -12,8 +12,8 @@ namespace splc::IO {
 
 class Scanner : public SplcFlexLexer {
   public:
-    Scanner(TranslationManager &translationManager_, std::istream *in = nullptr)
-        : translationManager{translationManager_}, SplcFlexLexer{in} {};
+    Scanner(TranslationManager &transMgr_, std::istream *in = nullptr)
+        : transMgr{transMgr_}, SplcFlexLexer{in} {};
     virtual ~Scanner() = default;
 
     // get rid of override virtual function warning
@@ -53,7 +53,10 @@ class Scanner : public SplcFlexLexer {
   protected:
     void pushInternalBuffer(Ptr<TranslationContext> context);
 
-    TranslationManager &translationManager;
+    TranslationManager &transMgr;
+
+    splc::IO::Parser::value_type *glval; ///< yylval
+    splc::utils::Location *gloc; ///< yyloc
 
     /// Theoretically, this stores the same pointer as the input in
     /// `yylex()`.

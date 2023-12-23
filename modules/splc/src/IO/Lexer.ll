@@ -18,7 +18,7 @@ using Token = splc::IO::Parser::token;
 // #define yyterminate() return( Token::END )
 
 // update location on matching
-#define YY_USER_ACTION yyloc->step(); yyloc->columns(yyleng);
+#define YY_USER_ACTION gloc->step(); gloc->columns(yyleng);
 
 %}
 
@@ -36,6 +36,8 @@ using Token = splc::IO::Parser::token;
 %{          
             /** Code executed at the beginning of yylex **/
             yyloc->switchToContext(translationManager.getCurrentTransContextKey());
+            glval = yylval;
+            gloc = yyloc;
 %}
 
 [a-z]       {
@@ -47,14 +49,14 @@ using Token = splc::IO::Parser::token;
             }
 
 [a-zA-Z]+   {
-                *yylval = yytext;
+                *glval = yytext;
                 SPLC_LOG_DEBUG(yyloc, true) << "get word: " << *yylval << ", yyleng=" << yyleng;
                 return( Token::WORD );
             }
 
 \n          {
                 // Update line number
-                yyloc->lines();
+                gloc->lines();
                 return( Token::NEWLINE );
             }
 

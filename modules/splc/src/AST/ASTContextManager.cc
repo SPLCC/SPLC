@@ -24,7 +24,7 @@ SymbolEntry
 ASTContextManager::registerSymbol(SymbolEntry::EntrySummary summary_,
                                   std::string_view name_, Type *type_,
                                   bool defined_, const Location *location_,
-                                  ASTValueType value_, Ptr<AST> body_)
+                                  ASTValueType value_, PtrAST body_)
 {
     return contextStack.back()->registerSymbol(summary_, name_, type_, defined_,
                                                location_);

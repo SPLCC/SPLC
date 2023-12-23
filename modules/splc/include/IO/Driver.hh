@@ -37,18 +37,10 @@ class Driver {
     // Ptr<TranslationUnit> parse(const std::string &streamName,
     //                            std::istream &iss);
 
-    void add_upper();
-    void add_lower();
-    void add_word(const std::string &word);
-    void add_newline();
-    void add_char();
-
-    std::ostream &print(std::ostream &stream);
-
   protected:
     Ptr<TranslationUnit> internalParse(Ptr<TranslationContext> initialContext);
 
-    Ptr<TranslationManager> translationManager;
+    Ptr<TranslationManager> transMgr;
     Ptr<Parser> parser;
     Ptr<Scanner> scanner;
 

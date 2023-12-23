@@ -7,29 +7,29 @@
 
 namespace splc {
 
-Ptr<AST> AST::findFirstChild(ASTSymbolType type) const noexcept
+PtrAST AST::findFirstChild(ASTSymbolType type) const noexcept
 {
     // TODO: find the first available child
     return makeSharedPtr<AST>();
 }
 
-Ptr<AST> AST::copy(const std::function<bool(Ptr<const AST>)> &predicate,
+PtrAST AST::copy(const std::function<bool(Ptr<const AST>)> &predicate,
                    const bool copyContext) const
 {
-    Ptr<AST> ret = makeSharedPtr<AST>();
+    PtrAST ret = makeSharedPtr<AST>();
     ret->symbolType = this->symbolType;
     ret->parent = this->parent;
 
     // Copy child if and only if they satisfy the predicate.
-    std::vector<Ptr<AST>> newChildren;
+    std::vector<PtrAST> newChildren;
     newChildren.reserve(this->children.size());
     std::copy_if(this->children.begin(), this->children.end(),
                  std::back_inserter(newChildren),
-                 [&predicate](Ptr<AST> child) { return predicate(child); });
+                 [&predicate](PtrAST child) { return predicate(child); });
 
     std::transform(newChildren.begin(), newChildren.end(),
                    std::back_inserter(ret->children),
-                   [&predicate, copyContext](Ptr<AST> node) {
+                   [&predicate, copyContext](PtrAST node) {
                        return node->copy(predicate, copyContext);
                    });
 

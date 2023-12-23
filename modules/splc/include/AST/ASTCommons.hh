@@ -37,12 +37,15 @@ concept IsValidASTValue =
 // class AST forward decl
 class AST;
 
+using PtrAST = Ptr<AST>;
+using WeakPtrAST = WeakPtr<AST>;
+
 template <class T>
 concept IsBaseAST = (std::is_base_of_v<AST, std::remove_reference_t<T>>);
 
 template <class T>
 concept IsPtrAST =
-    requires(T &&t) { std::static_pointer_cast<AST>(std::forward<T>(t)); };
+    requires(T &&t) { std::dynamic_pointer_cast<AST>(std::forward<T>(t)); };
 
 template <class... Children>
 concept AllArePtrAST = (IsPtrAST<Children> && ...);

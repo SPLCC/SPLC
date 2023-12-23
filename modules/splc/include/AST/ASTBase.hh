@@ -69,10 +69,10 @@ class AST : public std::enable_shared_from_this<AST> {
 
     ///
     /// \deprecated This function serves no particular purpose.
-    /// \brief Acquire a deep copy of the current Ptr<AST> method.
+    /// \brief Acquire a deep copy of the current PtrAST method.
     /// By default, all children are copied.
     ///
-    virtual Ptr<AST> copy(
+    virtual PtrAST copy(
         const std::function<bool(Ptr<const AST>)> &predicate =
             [](Ptr<const AST>) { return true; },
         const bool copyContext = true) const;
@@ -89,7 +89,7 @@ class AST : public std::enable_shared_from_this<AST> {
             ASTSymbolType::YYerror);
     }
 
-    void addChild(Ptr<AST> child)
+    void addChild(PtrAST child)
     {
         children.push_back(child);
         child->parent = shared_from_this();
@@ -105,7 +105,7 @@ class AST : public std::enable_shared_from_this<AST> {
          ...);
     }
 
-    Ptr<AST> findFirstChild(ASTSymbolType type) const noexcept;
+    PtrAST findFirstChild(ASTSymbolType type) const noexcept;
 
     constexpr bool hasValue() const noexcept
     {
@@ -163,15 +163,15 @@ class AST : public std::enable_shared_from_this<AST> {
   protected:
     Ptr<TypeContext> typeContext;
     ASTSymbolType symbolType;
-    WeakPtr<AST> parent;
-    std::vector<Ptr<AST>> children;
+    WeakPtrAST parent;
+    std::vector<PtrAST> children;
     Location loc;
     Ptr<ASTContext> astContext;
     ASTValueType value;
 
   public:
     ///
-    /// \brief Create a new node, and add all following children `Ptr<AST>`
+    /// \brief Create a new node, and add all following children `PtrAST`
     /// to the list of its children.
     ///
     template <IsBaseAST ASTType, AllArePtrAST... Children>
@@ -184,7 +184,7 @@ class AST : public std::enable_shared_from_this<AST> {
                                 Children &&...children);
 
     ///
-    /// \brief Create a new node, and add all following children `Ptr<AST>`
+    /// \brief Create a new node, and add all following children `PtrAST`
     /// to the list of its children.
     ///
     template <IsBaseAST ASTType, IsValidASTValue T, AllArePtrAST... Children>
@@ -232,7 +232,7 @@ class AST : public std::enable_shared_from_this<AST> {
     };
 
     friend void recursivePrintNode(std::ostream &os, const AST &node,
-                                   size_t depth) noexcept;
+                                   const std::string &prefix) noexcept;
 
     friend class ASTProcessor;
     friend class ASTContext;
@@ -343,34 +343,37 @@ treePrintTransform(const AST &node) noexcept
 }
 
 inline void recursivePrintNode(std::ostream &os, const AST &node,
-                               size_t depth) noexcept
+                               const std::string &prefix) noexcept
 {
     using namespace std::string_view_literals;
     using ControlSeq = utils::logging::ControlSeq;
 
-    constexpr std::string_view treeMidArrow = "|-"sv;
-    constexpr std::string_view midSegment = "| "sv;
-    constexpr std::string_view treeEndArrow = "`-"sv;
-    constexpr std::string_view noSegment = "  "sv;
+    static const std::string treeMidArrow = "|-";
+    static const std::string midSegment = "| ";
+    static const std::string treeEndArrow = "`-";
+    static const std::string noSegment = "  ";
+
+    std::string newPrefix;
 
     for (auto child : node.children) {
         os << ControlSeq::Blue;
-        if (child == node.children.back()) {
-            for (size_t i = 0; i < depth; ++i)
-                os << noSegment;
-            os << treeEndArrow;
-        }
-        else {
-            for (size_t i = 0; i < depth; ++i)
-                os << midSegment;
-            os << treeMidArrow;
-        }
+        if (child == node.children.back())
+            newPrefix = prefix + treeEndArrow;
+        else
+            newPrefix = prefix + treeMidArrow;
+
+        os << newPrefix;
         os << ControlSeq::Reset;
 
         os << *child << "\n";
 
+        if (child == node.children.back())
+            newPrefix = prefix + noSegment;
+        else
+            newPrefix = prefix + midSegment;
+
         if (!child->children.empty()) {
-            recursivePrintNode(os, *child, depth + 1);
+            recursivePrintNode(os, *child, newPrefix);
         }
     }
 }
@@ -380,7 +383,7 @@ operator<<(std::ostream &os,
            const AST::ASTRecursivePrintManipulator &m) noexcept
 {
     os << m.node << "\n";
-    recursivePrintNode(os, m.node, 0);
+    recursivePrintNode(os, m.node, "");
     return os;
 }
 
