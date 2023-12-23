@@ -2,6 +2,7 @@
 #include "Core/Base.hh"
 #include "Core/System.hh"
 
+#include "Core/Utils/Logging.hh"
 #include "IO/Parser.hh"
 
 #include "Translation/TranslationManager.hh"
@@ -17,21 +18,17 @@ void TranslationManager::endTranslationRecord() {}
 
 void TranslationManager::reset() { tunit.reset(); }
 
-SymbolEntry TranslationManager::getSymbol(std::string_view name_)
+SymbolEntry TranslationManager::getSymbol(SymEntryType symEntTy, std::string_view name_)
 {
-    // TODO: catch
-    auto ent = tunit->astContextManager.getSymbol(name_);
+    auto ent = tunit->astCtxtMgr.getSymbol(symEntTy, name_);
     return ent;
 }
 
-SymbolEntry
-TranslationManager::registerSymbol(SymbolEntry::EntrySummary summary_,
-                                   std::string_view name_, Type *type_,
-                                   bool defined_, const Location *location_,
-                                   ASTValueType value_, PtrAST body_)
+SymbolEntry TranslationManager::registerSymbol(
+    SymEntryType summary_, std::string_view name_, Type *type_,
+    bool defined_, const Location *location_, ASTValueType value_, PtrAST body_)
 {
-    // TODO: catch
-    auto ent = tunit->astContextManager.registerSymbol(
+    auto ent = tunit->astCtxtMgr.registerSymbol(
         summary_, name_, type_, defined_, location_, value_, body_);
     return ent;
 }
@@ -40,9 +37,8 @@ Ptr<TranslationContext>
 TranslationManager::pushTransFileContext(const Location *intrLoc_,
                                          std::string_view fileName_)
 {
-    // TODO: catch
     Ptr<TranslationContext> context =
-        tunit->translationContextManager.pushContext(intrLoc_, fileName_);
+        tunit->transCtxtMgr.pushContext(intrLoc_, fileName_);
     return context;
 }
 
@@ -50,20 +46,23 @@ Ptr<TranslationContext>
 TranslationManager::pushTransMacroVarContext(const Location *intrLoc_,
                                              std::string_view macroVarName_)
 {
-    // TODO: catch
     Ptr<TranslationContext> context =
-        tunit->translationContextManager.pushMacroVarContext(intrLoc_,
-                                                             macroVarName_);
+        tunit->transCtxtMgr.pushMacroVarContext(intrLoc_, macroVarName_);
     return context;
+}
+
+bool TranslationManager::isContextExistInStack(
+    TranslationContextBufferType type_,
+    std::string_view contextName_) const noexcept
+{
+    return tunit->transCtxtMgr.isContextExistInStack(type_, contextName_);
 }
 
 /// \brief Get macro var context from the context manager.
 MacroVarConstEntry TranslationManager::getTransMacroVarContext(
     std::string_view macroVarName_) const
 {
-    // TODO: catch
-    auto ent =
-        tunit->translationContextManager.getMacroVarContext(macroVarName_);
+    auto ent = tunit->transCtxtMgr.getMacroVarContext(macroVarName_);
     return ent;
 }
 
@@ -73,8 +72,7 @@ TranslationManager::registerTransMacroVarContext(const Location *regLocation,
                                                  std::string_view macroVarName_,
                                                  std::string_view content_)
 {
-    // TODO: catch
-    auto context = tunit->translationContextManager.registerMacroVarContext(
+    auto context = tunit->transCtxtMgr.registerMacroVarContext(
         regLocation, macroVarName_, content_);
     return context;
 }
@@ -83,9 +81,8 @@ TranslationManager::registerTransMacroVarContext(const Location *regLocation,
 Ptr<TranslationContext> TranslationManager::unregisterTransMacroVarContext(
     const Location *unRegLoc, std::string_view macroVarName_)
 {
-    // TODO: catch
-    auto context = tunit->translationContextManager.unregisterMacroVarContext(
-        unRegLoc, macroVarName_);
+    auto context =
+        tunit->transCtxtMgr.unregisterMacroVarContext(unRegLoc, macroVarName_);
     return context;
 }
 

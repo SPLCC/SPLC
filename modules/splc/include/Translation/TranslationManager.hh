@@ -1,3 +1,4 @@
+#include "Translation/TranslationContext.hh"
 #ifndef __SPLC_TRANSLATION_TRANSLATIONMANAGER_HH__
 #define __SPLC_TRANSLATION_TRANSLATIONMANAGER_HH__ 1
 
@@ -59,26 +60,26 @@ class TranslationManager {
 
     Ptr<ASTContext> getCurrentASTContext() noexcept
     {
-        return tunit->astContextManager[0];
+        return tunit->astCtxtMgr[0];
     }
 
-    void pushASTContext() noexcept { tunit->astContextManager.pushContext(); }
+    void pushASTContext() noexcept { tunit->astCtxtMgr.pushContext(); }
 
-    void popASTContext() noexcept { tunit->astContextManager.popContext(); }
+    void popASTContext() noexcept { tunit->astCtxtMgr.popContext(); }
 
-    bool isSymbolDeclared(std::string_view name_) const noexcept
+    bool isSymbolDeclared(SymEntryType symEntTy, std::string_view name_) const noexcept
     {
-        return tunit->astContextManager.isSymbolDeclared(name_);
+        return tunit->astCtxtMgr.isSymbolDeclared(symEntTy, name_);
     }
 
-    bool isSymbolDefined(std::string_view name_) const noexcept
+    bool isSymbolDefined(SymEntryType symEntTy, std::string_view name_) const noexcept
     {
-        return tunit->astContextManager.isSymbolDefined(name_);
+        return tunit->astCtxtMgr.isSymbolDefined(symEntTy, name_);
     }
 
-    SymbolEntry getSymbol(std::string_view name_);
+    SymbolEntry getSymbol(SymEntryType symEntTy, std::string_view name_);
 
-    SymbolEntry registerSymbol(SymbolEntry::EntrySummary summary_,
+    SymbolEntry registerSymbol(SymEntryType symEntTy,
                                std::string_view name_, Type *type_,
                                bool defined_, const Location *location_,
                                ASTValueType value_ = ASTValueType{},
@@ -86,32 +87,32 @@ class TranslationManager {
 
     Ptr<TranslationContext> getCurrentTransContext() noexcept
     {
-        return tunit->translationContextManager[0];
+        return tunit->transCtxtMgr[0];
     }
 
     const std::string &getCurrentTransContextName() const noexcept
     {
-        return tunit->translationContextManager[0]->name;
+        return tunit->transCtxtMgr[0]->name;
     }
 
     const TranslationContextIDType getCurrentTransContextID() const noexcept
     {
-        return tunit->translationContextManager[0]->contextID;
+        return tunit->transCtxtMgr[0]->contextID;
     }
 
     TranslationContextKeyType getCurrentTransContextKey() const noexcept
     {
-        return tunit->translationContextManager.getCurrentContextKey();
+        return tunit->transCtxtMgr.getCurrentContextKey();
     }
 
     bool transContextStackEmpty() const
     {
-        return tunit->translationContextManager.contextStackEmpty();
+        return tunit->transCtxtMgr.contextStackEmpty();
     }
 
     size_t transContextStackSize() const
     {
-        return tunit->translationContextManager.contextStackSize();
+        return tunit->transCtxtMgr.contextStackSize();
     }
 
     ///
@@ -139,16 +140,17 @@ class TranslationManager {
 
     Ptr<TranslationContext> popTransContext() noexcept
     {
-        Ptr<TranslationContext> context =
-            tunit->translationContextManager.popContext();
+        Ptr<TranslationContext> context = tunit->transCtxtMgr.popContext();
         // scanner->yypop_buffer_state();
         return context;
     }
 
+    bool isContextExistInStack(TranslationContextBufferType type_,
+                               std::string_view contextName_) const noexcept;
+
     bool isTransMacroVarPresent(std::string_view macroVarName_) const noexcept
     {
-        return tunit->translationContextManager.isTransMacroVarPresent(
-            macroVarName_);
+        return tunit->transCtxtMgr.isTransMacroVarPresent(macroVarName_);
     }
 
     /// \brief Get macro var context from the context manager.

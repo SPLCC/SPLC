@@ -16,21 +16,20 @@
 
 namespace splc {
 
-typedef std::string ASTIDType;
-typedef char ASTCharType;
-typedef long long ASTSignedIntegralType;
-typedef unsigned long long ASTUnsignedIntegralType;
+typedef unsigned char ASTCharType;
+typedef long long ASTSIntType;
+typedef unsigned long long ASTUIntType;
 typedef double ASTFloatType;
+typedef std::string ASTIDType;
 
-using ASTValueType =
-    std::variant<ASTCharType, ASTSignedIntegralType, ASTUnsignedIntegralType,
-                 ASTFloatType, ASTIDType>;
+using ASTValueType = std::variant<ASTCharType, ASTSIntType, ASTUIntType,
+                                  ASTFloatType, ASTIDType>;
 
 template <class T>
 concept IsValidASTValue =
     (std::is_same_v<ASTCharType, std::remove_cvref_t<T>> ||
-     std::is_same_v<ASTSignedIntegralType, std::remove_cvref_t<T>> ||
-     std::is_same_v<ASTUnsignedIntegralType, std::remove_cvref_t<T>> ||
+     std::is_same_v<ASTSIntType, std::remove_cvref_t<T>> ||
+     std::is_same_v<ASTUIntType, std::remove_cvref_t<T>> ||
      std::is_same_v<ASTFloatType, std::remove_cvref_t<T>> ||
      std::is_same_v<ASTIDType, std::remove_cvref_t<T>>);
 
@@ -76,6 +75,17 @@ class ASTProcessor;
 
 // Value forward decl
 class Value;
+
+enum class SymEntryType {
+    All,
+    Empty,
+    Function,
+    StructDecl,
+    UnionDecl,
+    EnumDecl,
+    Typedef,
+    Variable,
+};
 
 // SymbolEntry forward decl
 class SymbolEntry;

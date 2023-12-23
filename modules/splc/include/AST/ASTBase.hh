@@ -326,8 +326,8 @@ inline std::ostream &operator<<(std::ostream &os, const AST &node)
         node.visitValue(overloaded{
             [&](const auto arg) { os << arg; },
             [&](ASTCharType arg) { os << ControlSeq::Green << arg; },
-            [&](ASTSignedIntegralType arg) { os << ControlSeq::Blue << arg; },
-            [&](ASTUnsignedIntegralType arg) { os << ControlSeq::Blue << arg; },
+            [&](ASTSIntType arg) { os << ControlSeq::Blue << arg; },
+            [&](ASTUIntType arg) { os << ControlSeq::Blue << arg; },
             [&](ASTFloatType arg) { os << ControlSeq::Green << arg; },
             [&](const ASTIDType &arg) { os << ControlSeq::Green << arg; }});
         os << ControlSeq::Reset;

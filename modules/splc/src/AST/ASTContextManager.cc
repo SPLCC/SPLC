@@ -5,23 +5,23 @@
 
 namespace splc {
 
-bool ASTContextManager::isSymbolDeclared(std::string_view name_) const noexcept
+bool ASTContextManager::isSymbolDeclared(SymEntryType symEntTy_, std::string_view name_) const noexcept
 {
-    return contextStack.back()->isSymbolDeclared(name_);
+    return contextStack.back()->isSymbolDeclared(symEntTy_, name_);
 }
 
-bool ASTContextManager::isSymbolDefined(std::string_view name_) const noexcept
+bool ASTContextManager::isSymbolDefined(SymEntryType symEntTy_, std::string_view name_) const noexcept
 {
-    return contextStack.back()->isSymbolDefined(name_);
+    return contextStack.back()->isSymbolDefined(symEntTy_, name_);
 }
 
-SymbolEntry ASTContextManager::getSymbol(std::string_view name_)
+SymbolEntry ASTContextManager::getSymbol(SymEntryType symEntTy_, std::string_view name_)
 {
-    return contextStack.back()->getSymbol(name_);
+    return contextStack.back()->getSymbol(symEntTy_, name_);
 }
 
 SymbolEntry
-ASTContextManager::registerSymbol(SymbolEntry::EntrySummary summary_,
+ASTContextManager::registerSymbol(SymEntryType summary_,
                                   std::string_view name_, Type *type_,
                                   bool defined_, const Location *location_,
                                   ASTValueType value_, PtrAST body_)

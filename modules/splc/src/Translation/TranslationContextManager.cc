@@ -50,7 +50,7 @@ TranslationContextManager::pushMacroVarContext(const Location *intrLoc,
     // TODO: FIX
     auto it = macroVarMap.find(macroVarName_);
     if (it == macroVarMap.end()) {
-        throw SemanticError(intrLoc, "pushing undefined macro variable");
+        throw SemanticError(intrLoc, "requesting undefined macro variable");
     }
     Ptr<TranslationContext> context = it->second.second;
     Ptr<std::istream> inputStream =
@@ -92,7 +92,7 @@ MacroVarConstEntry TranslationContextManager::getMacroVarContext(
     if (auto it = macroVarMap.find(macroVarName_); it != macroVarMap.end()) {
         return it->second;
     }
-    throw SemanticError{nullptr, "redefining variable"};
+    throw SemanticError{nullptr, "undefined variable"};
 }
 
 /// \brief Register a macro variable definition.

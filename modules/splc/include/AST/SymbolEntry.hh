@@ -13,22 +13,12 @@ namespace splc {
 ///        inside SPL language.
 class SymbolEntry {
   public:
-    enum class EntrySummary {
-        All,
-        Empty,
-        Function,
-        StructDecl,
-        UnionDecl,
-        EnumDecl,
-        Typedef,
-        Variable,
-    };
 
     SymbolEntry() = delete;
 
-    SymbolEntry(EntrySummary summary_, Type *type_, bool defined_,
+    SymbolEntry(SymEntryType summary_, Type *type_, bool defined_,
                 const Location *location_, ASTValueType value_, PtrAST body_)
-        : summary{summary_}, type{type_}, defined{defined_},
+        : symEntTy{summary_}, type{type_}, defined{defined_},
           location{location_ == nullptr ? Location{} : *location_},
           value{value_}, body{body_}
     {
@@ -37,7 +27,7 @@ class SymbolEntry {
     ///
     /// \brief Create a new `SymbolEntry`.
     ///
-    static SymbolEntry createSymbolEntry(EntrySummary summary, Type *type_,
+    static SymbolEntry createSymbolEntry(SymEntryType summary, Type *type_,
                                          bool defined_,
                                          const Location *location_,
                                          ASTValueType value_,
@@ -77,7 +67,7 @@ class SymbolEntry {
 
     // TODO: maybe add some methods
 
-    EntrySummary summary;
+    SymEntryType symEntTy;
     Type *type;
     ASTValueType value; ///< The value of this symbol entry.
                         ///< If this symbol has a value, try const propagation.

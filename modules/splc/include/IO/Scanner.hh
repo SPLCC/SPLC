@@ -2,10 +2,8 @@
 #define __SPLC_IO_SCANNER_HH__ 1
 
 #include "Core/splc.hh"
-
-#include "IO/IOBase.hh"
 #include "IO/Parser.hh"
-
+#include "Translation/TranslationContext.hh"
 #include "Translation/TranslationManager.hh"
 
 namespace splc::IO {
@@ -36,27 +34,48 @@ class Scanner : public SplcFlexLexer {
     ///
     virtual int yywrap();
 
-    void setInitialContext(Ptr<TranslationContext> initialContext);
-    
+    bool setInitialContext(Ptr<TranslationContext> initialContext);
+
     /// \brief Push file context and switch to the included file.
-    void pushFileContext(const Location *intrLoc_, std::string_view fileName_);
+    bool pushFileContext(const Location *intrLoc_, std::string_view fileName_);
 
     /// \brief Push macro context and switch to macro substitution.
-    void pushMacroVarContext(const Location *intrLoc_, std::string_view macroVarName_);
+    bool pushMacroVarContext(const Location *intrLoc_,
+                             std::string_view macroVarName_);
 
-    bool isMacroVarContextPresent(std::string_view macroVarName_) const;
+    bool isContextPresent(TranslationContextBufferType type_,
+                          std::string_view contextName_) const noexcept;
 
-    void registerMacroVarContext(const Location *regLocation, std::string_view macroVarName_, std::string_view content_);
+    bool
+    isMacroVarContextPresent(std::string_view macroVarName_) const noexcept;
 
-    void unregisterMacroVarContext(const Location *unRegLoc, std::string_view macroVarName_);
+    bool registerMacroVarContext(const Location *regLocation,
+                                 std::string_view macroVarName_,
+                                 std::string_view content_);
+
+    bool unregisterMacroVarContext(const Location *unRegLoc,
+                                   std::string_view macroVarName_);
+
+    /// Generally, do not use this because of performance penalty
+    void stepLoc(splc::utils::Location &loc, std::string_view yytext);
 
   protected:
     void pushInternalBuffer(Ptr<TranslationContext> context);
 
+    std::string concatTmpStrVec();
+    Location concatTmpLocVec();
+
     TranslationManager &transMgr;
 
     splc::IO::Parser::value_type *glval; ///< yylval
-    splc::utils::Location *gloc; ///< yyloc
+    splc::utils::Location *gloc;         ///< yyloc
+
+    std::vector<std::string> strVec;
+    std::vector<Location> locVec;
+
+    bool internalFlag;
+    std::string tmpStr;
+    Location tmpLoc;
 
     /// Theoretically, this stores the same pointer as the input in
     /// `yylex()`.

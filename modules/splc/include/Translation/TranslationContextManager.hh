@@ -41,7 +41,7 @@ class TranslationContextManager {
 
     ///
     /// \brief Push a new file into context manager. If no such file exist,
-    /// throw a runtime error.
+    /// throw `Semantic Error`.
     /// \param intrLocation interrupt location
     ///
     Ptr<TranslationContext> pushContext(const Location *intrLocation,
@@ -49,7 +49,7 @@ class TranslationContextManager {
 
     ///
     /// \brief Push a macro substitution into context manager, switching to
-    /// macro substitution.
+    /// macro substitution. If no such macro exist, throw `Semantic Error`.
     /// \param intrLocation interrupt location
     ///
     Ptr<TranslationContext> pushMacroVarContext(const Location *intrLocation,
@@ -65,7 +65,8 @@ class TranslationContextManager {
     bool isTransMacroVarPresent(std::string_view macroVarName_) const noexcept;
 
     ///
-    /// \brief Get macro var context from the context manager.
+    /// \brief Get macro var context from the context manager. If no such macro
+    ///        exist, throw `Semantic Error`.
     ///
     MacroVarConstEntry getMacroVarContext(std::string_view macroVarName_) const;
 

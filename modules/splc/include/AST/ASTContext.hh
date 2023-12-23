@@ -19,21 +19,23 @@ class ASTContext {
     ASTContext(ASTContextDepthType depth_) : depth{depth_} {}
 
     ASTSymbolMap &getSymbolMap() { return symbolMap; }
-    
+
     const ASTSymbolMap &getSymbolMap() const { return symbolMap; }
-    
-    bool isSymbolDeclared(std::string_view name_) const noexcept;
 
-    bool isSymbolDefined(std::string_view name_) const noexcept;
+    bool isSymbolDeclared(SymEntryType symEntTy_,
+                          std::string_view name_) const noexcept;
 
-    SymbolEntry getSymbol(std::string_view name_);
+    bool isSymbolDefined(SymEntryType symEntTy_,
+                         std::string_view name_) const noexcept;
+
+    SymbolEntry getSymbol(SymEntryType symEntTy_, std::string_view name_);
 
     ///
     /// \brief Register a `SymbolEntry` at the top context.
     ///
-    SymbolEntry registerSymbol(SymbolEntry::EntrySummary summary_,
-                               std::string_view name_, Type *type_,
-                               bool defined_, const Location *location_,
+    SymbolEntry registerSymbol(SymEntryType summary_, std::string_view name_,
+                               Type *type_, bool defined_,
+                               const Location *location_,
                                ASTValueType value_ = ASTValueType{},
                                PtrAST body_ = nullptr);
 
