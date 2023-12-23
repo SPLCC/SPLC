@@ -3,6 +3,10 @@
 
 namespace splc {
 
+class IROptimizer {
+    
+};
+
 } // namespace splc
 
 #endif // __SPLC_IR_IROPTIMIZER_HH__
