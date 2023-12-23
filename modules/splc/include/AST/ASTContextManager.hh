@@ -1,3 +1,5 @@
+#include <algorithm>
+#include <iterator>
 #ifndef __SPLC_AST_ASTCONTEXTMANAGER_HH__
 #define __SPLC_AST_ASTCONTEXTMANAGER_HH__ 1
 
@@ -20,8 +22,11 @@ class ASTContextManager {
     ///
     Ptr<ASTContext> pushContext() noexcept
     {
-        auto context = makeSharedPtr<ASTContext>(contextStack.size());
+        auto ctxtSz = contextStack.size();
+        auto context = makeSharedPtr<ASTContext>(ctxtSz);
         contextStack.push_back(context);
+        context->parentContexts.reserve(ctxtSz);
+        std::copy(this->contextStack.begin(), this->contextStack.end(), std::back_inserter(context->parentContexts));
         return context;
     }
 
