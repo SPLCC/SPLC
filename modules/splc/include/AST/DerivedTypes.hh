@@ -57,7 +57,7 @@ class FunctionType : public Type {
 
     Type *getParamType(unsigned i) const
     {
-        SPLC_ASSERT(i < getNumParams())
+        splc_assert(i < getNumParams())
             << "getParamType out of range: " << i << " of " << getNumParams();
         return containedTys[i + 1];
     }
@@ -114,7 +114,7 @@ class StructType : public Type {
     template <AreBaseOfType... Tys>
     static StructType *create(std::string_view name, Type *elt1, Tys *...elts)
     {
-        SPLC_ASSERT(elt1)
+        splc_assert(elt1)
             << "there must be at least one element inside a struct";
         return create(TypePtrArray{{elt1, elts...}}, name);
     }
@@ -131,7 +131,7 @@ class StructType : public Type {
     template <AreBaseOfType... Tys>
     static StructType *get(Type *elt1, Tys *...elts)
     {
-        SPLC_ASSERT(elt1)
+        splc_assert(elt1)
             << "there must be at least one element inside a struct";
         auto &ctx = elt1->getContext();
         return StructType::get(ctx, TypePtrArray{{elt1, elts...}});
@@ -162,7 +162,7 @@ class StructType : public Type {
     template <AreBaseOfType... Tys>
     void setBody(Type *elt1, Tys *...elts)
     {
-        SPLC_ASSERT(elt1)
+        splc_assert(elt1)
             << "cannot create a struct type with no elements within";
         setBody(TypePtrArray{{elt1, elts...}});
     }
@@ -184,7 +184,7 @@ class StructType : public Type {
 
     Type *getElementType(unsigned i) const
     {
-        SPLC_ASSERT(i < numContainedTys) << "getElementType out of range: " << i
+        splc_assert(i < numContainedTys) << "getElementType out of range: " << i
                                          << " of " << numContainedTys;
         return containedTys[i];
     }

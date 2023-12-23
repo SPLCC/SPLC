@@ -15,22 +15,27 @@
 int main(const int argc, const char **argv)
 {
     // check for the right # of arguments
-    if (argc < 2) {
+    if (argc < 3) {
         //  exit with failure condition
+        std::cout << "usage: [traceParsing 0/1] [file] ...\n";
         return (EXIT_FAILURE);
     }
 
-    splc::IO::Driver driver{false};
+    bool traceParsing = std::stoi(std::string{argv[1]}) != 0;
+
+    splc::IO::Driver driver{traceParsing};
 
     // TODO(future): just parse the first file first
     // assume file, prod code, use stat to check
     std::vector<std::string> filenameVector;
-    filenameVector.reserve(argc - 1);
-    std::transform(argv + 1, argv + argc, std::back_inserter(filenameVector),
+    filenameVector.reserve(argc - 2);
+    std::transform(argv + 2, argv + argc, std::back_inserter(filenameVector),
                    [](const char *str) { return std::string{str}; });
     auto tunit = driver.parse(filenameVector[0]);
 
-    std::cout << splc::treePrintTransform(*tunit->getRootNode());
+    auto node = tunit->getRootNode();
+    if (node)
+        std::cout << splc::treePrintTransform(*node);
 
     // test
     // using namespace splc;
@@ -52,7 +57,7 @@ int main(const int argc, const char **argv)
     // std::cout << treePrintTransform(*node);
     // SPLC_LOG_DEBUG(nullptr) << "Hi" << SPLC_LOGGER_TAG("debug tag");
 
-    SPLC_ASSERT(std::string("23333").empty());
+    splc_assert(std::string("23333").empty());
 
     return (EXIT_SUCCESS);
 }

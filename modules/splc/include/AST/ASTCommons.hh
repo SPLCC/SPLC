@@ -62,6 +62,9 @@ using ASTPrintMap = std::set<utils::Location::ContextIDType>;
 extern thread_local ASTPrintMap
     astPrintMap; // TODO: try another way. Internal method.
 
+// ASTHelper forward decl
+class ASTHelper;
+
 // ASTProcessor forward decl
 class ASTProcessor;
 
