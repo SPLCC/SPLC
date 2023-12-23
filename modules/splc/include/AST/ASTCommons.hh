@@ -1,18 +1,17 @@
 #ifndef __SPLC_AST_ASTCOMMONS_HH__
 #define __SPLC_AST_ASTCOMMONS_HH__ 1
 
+#include <AST/ASTSymbol.hh>
+#include <AST/TypeContext.hh>
+#include <Core/splc.hh>
 #include <iostream>
 #include <map>
 #include <memory>
+#include <set>
 #include <type_traits>
 #include <utility>
 #include <variant>
 #include <vector>
-
-#include <Core/splc.hh>
-
-#include <AST/ASTSymbol.hh>
-#include <AST/TypeContext.hh>
 
 namespace splc {
 
@@ -58,6 +57,10 @@ auto castToPtrASTBase(T &&t)
 {
     return std::static_pointer_cast<AST>(std::forward<T>(t));
 }
+
+using ASTPrintMap = std::set<utils::Location::ContextIDType>;
+extern thread_local ASTPrintMap
+    astPrintMap; // TODO: try another way. Internal method.
 
 // ASTProcessor forward decl
 class ASTProcessor;

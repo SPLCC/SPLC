@@ -7,6 +7,8 @@
 
 namespace splc {
 
+thread_local ASTPrintMap astPrintMap;
+
 PtrAST AST::findFirstChild(ASTSymbolType type) const noexcept
 {
     // TODO: find the first available child
@@ -17,6 +19,7 @@ PtrAST AST::copy(const std::function<bool(Ptr<const AST>)> &predicate,
                    const bool copyContext) const
 {
     PtrAST ret = makeSharedPtr<AST>();
+    ret->typeContext = this->typeContext;
     ret->symbolType = this->symbolType;
     ret->parent = this->parent;
 

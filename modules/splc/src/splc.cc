@@ -20,7 +20,7 @@ int main(const int argc, const char **argv)
         return (EXIT_FAILURE);
     }
 
-    splc::IO::Driver driver;
+    splc::IO::Driver driver{false};
 
     // TODO(future): just parse the first file first
     // assume file, prod code, use stat to check

@@ -1,14 +1,12 @@
 #ifndef __SPLC_AST_TYPECHECK_HH__
 #define __SPLC_AST_TYPECHECK_HH__ 1
 
+#include "AST/ASTCommons.hh"
+#include "Core/splc.hh"
+#include "TypeContext.hh"
 #include <iostream>
 #include <map>
 #include <vector>
-
-#include "Core/splc.hh"
-
-#include "AST/ASTCommons.hh"
-#include "TypeContext.hh"
 
 namespace splc {
 

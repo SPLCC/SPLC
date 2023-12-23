@@ -542,6 +542,9 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 <INITIAL>"."      { *glval = transMgr.makeAST<AST>(SymbolType::OpDot, *gloc); return Token::OpDot; }
 <INITIAL>"->"     { *glval = transMgr.makeAST<AST>(SymbolType::OpRArrow, *gloc); return Token::OpRArrow; }
 
+<INITIAL>"["      { *glval = transMgr.makeAST<AST>(SymbolType::OpLSB, *gloc); return Token::OpLSB; }
+<INITIAL>"]"      { *glval = transMgr.makeAST<AST>(SymbolType::OpRSB, *gloc); return Token::OpRSB; }
+
 <INITIAL>"sizeof" { *glval = transMgr.makeAST<AST>(SymbolType::OpSizeOf, *gloc); return Token::OpSizeOf; }
 
     /* Misc */
@@ -551,16 +554,13 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     /*===------------------------------------------------------------------===//
     //                        Punctuator Declarations
     //===------------------------------------------------------------------===*/
-<INITIAL>";"      { *glval = transMgr.makeAST<AST>(SymbolType::PuncSemi, *gloc); return Token::PuncSemi; }
+<INITIAL>";"      { *glval = transMgr.makeAST<AST>(SymbolType::PSemi, *gloc); return Token::PSemi; }
 
-<INITIAL>"{"      { *glval = transMgr.makeAST<AST>(SymbolType::PuncLCurly, *gloc); return Token::PuncLCurly; }
-<INITIAL>"}"      { *glval = transMgr.makeAST<AST>(SymbolType::PuncRCurly, *gloc); return Token::PuncRCurly; }
+<INITIAL>"{"      { *glval = transMgr.makeAST<AST>(SymbolType::PLC, *gloc); return Token::PLC; }
+<INITIAL>"}"      { *glval = transMgr.makeAST<AST>(SymbolType::PRC, *gloc); return Token::PRC; }
 
-<INITIAL>"("      { *glval = transMgr.makeAST<AST>(SymbolType::PuncLParen, *gloc); return Token::PuncLParen; }
-<INITIAL>")"      { *glval = transMgr.makeAST<AST>(SymbolType::PuncRParen, *gloc); return Token::PuncRParen; }
-
-<INITIAL>"["      { *glval = transMgr.makeAST<AST>(SymbolType::PuncLSBracket, *gloc); return Token::PuncLSBracket; }
-<INITIAL>"]"      { *glval = transMgr.makeAST<AST>(SymbolType::PuncRSBracket, *gloc); return Token::PuncRSBracket; }
+<INITIAL>"("      { *glval = transMgr.makeAST<AST>(SymbolType::PLP, *gloc); return Token::PLP; }
+<INITIAL>")"      { *glval = transMgr.makeAST<AST>(SymbolType::PRP, *gloc); return Token::PRP; }
 
     /*===------------------------------------------------------------------===//
     //                           Identifier Definition

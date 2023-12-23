@@ -1,19 +1,16 @@
-#include "Core/Base.hh"
 #ifndef __SPLC_AST_ASTBASE_HH__
 #define __SPLC_AST_ASTBASE_HH__ 1
 
+#include <AST/ASTCommons.hh>
+#include <AST/TypeContext.hh>
+#include <AST/Value.hh>
+#include <Core/splc.hh>
 #include <functional>
 #include <iostream>
 #include <memory>
 #include <utility>
 #include <variant>
 #include <vector>
-
-#include <Core/splc.hh>
-
-#include <AST/ASTCommons.hh>
-#include <AST/TypeContext.hh>
-#include <AST/Value.hh>
 
 namespace splc {
 
@@ -92,8 +89,9 @@ class AST : public std::enable_shared_from_this<AST> {
     void addChild(PtrAST child)
     {
         children.push_back(child);
-        child->parent = shared_from_this();
         child->typeContext = this->typeContext;
+        child->parent = shared_from_this();
+        this->loc += child->loc; // TODO: check if required
     }
 
     template <AllArePtrAST... Children>
@@ -233,6 +231,9 @@ class AST : public std::enable_shared_from_this<AST> {
 
     friend void recursivePrintNode(std::ostream &os, const AST &node,
                                    const std::string &prefix) noexcept;
+    friend std::ostream &
+    operator<<(std::ostream &os,
+               const AST::ASTRecursivePrintManipulator &m) noexcept;
 
     friend class ASTProcessor;
     friend class ASTContext;
@@ -296,7 +297,7 @@ inline T &&applyASTTransform(T &&node, Functors &&...functors)
 
 inline std::ostream &operator<<(std::ostream &os, const AST &node)
 {
-    using ControlSeq = utils::logging::ControlSeq;
+    using utils::logging::ControlSeq;
 
     // print node type
     os << ControlSeq::Bold << getASTSymbolColor(node.symbolType)
@@ -306,9 +307,17 @@ inline std::ostream &operator<<(std::ostream &os, const AST &node)
 
     // print node location
     os << " <" << ControlSeq::BrightYellow;
-    if (node.loc.begin.contextName) {
+    if (auto cid = node.loc.begin.contextID;
+        cid != Location::invalidContextID) {
         // TODO: print contextname if appeared for the first time
-        os << node.loc;
+        if (!astPrintMap.contains(cid)) {
+            astPrintMap.insert(cid);
+            os << node.loc;
+        }
+        else {
+            os << node.loc.begin.line << "." << node.loc.begin.column << "-";
+            os << node.loc.end.line << "." << node.loc.end.column;
+        }
     }
     else {
         os << "<invalid sloc>";
@@ -346,7 +355,7 @@ inline void recursivePrintNode(std::ostream &os, const AST &node,
                                const std::string &prefix) noexcept
 {
     using namespace std::string_view_literals;
-    using ControlSeq = utils::logging::ControlSeq;
+    using utils::logging::ControlSeq;
 
     static const std::string treeMidArrow = "|-";
     static const std::string midSegment = "| ";
@@ -382,8 +391,10 @@ inline std::ostream &
 operator<<(std::ostream &os,
            const AST::ASTRecursivePrintManipulator &m) noexcept
 {
+    astPrintMap.insert(m.node.loc.begin.contextID);
     os << m.node << "\n";
     recursivePrintNode(os, m.node, "");
+    astPrintMap.clear();
     return os;
 }
 

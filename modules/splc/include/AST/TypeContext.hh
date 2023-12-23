@@ -11,18 +11,13 @@
 // stuff, look in DerivedTypes.h.
 //
 //===----------------------------------------------------------------------===//
-
-#include "Core/Utils/Logging.hh"
-#include <iterator>
-#include <memory>
 #ifndef __SPLC_AST_TYPE_CONTEXT_HH__
 #define __SPLC_AST_TYPE_CONTEXT_HH__ 1
 
-#include "Core/Base.hh"
 #include "Core/splc.hh"
 #include "Type.hh"
 #include <map>
-#include <set>
+#include <memory>
 
 namespace splc {
 
