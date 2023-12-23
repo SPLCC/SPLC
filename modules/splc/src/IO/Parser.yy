@@ -56,7 +56,7 @@
 // %define api.location.file "../../include/Core/Utils/location.hh"
 %define api.location.type { splc::Location }
 
-%define api.symbol.prefix {Sym} // The empty prefix is generally invalid, but there is namespace in C++.
+%define api.symbol.prefix {S_} // The empty prefix is generally invalid, but there is namespace in C++.
 %define api.value.type { splc::PtrAST }
 %locations
 
@@ -148,6 +148,9 @@
 //===----------------------------------------------------------------------===//
 %precedence KwdThen
 %precedence KwdElse
+
+%precedence DecltrPrec
+%precedence FuncDeclPrec
 
 %left OpComma
 %right OpAssign OpMulAssign OpDivAssign OpModAssign OpPlusAssign OpMinusAssign OpLShiftAssign OpRShiftAssign OpBAndAssign OpBXorAssign OpBOrAssign
@@ -262,14 +265,22 @@ BuiltinTypeSpec:
     ;
 
 AbsDecltr:
-      Ptr { $$ = transMgr.makeAST<AST>(SymbolType::AbsDecltr, @$, $1); }
-    | Ptr DirAbsDecltr { $$ = transMgr.makeAST<AST>(SymbolType::AbsDecltr, @$, $1, $2); }
+      PtrDecl { $$ = transMgr.makeAST<AST>(SymbolType::AbsDecltr, @$, $1); }
+    | PtrDecl DirAbsDecltr { 
+        auto ptrDeclRoot = ASTHelper::getPtrDeclEndPoint($1);
+        ptrDeclRoot->addChild($2);
+        $$ = transMgr.makeAST<AST>(SymbolType::AbsDecltr, @$, ptrDeclRoot);
+    }
     ;
 
 DirAbsDecltr:
       PLP AbsDecltr PRP { $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $1); }
     | DirAbsDecltr OpLSB AssignExpr OpRSB { $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $1, $2, $3, $4); }
     | DirAbsDecltr OpLSB OpRSB { $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $1, $2, $3); }
+    | DirAbsDecltr PLP ParamList PRP { $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $1, $3); }
+    | PLP ParamList PRP { $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $2); }
+    | PLP PRP { $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$); }
+    
     | DirAbsDecltr OpLSB error { SPLC_LOG_ERROR(&@3, true) << "Expect ']' here"; $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $1); yyerrok; }
     | DirAbsDecltr OpRSB { SPLC_LOG_ERROR(&@2, true) << "Expect '[' here"; $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $1); yyerrok; } 
     ;
@@ -360,26 +371,36 @@ EnumConst:
 
 /* Single variable declaration */
 Decltr: 
-      Ptr DirDecltr { $$ = transMgr.makeAST<AST>(SymbolType::Decltr, @$, $1, $2); }
-    | DirDecltr { $$ = transMgr.makeAST<AST>(SymbolType::Decltr, @$, $1); }
+      DirDecltr { $$ = transMgr.makeAST<AST>(SymbolType::Decltr, @$, $1); }
+    | PtrDecl DirDecltr  { 
+        auto ptrDeclRoot = ASTHelper::getPtrDeclEndPoint($1);
+        ptrDeclRoot->addChild($2);
+        $$ = transMgr.makeAST<AST>(SymbolType::DirDecltr, @$, ptrDeclRoot);
+    }
     ;
 
 DirDecltr:
       IDWrapper { $$ = transMgr.makeAST<AST>(SymbolType::DirDecltr, @$, $1); }
-    | PLP Decltr PRP { $$ = transMgr.makeAST<AST>(SymbolType::DirDecltr, @$, $2); }
+    | WrappedDirDecltr { $$ = transMgr.makeAST<AST>(SymbolType::DirDecltr, @$, $1); }
     | DirDecltr OpLSB AssignExpr OpRSB { $$ = transMgr.makeAST<AST>(SymbolType::DirDecltr, @$, $1, $2, $3, $4); }
     | DirDecltr OpLSB OpRSB { $$ = transMgr.makeAST<AST>(SymbolType::DirDecltr, @$, $1, $2, $3); }
+    | WrappedDirDecltr PLP ParamList PRP { $$ = transMgr.makeAST<AST>(SymbolType::DirDecltr, @$, $1, $3); }
+    | WrappedDirDecltr PLP PRP { $$ = transMgr.makeAST<AST>(SymbolType::DirDecltr, @$, $1); }
 
     | DirDecltr OpLSB AssignExpr error {} 
     /* | direct-declarator error {}  */
     | DirDecltr OpRSB {} 
     ;
 
-Ptr:
-      OpAstrk { $$ = transMgr.makeAST<AST>(SymbolType::Ptr, @$, $1); }
-    | OpAstrk TypeQualList { $$ = transMgr.makeAST<AST>(SymbolType::Ptr, @$, $1, $2); }
-    | OpAstrk Ptr { $$ = transMgr.makeAST<AST>(SymbolType::Ptr, @$, $1, $2); }
-    | OpAstrk TypeQualList Ptr { $$ = transMgr.makeAST<AST>(SymbolType::Ptr, @$, $1, $2, $3); }
+WrappedDirDecltr: 
+      PLP Decltr PRP { $$ = transMgr.makeAST<AST>(SymbolType::WrappedDirDecltr, @$, $2); }
+    ;
+
+PtrDecl:
+      OpAstrk { $$ = transMgr.makeAST<AST>(SymbolType::PtrDecl, @$, $1); }
+    | OpAstrk TypeQualList { $$ = transMgr.makeAST<AST>(SymbolType::PtrDecl, @$, $1, $2); }
+    | OpAstrk PtrDecl { $$ = transMgr.makeAST<AST>(SymbolType::PtrDecl, @$, $1, $2); }
+    | OpAstrk TypeQualList PtrDecl { $$ = transMgr.makeAST<AST>(SymbolType::PtrDecl, @$, $1, $2, $3); }
     ;
 
 TypeQualList:
@@ -469,7 +490,11 @@ FuncDef:
 /* Function: Function name and body. */
 FuncDecltr: 
       DirFuncDecltr { $$ = transMgr.makeAST<AST>(SymbolType::FuncDecltr, @$, $1); }
-    | Ptr DirFuncDecltr { $$ = transMgr.makeAST<AST>(SymbolType::FuncDecltr, @$, $1, $2); }
+    | PtrDecl DirFuncDecltr { 
+        auto ptrDeclRoot = ASTHelper::getPtrDeclEndPoint($1);
+        ptrDeclRoot->addChild($2);
+        $$ = transMgr.makeAST<AST>(SymbolType::FuncDecltr, @$, ptrDeclRoot);
+    }
     ;
 
 DirFuncDecltr:

@@ -30,7 +30,9 @@ int main(const int argc, const char **argv)
                    [](const char *str) { return std::string{str}; });
     auto tunit = driver.parse(filenameVector[0]);
 
-    std::cout << splc::treePrintTransform(*tunit->getRootNode());
+    auto node = tunit->getRootNode();
+    if (node)
+        std::cout << splc::treePrintTransform(*node);
 
     // test
     // using namespace splc;
@@ -52,7 +54,7 @@ int main(const int argc, const char **argv)
     // std::cout << treePrintTransform(*node);
     // SPLC_LOG_DEBUG(nullptr) << "Hi" << SPLC_LOGGER_TAG("debug tag");
 
-    SPLC_ASSERT(std::string("23333").empty());
+    splc_assert(std::string("23333").empty());
 
     return (EXIT_SUCCESS);
 }

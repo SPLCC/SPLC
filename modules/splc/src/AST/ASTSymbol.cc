@@ -14,6 +14,8 @@ using utils::logging::ControlSeq;
 #endif
 #define YY_NULLPTR nullptr
 
+// YYTNAME[SYMBOL-NUM] -- String name of the symbol SYMBOL-NUM.
+// First, the terminals, then, starting at \a YYNTOKENS, nonterminals.
 const char*
 const yytname_[] =
 {
@@ -33,24 +35,25 @@ const yytname_[] =
 "OpRSB", "OpComma", "OpEllipsis", "PSemi", "PLC", "PRC", "PLP", "PRP",
 "UIntLiteral", "SIntLiteral", "FloatLiteral", "CharLiteral", "StrUnit",
 "SubscriptExpr", "CallExpr", "AccessExpr", "ExplicitCastExpr",
-"AddrOfExpr", "DerefExpr", "SizeOfExpr", "KwdThen", "OpUnaryPrec",
-"PLParen", "PRParen", "PLSBracket", "PRSBracket", "$accept", "ParseRoot",
-"TransUnit", "ExternDeclList", "ExternDecl", "DeclSpec", "StorageSpec",
+"AddrOfExpr", "DerefExpr", "SizeOfExpr", "KwdThen", "DecltrPrec",
+"FuncDeclPrec", "OpUnaryPrec", "PLParen", "PRParen", "PLSBracket",
+"PRSBracket", "$accept", "ParseRoot", "$@1", "TransUnit",
+"ExternDeclList", "ExternDecl", "DeclSpec", "StorageSpec",
 "SpecQualList", "TypeSpec", "FuncSpec", "TypeQual", "TypeName",
 "BuiltinTypeSpec", "AbsDecltr", "DirAbsDecltr", "StructOrUnionSpec",
 "StructOrUnion", "StructDeclBody", "StructDeclList", "StructDecl",
 "StructDecltrList", "StructDecltr", "EnumSpec", "EnumBody",
 "EnumeratorList", "Enumerator", "EnumConst", "Decltr", "DirDecltr",
-"Ptr", "TypeQualList", "Decl", "DirDecl", "InitDecltrList", "InitDecltr",
-"Initializer", "InitializerList", "Designation", "DesignatorList",
-"Designator", "FuncDef", "FuncDecltr", "DirFuncDecltr",
-"DirDecltrForFunc", "ParamTypeList", "ParamList", "ParamDecl",
-"CompStmt", "GeneralStmtList", "Stmt", "ExprStmt", "SelStmt",
-"LabeledStmt", "JumpStmt", "IterStmt", "ForLoopBody", "ConstExpr",
-"Constant", "PrimaryExpr", "PostfixExpr", "MemberAcessOp", "UnaryExpr",
-"UnaryArithOp", "CastExpr", "MulExpr", "MulOp", "DivOp", "AddExpr",
-"AddOp", "ShiftExpr", "ShiftOp", "RelExpr", "RelOp", "EqualityExpr",
-"EqualityOp", "OpBAndExpr", "OpBXorExpr", "OpBOrExpr",
+"WrappedDirDecltr", "PtrDecl", "TypeQualList", "Decl", "DirDecl",
+"InitDecltrList", "InitDecltr", "Initializer", "InitializerList",
+"Designation", "DesignatorList", "Designator", "FuncDef", "FuncDecltr",
+"DirFuncDecltr", "DirDecltrForFunc", "ParamTypeList", "ParamList",
+"ParamDecl", "CompStmt", "GeneralStmtList", "Stmt", "ExprStmt",
+"SelStmt", "LabeledStmt", "JumpStmt", "IterStmt", "ForLoopBody",
+"ConstExpr", "Constant", "PrimaryExpr", "PostfixExpr", "MemberAcessOp",
+"UnaryExpr", "UnaryArithOp", "CastExpr", "MulExpr", "MulOp", "DivOp",
+"AddExpr", "AddOp", "ShiftExpr", "ShiftOp", "RelExpr", "RelOp",
+"EqualityExpr", "EqualityOp", "OpBAndExpr", "OpBXorExpr", "OpBOrExpr",
 "LogicalOpAndExpr", "LogicalOpOrExpr", "CondExpr", "AssignExpr",
 "AssignOp", "Expr", "InitExpr", "ArgList", "StringLiteral", "IDWrapper", YY_NULLPTR
 };
@@ -65,229 +68,233 @@ std::ostream &printSymbolConsoleTraits(std::ostream &os,
                                        SPLSymbolType symbol) noexcept
 {
     switch (symbol) {
-    case symbol_kind_type::YYNTOKENS:
-    case symbol_kind_type::YYEMPTY:
-    case symbol_kind_type::YYEOF:
-    case symbol_kind_type::YYerror:
-    case symbol_kind_type::YYUNDEF: {
+    case SPLSymbolType::YYNTOKENS:
+    case SPLSymbolType::YYEMPTY:
+    case SPLSymbolType::YYEOF:
+    case SPLSymbolType::YYerror:
+    case SPLSymbolType::YYUNDEF: {
         os << ControlSeq::Bold << ControlSeq::Red;
         break;
     }
-    case symbol_kind_type::KwdAuto:
-    case symbol_kind_type::KwdExtern:
-    case symbol_kind_type::KwdRegister:
-    case symbol_kind_type::KwdStatic:
-    case symbol_kind_type::KwdTypedef:
-    case symbol_kind_type::KwdConst:
-    case symbol_kind_type::KwdRestrict:
-    case symbol_kind_type::KwdVolatile:
-    case symbol_kind_type::KwdInline:
-    case symbol_kind_type::VoidTy:
-    case symbol_kind_type::IntTy:
-    case symbol_kind_type::SignedTy:
-    case symbol_kind_type::UnsignedTy:
-    case symbol_kind_type::LongTy:
-    case symbol_kind_type::FloatTy:
-    case symbol_kind_type::DoubleTy:
-    case symbol_kind_type::CharTy: {
+    case SPLSymbolType::KwdAuto:
+    case SPLSymbolType::KwdExtern:
+    case SPLSymbolType::KwdRegister:
+    case SPLSymbolType::KwdStatic:
+    case SPLSymbolType::KwdTypedef:
+    case SPLSymbolType::KwdConst:
+    case SPLSymbolType::KwdRestrict:
+    case SPLSymbolType::KwdVolatile:
+    case SPLSymbolType::KwdInline:
+    case SPLSymbolType::VoidTy:
+    case SPLSymbolType::IntTy:
+    case SPLSymbolType::SignedTy:
+    case SPLSymbolType::UnsignedTy:
+    case SPLSymbolType::LongTy:
+    case SPLSymbolType::FloatTy:
+    case SPLSymbolType::DoubleTy:
+    case SPLSymbolType::CharTy: {
         os << ControlSeq::Bold << ControlSeq::Blue;
         break;
     }
-    case symbol_kind_type::KwdEnum:
-    case symbol_kind_type::KwdStruct:
-    case symbol_kind_type::KwdUnion:
-    case symbol_kind_type::KwdIf:
-    case symbol_kind_type::KwdElse:
-    case symbol_kind_type::KwdSwitch:
-    case symbol_kind_type::KwdWhile:
-    case symbol_kind_type::KwdFor:
-    case symbol_kind_type::KwdDo:
-    case symbol_kind_type::KwdDefault:
-    case symbol_kind_type::KwdCase:
-    case symbol_kind_type::KwdGoto:
-    case symbol_kind_type::KwdContinue:
-    case symbol_kind_type::KwdBreak:
-    case symbol_kind_type::KwdReturn: {
+    case SPLSymbolType::KwdEnum:
+    case SPLSymbolType::KwdStruct:
+    case SPLSymbolType::KwdUnion:
+    case SPLSymbolType::KwdIf:
+    case SPLSymbolType::KwdElse:
+    case SPLSymbolType::KwdSwitch:
+    case SPLSymbolType::KwdWhile:
+    case SPLSymbolType::KwdFor:
+    case SPLSymbolType::KwdDo:
+    case SPLSymbolType::KwdDefault:
+    case SPLSymbolType::KwdCase:
+    case SPLSymbolType::KwdGoto:
+    case SPLSymbolType::KwdContinue:
+    case SPLSymbolType::KwdBreak:
+    case SPLSymbolType::KwdReturn: {
         os << ControlSeq::Bold << ControlSeq::Magenta;
         break;
     }
-    case symbol_kind_type::ID:
-    case symbol_kind_type::TypedefID:
-    case symbol_kind_type::OpAssign:
-    case symbol_kind_type::OpMulAssign:
-    case symbol_kind_type::OpDivAssign:
-    case symbol_kind_type::OpModAssign:
-    case symbol_kind_type::OpPlusAssign:
-    case symbol_kind_type::OpMinusAssign:
-    case symbol_kind_type::OpLShiftAssign:
-    case symbol_kind_type::OpRShiftAssign:
-    case symbol_kind_type::OpBAndAssign:
-    case symbol_kind_type::OpBXorAssign:
-    case symbol_kind_type::OpBOrAssign:
-    case symbol_kind_type::OpAnd:
-    case symbol_kind_type::OpOr:
-    case symbol_kind_type::OpNot:
-    case symbol_kind_type::OpLT:
-    case symbol_kind_type::OpLE:
-    case symbol_kind_type::OpGT:
-    case symbol_kind_type::OpGE:
-    case symbol_kind_type::OpNE:
-    case symbol_kind_type::OpEQ:
-    case symbol_kind_type::OpQMark:
-    case symbol_kind_type::OpColon:
-    case symbol_kind_type::OpLShift:
-    case symbol_kind_type::OpRShift:
-    case symbol_kind_type::OpBAnd:
-    case symbol_kind_type::OpBOr:
-    case symbol_kind_type::OpBNot:
-    case symbol_kind_type::OpBXor:
-    case symbol_kind_type::OpDPlus:
-    case symbol_kind_type::OpDMinus:
-    case symbol_kind_type::OpPlus:
-    case symbol_kind_type::OpMinus:
-    case symbol_kind_type::OpAstrk:
-    case symbol_kind_type::OpDiv:
-    case symbol_kind_type::OpMod:
-    case symbol_kind_type::OpDot:
-    case symbol_kind_type::OpRArrow:
-    case symbol_kind_type::OpSizeOf:
-    case symbol_kind_type::OpLSB:
-    case symbol_kind_type::OpRSB:
-    case symbol_kind_type::OpComma:
-    case symbol_kind_type::OpEllipsis: {
+    case SPLSymbolType::ID:
+    case SPLSymbolType::TypedefID: {
+        os << ControlSeq::Bold << ControlSeq::BrightBlue;
         break;
     }
-    case symbol_kind_type::PSemi:
-    case symbol_kind_type::PLC:
-    case symbol_kind_type::PRC:
-    case symbol_kind_type::PLP:
-    case symbol_kind_type::PRP: {
+    case SPLSymbolType::OpAssign:
+    case SPLSymbolType::OpMulAssign:
+    case SPLSymbolType::OpDivAssign:
+    case SPLSymbolType::OpModAssign:
+    case SPLSymbolType::OpPlusAssign:
+    case SPLSymbolType::OpMinusAssign:
+    case SPLSymbolType::OpLShiftAssign:
+    case SPLSymbolType::OpRShiftAssign:
+    case SPLSymbolType::OpBAndAssign:
+    case SPLSymbolType::OpBXorAssign:
+    case SPLSymbolType::OpBOrAssign:
+    case SPLSymbolType::OpAnd:
+    case SPLSymbolType::OpOr:
+    case SPLSymbolType::OpNot:
+    case SPLSymbolType::OpLT:
+    case SPLSymbolType::OpLE:
+    case SPLSymbolType::OpGT:
+    case SPLSymbolType::OpGE:
+    case SPLSymbolType::OpNE:
+    case SPLSymbolType::OpEQ:
+    case SPLSymbolType::OpQMark:
+    case SPLSymbolType::OpColon:
+    case SPLSymbolType::OpLShift:
+    case SPLSymbolType::OpRShift:
+    case SPLSymbolType::OpBAnd:
+    case SPLSymbolType::OpBOr:
+    case SPLSymbolType::OpBNot:
+    case SPLSymbolType::OpBXor:
+    case SPLSymbolType::OpDPlus:
+    case SPLSymbolType::OpDMinus:
+    case SPLSymbolType::OpPlus:
+    case SPLSymbolType::OpMinus:
+    case SPLSymbolType::OpAstrk:
+    case SPLSymbolType::OpDiv:
+    case SPLSymbolType::OpMod:
+    case SPLSymbolType::OpDot:
+    case SPLSymbolType::OpRArrow:
+    case SPLSymbolType::OpSizeOf:
+    case SPLSymbolType::OpLSB:
+    case SPLSymbolType::OpRSB:
+    case SPLSymbolType::OpComma:
+    case SPLSymbolType::OpEllipsis: {
+        break;
+    }
+    case SPLSymbolType::PSemi:
+    case SPLSymbolType::PLC:
+    case SPLSymbolType::PRC:
+    case SPLSymbolType::PLP:
+    case SPLSymbolType::PRP: {
         os << ControlSeq::Green;
         break;
     }
-    case symbol_kind_type::UIntLiteral:
-    case symbol_kind_type::SIntLiteral:
-    case symbol_kind_type::FloatLiteral: {
+    case SPLSymbolType::UIntLiteral:
+    case SPLSymbolType::SIntLiteral:
+    case SPLSymbolType::FloatLiteral: {
         os << ControlSeq::Bold << ControlSeq::Green;
         break;
     }
-    case symbol_kind_type::CharLiteral:
-    case symbol_kind_type::StrUnit: {
+    case SPLSymbolType::CharLiteral:
+    case SPLSymbolType::StrUnit: {
         os << ControlSeq::Yellow;
         break;
     }
-    case symbol_kind_type::SubscriptExpr:
-    case symbol_kind_type::CallExpr:
-    case symbol_kind_type::AccessExpr:
-    case symbol_kind_type::ExplicitCastExpr:
-    case symbol_kind_type::AddrOfExpr:
-    case symbol_kind_type::DerefExpr:
-    case symbol_kind_type::SizeOfExpr: {
+    case SPLSymbolType::SubscriptExpr:
+    case SPLSymbolType::CallExpr:
+    case SPLSymbolType::AccessExpr:
+    case SPLSymbolType::ExplicitCastExpr:
+    case SPLSymbolType::AddrOfExpr:
+    case SPLSymbolType::DerefExpr:
+    case SPLSymbolType::SizeOfExpr: {
         os << ControlSeq::Bold << ControlSeq::BrightMagenta;
         break;
     }
-    case symbol_kind_type::KwdThen:
-    case symbol_kind_type::OpUnaryPrec:
-    case symbol_kind_type::PLParen:
-    case symbol_kind_type::PRParen:
-    case symbol_kind_type::PLSBracket:
-    case symbol_kind_type::PRSBracket:
-    case symbol_kind_type::ParseRoot:
-    case symbol_kind_type::TransUnit:
-    case symbol_kind_type::ExternDeclList:
-    case symbol_kind_type::ExternDecl:
-    case symbol_kind_type::DeclSpec:
-    case symbol_kind_type::StorageSpec:
-    case symbol_kind_type::SpecQualList:
-    case symbol_kind_type::TypeSpec:
-    case symbol_kind_type::FuncSpec:
-    case symbol_kind_type::TypeQual:
-    case symbol_kind_type::TypeName:
-    case symbol_kind_type::BuiltinTypeSpec:
-    case symbol_kind_type::AbsDecltr:
-    case symbol_kind_type::DirAbsDecltr:
-    case symbol_kind_type::StructOrUnionSpec:
-    case symbol_kind_type::StructOrUnion:
-    case symbol_kind_type::StructDeclBody:
-    case symbol_kind_type::StructDeclList:
-    case symbol_kind_type::StructDecl:
-    case symbol_kind_type::StructDecltrList:
-    case symbol_kind_type::StructDecltr:
-    case symbol_kind_type::EnumSpec:
-    case symbol_kind_type::EnumBody:
-    case symbol_kind_type::EnumeratorList:
-    case symbol_kind_type::Enumerator:
-    case symbol_kind_type::EnumConst:
-    case symbol_kind_type::Decltr:
-    case symbol_kind_type::DirDecltr:
-    case symbol_kind_type::Ptr:
-    case symbol_kind_type::TypeQualList:
-    case symbol_kind_type::Decl:
-    case symbol_kind_type::DirDecl:
-    case symbol_kind_type::InitDecltrList:
-    case symbol_kind_type::InitDecltr:
-    case symbol_kind_type::Initializer:
-    case symbol_kind_type::InitializerList:
-    case symbol_kind_type::Designation:
-    case symbol_kind_type::DesignatorList:
-    case symbol_kind_type::Designator:
-    case symbol_kind_type::FuncDef:
-    case symbol_kind_type::FuncDecltr:
-    case symbol_kind_type::DirFuncDecltr:
-    case symbol_kind_type::DirDecltrForFunc:
-    case symbol_kind_type::ParamTypeList:
-    case symbol_kind_type::ParamList:
-    case symbol_kind_type::ParamDecl: {
+    case SPLSymbolType::KwdThen:
+    case SPLSymbolType::OpUnaryPrec:
+    case SPLSymbolType::PLParen:
+    case SPLSymbolType::PRParen:
+    case SPLSymbolType::PLSBracket:
+    case SPLSymbolType::PRSBracket:
+    case SPLSymbolType::ParseRoot:
+    case SPLSymbolType::TransUnit:
+    case SPLSymbolType::ExternDeclList:
+    case SPLSymbolType::ExternDecl:
+    case SPLSymbolType::DeclSpec:
+    case SPLSymbolType::StorageSpec:
+    case SPLSymbolType::SpecQualList:
+    case SPLSymbolType::TypeSpec:
+    case SPLSymbolType::FuncSpec:
+    case SPLSymbolType::TypeQual:
+    case SPLSymbolType::TypeName:
+    case SPLSymbolType::BuiltinTypeSpec:
+    case SPLSymbolType::AbsDecltr:
+    case SPLSymbolType::DirAbsDecltr:
+    case SPLSymbolType::StructOrUnionSpec:
+    case SPLSymbolType::StructOrUnion:
+    case SPLSymbolType::StructDeclBody:
+    case SPLSymbolType::StructDeclList:
+    case SPLSymbolType::StructDecl:
+    case SPLSymbolType::StructDecltrList:
+    case SPLSymbolType::StructDecltr:
+    case SPLSymbolType::EnumSpec:
+    case SPLSymbolType::EnumBody:
+    case SPLSymbolType::EnumeratorList:
+    case SPLSymbolType::Enumerator:
+    case SPLSymbolType::EnumConst:
+    case SPLSymbolType::Decltr:
+    case SPLSymbolType::DirDecltr:
+    case SPLSymbolType::WrappedDirDecltr:
+    case SPLSymbolType::PtrDecl:
+    case SPLSymbolType::TypeQualList:
+    case SPLSymbolType::Decl:
+    case SPLSymbolType::DirDecl:
+    case SPLSymbolType::InitDecltrList:
+    case SPLSymbolType::InitDecltr:
+    case SPLSymbolType::Initializer:
+    case SPLSymbolType::InitializerList:
+    case SPLSymbolType::Designation:
+    case SPLSymbolType::DesignatorList:
+    case SPLSymbolType::Designator:
+    case SPLSymbolType::FuncDef:
+    case SPLSymbolType::FuncDecltr:
+    case SPLSymbolType::DirFuncDecltr:
+    case SPLSymbolType::DirDecltrForFunc:
+    case SPLSymbolType::ParamTypeList:
+    case SPLSymbolType::ParamList:
+    case SPLSymbolType::ParamDecl: {
         os << ControlSeq::Bold << ControlSeq::Green;
         break;
     }
-    case symbol_kind_type::CompStmt:
-    case symbol_kind_type::GeneralStmtList:
-    case symbol_kind_type::Stmt:
-    case symbol_kind_type::ExprStmt:
-    case symbol_kind_type::SelStmt:
-    case symbol_kind_type::LabeledStmt:
-    case symbol_kind_type::JumpStmt:
-    case symbol_kind_type::IterStmt: {
+    case SPLSymbolType::CompStmt:
+    case SPLSymbolType::GeneralStmtList:
+    case SPLSymbolType::Stmt:
+    case SPLSymbolType::ExprStmt:
+    case SPLSymbolType::SelStmt:
+    case SPLSymbolType::LabeledStmt:
+    case SPLSymbolType::JumpStmt:
+    case SPLSymbolType::IterStmt: {
         os << ControlSeq::Bold << ControlSeq::BrightMagenta;
         break;
     }
-    case symbol_kind_type::ForLoopBody:
-    case symbol_kind_type::ConstExpr:
-    case symbol_kind_type::Constant:
-    case symbol_kind_type::PrimaryExpr:
-    case symbol_kind_type::PostfixExpr:
-    case symbol_kind_type::MemberAcessOp:
-    case symbol_kind_type::UnaryExpr:
-    case symbol_kind_type::UnaryArithOp:
-    case symbol_kind_type::CastExpr:
-    case symbol_kind_type::MulExpr:
-    case symbol_kind_type::MulOp:
-    case symbol_kind_type::DivOp:
-    case symbol_kind_type::AddExpr:
-    case symbol_kind_type::AddOp:
-    case symbol_kind_type::ShiftExpr:
-    case symbol_kind_type::ShiftOp:
-    case symbol_kind_type::RelExpr:
-    case symbol_kind_type::RelOp:
-    case symbol_kind_type::EqualityExpr:
-    case symbol_kind_type::EqualityOp:
-    case symbol_kind_type::OpBAndExpr:
-    case symbol_kind_type::OpBXorExpr:
-    case symbol_kind_type::OpBOrExpr:
-    case symbol_kind_type::LogicalOpAndExpr:
-    case symbol_kind_type::LogicalOpOrExpr:
-    case symbol_kind_type::CondExpr:
-    case symbol_kind_type::AssignExpr:
-    case symbol_kind_type::AssignOp:
-    case symbol_kind_type::Expr:
-    case symbol_kind_type::InitExpr:
-    case symbol_kind_type::ArgList: {
+    case SPLSymbolType::ForLoopBody:
+    case SPLSymbolType::ConstExpr:
+    case SPLSymbolType::Constant:
+    case SPLSymbolType::PrimaryExpr:
+    case SPLSymbolType::PostfixExpr:
+    case SPLSymbolType::MemberAcessOp:
+    case SPLSymbolType::UnaryExpr:
+    case SPLSymbolType::UnaryArithOp:
+    case SPLSymbolType::CastExpr:
+    case SPLSymbolType::MulExpr:
+    case SPLSymbolType::MulOp:
+    case SPLSymbolType::DivOp:
+    case SPLSymbolType::AddExpr:
+    case SPLSymbolType::AddOp:
+    case SPLSymbolType::ShiftExpr:
+    case SPLSymbolType::ShiftOp:
+    case SPLSymbolType::RelExpr:
+    case SPLSymbolType::RelOp:
+    case SPLSymbolType::EqualityExpr:
+    case SPLSymbolType::EqualityOp:
+    case SPLSymbolType::OpBAndExpr:
+    case SPLSymbolType::OpBXorExpr:
+    case SPLSymbolType::OpBOrExpr:
+    case SPLSymbolType::LogicalOpAndExpr:
+    case SPLSymbolType::LogicalOpOrExpr:
+    case SPLSymbolType::CondExpr:
+    case SPLSymbolType::AssignExpr:
+    case SPLSymbolType::AssignOp:
+    case SPLSymbolType::Expr:
+    case SPLSymbolType::InitExpr:
+    case SPLSymbolType::ArgList: {
         os << ControlSeq::Bold << ControlSeq::Green;
         break;
     }
-    case symbol_kind_type::StringLiteral:
-    case symbol_kind_type::IDWrapper: {
+    case SPLSymbolType::StringLiteral:
+    case SPLSymbolType::IDWrapper: {
         os << ControlSeq::Bold << ControlSeq::Yellow;
         break;
     }
