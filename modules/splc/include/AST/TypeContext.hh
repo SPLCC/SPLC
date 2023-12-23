@@ -12,6 +12,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "Core/Utils/Logging.hh"
+#include <iterator>
+#include <memory>
 #ifndef __SPLC_AST_TYPE_CONTEXT_HH__
 #define __SPLC_AST_TYPE_CONTEXT_HH__ 1
 
@@ -34,7 +37,7 @@ using PointerKeyInfo = Type *;
 // TODO: maybe switch to threaded context
 class TypeContext {
   public:
-    TypeContext()
+    TypeContext() noexcept
         : VoidTy{*this, TypeID::Void}, FloatTy{*this, TypeID::Float},
           DoubleTy{*this, TypeID::Double}, Int1Ty{*this, TypeID::Int1},
           UInt8Ty{*this, TypeID::UInt8}, SInt8Ty{*this, TypeID::SInt8},
@@ -43,6 +46,15 @@ class TypeContext {
           UInt64Ty{*this, TypeID::UInt64}, SInt64Ty{*this, TypeID::SInt64},
           LabelTy{*this, TypeID::Label}, TokenTy{*this, TypeID::Token}
     {
+    }
+
+    ~TypeContext() noexcept
+    {
+        for (auto &ent : tyAllocTraceMap) {
+            tyAllocator.deallocate(reinterpret_cast<char *>(ent.first),
+                                   ent.second);
+        }
+        tyAllocTraceMap.clear();
     }
 
     Type VoidTy, FloatTy, DoubleTy, Int1Ty, UInt8Ty, SInt8Ty, UInt16Ty,
@@ -60,6 +72,31 @@ class TypeContext {
     std::map<ArrayKeyInfo, ArrayType *> arrayTypes;
 
     std::map<PointerKeyInfo, PointerType *> pointerTypes;
+
+    /// Allocate for future use.
+    template <class T>
+    T *tyAlloc(size_t n = 1)
+    {
+        size_t tySz = sizeof(T);
+        size_t totalSz = n * tySz;
+        void *p = tyAllocator.allocate(totalSz);
+        tyAllocTraceMap.insert({p, totalSz});
+        return reinterpret_cast<T *>(p);
+    }
+
+    /// Allocate for future use.
+    template <class T>
+    void tyDealloc(T *ptr, size_t n = 1)
+    {
+        auto it = tyAllocTraceMap.find(ptr);
+        SPLC_ASSERT(it != tyAllocTraceMap.end()) << "invalid release";
+        SPLC_ASSERT(it->second == n) << "incorrect release count";
+        tyAllocator.deallocate(reinterpret_cast<char *>(ptr), n);
+        tyAllocTraceMap.erase(it);
+    }
+
+    std::allocator<char> tyAllocator;
+    std::map<void *, size_t> tyAllocTraceMap;
 };
 
 } // namespace splc

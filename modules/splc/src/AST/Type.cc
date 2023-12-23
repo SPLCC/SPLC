@@ -132,8 +132,8 @@ FunctionType::FunctionType(Type *retTy, const std::vector<Type *> &params,
 {
     SPLC_ASSERT(isValidReturnType(retTy)) << "invalid return type for function";
     setSubclassData(isVarArg);
-
-    Type **subTys = new Type *[params.size()];
+    Type **subTys =
+        new (getContext().tyAlloc<Type *>(params.size())) Type *[params.size()];
     subTys[0] = retTy;
     for (unsigned i = 0, e = params.size(); i != e; ++i) {
         SPLC_ASSERT(isValidArgumentType(params[i]))
@@ -156,7 +156,8 @@ FunctionType *FunctionType::get(Type *retTy, const std::vector<Type *> &params,
     auto it = funcMap.find(key);
     if (it == funcMap.end()) {
         // Not found
-        ft = new FunctionType(retTy, params, isVarArg);
+        ft = new (context.tyAlloc<FunctionType>())
+            FunctionType(retTy, params, isVarArg);
         funcMap.insert(std::make_pair(key, ft));
     }
     else {
@@ -165,15 +166,18 @@ FunctionType *FunctionType::get(Type *retTy, const std::vector<Type *> &params,
     return ft;
 }
 
-FunctionType *FunctionType::get(Type *retTy, bool isVarArg) {
+FunctionType *FunctionType::get(Type *retTy, bool isVarArg)
+{
     return get(retTy, {}, isVarArg);
 }
 
-bool FunctionType::isValidReturnType(Type *retTy) {
+bool FunctionType::isValidReturnType(Type *retTy)
+{
     return !retTy->isFunctionTy() && !retTy->isLabelTy();
 }
 
-bool FunctionType::isValidArgumentType(Type *argTy) {
+bool FunctionType::isValidArgumentType(Type *argTy)
+{
     return argTy->isFirstClassType();
 }
 
@@ -190,7 +194,7 @@ StructType *StructType::get(TypeContext &context, TypePtrArray elements)
     auto it = structMap.find(key);
     if (it == structMap.end()) {
         // Not found
-        st = new StructType(context);
+        st = new (context.tyAlloc<StructType>()) StructType(context);
         st->setSubclassData(SCDB_IsLiteral);
         st->setBody(elements);
         structMap.insert(std::make_pair(key, st));
@@ -212,7 +216,9 @@ void StructType::setBody(TypePtrArray elements)
         return;
     }
 
-    Type **subTys = new Type *[elements.size()];
+    Type **subTys =
+        new (elements[0]->getContext().tyAlloc<Type *>(elements.size()))
+            Type *[elements.size()];
     std::copy(elements.begin(), elements.end(), subTys);
     containedTys = subTys;
 }
@@ -248,7 +254,7 @@ void StructType::setName(std::string_view name)
 
 StructType *StructType::create(TypeContext &context, std::string_view name)
 {
-    StructType *st = new StructType(context);
+    StructType *st = new (context.tyAlloc<StructType>()) StructType(context);
     if (!name.empty())
         st->setName(name);
     return st;
@@ -348,7 +354,8 @@ ArrayType *ArrayType::get(Type *elementType_, uint64_t numElements_)
     auto it = arraySet.find(key);
     if (it == arraySet.end()) {
         // Not found
-        at = new ArrayType(elementType_, numElements_);
+        at = new (context.tyAlloc<ArrayType>())
+            ArrayType(elementType_, numElements_);
         arraySet.insert({key, at});
         return at;
     }
@@ -380,7 +387,8 @@ PointerType *PointerType::get(Type *elementType)
 
     if (it == map.end()) {
         // Not found
-        pt = new PointerType(context, elementType);
+        pt = new (context.tyAlloc<PointerType>())
+            PointerType(context, elementType);
         map.insert(std::make_pair(key, pt));
         return pt;
     }
@@ -398,7 +406,7 @@ PointerType *PointerType::get(TypeContext &C)
 
     if (it == map.end()) {
         // Not found
-        pt = new PointerType(C, &C.VoidTy);
+        pt = new (C.tyAlloc<PointerType>()) PointerType(C, &C.VoidTy);
         map.insert(std::make_pair(key, pt));
         return pt;
     }
