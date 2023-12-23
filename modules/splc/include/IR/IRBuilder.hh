@@ -110,7 +110,7 @@ class IRBuilder {
         }
 
         for (auto &stmt : func->functionBody) {
-            writeIRStmt(os, stmt);
+            writeIRStmt(os, *stmt);
         }
     }
 
@@ -125,15 +125,15 @@ class IRBuilder {
 
     Ptr<IRFunction> registerFunction(IRIDType funcName, Type *retTy,
                                      const IRVec<Type *> &paramTys,
-                                     const IRVec<IRIDType> ids)
+                                     const IRVec<IRIDType> paramIDs)
     {
-        splc_dbgassert(paramTys.size() == ids.size());
+        splc_dbgassert(paramTys.size() == paramIDs.size());
         // let us just assume all are integers.
         auto function = makeSharedPtr<IRFunction>(funcName, retTy);
         IRVec<IRPair<IRIDType, Ptr<IRVar>>> params;
-        params.reserve(ids.size());
+        params.reserve(paramIDs.size());
         std::transform(
-            paramTys.begin(), paramTys.end(), ids.begin(),
+            paramTys.begin(), paramTys.end(), paramIDs.begin(),
             std::back_inserter(params), [](Type *pTy, IRIDType pID) {
                 return IRPair<IRIDType, Ptr<IRVar>>{
                     pID, makeSharedPtr<IRVar>(pID, IRVarType::Variable, pTy)};
@@ -179,13 +179,13 @@ class IRBuilder {
                           IRMap<IRIDType, Ptr<IRVar>> &varMap, PtrAST funcRoot,
                           IRIDType funcID);
 
-    void recRegisterExprs(IRVec<Ptr<IRVar>> &varList,
-                          IRMap<IRIDType, Ptr<IRVar>> &varMap,
-                          IRVec<Ptr<IRStmt>> &stmtList, PtrAST stmtRoot);
+    Ptr<IRVar> recRegisterStmts(IRVec<Ptr<IRVar>> &varList,
+                                IRMap<IRIDType, Ptr<IRVar>> &varMap,
+                                IRVec<Ptr<IRStmt>> &stmtList, PtrAST stmtRoot);
 
     void parseFunction(PtrAST funcRoot);
 
-    void recursiveParseAST(PtrAST declRoot);
+    void recursiveParseAST(PtrAST parseRoot);
 };
 
 inline void linkStmt(Ptr<IRStmt> prev, Ptr<IRStmt> next)

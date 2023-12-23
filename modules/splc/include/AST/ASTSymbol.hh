@@ -220,7 +220,10 @@ std::string_view getSymbolName(SPLSymbolType sym) noexcept;
 std::ostream &printSymbolConsoleTraits(std::ostream &os,
                                        SPLSymbolType symbol) noexcept;
 
-std::ostream &operator<<(std::ostream &os, SPLSymbolType sym) noexcept;
+inline std::ostream &operator<<(std::ostream &os, symbol_kind_type sym) noexcept
+{
+    return os << internal::getSymbolName(sym);
+}
 
 } // namespace internal
 
@@ -248,11 +251,6 @@ bool isSymTypeQualifier(ASTSymbolType sym) noexcept;
 bool isSymDeclSpecChildren(ASTSymbolType sym) noexcept;
 bool isSymStruct(ASTSymbolType sym) noexcept;
 bool isSymStruct(ASTSymbolType sym) noexcept;
-
-inline std::ostream &operator<<(std::ostream &os, ASTSymbolType sym) noexcept
-{
-    return internal::operator<<(os, sym);
-}
 
 //===----------------------------------------------------------------------===//
 //                      ASTSymbolType Helper Templates

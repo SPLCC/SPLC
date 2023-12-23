@@ -145,7 +145,7 @@ class IRFunction {
     IRVec<Ptr<IRVar>> varList;
     IRMap<IRIDType, Ptr<IRVar>> varMap;
     IRMap<IRIDType, Ptr<IRVar>> paramMap;
-    IRVec<IRStmt> functionBody;
+    IRVec<Ptr<IRStmt>> functionBody;
 };
 
 } // namespace splc

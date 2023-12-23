@@ -21,3 +21,4 @@ syntax.output
 
 # IR files
 ./*.ir
+*.log
