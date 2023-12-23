@@ -8,7 +8,6 @@
 #include <string>
 
 #include "Core/Utils/LocationWrapper.hh"
-#include "IO/Parser.hh"
 
 namespace splc {
 class RuntimeError : public std::runtime_error {
@@ -28,8 +27,6 @@ class RuntimeError : public std::runtime_error {
     Location loc;
     std::string msg;
 };
-
-using SyntaxError = splc::IO::Parser::syntax_error;
 
 ///
 /// \brief This class represents the general semantic error encountered during

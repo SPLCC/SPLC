@@ -11,19 +11,14 @@
 // stuff, look in DerivedTypes.h.
 //
 //===----------------------------------------------------------------------===//
-
-#include "AST/ASTCommons.hh"
-#include "Core/Utils/Logging.hh"
-#include <iterator>
 #ifndef __SPLC_AST_DERIVED_TYPES_HH__
 #define __SPLC_AST_DERIVED_TYPES_HH__ 1
 
-#include <vector>
-
-#include "Core/Base.hh"
+#include "AST/ASTCommons.hh"
 #include "Core/splc.hh"
-
 #include <AST/Type.hh>
+#include <iterator>
+#include <vector>
 
 namespace splc {
 

@@ -12,7 +12,7 @@
 
 namespace splc::IO {
 
-Driver::Driver() { transMgr = makeSharedPtr<TranslationManager>(); }
+Driver::Driver(bool traceParsing_) : traceParsing{traceParsing_} { transMgr = makeSharedPtr<TranslationManager>(); }
 
 Ptr<TranslationUnit> Driver::parse(std::string_view filename)
 {
@@ -61,6 +61,10 @@ Ptr<TranslationUnit> Driver::internalParse(Ptr<TranslationContext> initialContex
     scanner->setInitialContext(initialContext);
 
     const int accept{0};
+
+    if (traceParsing) {
+        parser->set_debug_level(traceParsing);
+    }
 
     if (parser->parse() != accept) {
         // TODO: revise

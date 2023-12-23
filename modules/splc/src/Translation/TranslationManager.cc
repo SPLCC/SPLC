@@ -3,8 +3,6 @@
 #include "Core/System.hh"
 
 #include "Core/Utils/Logging.hh"
-#include "IO/Parser.hh"
-
 #include "Translation/TranslationManager.hh"
 
 namespace splc {
@@ -18,15 +16,16 @@ void TranslationManager::endTranslationRecord() {}
 
 void TranslationManager::reset() { tunit.reset(); }
 
-SymbolEntry TranslationManager::getSymbol(SymEntryType symEntTy, std::string_view name_)
+SymbolEntry TranslationManager::getSymbol(SymEntryType symEntTy,
+                                          std::string_view name_)
 {
     auto ent = tunit->astCtxtMgr.getSymbol(symEntTy, name_);
     return ent;
 }
 
 SymbolEntry TranslationManager::registerSymbol(
-    SymEntryType summary_, std::string_view name_, Type *type_,
-    bool defined_, const Location *location_, ASTValueType value_, PtrAST body_)
+    SymEntryType summary_, std::string_view name_, Type *type_, bool defined_,
+    const Location *location_, ASTValueType value_, PtrAST body_)
 {
     auto ent = tunit->astCtxtMgr.registerSymbol(
         summary_, name_, type_, defined_, location_, value_, body_);

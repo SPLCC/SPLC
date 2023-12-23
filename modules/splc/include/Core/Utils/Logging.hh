@@ -1,6 +1,10 @@
 #ifndef __SPLC_UTILS_LOGGING_HH__
 #define __SPLC_UTILS_LOGGING_HH__ 1
 
+#include "Core/Utils/ControlSequence.hh"
+#include "Core/Utils/LocationWrapper.hh"
+#include "LoggingLevel.hh"
+#include "TraceType.hh"
 #include <exception>
 #include <iostream>
 #include <mutex>
@@ -8,12 +12,6 @@
 #include <string>
 #include <type_traits>
 #include <utility>
-
-#include "ControlSequence.hh"
-#include "LoggingLevel.hh"
-#include "TraceType.hh"
-
-#include "Core/Utils/LocationWrapper.hh"
 
 #define SPLC_EXIT_ERROR             230
 #define SPLC_EXIT_ALLOC_FAILURE     232
