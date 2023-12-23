@@ -323,7 +323,7 @@ inline std::ostream &operator<<(std::ostream &os, const AST &node)
         }
     }
     else {
-        os << "<invalid sloc>";
+        os << "invalid sloc";
     }
     os << ">" << ControlSeq::Reset << ">";
 

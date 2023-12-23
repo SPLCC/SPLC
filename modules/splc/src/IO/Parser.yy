@@ -277,9 +277,9 @@ DirAbsDecltr:
       PLP AbsDecltr PRP { $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $1); }
     | DirAbsDecltr OpLSB AssignExpr OpRSB { $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $1, $2, $3, $4); }
     | DirAbsDecltr OpLSB OpRSB { $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $1, $2, $3); }
-    | DirAbsDecltr PLP ParamList PRP { $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $1, $3); }
-    | PLP ParamList PRP { $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $2); }
-    | PLP PRP { $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$); }
+    | DirAbsDecltr PLP ParamList PRP { $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $1, $2, $3, $4); }
+    | PLP ParamList PRP { $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $1, $2, $3); }
+    | PLP PRP { $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $1, $2); }
     
     | DirAbsDecltr OpLSB error { SPLC_LOG_ERROR(&@3, true) << "Expect ']' here"; $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $1); yyerrok; }
     | DirAbsDecltr OpRSB { SPLC_LOG_ERROR(&@2, true) << "Expect '[' here"; $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $1); yyerrok; } 
@@ -384,8 +384,8 @@ DirDecltr:
     | WrappedDirDecltr { $$ = transMgr.makeAST<AST>(SymbolType::DirDecltr, @$, $1); }
     | DirDecltr OpLSB AssignExpr OpRSB { $$ = transMgr.makeAST<AST>(SymbolType::DirDecltr, @$, $1, $2, $3, $4); }
     | DirDecltr OpLSB OpRSB { $$ = transMgr.makeAST<AST>(SymbolType::DirDecltr, @$, $1, $2, $3); }
-    | WrappedDirDecltr PLP ParamList PRP { $$ = transMgr.makeAST<AST>(SymbolType::DirDecltr, @$, $1, $3); }
-    | WrappedDirDecltr PLP PRP { $$ = transMgr.makeAST<AST>(SymbolType::DirDecltr, @$, $1); }
+    | WrappedDirDecltr PLP ParamList PRP { $$ = transMgr.makeAST<AST>(SymbolType::DirDecltr, @$, $1, $2, $3, $4); }
+    | WrappedDirDecltr PLP PRP { $$ = transMgr.makeAST<AST>(SymbolType::DirDecltr, @$, $1, $2, $3); }
 
     | DirDecltr OpLSB AssignExpr error {} 
     /* | direct-declarator error {}  */
