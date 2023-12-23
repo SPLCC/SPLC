@@ -8,7 +8,7 @@ Ptr<AST> ASTHelper::getPtrDeclEndPoint(Ptr<AST> ptrRoot) noexcept
     AST *tmp = ptrRoot.get();
     while (!tmp->children.empty()) {
         if (tmp->children.back()->symbolType == ASTSymbolType::OpAstrk) {
-            return tmp->children.back();
+            return tmp->shared_from_this();
         }
         tmp = tmp->children.back().get();
     }
