@@ -272,7 +272,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
         
         String content = concatTmpStrVec();
         *gloc = concatTmpLocVec();
-        SPLC_ASSERT(registerMacroVarContext(&tmpLoc, tmpStr, content)) << "internal error: cannot register macro var";
+        splc_assert(registerMacroVarContext(&tmpLoc, tmpStr, content)) << "internal error: cannot register macro var";
     }
 }
 
@@ -568,7 +568,8 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 <INITIAL>{identifier} {
     String val{yytext};
     /* First, check if it is a macro definition. If it is, just expand. */
-    if (pushMacroVarContext(gloc, val)) {
+    if (isMacroVarContextPresent(val)) {
+        splc_assert(pushMacroVarContext(gloc, val));
         yy_push_state(INITIAL);
     }
     else if (transMgr.isSymbolDeclared(SymEntryType::Typedef, val)) {
@@ -607,7 +608,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 
 <*>.|\n {
-    SPLC_ERROR(233) << "invalid lexeme. Should be caused by a previous parsing error.";
+    splc_error(233) << "invalid lexeme. Should be caused by a previous parsing error.";
 }
 
 %%

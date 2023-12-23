@@ -130,13 +130,13 @@ FunctionType::FunctionType(Type *retTy, const std::vector<Type *> &params,
                            bool isVarArg)
     : Type{retTy->getContext(), TypeID::Function}
 {
-    SPLC_ASSERT(isValidReturnType(retTy)) << "invalid return type for function";
+    splc_assert(isValidReturnType(retTy)) << "invalid return type for function";
     setSubclassData(isVarArg);
     Type **subTys = new (getContext().tyAlloc<Type *>(params.size() + 1))
         Type *[params.size() + 1];
     subTys[0] = retTy;
     for (unsigned i = 0, e = params.size(); i != e; ++i) {
-        SPLC_ASSERT(isValidArgumentType(params[i]))
+        splc_assert(isValidArgumentType(params[i]))
             << "invalid type for function argument";
         subTys[i + 1] = params[i];
     }
@@ -207,7 +207,7 @@ StructType *StructType::get(TypeContext &context, TypePtrArray elements)
 
 void StructType::setBody(TypePtrArray elements)
 {
-    SPLC_ASSERT(isOpaque()) << "struct body has already been set.";
+    splc_assert(isOpaque()) << "struct body has already been set.";
     setSubclassData((getSubclassData()) | SCDB_HasBody);
 
     numContainedTys = elements.size();
@@ -244,7 +244,7 @@ void StructType::setName(std::string_view name)
     }
 
     // No name collision is allowed!
-    SPLC_ASSERT((it = map.find(name)) != map.end())
+    splc_assert((it = map.find(name)) != map.end())
         << "duplicated structure name is not allowed in type system";
     map.insert(std::make_pair(std::string{name}, this));
 }
@@ -317,7 +317,7 @@ bool StructType::isSized() const
 
 std::string_view StructType::getName() const
 {
-    SPLC_ASSERT(!isLiteral())
+    splc_assert(!isLiteral())
         << "struct literal has no names (relies on structural equivalence)";
     return name;
 }
@@ -342,7 +342,7 @@ ArrayType::ArrayType(Type *eltTy, uint64_t numElts)
 
 ArrayType *ArrayType::get(Type *elementType_, uint64_t numElements_)
 {
-    SPLC_ASSERT(isValidElementType(elementType_))
+    splc_assert(isValidElementType(elementType_))
         << "Invalid type for array element!";
 
     ArrayType *at = nullptr;
@@ -375,8 +375,8 @@ bool ArrayType::isValidElementType(Type *ElemTy)
 
 PointerType *PointerType::get(Type *elementType)
 {
-    SPLC_ASSERT(elementType) << "cannot get a pointer to nullptr";
-    SPLC_ASSERT(isValidElementType(elementType))
+    splc_assert(elementType) << "cannot get a pointer to nullptr";
+    splc_assert(isValidElementType(elementType))
         << "invalid type for pointer element";
 
     PointerType *pt = nullptr;

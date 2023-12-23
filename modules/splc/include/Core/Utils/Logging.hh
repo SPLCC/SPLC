@@ -198,6 +198,18 @@ class ErrorHelper : public Logger {
     int exitCode;
 };
 
+[[noreturn]] inline void unreachable()
+{
+/// Uses compiler specific extensions if possible.
+/// Even if no extension is used, undefined behavior is still raised by
+/// an empty function body and the noreturn attribute.
+#if defined(__GNUC__) // GCC, Clang, ICC
+    __builtin_unreachable();
+#elif defined(_MSC_VER) // MSVC
+    __assume(false);
+#endif
+}
+
 } // namespace internal
 
 } // namespace splc::utils::logging
@@ -251,13 +263,19 @@ class ErrorHelper : public Logger {
 #define __SPLC_LOG_FUNCTION__ ""
 #endif
 
-#define SPLC_ASSERT(cond)                                                      \
+#define splc_assert(cond)                                                      \
     splc::utils::logging::internal::AssertionHelper                            \
     {                                                                          \
         (bool)(cond), #cond, __FILE__, __LINE__, __SPLC_LOG_FUNCTION__         \
     }
 
-#define SPLC_ERROR(exitCode)                                                   \
+#define splc_error(exitCode)                                                   \
     splc::utils::logging::internal::ErrorHelper { exitCode }
+
+///< TODO: inform the compiler that the expanded position is unreachable
+#define __SPLC_INTERNAL_UNREACHABLE                                            \
+    splc::utils::logging::internal::unreachable()
+
+#define splc_unreachable() __SPLC_INTERNAL_UNREACHABLE
 
 #endif // __SPLC_UTILS_LOGGING_HH__

@@ -86,7 +86,7 @@ class Type {
     void setSubclassData(unsigned val)
     {
         subClassData = val;
-        SPLC_ASSERT(subClassData == val) << "subclass data too large for field";
+        splc_assert(subClassData == val) << "subclass data too large for field";
     }
 
     unsigned numContainedTys = 0;
@@ -224,7 +224,7 @@ class Type {
 
     Type *getContainedType(unsigned i) const
     {
-        SPLC_ASSERT(i < numContainedTys)
+        splc_assert(i < numContainedTys)
             << "index out of range: " << i << " of " << numContainedTys;
         return containedTys[i];
     }
@@ -245,7 +245,7 @@ class Type {
 
     Type *getArrayElementType() const
     {
-        SPLC_ASSERT(isArrayTy()) << "getArrayElementType() called on non-array type.";
+        splc_assert(isArrayTy()) << "getArrayElementType() called on non-array type.";
         return containedTys[0];
     }
 

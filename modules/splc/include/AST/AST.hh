@@ -7,8 +7,15 @@
 
 namespace splc {
 
+class ASTHelper {
+  public:
+    /// Transform Ptr<AST> containing Ptr, such that
+    /// The pointers form a rightmost tree hierarchy.
+    /// At the rightmost child of the tree shall the declarator lie.
+    static Ptr<AST> getPtrDeclEndPoint(Ptr<AST> ptrRoot) noexcept;
+};
+
 class ExprAST : public AST {
-    
 };
 
 } // namespace splc

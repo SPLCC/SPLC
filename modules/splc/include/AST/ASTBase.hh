@@ -13,7 +13,6 @@
 #include <vector>
 
 namespace splc {
-
 ///
 /// \brief Class `AST` describes a single node in the Abstract Syntax Tree
 /// (AST), and acts as the foundation of the parse tree.
@@ -25,6 +24,12 @@ namespace splc {
 /// - `String`
 ///
 class AST : public std::enable_shared_from_this<AST> {
+    friend class ASTHelper;
+    friend class ASTProcessor;
+    friend class ASTContext;
+    friend class ASTContextManager;
+    friend class Type;
+    friend class Value;
 
   public:
     ///
@@ -145,6 +150,10 @@ class AST : public std::enable_shared_from_this<AST> {
 
     auto getParent() noexcept { return parent; }
 
+    const auto getChildrenNum() const noexcept { return children.size(); }
+
+    const auto isChildrenEmpty() const noexcept { return children.empty(); }
+
     auto &getChildren() noexcept { return children; }
 
     auto &getLocation() noexcept { return loc; }
@@ -234,12 +243,6 @@ class AST : public std::enable_shared_from_this<AST> {
     friend std::ostream &
     operator<<(std::ostream &os,
                const AST::ASTRecursivePrintManipulator &m) noexcept;
-
-    friend class ASTProcessor;
-    friend class ASTContext;
-    friend class ASTContextManager;
-    friend class Type;
-    friend class Value;
 }; // class: AST
 
 template <IsBaseAST ASTType, AllArePtrAST... Children>
@@ -306,7 +309,7 @@ inline std::ostream &operator<<(std::ostream &os, const AST &node)
     // TODO: print node address (allocated)
 
     // print node location
-    os << " <" << ControlSeq::BrightYellow;
+    os << " <" << ControlSeq::BrightYellow << "<";
     if (auto cid = node.loc.begin.contextID;
         cid != Location::invalidContextID) {
         // TODO: print contextname if appeared for the first time
@@ -320,9 +323,9 @@ inline std::ostream &operator<<(std::ostream &os, const AST &node)
         }
     }
     else {
-        os << "<invalid sloc>";
+        os << "invalid sloc";
     }
-    os << ControlSeq::Reset << ">";
+    os << ">" << ControlSeq::Reset << ">";
 
     // print node content
     // TODO: print symbol table
@@ -391,8 +394,8 @@ inline std::ostream &
 operator<<(std::ostream &os,
            const AST::ASTRecursivePrintManipulator &m) noexcept
 {
-    astPrintMap.insert(m.node.loc.begin.contextID);
     os << m.node << "\n";
+    astPrintMap.insert(m.node.loc.begin.contextID);
     recursivePrintNode(os, m.node, "");
     astPrintMap.clear();
     return os;
