@@ -198,6 +198,7 @@ class IRBuilder {
                 << p.second->getName();
         }
         function->paramMap.insert(params.begin(), params.end());
+        function->varMap.insert(params.begin(), params.end());
         for (auto &ent : function->paramMap) {
             SPLC_LOG_WARN(nullptr, false)
                 << "Get param: " << ent.first << ", " << ent.second->getName();

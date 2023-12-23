@@ -200,6 +200,7 @@ Ptr<IRVar> IRBuilder::recRegisterExprs(IRVec<Ptr<IRVar>> &varList,
         auto &child = stmtRoot->getChildren()[0];
         if (child->getSymbolType() == ASTSymbolType::ID) {
             auto it = varMap.find(child->getValue<IRIDType>());
+            splc_dbgassert(it != varMap.end());
             return it->second;
         }
         else {
