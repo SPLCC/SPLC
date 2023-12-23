@@ -132,8 +132,8 @@ FunctionType::FunctionType(Type *retTy, const std::vector<Type *> &params,
 {
     SPLC_ASSERT(isValidReturnType(retTy)) << "invalid return type for function";
     setSubclassData(isVarArg);
-    Type **subTys =
-        new (getContext().tyAlloc<Type *>(params.size())) Type *[params.size()];
+    Type **subTys = new (getContext().tyAlloc<Type *>(params.size() + 1))
+        Type *[params.size() + 1];
     subTys[0] = retTy;
     for (unsigned i = 0, e = params.size(); i != e; ++i) {
         SPLC_ASSERT(isValidArgumentType(params[i]))

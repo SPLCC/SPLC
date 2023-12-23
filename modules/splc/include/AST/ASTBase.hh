@@ -12,7 +12,7 @@
 #include <Core/splc.hh>
 
 #include <AST/ASTCommons.hh>
-#include <AST/Type.hh>
+#include <AST/TypeContext.hh>
 #include <AST/Value.hh>
 
 namespace splc {
@@ -33,16 +33,31 @@ class AST : public std::enable_shared_from_this<AST> {
     ///
     /// \brief This constructor should be called by AST internal method
     ///
-    explicit AST() noexcept : type{ASTSymbolType::YYEMPTY} {}
+    explicit AST() noexcept : symbolType{ASTSymbolType::YYEMPTY} {}
 
-    AST(const ASTSymbolType type_, const Location &loc_) noexcept
-        : type{type_}, loc{loc_}
+    AST(const ASTSymbolType symbolType, const Location &loc_) noexcept
+        : symbolType{symbolType}, loc{loc_}
+    {
+    }
+
+    AST(Ptr<TypeContext> typeContext_, const ASTSymbolType symbolType,
+        const Location &loc_) noexcept
+        : typeContext{typeContext_}, symbolType{symbolType}, loc{loc_}
     {
     }
 
     template <IsValidASTValue T>
-    AST(const ASTSymbolType type_, const Location &loc_, T &&value_) noexcept
-        : type{type_}, loc{loc_}, value{value_}
+    AST(const ASTSymbolType symbolType, const Location &loc_,
+        T &&value_) noexcept
+        : symbolType{symbolType}, loc{loc_}, value{value_}
+    {
+    }
+
+    template <IsValidASTValue T>
+    AST(Ptr<TypeContext> typeContext_, const ASTSymbolType symbolType,
+        const Location &loc_, T &&value_) noexcept
+        : typeContext{typeContext_}, symbolType{symbolType}, loc{loc_},
+          value{value_}
     {
     }
 
@@ -52,10 +67,8 @@ class AST : public std::enable_shared_from_this<AST> {
 
     virtual AST &operator=(AST &&other) = default;
 
-    // TODO(IR): determine code generation (llvm IR)
-    // virtual void genCode();
-
     ///
+    /// \deprecated This function serves no particular purpose.
     /// \brief Acquire a deep copy of the current Ptr<AST> method.
     /// By default, all children are copied.
     ///
@@ -64,22 +77,23 @@ class AST : public std::enable_shared_from_this<AST> {
             [](Ptr<const AST>) { return true; },
         const bool copyContext = true) const;
 
-    virtual Type* getType() const;
+    virtual Type *getType() const;
 
     // TODO(sem): semantic analysis generation
     virtual Value evaluate();
 
     static inline bool isASTAppendable(const AST &node) noexcept
     {
-        return !isASTSymbolTypeOneOfThem(node.type, ASTSymbolType::YYEMPTY,
-                                         ASTSymbolType::YYEOF,
-                                         ASTSymbolType::YYerror);
+        return !isASTSymbolTypeOneOfThem(
+            node.symbolType, ASTSymbolType::YYEMPTY, ASTSymbolType::YYEOF,
+            ASTSymbolType::YYerror);
     }
 
     void addChild(Ptr<AST> child)
     {
         children.push_back(child);
         child->parent = shared_from_this();
+        child->typeContext = this->typeContext;
     }
 
     template <AllArePtrAST... Children>
@@ -122,20 +136,37 @@ class AST : public std::enable_shared_from_this<AST> {
         return std::holds_alternative<T>(value);
     }
 
+    void setTypeContext(Ptr<TypeContext> typeContext_)
+    {
+        typeContext = typeContext_;
+    }
+
+    auto getTypeContext() { return typeContext; }
+
+    auto getSymbolType() const noexcept { return symbolType; }
+
     auto getParent() noexcept { return parent; }
 
     auto &getChildren() noexcept { return children; }
 
     auto &getLocation() noexcept { return loc; }
 
+    void setASTContext(Ptr<ASTContext> astContext_) noexcept
+    {
+        astContext = astContext_;
+    }
+
+    auto getASTContext() noexcept { return astContext; }
+
     auto &getVariant() noexcept { return value; }
 
   protected:
-    ASTSymbolType type;
+    Ptr<TypeContext> typeContext;
+    ASTSymbolType symbolType;
     WeakPtr<AST> parent;
     std::vector<Ptr<AST>> children;
     Location loc;
-    Ptr<ASTContext> context;
+    Ptr<ASTContext> astContext;
     ASTValueType value;
 
   public:
@@ -147,12 +178,22 @@ class AST : public std::enable_shared_from_this<AST> {
     friend Ptr<ASTType> makeAST(ASTSymbolType type, const Location &loc,
                                 Children &&...children);
 
+    template <IsBaseAST ASTType, AllArePtrAST... Children>
+    friend Ptr<ASTType> makeAST(Ptr<TypeContext> typeContext,
+                                ASTSymbolType type, const Location &loc,
+                                Children &&...children);
+
     ///
     /// \brief Create a new node, and add all following children `Ptr<AST>`
     /// to the list of its children.
     ///
     template <IsBaseAST ASTType, IsValidASTValue T, AllArePtrAST... Children>
     friend Ptr<ASTType> makeAST(ASTSymbolType type, const Location &loc,
+                                T &&value, Children &&...children);
+
+    template <IsBaseAST ASTType, IsValidASTValue T, AllArePtrAST... Children>
+    friend Ptr<ASTType> makeAST(Ptr<TypeContext> typeContext,
+                                ASTSymbolType type, const Location &loc,
                                 T &&value, Children &&...children);
 
     ///
@@ -209,12 +250,32 @@ inline Ptr<ASTType> makeAST(ASTSymbolType type, const Location &loc,
     return parentNode;
 }
 
+template <IsBaseAST ASTType, AllArePtrAST... Children>
+inline Ptr<ASTType> makeAST(Ptr<TypeContext> typeContext, ASTSymbolType type,
+                            const Location &loc, Children &&...children)
+{
+    Ptr<ASTType> parentNode = makeSharedPtr<ASTType>(typeContext, type, loc);
+    parentNode->addChildren(std::forward<Children>(children)...);
+    return parentNode;
+}
+
 template <IsBaseAST ASTType, IsValidASTValue T, AllArePtrAST... Children>
 inline Ptr<ASTType> makeAST(ASTSymbolType type, const Location &loc, T &&value,
                             Children &&...children)
 {
     Ptr<ASTType> parentNode =
         makeSharedPtr<ASTType>(type, loc, std::forward<T>(value));
+    parentNode->addChildren(std::forward<Children>(children)...);
+    return parentNode;
+}
+
+template <IsBaseAST ASTType, IsValidASTValue T, AllArePtrAST... Children>
+inline Ptr<ASTType> makeAST(Ptr<TypeContext> typeContext, ASTSymbolType type,
+                            const Location &loc, T &&value,
+                            Children &&...children)
+{
+    Ptr<ASTType> parentNode =
+        makeSharedPtr<ASTType>(typeContext, type, loc, std::forward<T>(value));
     parentNode->addChildren(std::forward<Children>(children)...);
     return parentNode;
 }
@@ -238,8 +299,8 @@ inline std::ostream &operator<<(std::ostream &os, const AST &node)
     using ControlSeq = utils::logging::ControlSeq;
 
     // print node type
-    os << ControlSeq::Bold << getASTSymbolColor(node.type)
-       << getASTSymbolName(node.type) << ControlSeq::Reset;
+    os << ControlSeq::Bold << getASTSymbolColor(node.symbolType)
+       << getASTSymbolName(node.symbolType) << ControlSeq::Reset;
 
     // TODO: print node address (allocated)
 

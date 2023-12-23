@@ -1,4 +1,3 @@
-#include "Core/Utils/LoggingLevel.hh"
 #ifndef __SPLC_TRANSLATION_TRANSLATIONMANAGER_HH__
 #define __SPLC_TRANSLATION_TRANSLATIONMANAGER_HH__ 1
 
@@ -9,6 +8,7 @@
 
 #include "Core/splc.hh"
 
+#include "AST/AST.hh"
 #include "AST/ASTContextManager.hh"
 
 #include "Translation/TranslationBase.hh"
@@ -29,10 +29,8 @@ class TranslationManager {
 
     virtual ~TranslationManager() = default;
 
-    // TODO
     void startTranslationRecord();
 
-    // TODO
     void endTranslationRecord();
 
     void reset();
@@ -42,16 +40,33 @@ class TranslationManager {
         tunit->rootNode = rootNode_;
     }
 
-    // TODO
+    ///
+    /// \brief Create a new node, and add all following children `Ptr<AST>`
+    /// to the list of its children.
+    ///
+    template <IsBaseAST ASTType, AllArePtrAST... Children>
+    Ptr<ASTType> makeAST(ASTSymbolType type, const Location &loc,
+                         Children &&...children);
+
+    ///
+    /// \brief Create a new node, and add all following children `Ptr<AST>`
+    /// to the list of its children.
+    ///
+    template <IsBaseAST ASTType, IsValidASTValue T, AllArePtrAST... Children>
+    Ptr<ASTType> makeAST(ASTSymbolType type, const Location &loc, T &&value,
+                         Children &&...children);
+
+    auto getTypeContext() { return tunit->typeContext; }
+
+    const auto getTypeContext() const { return tunit->typeContext; }
+
     Ptr<ASTContext> getCurrentASTContext() noexcept
     {
         return tunit->astContextManager[0];
     }
 
-    // TODO
     void pushASTContext() noexcept { tunit->astContextManager.pushContext(); }
 
-    // TODO
     void popASTContext() noexcept { tunit->astContextManager.popContext(); }
 
     bool isSymbolDeclared(std::string_view name_) const noexcept
@@ -162,6 +177,26 @@ class TranslationManager {
     // TODO: add options
     // TODO: allow manager to retrieve include options and stuff
 };
+
+template <IsBaseAST ASTType, AllArePtrAST... Children>
+inline Ptr<ASTType> TranslationManager::makeAST(ASTSymbolType type,
+                                                const Location &loc,
+                                                Children &&...children)
+{
+    auto parentNode =
+        makeAST(tunit->typeContext, loc, std::forward(children)...);
+    return parentNode;
+}
+
+template <IsBaseAST ASTType, IsValidASTValue T, AllArePtrAST... Children>
+inline Ptr<ASTType> TranslationManager::makeAST(ASTSymbolType type,
+                                                const Location &loc, T &&value,
+                                                Children &&...children)
+{
+    auto parentNode = makeAST(tunit->typeContext, loc, std::forward(value),
+                              std::forward(children)...);
+    return parentNode;
+}
 
 } // namespace splc
 

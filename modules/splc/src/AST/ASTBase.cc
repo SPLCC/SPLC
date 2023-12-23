@@ -17,7 +17,7 @@ Ptr<AST> AST::copy(const std::function<bool(Ptr<const AST>)> &predicate,
                    const bool copyContext) const
 {
     Ptr<AST> ret = makeSharedPtr<AST>();
-    ret->type = this->type;
+    ret->symbolType = this->symbolType;
     ret->parent = this->parent;
 
     // Copy child if and only if they satisfy the predicate.
@@ -35,7 +35,7 @@ Ptr<AST> AST::copy(const std::function<bool(Ptr<const AST>)> &predicate,
 
     ret->loc = this->loc;
     if (copyContext) {
-        ret->context = this->context; // TODO(verify): is this desirable?
+        ret->astContext = this->astContext; // TODO(verify): is this desirable?
                                       // Copying the entire context may
                                       // lead to filtered out contents
     }
