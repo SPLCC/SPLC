@@ -102,7 +102,15 @@ class IRBuilder {
 
     void writeFunction(std::ostream &os, Ptr<IRFunction> func)
     {
-        // TODO: write function
+        os << "FUNCTION " << func->name << " :\n";
+
+        for (auto& param : func->paramMap) {
+          os << "PARAM " << param.second->name << "\n";
+        }
+
+        for (auto& stmt : func->functionBody) {
+          writeIRStmt(os, stmt);
+        }
     }
 
     void writeAllFunctions(std::ostream &os)
