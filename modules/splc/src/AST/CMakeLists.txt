@@ -2,11 +2,15 @@
 add_library(splc_AST SHARED
     AST.cc
     ASTBase.cc
+    ASTBaseProcess.cc
+    ASTBaseType.cc
+    ASTBaseValue.cc
     ASTContext.cc
     ASTContextManager.cc
     ASTProcess.cc
     ASTSymbol.cc
     Expr.cc
+    SymbolEntry.cc
     Type.cc
     TypeCheck.cc
 )

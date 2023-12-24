@@ -55,26 +55,26 @@ class Type {
     ///
     enum class TypeID {
         // Primitive Types
-        Void,   ///< type with no size
-        Float,  ///< 32-bit floating point type
-        Double, ///< 64-bit floating point type
-        Int1,   ///< 1-bit integer
-        UInt8,  ///< 8-bit unsigned integer
-        SInt8,  ///< 8-bit signed integer
-        UInt16, ///< 16-bit unsigned integer
-        SInt16, ///< 16-bit signed integer
-        UInt32, ///< 32-bit unsigned integer
-        SInt32, ///< 32-bit signed integer
-        UInt64, ///< 64-bit unsigned integer
-        SInt64, ///< 64-bit signed integer
-        Label,  ///< Labels
-        Token,  ///< Tokens
+        Void = 0,    ///< type with no size
+        Float = 1,   ///< 32-bit floating point type
+        Double = 2,  ///< 64-bit floating point type
+        Int1 = 3,    ///< 1-bit integer
+        UInt8 = 4,   ///< 8-bit unsigned integer
+        SInt8 = 5,   ///< 8-bit signed integer
+        UInt16 = 6,  ///< 16-bit unsigned integer
+        SInt16 = 7,  ///< 16-bit signed integer
+        UInt32 = 8,  ///< 32-bit unsigned integer
+        SInt32 = 9,  ///< 32-bit signed integer
+        UInt64 = 10, ///< 64-bit unsigned integer
+        SInt64 = 11, ///< 64-bit signed integer
+        Label = 12,  ///< Labels
+        Token = 13,  ///< Tokens
 
         // Derived Types from DerivedTypes.hh
-        Function, ///< Functions
-        Pointer,  ///< Pointers
-        Struct,   ///< Structures
-        Array,    ///< Arrays
+        Function = 16, ///< Functions
+        Pointer = 17,  ///< Pointers
+        Struct = 18,   ///< Structures
+        Array = 19,    ///< Arrays
     };
 
   protected:
@@ -100,9 +100,19 @@ class Type {
   public:
     virtual ~Type() = default;
 
+    std::string_view getName() const noexcept;
+
     friend std::ostream &operator<<(std::ostream &os, const Type &type)
     {
-        return os << "Type: " << static_cast<int>(type.ID);
+        os << "Type: " << type.getName();
+        if (type.numContainedTys > 0) {
+            os << " (";
+            for (Type *p : type.subtypes()) {
+                os << *p << ", ";
+            }
+            os << ")";
+        }
+        return os;
     }
 
     //===----------------------------------------------------------------------===//
@@ -245,7 +255,8 @@ class Type {
 
     Type *getArrayElementType() const
     {
-        splc_assert(isArrayTy()) << "getArrayElementType() called on non-array type.";
+        splc_assert(isArrayTy())
+            << "getArrayElementType() called on non-array type.";
         return containedTys[0];
     }
 

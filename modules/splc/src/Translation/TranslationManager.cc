@@ -1,11 +1,9 @@
-#include "AST/ASTCommons.hh"
-#include "Core/Base.hh"
-#include "Core/System.hh"
-
-#include "Core/Utils/Logging.hh"
 #include "Translation/TranslationManager.hh"
+#include "AST/ASTCommons.hh"
+#include "AST/DerivedTypes.hh"
+#include "AST/SymbolEntry.hh"
 
-namespace splc {
+using namespace splc;
 
 void TranslationManager::startTranslationRecord()
 {
@@ -24,12 +22,72 @@ SymbolEntry TranslationManager::getSymbol(SymEntryType symEntTy,
 }
 
 SymbolEntry TranslationManager::registerSymbol(
-    SymEntryType summary_, std::string_view name_, Type *type_, bool defined_,
+    SymEntryType symEntTy, std::string_view name_, Type *type_, bool defined_,
     const Location *location_, ASTValueType value_, PtrAST body_)
 {
     auto ent = tunit->astCtxtMgr.registerSymbol(
-        summary_, name_, type_, defined_, location_, value_, body_);
+        symEntTy, name_, type_, defined_, location_, value_, body_);
     return ent;
+}
+
+void TranslationManager::tryRegisterSymbol(PtrAST root)
+{
+    std::vector<Type *> rootTys = root->getType();
+    std::vector<ASTDeclEntityType> ids = root->getNamedDeclEntities();
+
+    splc_dbgassert(rootTys.size() == ids.size());
+
+    size_t numChild = ids.size();
+
+    for (size_t i = 0; i < numChild; ++i) {
+        Type *ty = rootTys[i];
+        ASTDeclEntityType &idLoc = ids[i];
+        auto [declID, declLoc, declVal] = idLoc;
+
+        SymEntryType symEntTy;
+        bool defined = false;
+        PtrAST body;
+
+        if (ty->isFunctionTy()) {
+            symEntTy = SymEntryType::Function;
+            if (auto it = std::find_if(
+                    root->getChildren().begin(), root->getChildren().end(),
+                    [](const PtrAST &node) {
+                        return node->getSymbolType() == ASTSymbolType::CompStmt;
+                    });
+                it != root->getChildren().end()) {
+                defined = true;
+                body = *it;
+            }
+        }
+        else if (ty->isSInt32Ty()) {
+            symEntTy = SymEntryType::Variable;
+        }
+        else {
+            splc_error(233) << "unknown type to be registered: " << *ty;
+        }
+        try {
+            // TODO: revise
+            auto ent = registerSymbol(symEntTy, declID, ty, defined, &declLoc,
+                                      declVal, body);
+            SPLC_LOG_DEBUG(&declLoc, false)
+                << "registered identifier " << declID << ", type: " << *ty;
+        }
+        catch (SemanticError e) {
+            SPLC_LOG_ERROR(&declLoc, true) << e.what();
+            SPLC_LOG_NOTE(&e.loc, false) << "previously defined here";
+        }
+    }
+}
+
+Ptr<AST> TranslationManager::makeDeclSpecifierTree(const Location &loc,
+                                                   ASTSymbolType specSymbolType)
+{
+
+    auto intTyNode = makeAST<AST>(specSymbolType, loc);
+    auto typeSpec = makeAST<AST>(ASTSymbolType::TypeSpec, loc, intTyNode);
+    auto declSpec = makeAST<AST>(ASTSymbolType::DeclSpec, loc, typeSpec);
+    return declSpec;
 }
 
 Ptr<TranslationContext>
@@ -86,5 +144,3 @@ Ptr<TranslationContext> TranslationManager::unregisterTransMacroVarContext(
 }
 
 Ptr<TranslationUnit> TranslationManager::getTransUnit() { return tunit; }
-
-} // namespace splc

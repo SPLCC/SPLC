@@ -13,7 +13,6 @@ namespace splc {
 ///        inside SPL language.
 class SymbolEntry {
   public:
-
     SymbolEntry() = delete;
 
     SymbolEntry(SymEntryType summary_, Type *type_, bool defined_,
@@ -65,6 +64,8 @@ class SymbolEntry {
         return std::holds_alternative<T>(value);
     }
 
+    friend std::ostream &operator<<(std::ostream &os, const SymbolEntry &ent) noexcept;
+
     // TODO: maybe add some methods
 
     SymEntryType symEntTy;
@@ -76,6 +77,8 @@ class SymbolEntry {
     bool defined; ///< If defined, set to true
     Location location;
 };
+
+std::ostream &operator<<(std::ostream &os, const SymbolEntry &ent) noexcept;
 
 } // namespace splc
 

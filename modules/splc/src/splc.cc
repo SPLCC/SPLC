@@ -1,16 +1,14 @@
+#include "Core/splc.hh"
+#include "AST/AST.hh"
+#include "AST/ASTContext.hh"
+#include "AST/ASTProcess.hh"
+#include "IO/Driver.hh"
 #include <algorithm>
 #include <cassert>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <iterator>
-
-#include "AST/AST.hh"
-#include "Core/splc.hh"
-
-#include "AST/AST.hh"
-#include "AST/ASTProcess.hh"
-#include "IO/Driver.hh"
 
 int main(const int argc, const char **argv)
 {
@@ -34,17 +32,21 @@ int main(const int argc, const char **argv)
     auto tunit = driver.parse(filenameVector[0]);
 
     auto node = tunit->getRootNode();
-    if (node)
+    if (node) {
         std::cout << splc::treePrintTransform(*node);
+        std::cout << *node->getASTContext();
+    }
 
     // test
     // using namespace splc;
     // using splc::AST;
 
     // auto node0 =
-    //     splc::makeAST<AST>(splc::ASTSymbolType::CHAR, splc::Location{}, 1ULL);
+    //     splc::makeAST<AST>(splc::ASTSymbolType::CHAR, splc::Location{},
+    //     1ULL);
     // auto node1 = splc::makeAST<AST>(splc::ASTSymbolType::UPPER,
-    //                                   splc::Location{}, std::string{"hihihi"});
+    //                                   splc::Location{},
+    //                                   std::string{"hihihi"});
     // auto node = splc::makeAST<AST>(splc::ASTSymbolType::CHAR,
     //                                  splc::Location{}, node0, node1);
 

@@ -69,7 +69,7 @@ class TranslationContext : std::enable_shared_from_this<TranslationContext> {
             break;
         }
         const Location *loc =
-            parent.use_count() ? &(parent.lock().get()->intrLocation) : nullptr;
+            parent.expired() ? nullptr : &(parent.lock().get()->intrLocation);
         return {n, tt, cid, loc};
     }
 

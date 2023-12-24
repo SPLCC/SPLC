@@ -46,16 +46,17 @@ const yytname_[] =
 "EnumeratorList", "Enumerator", "EnumConst", "Decltr", "DirDecltr",
 "WrappedDirDecltr", "PtrDecl", "TypeQualList", "Decl", "DirDecl",
 "InitDecltrList", "InitDecltr", "Initializer", "InitializerList",
-"Designation", "DesignatorList", "Designator", "FuncDef", "FuncDecltr",
-"DirFuncDecltr", "DirDecltrForFunc", "ParamTypeList", "ParamList",
-"ParamDecl", "CompStmt", "GeneralStmtList", "Stmt", "ExprStmt",
-"SelStmt", "LabeledStmt", "JumpStmt", "IterStmt", "ForLoopBody",
-"ConstExpr", "Constant", "PrimaryExpr", "PostfixExpr", "MemberAcessOp",
-"UnaryExpr", "UnaryArithOp", "CastExpr", "MulExpr", "MulOp", "DivOp",
-"AddExpr", "AddOp", "ShiftExpr", "ShiftOp", "RelExpr", "RelOp",
-"EqualityExpr", "EqualityOp", "OpBAndExpr", "OpBXorExpr", "OpBOrExpr",
-"LogicalOpAndExpr", "LogicalOpOrExpr", "CondExpr", "AssignExpr",
-"AssignOp", "Expr", "InitExpr", "ArgList", "StringLiteral", "IDWrapper", YY_NULLPTR
+"Designation", "DesignatorList", "Designator", "FuncDef", "FuncDecl",
+"FuncDecltr", "DirFuncDecltr", "DirDecltrForFunc", "ParamTypeList",
+"ParamList", "ParamDecl", "CompStmt", "GeneralStmtList", "Stmt",
+"ExprStmt", "SelStmt", "LabeledStmt", "JumpStmt", "IterStmt",
+"ForLoopBody", "ConstExpr", "Constant", "PrimaryExpr", "PostfixExpr",
+"MemberAcessOp", "UnaryExpr", "UnaryArithOp", "CastExpr", "MulExpr",
+"MulOp", "DivOp", "AddExpr", "AddOp", "ShiftExpr", "ShiftOp", "RelExpr",
+"RelOp", "EqualityExpr", "EqualityOp", "OpBAndExpr", "OpBXorExpr",
+"OpBOrExpr", "LogicalOpAndExpr", "LogicalOpOrExpr", "CondExpr",
+"AssignExpr", "AssignOp", "Expr", "InitExpr", "ArgList", "StringLiteral",
+"IDWrapper", YY_NULLPTR
 };
 // clang-format on
 
@@ -193,6 +194,8 @@ std::ostream &printSymbolConsoleTraits(std::ostream &os,
         break;
     }
     case SPLSymbolType::KwdThen:
+    case SPLSymbolType::DecltrPrec:
+    case SPLSymbolType::FuncDeclPrec:
     case SPLSymbolType::OpUnaryPrec:
     case SPLSymbolType::PLParen:
     case SPLSymbolType::PRParen:
@@ -239,6 +242,7 @@ std::ostream &printSymbolConsoleTraits(std::ostream &os,
     case SPLSymbolType::DesignatorList:
     case SPLSymbolType::Designator:
     case SPLSymbolType::FuncDef:
+    case SPLSymbolType::FuncDecl:
     case SPLSymbolType::FuncDecltr:
     case SPLSymbolType::DirFuncDecltr:
     case SPLSymbolType::DirDecltrForFunc:

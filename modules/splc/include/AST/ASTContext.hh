@@ -43,6 +43,8 @@ class ASTContext {
     
     const auto &getParentContexts() const { return parentContexts; }
 
+    friend std::ostream &operator<<(std::ostream &os, const ASTContext &ctxt);
+
   protected:
     ASTContextDepthType depth;
     ASTSymbolMap symbolMap;

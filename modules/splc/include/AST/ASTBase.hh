@@ -79,7 +79,11 @@ class AST : public std::enable_shared_from_this<AST> {
             [](Ptr<const AST>) { return true; },
         const bool copyContext = true) const;
 
-    virtual Type *getType() const;
+    /// \brief [Experimental] You should call this only on FuntionDef/Decl
+    /// nodes.
+    virtual std::vector<Type *> getType() const;
+
+    virtual std::vector<ASTDeclEntityType> getNamedDeclEntities() const;
 
     // TODO(sem): semantic analysis generation
     virtual Value evaluate();
@@ -91,7 +95,7 @@ class AST : public std::enable_shared_from_this<AST> {
             ASTSymbolType::YYerror);
     }
 
-    void addChild(PtrAST child)
+    void addChild(PtrAST child) noexcept
     {
         children.push_back(child);
         child->typeContext = this->typeContext;
@@ -121,6 +125,18 @@ class AST : public std::enable_shared_from_this<AST> {
         return std::get<T>(value);
     }
 
+    template <IsValidASTValue T>
+    auto getValue() const noexcept
+    {
+        return std::get<T>(value);
+    }
+
+    template <class Visitor>
+    auto visitValue(Visitor &&vis) noexcept
+    {
+        return std::visit(vis, value);
+    }
+
     template <class Visitor>
     auto visitValue(Visitor &&vis) const noexcept
     {
@@ -146,17 +162,25 @@ class AST : public std::enable_shared_from_this<AST> {
 
     auto getTypeContext() { return typeContext; }
 
+    auto getTypeContext() const { return typeContext; }
+
     auto getSymbolType() const noexcept { return symbolType; }
 
     auto getParent() noexcept { return parent; }
 
-    const auto getChildrenNum() const noexcept { return children.size(); }
+    auto getParent() const noexcept { return parent; }
 
-    const auto isChildrenEmpty() const noexcept { return children.empty(); }
+    auto getChildrenNum() const noexcept { return children.size(); }
+
+    auto isChildrenEmpty() const noexcept { return children.empty(); }
 
     auto &getChildren() noexcept { return children; }
 
+    auto &getChildren() const noexcept { return children; }
+
     auto &getLocation() noexcept { return loc; }
+
+    auto &getLocation() const noexcept { return loc; }
 
     void setASTContext(Ptr<ASTContext> astContext_) noexcept
     {
@@ -164,6 +188,8 @@ class AST : public std::enable_shared_from_this<AST> {
     }
 
     auto getASTContext() noexcept { return astContext; }
+
+    auto getASTContext() const noexcept { return astContext; }
 
     auto &getVariant() noexcept { return value; }
 
@@ -309,10 +335,10 @@ inline std::ostream &operator<<(std::ostream &os, const AST &node)
     // TODO: print node address (allocated)
 
     // print node location
-    os << " <" << ControlSeq::BrightYellow << "<";
+    os << " <" << ControlSeq::BrightYellow;
     if (auto cid = node.loc.begin.contextID;
         cid != Location::invalidContextID) {
-        // TODO: print contextname if appeared for the first time
+        // TODO: revise this
         if (!astPrintMap.contains(cid)) {
             astPrintMap.insert(cid);
             os << node.loc;
@@ -323,9 +349,9 @@ inline std::ostream &operator<<(std::ostream &os, const AST &node)
         }
     }
     else {
-        os << "invalid sloc";
+        os << "<invalid sloc>";
     }
-    os << ">" << ControlSeq::Reset << ">";
+    os << ControlSeq::Reset << ">";
 
     // print node content
     // TODO: print symbol table
@@ -335,13 +361,13 @@ inline std::ostream &operator<<(std::ostream &os, const AST &node)
         // template magic
         // TODO: add support for other types
         os << " ";
-        node.visitValue(overloaded{
-            [&](const auto arg) { os << arg; },
-            [&](ASTCharType arg) { os << ControlSeq::Green << arg; },
-            [&](ASTSIntType arg) { os << ControlSeq::Blue << arg; },
-            [&](ASTUIntType arg) { os << ControlSeq::Blue << arg; },
-            [&](ASTFloatType arg) { os << ControlSeq::Green << arg; },
-            [&](const ASTIDType &arg) { os << ControlSeq::Green << arg; }});
+        os << getASTSymbolColor(node.symbolType);
+        node.visitValue(overloaded{[&](const auto arg) { os << arg; },
+                                   [&](ASTCharType arg) { os << arg; },
+                                   [&](ASTSIntType arg) { os << arg; },
+                                   [&](ASTUIntType arg) { os << arg; },
+                                   [&](ASTFloatType arg) { os << arg; },
+                                   [&](const ASTIDType &arg) { os << arg; }});
         os << ControlSeq::Reset;
     }
 
@@ -367,7 +393,7 @@ inline void recursivePrintNode(std::ostream &os, const AST &node,
 
     std::string newPrefix;
 
-    for (auto child : node.children) {
+    for (auto &child : node.children) {
         os << ControlSeq::Blue;
         if (child == node.children.back())
             newPrefix = prefix + treeEndArrow;
@@ -400,6 +426,46 @@ operator<<(std::ostream &os,
     astPrintMap.clear();
     return os;
 }
+
+class ASTHelper {
+  public:
+    // TODO: document them
+    static Type *getBaseTySpec(const AST &root) noexcept;
+
+    static std::vector<Type *> processInitDeclList(const AST &root,
+                                                   Type *base) noexcept;
+
+    static std::vector<Type *> getDeclTy(const AST &root) noexcept;
+
+    static Type *getFuncTy(const AST &root) noexcept;
+
+    static std::vector<Type *> getTypeHelperDispatch(const AST &root);
+
+    static ASTValueType getIDValueMatch(std::string_view name,
+                                        const AST &root) noexcept;
+
+    static void getIDRecursive(std::vector<ASTDeclEntityType> &vec,
+                               const AST &root) noexcept;
+
+    static std::vector<ASTDeclEntityType>
+    getIDRecursive(const AST &root) noexcept;
+
+    static Type *getBaseTySpecRecursive(const AST &root) noexcept;
+
+    static Type *processParamDeclRecursive(const AST &root) noexcept;
+
+    static Type *processDirDecltrRecursive(const AST &root,
+                                           Type *base) noexcept;
+
+    static Type *processDecltrRecursive(const AST &root, Type *base) noexcept;
+
+    static Type *processInitDecltr(const AST &root, Type *base) noexcept;
+
+    /// Transform Ptr<AST> containing Ptr, such that
+    /// The pointers form a rightmost tree hierarchy.
+    /// At the rightmost child of the tree shall the declarator lie.
+    static PtrAST getPtrDeclEndPoint(AST &root) noexcept;
+};
 
 } // namespace splc
 

@@ -45,6 +45,9 @@
 
     #undef yylex
     #define yylex scanner.yylex
+
+    // TODO: allow context pushing/switch
+    // TODO: error recovery (instead of applying the default one in Bison)
 }
 
 //===----------------------------------------------------------------------===//
@@ -182,7 +185,8 @@ ParseRoot:
         transMgr.setRootNode($TransUnit);
         SPLC_LOG_DEBUG(&@TransUnit, true) << "completed parsing";
 
-        transMgr.popASTContext(); 
+        $TransUnit->setASTContext(transMgr.getCurrentASTContext()); 
+        transMgr.popASTContext();
     }
     ;
 
@@ -202,6 +206,7 @@ ExternDecl:
       PSemi { $$ = transMgr.makeAST<AST>(SymbolType::ExternDecl, @$); }
     | Decl { $$ = transMgr.makeAST<AST>(SymbolType::ExternDecl, @$, $1); }
     | FuncDef { $$ = transMgr.makeAST<AST>(SymbolType::ExternDecl, @$, $1); }
+    | FuncDecl { $$ = transMgr.makeAST<AST>(SymbolType::ExternDecl, @$, $1); }
     ;
 
 DeclSpec:
@@ -267,7 +272,8 @@ BuiltinTypeSpec:
 AbsDecltr:
       PtrDecl { $$ = transMgr.makeAST<AST>(SymbolType::AbsDecltr, @$, $1); }
     | PtrDecl DirAbsDecltr { 
-        auto ptrDeclRoot = ASTHelper::getPtrDeclEndPoint($1);
+        // Let PtrDecl become the parent of this node.
+        auto ptrDeclRoot = ASTHelper::getPtrDeclEndPoint(*$1);
         ptrDeclRoot->addChild($2);
         $$ = transMgr.makeAST<AST>(SymbolType::AbsDecltr, @$, ptrDeclRoot);
     }
@@ -373,9 +379,10 @@ EnumConst:
 Decltr: 
       DirDecltr { $$ = transMgr.makeAST<AST>(SymbolType::Decltr, @$, $1); }
     | PtrDecl DirDecltr  { 
-        auto ptrDeclRoot = ASTHelper::getPtrDeclEndPoint($1);
-        ptrDeclRoot->addChild($2);
-        $$ = transMgr.makeAST<AST>(SymbolType::DirDecltr, @$, ptrDeclRoot);
+        // Let PtrDecl become the parent of this node.
+        auto ptrDeclEndPoint = ASTHelper::getPtrDeclEndPoint(*$1);
+        ptrDeclEndPoint->addChild($2);
+        $$ = transMgr.makeAST<AST>(SymbolType::Decltr, @$, $1);
     }
     ;
 
@@ -416,7 +423,7 @@ TypeQualList:
 
 /* Definition: Base */
 Decl: 
-      DirDecl PSemi { $$ = transMgr.makeAST<AST>(SymbolType::Decl, @$, $1); }
+      DirDecl PSemi { $$ = transMgr.makeAST<AST>(SymbolType::Decl, @$, $1); transMgr.tryRegisterSymbol($$); }
 
     | DirDecl error {}
     ;
@@ -429,7 +436,7 @@ DirDecl:
 /* Definition: Declaration of multiple variable.  */ 
 InitDecltrList: 
       InitDecltr { $$ = transMgr.makeAST<AST>(SymbolType::InitDecltrList, @$, $1); }
-    | InitDecltrList OpComma InitDecltr{ $1->addChild($3); $$ = $3; }
+    | InitDecltrList OpComma InitDecltr { $1->addChild($3); $$ = $1; }
 
     | InitDecltrList OpComma {}
     | OpComma InitDecltr {}
@@ -480,18 +487,33 @@ Designator:
     ;
 
 FuncDef:
-      DeclSpec FuncDecltr CompStmt { $$ = transMgr.makeAST<AST>(SymbolType::FuncDef, @$, $1, $2, $3); }
-    | FuncDecltr CompStmt { SPLC_LOG_WARN(&@1, true) << "function is missing a specifier and will default to 'int'"; $$ = transMgr.makeAST<AST>(SymbolType::FuncDef, @$, $1, $2); } 
-    | DeclSpec FuncDecltr PSemi { $$ = transMgr.makeAST<AST>(SymbolType::FuncDef, @$, $1, $2); }
-
+      DeclSpec FuncDecltr CompStmt { $$ = transMgr.makeAST<AST>(SymbolType::FuncDef, @$, $1, $2, $3); transMgr.tryRegisterSymbol($$); }
+    | FuncDecltr CompStmt { 
+          SPLC_LOG_WARN(&@1, true) << "function is missing a specifier and will default to 'int'";
+          auto declSpec = transMgr.makeDeclSpecifierTree(Location{@$.begin}, SymbolType::IntTy);
+          $$ = transMgr.makeAST<AST>(SymbolType::FuncDef, @$, declSpec, $1, $2);
+          transMgr.tryRegisterSymbol($$); 
+      } 
     | DeclSpec FuncDecltr error {}
     ;
+
+FuncDecl:
+      FuncDecltr PSemi { 
+          SPLC_LOG_WARN(&@1, true) << "function is missing a specifier and will default to 'int'";
+          auto declSpec = transMgr.makeDeclSpecifierTree(Location{@$.begin}, SymbolType::IntTy);
+          $$ = transMgr.makeAST<AST>(SymbolType::FuncDecl, @$, declSpec, $1);
+           transMgr.tryRegisterSymbol($$); 
+      } 
+    | DeclSpec FuncDecltr PSemi { $$ = transMgr.makeAST<AST>(SymbolType::FuncDecl, @$, $1, $2); transMgr.tryRegisterSymbol($$); }
+    ;
+
 
 /* Function: Function name and body. */
 FuncDecltr: 
       DirFuncDecltr { $$ = transMgr.makeAST<AST>(SymbolType::FuncDecltr, @$, $1); }
     | PtrDecl DirFuncDecltr { 
-        auto ptrDeclRoot = ASTHelper::getPtrDeclEndPoint($1);
+        // Let PtrDecl become the parent of this node.
+        auto ptrDeclRoot = ASTHelper::getPtrDeclEndPoint(*$1);
         ptrDeclRoot->addChild($2);
         $$ = transMgr.makeAST<AST>(SymbolType::FuncDecltr, @$, ptrDeclRoot);
     }
@@ -510,7 +532,7 @@ DirFuncDecltr:
     ;
 
 DirDecltrForFunc:
-      IDWrapper {}
+      IDWrapper 
     ;
 
 /* List of variables names */
@@ -551,6 +573,7 @@ CompStmt:
 GeneralStmtList: 
       Stmt { $$ = transMgr.makeAST<AST>(SymbolType::GeneralStmtList, @$, $1); }
     | Decl { $$ = transMgr.makeAST<AST>(SymbolType::GeneralStmtList, @$, $1); }
+    /* | FuncDecl { $$ = transMgr.makeAST<AST>(SymbolType::GeneralStmtList, @$, $1); } */
     | GeneralStmtList Stmt { $1->addChild($2); $$ = $1; }
     | GeneralStmtList Decl { $1->addChild($2); $$ = $1; }
     ;

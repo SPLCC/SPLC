@@ -67,23 +67,30 @@ class TranslationManager {
 
     void popASTContext() noexcept { tunit->astCtxtMgr.popContext(); }
 
-    bool isSymbolDeclared(SymEntryType symEntTy, std::string_view name_) const noexcept
+    bool isSymbolDeclared(SymEntryType symEntTy,
+                          std::string_view name_) const noexcept
     {
         return tunit->astCtxtMgr.isSymbolDeclared(symEntTy, name_);
     }
 
-    bool isSymbolDefined(SymEntryType symEntTy, std::string_view name_) const noexcept
+    bool isSymbolDefined(SymEntryType symEntTy,
+                         std::string_view name_) const noexcept
     {
         return tunit->astCtxtMgr.isSymbolDefined(symEntTy, name_);
     }
 
     SymbolEntry getSymbol(SymEntryType symEntTy, std::string_view name_);
 
-    SymbolEntry registerSymbol(SymEntryType symEntTy,
-                               std::string_view name_, Type *type_,
-                               bool defined_, const Location *location_,
+    SymbolEntry registerSymbol(SymEntryType symEntTy, std::string_view name_,
+                               Type *type_, bool defined_,
+                               const Location *location_,
                                ASTValueType value_ = ASTValueType{},
                                PtrAST body_ = nullptr);
+
+    /// \brief This is just experimental.
+    void tryRegisterSymbol(PtrAST root);
+
+    Ptr<AST> makeDeclSpecifierTree(const Location &loc, ASTSymbolType specSymbolType);
 
     Ptr<TranslationContext> getCurrentTransContext() noexcept
     {

@@ -5,9 +5,11 @@
 #include <algorithm>
 #include <iterator>
 
-namespace splc {
+using namespace splc;
 
-thread_local ASTPrintMap astPrintMap;
+thread_local ASTPrintMap splc::astPrintMap;
+
+void resetASTPrintMapContext() noexcept { astPrintMap.clear(); }
 
 PtrAST AST::findFirstChild(ASTSymbolType type) const noexcept
 {
@@ -16,7 +18,7 @@ PtrAST AST::findFirstChild(ASTSymbolType type) const noexcept
 }
 
 PtrAST AST::copy(const std::function<bool(Ptr<const AST>)> &predicate,
-                   const bool copyContext) const
+                 const bool copyContext) const
 {
     PtrAST ret = makeSharedPtr<AST>();
     ret->typeContext = this->typeContext;
@@ -39,18 +41,12 @@ PtrAST AST::copy(const std::function<bool(Ptr<const AST>)> &predicate,
     ret->loc = this->loc;
     if (copyContext) {
         ret->astContext = this->astContext; // TODO(verify): is this desirable?
-                                      // Copying the entire context may
-                                      // lead to filtered out contents
+                                            // Copying the entire context may
+                                            // lead to filtered out contents
     }
     ret->value = this->value;
 
     return ret;
-}
-
-Type *AST::getType() const
-{
-    // TODO: type
-    return nullptr;
 }
 
 Value AST::evaluate()
@@ -59,4 +55,18 @@ Value AST::evaluate()
     return {nullptr};
 }
 
-} // namespace splc
+Ptr<AST> ASTHelper::getPtrDeclEndPoint(AST &root) noexcept
+{
+    splc_assert(root.symbolType == ASTSymbolType::PtrDecl);
+
+    // Use a bit hack here to remove constness
+    AST *tmp = &root;
+    while (!tmp->children.empty()) {
+        if (tmp->children.back()->symbolType != ASTSymbolType::PtrDecl) {
+            return tmp->shared_from_this();
+        }
+        tmp = tmp->children.back().get();
+    }
+
+    splc_unreachable();
+}

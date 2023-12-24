@@ -24,6 +24,8 @@ typedef std::string ASTIDType;
 using ASTValueType = std::variant<ASTCharType, ASTSIntType, ASTUIntType,
                                   ASTFloatType, ASTIDType>;
 
+using ASTDeclEntityType = std::tuple<ASTIDType, Location, ASTValueType>;
+
 template <class T>
 concept IsValidASTValue =
     (std::is_same_v<ASTCharType, std::remove_cvref_t<T>> ||
@@ -32,7 +34,6 @@ concept IsValidASTValue =
      std::is_same_v<ASTFloatType, std::remove_cvref_t<T>> ||
      std::is_same_v<ASTIDType, std::remove_cvref_t<T>>);
 
-// class AST forward decl
 class AST;
 
 using PtrAST = Ptr<AST>;
@@ -62,10 +63,10 @@ using ASTPrintMap = std::set<utils::Location::ContextIDType>;
 extern thread_local ASTPrintMap
     astPrintMap; // TODO: try another way. Internal method.
 
-// ASTHelper forward decl
+void resetASTPrintMapContext();
+
 class ASTHelper;
 
-// ASTProcessor forward decl
 class ASTProcessor;
 
 // template <class Functor>
@@ -93,21 +94,16 @@ enum class SymEntryType {
     Variable,
 };
 
-// SymbolEntry forward decl
 class SymbolEntry;
 using ASTSymbolMap = std::map<ASTIDType, SymbolEntry, std::less<>>;
 
-// SymbolTable forward decl
 class SymbolTable;
 
-// ASTContext forward decl
 class ASTContext;
 using ASTContextDepthType = int;
 
-// ASTContextManager forward decl
 class ASTContextManager;
 
-// Translation Unit forward decl
 class TranslationUnit;
 
 } // namespace splc

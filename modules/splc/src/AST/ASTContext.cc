@@ -2,13 +2,15 @@
 
 namespace splc {
 
-bool ASTContext::isSymbolDeclared(SymEntryType symEntTy_, std::string_view name_) const noexcept
+bool ASTContext::isSymbolDeclared(SymEntryType symEntTy_,
+                                  std::string_view name_) const noexcept
 {
     auto it = symbolMap.find(name_);
     return (it != symbolMap.end() && it->second.symEntTy == symEntTy_);
 }
 
-bool ASTContext::isSymbolDefined(SymEntryType symEntTy_, std::string_view name_) const noexcept
+bool ASTContext::isSymbolDefined(SymEntryType symEntTy_,
+                                 std::string_view name_) const noexcept
 {
     auto it = symbolMap.find(name_);
     if (it == symbolMap.end())
@@ -17,7 +19,8 @@ bool ASTContext::isSymbolDefined(SymEntryType symEntTy_, std::string_view name_)
         return it->second.defined && it->second.symEntTy == symEntTy_;
 }
 
-SymbolEntry ASTContext::getSymbol(SymEntryType symEntTy_, std::string_view name_)
+SymbolEntry ASTContext::getSymbol(SymEntryType symEntTy_,
+                                  std::string_view name_)
 {
     auto it = symbolMap.find(name_);
     if (it == symbolMap.end() || it->second.symEntTy != symEntTy_)
@@ -30,16 +33,32 @@ SymbolEntry ASTContext::registerSymbol(SymEntryType summary_,
                                        bool defined_, const Location *location_,
                                        ASTValueType value_, PtrAST body_)
 {
-    if (auto it = symbolMap.find(name_); it != symbolMap.end()) {
-        throw SemanticError{&it->second.location,
-                            "redefining identifier in the same scope"};
+    auto it = symbolMap.find(name_);
+    if (it != symbolMap.end() && it->second.defined) {
+        throw SemanticError{
+            &it->second.location,
+            "redefining identifier of same type in the same scope"};
     }
 
     auto symEntry = SymbolEntry::createSymbolEntry(summary_, type_, defined_,
                                                    location_, value_, body_);
-    symbolMap.insert(std::make_pair(ASTIDType{name_}, std::move(symEntry)));
+    symbolMap.insert_or_assign(ASTIDType{name_}, std::move(symEntry));
 
     return symEntry;
+}
+
+std::ostream &operator<<(std::ostream &os, const ASTContext &ctxt)
+{
+    using utils::logging::ControlSeq;
+    os << ControlSeq::BrightMagenta << "ASTContextTable [" << ctxt.depth << "]"
+       << ControlSeq::Reset;
+    for (auto &ent : ctxt.symbolMap) {
+        os << "    " << ControlSeq::Yellow << ent.first << ControlSeq::Reset
+           << ent.second << "\n";
+    }
+    if (ctxt.symbolMap.empty())
+        os << "\n";
+    return os;
 }
 
 } // namespace splc

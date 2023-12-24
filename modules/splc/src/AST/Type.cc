@@ -27,6 +27,30 @@ namespace splc {
 //                       Type Class Implementation
 //===----------------------------------------------------------------------===//
 
+const char *typeNames[] = {"type with no size",
+                           "32-bit floating point type",
+                           "64-bit floating point type",
+                           "1-bit integer",
+                           "8-bit unsigned integer",
+                           "8-bit signed integer",
+                           "16-bit unsigned integer",
+                           "16-bit signed integer",
+                           "32-bit unsigned integer",
+                           "32-bit signed integer",
+                           "64-bit unsigned integer",
+                           "64-bit signed integer",
+                           "Labels",
+                           "Tokens",
+                           "Functions",
+                           "Pointers",
+                           "Structures",
+                           "Arrays"};
+
+std::string_view Type::getName() const noexcept
+{
+    return {typeNames[static_cast<int>(ID)]};
+}
+
 Type *Type::getPrimitiveType(TypeContext &C, TypeID ID)
 {
     switch (ID) {

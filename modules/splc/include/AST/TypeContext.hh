@@ -43,6 +43,9 @@ class TypeContext {
     {
     }
 
+    TypeContext(const TypeContext &) = delete;
+    TypeContext &operator=(const TypeContext &) = delete;
+
     ~TypeContext() noexcept
     {
         for (auto &ent : tyAllocTraceMap) {
