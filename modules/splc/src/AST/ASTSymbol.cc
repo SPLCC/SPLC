@@ -305,12 +305,6 @@ std::ostream &printSymbolConsoleTraits(std::ostream &os,
     }
     return os;
 }
-
-std::ostream &operator<<(std::ostream &os, ASTSymbolType sym) noexcept
-{
-    return os << getSymbolName(sym);
-}
-
 } // namespace internal
 
 } // namespace splc

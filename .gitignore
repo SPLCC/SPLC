@@ -18,3 +18,7 @@ syntax.output
 
 # Stop MacOS from polluting the environment
 **/.DS_Store
+
+# IR files
+./*.ir
+*.log

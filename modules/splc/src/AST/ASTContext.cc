@@ -28,22 +28,25 @@ SymbolEntry ASTContext::getSymbol(SymEntryType symEntTy_,
     return it->second;
 }
 
-SymbolEntry ASTContext::registerSymbol(SymEntryType summary_,
+SymbolEntry ASTContext::registerSymbol(SymEntryType symEntTy_,
                                        std::string_view name_, Type *type_,
                                        bool defined_, const Location *location_,
                                        ASTValueType value_, PtrAST body_)
 {
     auto it = symbolMap.find(name_);
-    if (it != symbolMap.end() && it->second.defined) {
-        throw SemanticError{
-            &it->second.location,
-            "redefining identifier of same type in the same scope"};
+    if (it != symbolMap.end()) {
+        if (it->second.symEntTy != symEntTy_ || it->second.defined) {
+            throw SemanticError{&it->second.location,
+                                "redefining same identifier in the same scope"};
+        }
+        symbolMap.erase(it);
     }
 
-    auto symEntry = SymbolEntry::createSymbolEntry(summary_, type_, defined_,
+    auto symEntry = SymbolEntry::createSymbolEntry(symEntTy_, type_, defined_,
                                                    location_, value_, body_);
-    symbolMap.insert_or_assign(ASTIDType{name_}, std::move(symEntry));
-
+    auto p = std::make_pair(ASTIDType{name_}, symEntry);
+    symbolMap.insert(p);
+    symbolList.push_back(p);
     return symEntry;
 }
 

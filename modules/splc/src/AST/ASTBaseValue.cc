@@ -29,6 +29,11 @@ ASTValueType ASTHelper::getNearestValue(const AST &root) noexcept
 
     // TODO: support initializer-list
     // ASSUMPTION: ONLY ConstExpr in intiializer
+    auto &exprNode = ptr->children[0];
+    for (auto &child : exprNode->children) {
+        if (child->getSymbolType() != ASTSymbolType::Constant)
+            return {};
+    }
     ptr = ptr->children[0]->children[0]->children[0];
     return ptr->value;
 }
@@ -54,8 +59,7 @@ void ASTHelper::getIDRecursive(std::vector<ASTDeclEntityType> &vec,
                          ASTSymbolType::InitDecltr, ASTSymbolType::Decltr,
                          ASTSymbolType::DirDecltr,
                          ASTSymbolType::WrappedDirDecltr,
-                         ASTSymbolType::ParamTypeList,
-                         ASTSymbolType::ParamList,
+                         ASTSymbolType::ParamTypeList, ASTSymbolType::ParamList,
                          ASTSymbolType::ParamDecltr)) {
                 getIDRecursive(vec, *node);
             }

@@ -32,6 +32,7 @@ SymbolEntry TranslationManager::registerSymbol(
 
 void TranslationManager::tryRegisterSymbol(PtrAST root)
 {
+    // TODO:
     std::vector<Type *> rootTysFetched = root->getType();
     std::vector<ASTDeclEntityType> ids = root->getNamedDeclEntities();
     std::vector<Type *> rootTys;
