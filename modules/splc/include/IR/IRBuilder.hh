@@ -130,6 +130,8 @@ class IRBuilder {
         //     stmt = stmt->next;
         // }
         // TODO: write all
+        IRVec<IRFunction> functionVec;
+        functionVec
     }
 
     void writeProgram(std::ostream &os)
