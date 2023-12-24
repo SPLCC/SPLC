@@ -114,10 +114,7 @@ class AST : public std::enable_shared_from_this<AST> {
 
     PtrAST findFirstChild(ASTSymbolType type) const noexcept;
 
-    constexpr bool hasValue() const noexcept
-    {
-        return value.valueless_by_exception();
-    }
+    constexpr bool hasValue() const noexcept { return value.index() != 0; }
 
     template <IsValidASTValue T>
     auto getValue() noexcept
@@ -362,7 +359,7 @@ inline std::ostream &operator<<(std::ostream &os, const AST &node)
         // TODO: add support for other types
         os << " ";
         os << getASTSymbolColor(node.symbolType);
-        node.visitValue(overloaded{[&](const auto arg) { os << arg; },
+        node.visitValue(overloaded{[&](const auto arg) {},
                                    [&](ASTCharType arg) { os << arg; },
                                    [&](ASTSIntType arg) { os << arg; },
                                    [&](ASTUIntType arg) { os << arg; },
@@ -430,6 +427,10 @@ operator<<(std::ostream &os,
 class ASTHelper {
   public:
     // TODO: document them
+
+    static PtrAST makeDeclSpecifierTree(const Location &loc,
+                                        ASTSymbolType specSymbolType);
+
     static Type *getBaseTySpec(const AST &root) noexcept;
 
     static std::vector<Type *> processInitDeclList(const AST &root,
@@ -441,21 +442,19 @@ class ASTHelper {
 
     static std::vector<Type *> getTypeHelperDispatch(const AST &root);
 
-    static ASTValueType getIDValueMatch(std::string_view name,
-                                        const AST &root) noexcept;
+    static ASTValueType getNearestValue(const AST &root) noexcept;
 
     static void getIDRecursive(std::vector<ASTDeclEntityType> &vec,
                                const AST &root) noexcept;
 
     static std::vector<ASTDeclEntityType>
-    getIDRecursive(const AST &root) noexcept;
+    getNamedDeclRecursive(const AST &root) noexcept;
 
     static Type *getBaseTySpecRecursive(const AST &root) noexcept;
 
     static Type *processParamDeclRecursive(const AST &root) noexcept;
 
-    static Type *processDecltrSubDispatch(const AST &root,
-                                           Type *base) noexcept;
+    static Type *processDecltrSubDispatch(const AST &root, Type *base) noexcept;
 
     static Type *processDecltrRecursive(const AST &root, Type *base) noexcept;
 

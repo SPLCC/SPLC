@@ -25,7 +25,7 @@ std::ostream &operator<<(std::ostream &os, const SymbolEntry &ent) noexcept
     os << ControlSeq::Yellow;
     os << "[Value = ";
     if (ent.hasValue()) {
-        ent.visitValue(overloaded{[&](const auto arg) { os << arg; },
+        ent.visitValue(overloaded{[&](const auto arg) {},
                                   [&](ASTCharType arg) { os << arg; },
                                   [&](ASTSIntType arg) { os << arg; },
                                   [&](ASTUIntType arg) { os << arg; },

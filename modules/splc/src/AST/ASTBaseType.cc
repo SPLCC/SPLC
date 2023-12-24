@@ -85,7 +85,7 @@ Type *ASTHelper::processDecltrSubDispatch(const AST &root, Type *base) noexcept
             Type *func =
                 FunctionType::get(base, params, false); // TODO: support VarArg
                                                         // no var arg support
-            
+
             return processDecltrSubDispatch(*root.children[0], func);
         }
         else if (root.children[0]->symbolType == ASTSymbolType::DirDecltr &&
@@ -112,7 +112,8 @@ Type *ASTHelper::processDecltrSubDispatch(const AST &root, Type *base) noexcept
         ///===----Pointers
         return processDecltrSubDispatch(*root.children[1],
                                         base->getPointerTo());
-    } else if (root.symbolType == ASTSymbolType::WrappedDirDecltr) {
+    }
+    else if (root.symbolType == ASTSymbolType::WrappedDirDecltr) {
         return processDecltrRecursive(*root.children[0], base);
     }
 
@@ -172,14 +173,20 @@ Type *ASTHelper::getFuncTy(const AST &root) noexcept
     Type *baseType = nullptr;
     baseType = getBaseTySpec(*root.children[0]);
 
-    auto &dirFuncDecltr = root.children[1]->children[0];
-    Type *retType = processDecltrSubDispatch(*dirFuncDecltr, baseType);
+    auto dirDeclRoot = root.children[1]->children[0]; // FuncDef -> FuncDecltr
+    Type *retType = processDecltrSubDispatch(*dirDeclRoot, baseType);
+    while (dirDeclRoot->getSymbolType() != ASTSymbolType::DirFuncDecltr &&
+           !dirDeclRoot->isChildrenEmpty()) {
+        dirDeclRoot = dirDeclRoot->children.back();
+    }
+    splc_dbgassert(dirDeclRoot->getSymbolType() == ASTSymbolType::DirFuncDecltr)
+        << ": " << dirDeclRoot->getSymbolType();
 
     // There is always a parameter list for a function. It can be either
     // empty, or contains ParamDecltr. In both cases, we can directly
     // transform its children using processParamDeclRecursive()
     std::vector<Type *> paramTys;
-    auto &paramListNode = dirFuncDecltr->children[1]->children[0];
+    auto &paramListNode = dirDeclRoot->children[1]->children[0];
     // SPLC_LOG_DEBUG(&root.loc, true) << "processing";
     if (paramListNode->getChildrenNum() > 0) {
         std::transform(paramListNode->children.begin(),

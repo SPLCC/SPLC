@@ -21,8 +21,8 @@ typedef unsigned long long ASTUIntType;
 typedef double ASTFloatType;
 typedef std::string ASTIDType;
 
-using ASTValueType = std::variant<ASTCharType, ASTSIntType, ASTUIntType,
-                                  ASTFloatType, ASTIDType>;
+using ASTValueType = std::variant<std::monostate, ASTCharType, ASTSIntType,
+                                  ASTUIntType, ASTFloatType, ASTIDType>;
 
 using ASTDeclEntityType = std::tuple<ASTIDType, Location, ASTValueType>;
 

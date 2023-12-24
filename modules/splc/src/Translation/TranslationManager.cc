@@ -32,8 +32,17 @@ SymbolEntry TranslationManager::registerSymbol(
 
 void TranslationManager::tryRegisterSymbol(PtrAST root)
 {
-    std::vector<Type *> rootTys = root->getType();
+    std::vector<Type *> rootTysFetched = root->getType();
     std::vector<ASTDeclEntityType> ids = root->getNamedDeclEntities();
+    std::vector<Type *> rootTys;
+
+    for (Type *ty : rootTysFetched) {
+        rootTys.push_back(ty);
+        if (ty->isFunctionTy()) {
+            std::copy(ty->subtype_begin() + 1, ty->subtype_end(),
+                      std::back_inserter(rootTys));
+        }
+    }
 
     splc_dbgassert(rootTys.size() == ids.size());
 
@@ -78,16 +87,6 @@ void TranslationManager::tryRegisterSymbol(PtrAST root)
             SPLC_LOG_NOTE(&e.loc, false) << "previously defined here";
         }
     }
-}
-
-Ptr<AST> TranslationManager::makeDeclSpecifierTree(const Location &loc,
-                                                   ASTSymbolType specSymbolType)
-{
-
-    auto intTyNode = makeAST<AST>(specSymbolType, loc);
-    auto typeSpec = makeAST<AST>(ASTSymbolType::TypeSpec, loc, intTyNode);
-    auto declSpec = makeAST<AST>(ASTSymbolType::DeclSpec, loc, typeSpec);
-    return declSpec;
 }
 
 Ptr<TranslationContext>

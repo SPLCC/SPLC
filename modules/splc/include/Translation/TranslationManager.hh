@@ -90,8 +90,6 @@ class TranslationManager {
     /// \brief This is just experimental.
     void tryRegisterSymbol(PtrAST root);
 
-    Ptr<AST> makeDeclSpecifierTree(const Location &loc, ASTSymbolType specSymbolType);
-
     Ptr<TranslationContext> getCurrentTransContext() noexcept
     {
         return tunit->transCtxtMgr[0];

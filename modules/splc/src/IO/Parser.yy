@@ -489,7 +489,7 @@ FuncDef:
       DeclSpec FuncDecltr CompStmt { $$ = transMgr.makeAST<AST>(SymbolType::FuncDef, @$, $1, $2, $3); transMgr.tryRegisterSymbol($$); }
     | FuncDecltr CompStmt { 
           SPLC_LOG_WARN(&@1, true) << "function is missing a specifier and will default to 'int'";
-          auto declSpec = transMgr.makeDeclSpecifierTree(Location{@$.begin}, SymbolType::IntTy);
+          auto declSpec = ASTHelper::makeDeclSpecifierTree(Location{@$.begin}, SymbolType::IntTy);
           $$ = transMgr.makeAST<AST>(SymbolType::FuncDef, @$, declSpec, $1, $2);
           transMgr.tryRegisterSymbol($$); 
       } 
@@ -499,7 +499,7 @@ FuncDef:
 FuncDecl:
       FuncDecltr PSemi { 
           SPLC_LOG_WARN(&@1, true) << "function is missing a specifier and will default to 'int'";
-          auto declSpec = transMgr.makeDeclSpecifierTree(Location{@$.begin}, SymbolType::IntTy);
+          auto declSpec = ASTHelper::makeDeclSpecifierTree(Location{@$.begin}, SymbolType::IntTy);
           $$ = transMgr.makeAST<AST>(SymbolType::FuncDecl, @$, declSpec, $1);
            transMgr.tryRegisterSymbol($$); 
       } 

@@ -70,3 +70,13 @@ Ptr<AST> ASTHelper::getPtrDeclEndPoint(AST &root) noexcept
 
     splc_unreachable();
 }
+
+PtrAST ASTHelper::makeDeclSpecifierTree(const Location &loc,
+                                        ASTSymbolType specSymbolType)
+{
+
+    auto intTyNode = makeAST<AST>(specSymbolType, loc);
+    auto typeSpec = makeAST<AST>(ASTSymbolType::TypeSpec, loc, intTyNode);
+    auto declSpec = makeAST<AST>(ASTSymbolType::DeclSpec, loc, typeSpec);
+    return declSpec;
+}
