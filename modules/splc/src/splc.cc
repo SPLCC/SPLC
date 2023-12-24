@@ -3,6 +3,8 @@
 #include "AST/ASTContext.hh"
 #include "AST/ASTProcess.hh"
 #include "IO/Driver.hh"
+#include "IR/IRBuilder.hh"
+#include "IR/IROptimizer.hh"
 #include <algorithm>
 #include <cassert>
 #include <cstdlib>
@@ -31,11 +33,18 @@ int main(const int argc, const char **argv)
                    [](const char *str) { return std::string{str}; });
     auto tunit = driver.parse(filenameVector[0]);
 
-    auto node = tunit->getRootNode();
-    if (node) {
-        std::cout << splc::treePrintTransform(*node);
-        std::cout << *node->getASTContext();
+    auto astRoot = tunit->getRootNode();
+    if (astRoot) {
+        std::cout << splc::treePrintTransform(*astRoot);
+        std::cout << *astRoot->getASTContext();
     }
+
+    splc::IRBuilder irBuilder{*tunit->getTypeContext()};
+
+    irBuilder.parseAST(astRoot);
+    std::ofstream fout;
+    fout.open("a.ir");
+    irBuilder.writeProgram(fout);
 
     // test
     // using namespace splc;

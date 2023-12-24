@@ -3,7 +3,19 @@
 
 using namespace splc;
 
-void IRBuilder::parseAST(PtrAST astRoot) 
+void IRBuilder::recursiveParseAST(PtrAST &astRoot)
 {
-    
+    for (auto &child : astRoot->getChildren()) {
+        if (isASTSymbolTypeOneOfThem(astRoot->getSymbolType(),
+                                     ASTSymbolType::ParseRoot,
+                                     ASTSymbolType::TransUnit)) {
+            recursiveParseAST(child);
+        }
+    }
+}
+
+void IRBuilder::parseAST(PtrAST astRoot)
+{
+    astCtxt = astRoot->getASTContext();
+    recursiveParseAST(astRoot);
 }

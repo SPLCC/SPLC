@@ -1,6 +1,7 @@
 #ifndef __SPLC_IR_IRBUILDER_HH__
 #define __SPLC_IR_IRBUILDER_HH__ 1
 
+#include "AST/ASTContext.hh"
 #include "IR/IR.hh"
 #include <algorithm>
 #include <map>
@@ -10,7 +11,7 @@ namespace splc {
 
 class IRBuilder {
   public:
-    IRBuilder(TypeContext &C) : context{C} {}
+    IRBuilder(TypeContext &C) : tyCtxt{C} {}
 
     void writeIRStmt(std::ostream &os, const IRStmt &stmt)
     {
@@ -219,13 +220,18 @@ class IRBuilder {
 
     void parseAST(PtrAST astRoot);
 
-    TypeContext &context;
+    TypeContext &tyCtxt;
+    Ptr<ASTContext> astCtxt;
+
     IRSet<Ptr<IRVar>> allLabels;
     IRSet<Ptr<IRStmt>> allStmt;
     IRSet<IRFunction> allFunc;
     IRMap<IRIDType, Ptr<IRFunction>> funcMap;
     IRMap<IRIDType, Ptr<IRVar>> variableMap; ///< This is permanent
     IRMap<IRIDType, Ptr<IRStmt>> labelStmtMap;
+
+  private:
+    void recursiveParseAST(PtrAST &astRoot);
 };
 
 } // namespace splc
