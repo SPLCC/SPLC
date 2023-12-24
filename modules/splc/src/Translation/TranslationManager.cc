@@ -60,11 +60,11 @@ void TranslationManager::tryRegisterSymbol(PtrAST root)
                 body = *it;
             }
         }
-        else if (ty->isSInt32Ty()) {
+        else if (ty->isFirstClassType()) {
             symEntTy = SymEntryType::Variable;
         }
         else {
-            splc_error(233) << "unknown type to be registered: " << *ty;
+            splc_error() << "unknown type to be registered: " << *ty;
         }
         try {
             // TODO: revise

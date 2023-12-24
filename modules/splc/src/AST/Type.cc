@@ -39,12 +39,14 @@ const char *typeNames[] = {"type with no size",
                            "32-bit signed integer",
                            "64-bit unsigned integer",
                            "64-bit signed integer",
-                           "Labels",
-                           "Tokens",
-                           "Functions",
-                           "Pointers",
-                           "Structures",
-                           "Arrays"};
+                           "label",
+                           "token",
+                           "",
+                           "",
+                           "function",
+                           "pointer",
+                           "structure",
+                           "array"};
 
 std::string_view Type::getName() const noexcept
 {
@@ -208,6 +210,7 @@ bool FunctionType::isValidArgumentType(Type *argTy)
 //===----------------------------------------------------------------------===//
 //                          StructType Implementation
 //===----------------------------------------------------------------------===//
+
 StructType *StructType::get(TypeContext &context, TypePtrArray elements)
 {
     const AnonStructTypeKeyInfo key{elements};
@@ -271,6 +274,13 @@ void StructType::setName(std::string_view name)
     splc_assert((it = map.find(name)) != map.end())
         << "duplicated structure name is not allowed in type system";
     map.insert(std::make_pair(std::string{name}, this));
+}
+
+std::string_view StructType::getName() const noexcept
+{
+    if (!isLiteral())
+        return "unnamed struct";
+    return name;
 }
 
 //===----------------------------------------------------------------------===//
@@ -337,13 +347,6 @@ bool StructType::isSized() const
     const_cast<StructType *>(this)->setSubclassData(getSubclassData() |
                                                     SCDB_IsSized);
     return true;
-}
-
-std::string_view StructType::getName() const
-{
-    splc_assert(!isLiteral())
-        << "struct literal has no names (relies on structural equivalence)";
-    return name;
 }
 
 bool StructType::isLayoutIdentical(StructType *other) const

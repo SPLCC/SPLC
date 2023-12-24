@@ -104,7 +104,7 @@ class Type {
 
     friend std::ostream &operator<<(std::ostream &os, const Type &type)
     {
-        os << "Type: " << type.getName();
+        os << "" << type.getName();
         if (type.numContainedTys > 0) {
             os << " (";
             for (Type *p : type.subtypes()) {

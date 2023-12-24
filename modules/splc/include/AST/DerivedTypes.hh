@@ -153,9 +153,9 @@ class StructType : public Type {
     static bool isValidElementType(Type *elemTy);
     bool hasName() const { return !name.empty(); }
 
-    std::string_view getName() const;
-
     void setName(std::string_view name);
+
+    std::string_view getName() const noexcept;
 
     void setBody(TypePtrArray elements);
 

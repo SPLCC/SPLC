@@ -84,15 +84,18 @@ class ASTProcessor;
 class Value;
 
 enum class SymEntryType {
-    All,
-    Empty,
-    Function,
-    StructDecl,
-    UnionDecl,
-    EnumDecl,
-    Typedef,
-    Variable,
+    Unspecified = 0,
+    All = 1,
+    Empty = 2,
+    Function = 3,
+    StructDecl = 4,
+    UnionDecl = 5,
+    EnumDecl = 6,
+    Typedef = 7,
+    Variable = 8,
 };
+
+std::ostream &operator<<(std::ostream &os, SymEntryType ty) noexcept;
 
 class SymbolEntry;
 using ASTSymbolMap = std::map<ASTIDType, SymbolEntry, std::less<>>;

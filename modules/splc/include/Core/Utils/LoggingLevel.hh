@@ -18,6 +18,7 @@ enum class Level {
     SyntaxError,
     SemanticError,
     FatalError,
+    BuiltinError,
 };
 
 static inline std::ostream &operator<<(std::ostream &os, Level level)
@@ -57,6 +58,10 @@ static inline std::ostream &operator<<(std::ostream &os, Level level)
     }
     case Level::FatalError: {
         os << "fatal error";
+        break;
+    }
+    case Level::BuiltinError: {
+        os << "builtin error";
         break;
     }
     default: {
@@ -108,7 +113,8 @@ inline std::ostream &operator<<(std::ostream &os,
     case Level::Error:
     case Level::SyntaxError:
     case Level::SemanticError:
-    case Level::FatalError: {
+    case Level::FatalError:
+    case Level::BuiltinError: {
         os << ControlSeq::BrightRed;
     }
 

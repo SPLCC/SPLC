@@ -116,7 +116,7 @@ class AST : public std::enable_shared_from_this<AST> {
 
     constexpr bool hasValue() const noexcept
     {
-        return !value.valueless_by_exception();
+        return value.valueless_by_exception();
     }
 
     template <IsValidASTValue T>
@@ -454,7 +454,7 @@ class ASTHelper {
 
     static Type *processParamDeclRecursive(const AST &root) noexcept;
 
-    static Type *processDirDecltrRecursive(const AST &root,
+    static Type *processDecltrSubDispatch(const AST &root,
                                            Type *base) noexcept;
 
     static Type *processDecltrRecursive(const AST &root, Type *base) noexcept;

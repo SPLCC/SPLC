@@ -57,12 +57,12 @@ Value AST::evaluate()
 
 Ptr<AST> ASTHelper::getPtrDeclEndPoint(AST &root) noexcept
 {
-    splc_assert(root.symbolType == ASTSymbolType::PtrDecl);
+    splc_assert(root.symbolType == ASTSymbolType::PtrDecltr);
 
     // Use a bit hack here to remove constness
     AST *tmp = &root;
     while (!tmp->children.empty()) {
-        if (tmp->children.back()->symbolType != ASTSymbolType::PtrDecl) {
+        if (tmp->children.back()->symbolType != ASTSymbolType::PtrDecltr) {
             return tmp->shared_from_this();
         }
         tmp = tmp->children.back().get();

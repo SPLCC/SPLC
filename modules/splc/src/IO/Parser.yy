@@ -270,9 +270,9 @@ BuiltinTypeSpec:
     ;
 
 AbsDecltr:
-      PtrDecl { $$ = transMgr.makeAST<AST>(SymbolType::AbsDecltr, @$, $1); }
-    | PtrDecl DirAbsDecltr { 
-        // Let PtrDecl become the parent of this node.
+      PtrDecltr { $$ = transMgr.makeAST<AST>(SymbolType::AbsDecltr, @$, $1); }
+    | PtrDecltr DirAbsDecltr { 
+        // Let PtrDecltr become the parent of this node.
         auto ptrDeclRoot = ASTHelper::getPtrDeclEndPoint(*$1);
         ptrDeclRoot->addChild($2);
         $$ = transMgr.makeAST<AST>(SymbolType::AbsDecltr, @$, ptrDeclRoot);
@@ -283,9 +283,8 @@ DirAbsDecltr:
       PLP AbsDecltr PRP { $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $1); }
     | DirAbsDecltr OpLSB AssignExpr OpRSB { $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $1, $2, $3, $4); }
     | DirAbsDecltr OpLSB OpRSB { $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $1, $2, $3); }
-    | DirAbsDecltr PLP ParamList PRP { $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $1, $2, $3, $4); }
-    | PLP ParamList PRP { $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $1, $2, $3); }
-    | PLP PRP { $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $1, $2); }
+    | DirAbsDecltr PLP ParamList PRP { $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $1, $3); }
+    | PLP ParamList PRP { $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $2); }
     
     | DirAbsDecltr OpLSB error { SPLC_LOG_ERROR(&@3, true) << "Expect ']' here"; $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $1); yyerrok; }
     | DirAbsDecltr OpRSB { SPLC_LOG_ERROR(&@2, true) << "Expect '[' here"; $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $1); yyerrok; } 
@@ -378,8 +377,8 @@ EnumConst:
 /* Single variable declaration */
 Decltr: 
       DirDecltr { $$ = transMgr.makeAST<AST>(SymbolType::Decltr, @$, $1); }
-    | PtrDecl DirDecltr  { 
-        // Let PtrDecl become the parent of this node.
+    | PtrDecltr DirDecltr  { 
+        // Let PtrDecltr become the parent of this node.
         auto ptrDeclEndPoint = ASTHelper::getPtrDeclEndPoint(*$1);
         ptrDeclEndPoint->addChild($2);
         $$ = transMgr.makeAST<AST>(SymbolType::Decltr, @$, $1);
@@ -391,9 +390,9 @@ DirDecltr:
     | WrappedDirDecltr { $$ = transMgr.makeAST<AST>(SymbolType::DirDecltr, @$, $1); }
     | DirDecltr OpLSB AssignExpr OpRSB { $$ = transMgr.makeAST<AST>(SymbolType::DirDecltr, @$, $1, $2, $3, $4); }
     | DirDecltr OpLSB OpRSB { $$ = transMgr.makeAST<AST>(SymbolType::DirDecltr, @$, $1, $2, $3); }
-    | WrappedDirDecltr PLP ParamList PRP { $$ = transMgr.makeAST<AST>(SymbolType::DirDecltr, @$, $1, $2, $3, $4); }
-    | WrappedDirDecltr PLP PRP { $$ = transMgr.makeAST<AST>(SymbolType::DirDecltr, @$, $1, $2, $3); }
-
+    | WrappedDirDecltr PLP ParamList PRP { 
+          $$ = transMgr.makeAST<AST>(SymbolType::DirDecltr, @$, $1, $3); 
+      }
     | DirDecltr OpLSB AssignExpr error {} 
     /* | direct-declarator error {}  */
     | DirDecltr OpRSB {} 
@@ -403,11 +402,11 @@ WrappedDirDecltr:
       PLP Decltr PRP { $$ = transMgr.makeAST<AST>(SymbolType::WrappedDirDecltr, @$, $2); }
     ;
 
-PtrDecl:
-      OpAstrk { $$ = transMgr.makeAST<AST>(SymbolType::PtrDecl, @$, $1); }
-    | OpAstrk TypeQualList { $$ = transMgr.makeAST<AST>(SymbolType::PtrDecl, @$, $1, $2); }
-    | OpAstrk PtrDecl { $$ = transMgr.makeAST<AST>(SymbolType::PtrDecl, @$, $1, $2); }
-    | OpAstrk TypeQualList PtrDecl { $$ = transMgr.makeAST<AST>(SymbolType::PtrDecl, @$, $1, $2, $3); }
+PtrDecltr:
+      OpAstrk { $$ = transMgr.makeAST<AST>(SymbolType::PtrDecltr, @$, $1); }
+    | OpAstrk TypeQualList { $$ = transMgr.makeAST<AST>(SymbolType::PtrDecltr, @$, $1, $2); }
+    | OpAstrk PtrDecltr { $$ = transMgr.makeAST<AST>(SymbolType::PtrDecltr, @$, $1, $2); }
+    | OpAstrk TypeQualList PtrDecltr { $$ = transMgr.makeAST<AST>(SymbolType::PtrDecltr, @$, $1, $2, $3); }
     ;
 
 TypeQualList:
@@ -511,8 +510,8 @@ FuncDecl:
 /* Function: Function name and body. */
 FuncDecltr: 
       DirFuncDecltr { $$ = transMgr.makeAST<AST>(SymbolType::FuncDecltr, @$, $1); }
-    | PtrDecl DirFuncDecltr { 
-        // Let PtrDecl become the parent of this node.
+    | PtrDecltr DirFuncDecltr { 
+        // Let PtrDecltr become the parent of this node.
         auto ptrDeclRoot = ASTHelper::getPtrDeclEndPoint(*$1);
         ptrDeclRoot->addChild($2);
         $$ = transMgr.makeAST<AST>(SymbolType::FuncDecltr, @$, ptrDeclRoot);
@@ -537,24 +536,23 @@ DirDecltrForFunc:
 
 /* List of variables names */
 ParamTypeList: 
-      { $$ = transMgr.makeAST<AST>(SymbolType::ParamTypeList, @$); }
-    | ParamList { $$ = transMgr.makeAST<AST>(SymbolType::ParamTypeList, @$, $1); }
+      ParamList { $$ = transMgr.makeAST<AST>(SymbolType::ParamTypeList, @$, $1); }
     | ParamList OpComma OpEllipsis { $$ = transMgr.makeAST<AST>(SymbolType::ParamTypeList, @$, $1, $3); }
     ;
 
 ParamList:
-      ParamDecl { $$ = transMgr.makeAST<AST>(SymbolType::ParamList, @$, $1); }
-    | ParamList OpComma ParamDecl { $1->addChild($3); $$ = $1; }
+      { $$ = transMgr.makeAST<AST>(SymbolType::ParamList, @$); }
+    | ParamDecltr { $$ = transMgr.makeAST<AST>(SymbolType::ParamList, @$, $1); }
+    | ParamList OpComma ParamDecltr { $1->addChild($3); $$ = $1; }
 
     | ParamList OpComma error {}
-    | OpComma {}
     ;
 
 /* Parameter declaration */ 
-ParamDecl: 
-      DeclSpec Decltr { $$ = transMgr.makeAST<AST>(SymbolType::ParamDecl, @$, $1, $2); }
-    | DeclSpec AbsDecltr { $$ = transMgr.makeAST<AST>(SymbolType::ParamDecl, @$, $1, $2); }
-    | DeclSpec { $$ = transMgr.makeAST<AST>(SymbolType::ParamDecl, @$, $1); }
+ParamDecltr: 
+      DeclSpec Decltr { $$ = transMgr.makeAST<AST>(SymbolType::ParamDecltr, @$, $1, $2); }
+    | DeclSpec AbsDecltr { $$ = transMgr.makeAST<AST>(SymbolType::ParamDecltr, @$, $1, $2); }
+    | DeclSpec { $$ = transMgr.makeAST<AST>(SymbolType::ParamDecltr, @$, $1); }
 
     /* | error {} */
     ;

@@ -44,11 +44,11 @@ const yytname_[] =
 "StructOrUnion", "StructDeclBody", "StructDeclList", "StructDecl",
 "StructDecltrList", "StructDecltr", "EnumSpec", "EnumBody",
 "EnumeratorList", "Enumerator", "EnumConst", "Decltr", "DirDecltr",
-"WrappedDirDecltr", "PtrDecl", "TypeQualList", "Decl", "DirDecl",
+"WrappedDirDecltr", "PtrDecltr", "TypeQualList", "Decl", "DirDecl",
 "InitDecltrList", "InitDecltr", "Initializer", "InitializerList",
 "Designation", "DesignatorList", "Designator", "FuncDef", "FuncDecl",
 "FuncDecltr", "DirFuncDecltr", "DirDecltrForFunc", "ParamTypeList",
-"ParamList", "ParamDecl", "CompStmt", "GeneralStmtList", "Stmt",
+"ParamList", "ParamDecltr", "CompStmt", "GeneralStmtList", "Stmt",
 "ExprStmt", "SelStmt", "LabeledStmt", "JumpStmt", "IterStmt",
 "ForLoopBody", "ConstExpr", "Constant", "PrimaryExpr", "PostfixExpr",
 "MemberAcessOp", "UnaryExpr", "UnaryArithOp", "CastExpr", "MulExpr",
@@ -230,7 +230,7 @@ std::ostream &printSymbolConsoleTraits(std::ostream &os,
     case SPLSymbolType::Decltr:
     case SPLSymbolType::DirDecltr:
     case SPLSymbolType::WrappedDirDecltr:
-    case SPLSymbolType::PtrDecl:
+    case SPLSymbolType::PtrDecltr:
     case SPLSymbolType::TypeQualList:
     case SPLSymbolType::Decl:
     case SPLSymbolType::DirDecl:
@@ -248,7 +248,7 @@ std::ostream &printSymbolConsoleTraits(std::ostream &os,
     case SPLSymbolType::DirDecltrForFunc:
     case SPLSymbolType::ParamTypeList:
     case SPLSymbolType::ParamList:
-    case SPLSymbolType::ParamDecl: {
+    case SPLSymbolType::ParamDecltr: {
         os << ControlSeq::Bold << ControlSeq::Green;
         break;
     }

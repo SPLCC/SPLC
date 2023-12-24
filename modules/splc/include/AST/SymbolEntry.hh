@@ -37,7 +37,7 @@ class SymbolEntry {
 
     constexpr bool hasValue() const noexcept
     {
-        return !value.valueless_by_exception();
+        return value.valueless_by_exception();
     }
 
     template <IsValidASTValue T>

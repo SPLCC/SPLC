@@ -608,7 +608,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
 
 <*>.|\n {
-    splc_error(233) << "invalid lexeme. Should be caused by a previous parsing error.";
+    splc_error() << "invalid lexeme. Should be caused by a previous parsing error.";
 }
 
 %%

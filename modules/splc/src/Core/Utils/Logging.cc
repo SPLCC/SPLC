@@ -20,6 +20,9 @@ Logger::Logger(const bool enable_, const Level level_) noexcept
     : enable{enable_}, level{level_}, locPtr{nullptr}, trace{false},
       localLogStream{*logStream}
 {
+    if (!isEnabled())
+        return;
+    printInitial();
 }
 
 Logger::Logger(const bool enable_, const Level level_,
@@ -147,6 +150,7 @@ Logger::~Logger() noexcept
 {
     // End this logstream
     if (isEnabled()) {
+        std::lock_guard<std::mutex> lock_guard{logStreamMutex};
         auto loc = locPtr;
         while (loc) {
             if (loc->begin.contextName &&
@@ -196,9 +200,9 @@ AssertionHelper::AssertionHelper(bool cond_, const std::string &condText_,
       exitCode{SPLC_EXIT_ASSERTION_FAILURE}
 {
     if (!cond) {
-        localLogStream << ControlSeq::BrightRed << ControlSeq::Bold
-                       << "Assertion failed" << ControlSeq::Reset << " at "
-                       << file_ << ", line " << line_;
+        std::lock_guard<std::mutex> lockGuard{logStreamMutex};
+        localLogStream << "Assertion failed"
+                       << " at " << file_ << ", line " << line_;
         if (!functionName_.empty()) {
             localLogStream << ", at function: " << functionName_;
         }
@@ -206,6 +210,18 @@ AssertionHelper::AssertionHelper(bool cond_, const std::string &condText_,
                        << ControlSeq::Bold << condText_ << ControlSeq::Reset
                        << "'";
     }
+}
+
+ErrorHelper::ErrorHelper(const std::string &file_, int line_,
+                         const std::string &functionName_) noexcept
+    : Logger{true, Level::BuiltinError}, exitCode{SPLC_EXIT_ERROR}
+{
+    std::lock_guard<std::mutex> lockGuard{logStreamMutex};
+    localLogStream << "at " << file_ << ", line " << line_;
+    if (!functionName_.empty()) {
+        localLogStream << ", at function: " << functionName_;
+    }
+    localLogStream << " ";
 }
 
 } // namespace internal

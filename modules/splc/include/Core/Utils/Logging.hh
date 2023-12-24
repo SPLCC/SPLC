@@ -158,6 +158,8 @@ class AssertionHelper : public Logger {
     AssertionHelper(AssertionHelper &other) = delete;
     AssertionHelper(AssertionHelper &&other) : Logger{std::move(other)} {}
 
+    // virtual void printInitial() const noexcept override;
+
     ~AssertionHelper() noexcept
     {
         if (Logger::isEnabled() && !cond) {
@@ -166,7 +168,7 @@ class AssertionHelper : public Logger {
                 setEnabled(false);
                 localLogStream << std::endl;
             }
-            exit(exitCode);
+            abort();
         }
     };
 
@@ -177,12 +179,12 @@ class AssertionHelper : public Logger {
 
 class ErrorHelper : public Logger {
   public:
-    ErrorHelper(int exitCode_) noexcept
-        : Logger{true, Level::Error}, exitCode{exitCode_}
-    {
-    }
+    ErrorHelper(const std::string &file_, int line_,
+                const std::string &functionName_) noexcept;
     ErrorHelper(ErrorHelper &other) = delete;
     ErrorHelper(ErrorHelper &&other) : Logger{std::move(other)} {}
+
+    // virtual void printInitial() const noexcept override;
 
     ~ErrorHelper() noexcept
     {
@@ -191,7 +193,7 @@ class ErrorHelper : public Logger {
             setEnabled(false);
             localLogStream << std::endl;
         }
-        exit(exitCode);
+        abort();
     };
 
   protected:
@@ -278,8 +280,11 @@ class ErrorHelper : public Logger {
 
 #define splc_dbgassert(cond) __SPLC_BUILTIN_DEBUG_ASSERT(cond)
 
-#define splc_error(exitCode)                                                   \
-    splc::utils::logging::internal::ErrorHelper { exitCode }
+#define splc_error()                                                           \
+    splc::utils::logging::internal::ErrorHelper                                \
+    {                                                                          \
+        __FILE__, __LINE__, __SPLC_LOG_FUNCTION__                              \
+    }
 
 ///< TODO: inform the compiler that the expanded position is unreachable
 #define __SPLC_INTERNAL_UNREACHABLE                                            \

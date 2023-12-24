@@ -50,11 +50,14 @@ SymbolEntry ASTContext::registerSymbol(SymEntryType summary_,
 std::ostream &operator<<(std::ostream &os, const ASTContext &ctxt)
 {
     using utils::logging::ControlSeq;
-    os << ControlSeq::BrightMagenta << "ASTContextTable [" << ctxt.depth << "]"
+    os << ControlSeq::BrightMagenta << "ASTContextTable [" << ctxt.depth
+       << "]\n"
        << ControlSeq::Reset;
     for (auto &ent : ctxt.symbolMap) {
-        os << "    " << ControlSeq::Yellow << ent.first << ControlSeq::Reset
-           << ent.second << "\n";
+        os << "  " << ControlSeq::Yellow << ent.first << ControlSeq::Reset
+           << "\n";
+        os << ControlSeq::Blue << "  `-" << ControlSeq::Reset << ent.second
+           << "\n";
     }
     if (ctxt.symbolMap.empty())
         os << "\n";

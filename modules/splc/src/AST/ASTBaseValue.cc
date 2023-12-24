@@ -49,7 +49,7 @@ void ASTHelper::getIDRecursive(std::vector<ASTDeclEntityType> &vec,
             else if (isASTSymbolTypeOneOfThem(
                          node->symbolType, ASTSymbolType::FuncDef,
                          ASTSymbolType::FuncDecl, ASTSymbolType::FuncDecltr,
-                         ASTSymbolType::DirFuncDecltr, ASTSymbolType::PtrDecl,
+                         ASTSymbolType::DirFuncDecltr, ASTSymbolType::PtrDecltr,
                          ASTSymbolType::ID, ASTSymbolType::DirDecl,
                          ASTSymbolType::InitDecltrList,
                          ASTSymbolType::InitDecltr, ASTSymbolType::Decltr,
