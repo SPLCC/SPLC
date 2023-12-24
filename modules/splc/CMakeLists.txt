@@ -33,11 +33,12 @@ add_subdirectory(src/Basic)
 add_subdirectory(src/AST)
 add_subdirectory(src/Analysis)
 add_subdirectory(src/CodeGen)
+add_subdirectory(src/IR)
 add_subdirectory(src/Translation)
 
 # splc executable
 add_executable(splc ${SRC_FILES})
-target_link_libraries(splc splc_IO splc_Core splc_AST splc_Translation splc_Analysis splc_CodeGen)
+target_link_libraries(splc splc_IO splc_Core splc_AST splc_Translation splc_Analysis splc_CodeGen splc_IR)
 
 set_target_properties(splc PROPERTIES 
     RUNTIME_OUTPUT_DIRECTORY ${GENERATED_EXEC_DIR})
