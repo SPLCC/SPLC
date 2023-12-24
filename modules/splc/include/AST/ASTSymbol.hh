@@ -262,7 +262,7 @@ concept AllAreASTSymbolType =
      ...);
 
 template <AllAreASTSymbolType... SourceTypes>
-bool isASTSymbolTypeOneOfThem(ASTSymbolType type, SourceTypes &&...otherTypes)
+bool isASTSymbolTypeOneOf(ASTSymbolType type, SourceTypes &&...otherTypes)
 {
     return ((type == otherTypes) || ...);
 }

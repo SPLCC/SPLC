@@ -50,7 +50,7 @@ void ASTHelper::getIDRecursive(std::vector<ASTDeclEntityType> &vec,
                 Location loc = node->loc;
                 vec.push_back({id, loc, getNearestValue(*node)});
             }
-            else if (isASTSymbolTypeOneOfThem(
+            else if (isASTSymbolTypeOneOf(
                          node->symbolType, ASTSymbolType::FuncDef,
                          ASTSymbolType::FuncDecl, ASTSymbolType::FuncDecltr,
                          ASTSymbolType::DirFuncDecltr, ASTSymbolType::PtrDecltr,
@@ -77,7 +77,7 @@ ASTHelper::getNamedDeclRecursive(const AST &root) noexcept
 // TODO(future): get type also
 std::vector<ASTDeclEntityType> AST::getNamedDeclEntities() const
 {
-    splc_dbgassert(isASTSymbolTypeOneOfThem(symbolType, ASTSymbolType::Decl,
+    splc_dbgassert(isASTSymbolTypeOneOf(symbolType, ASTSymbolType::Decl,
                                             ASTSymbolType::FuncDecl,
                                             ASTSymbolType::FuncDef));
     return ASTHelper::getNamedDeclRecursive(*this);

@@ -25,7 +25,7 @@ Type *ASTHelper::getBaseTySpecRecursive(const AST &root) noexcept
 Type *ASTHelper::getBaseTySpec(const AST &root) noexcept
 {
     splc_dbgassert(
-        isASTSymbolTypeOneOfThem(root.symbolType, ASTSymbolType::DeclSpec));
+        isASTSymbolTypeOneOf(root.symbolType, ASTSymbolType::DeclSpec));
     // TODO: remove the assumption
     // ASSUMPTION: only one type specifier, i.e. no things like unsigned long
     // long or some stupid things. Either BE Int32Ty, or just **** up everything
@@ -57,7 +57,7 @@ Type *ASTHelper::processParamDeclRecursive(const AST &root) noexcept
 
 Type *ASTHelper::processDecltrSubDispatch(const AST &root, Type *base) noexcept
 {
-    if (isASTSymbolTypeOneOfThem(root.getSymbolType(), ASTSymbolType::DirDecltr,
+    if (isASTSymbolTypeOneOf(root.getSymbolType(), ASTSymbolType::DirDecltr,
                                  ASTSymbolType::DirFuncDecltr)) {
         if (root.children[0]->symbolType == ASTSymbolType::ID) {
             return base;
@@ -220,7 +220,7 @@ std::vector<Type *> ASTHelper::getTypeHelperDispatch(const AST &root)
 
 std::vector<Type *> AST::getType() const
 {
-    splc_dbgassert(isASTSymbolTypeOneOfThem(
+    splc_dbgassert(isASTSymbolTypeOneOf(
         this->symbolType, ASTSymbolType::Decl, ASTSymbolType::FuncDef,
         ASTSymbolType::FuncDecl));
     auto vec = ASTHelper::getTypeHelperDispatch(*this);

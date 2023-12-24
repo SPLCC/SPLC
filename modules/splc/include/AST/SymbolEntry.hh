@@ -1,11 +1,10 @@
 #ifndef __SPLC_AST_SYMBOLENTRY_HH__
 #define __SPLC_AST_SYMBOLENTRY_HH__ 1
 
-#include "Core/splc.hh"
-
 #include "AST/ASTCommons.hh"
 #include "AST/Type.hh"
 #include "AST/Value.hh"
+#include "Core/splc.hh"
 
 namespace splc {
 
@@ -35,10 +34,7 @@ class SymbolEntry {
         return {summary, type_, defined_, location_, value_, body};
     }
 
-    constexpr bool hasValue() const noexcept
-    {
-        return value.index() != 0;
-    }
+    constexpr bool hasValue() const noexcept { return value.index() != 0; }
 
     template <IsValidASTValue T>
     auto getValue()
@@ -64,7 +60,8 @@ class SymbolEntry {
         return std::holds_alternative<T>(value);
     }
 
-    friend std::ostream &operator<<(std::ostream &os, const SymbolEntry &ent) noexcept;
+    friend std::ostream &operator<<(std::ostream &os,
+                                    const SymbolEntry &ent) noexcept;
 
     // TODO: maybe add some methods
 

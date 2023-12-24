@@ -90,9 +90,9 @@ class AST : public std::enable_shared_from_this<AST> {
 
     static inline bool isASTAppendable(const AST &node) noexcept
     {
-        return !isASTSymbolTypeOneOfThem(
-            node.symbolType, ASTSymbolType::YYEMPTY, ASTSymbolType::YYEOF,
-            ASTSymbolType::YYerror);
+        return !isASTSymbolTypeOneOf(node.symbolType, ASTSymbolType::YYEMPTY,
+                                     ASTSymbolType::YYEOF,
+                                     ASTSymbolType::YYerror);
     }
 
     void addChild(PtrAST child) noexcept
@@ -162,6 +162,13 @@ class AST : public std::enable_shared_from_this<AST> {
     auto getTypeContext() const { return typeContext; }
 
     auto getSymbolType() const noexcept { return symbolType; }
+
+    template <AllAreASTSymbolType... OtherTypes>
+    bool isTypeOneOf(OtherTypes &&...othertypes) const noexcept
+    {
+        return isASTSymbolTypeOneOf(getSymbolType(),
+                                    std::forward<OtherTypes>(othertypes)...);
+    }
 
     auto getParent() noexcept { return parent; }
 
