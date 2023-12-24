@@ -38,9 +38,9 @@ class ASTContext {
                                const Location *location_,
                                ASTValueType value_ = ASTValueType{},
                                PtrAST body_ = nullptr);
-    
+
     auto &getParentContexts() { return parentContexts; }
-    
+
     const auto &getParentContexts() const { return parentContexts; }
 
     friend std::ostream &operator<<(std::ostream &os, const ASTContext &ctxt);
