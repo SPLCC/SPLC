@@ -1,0 +1,6 @@
+int foo()
+{
+    int i, j, k;
+    int bar = foo(i, j, k);
+    return bar;
+}
