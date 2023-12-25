@@ -7,7 +7,16 @@
 
 namespace splc {
 
+class IROptimizer;
 
+class IROptimizer {
+  public:
+    void optimize(splc::IRBuilder &irBuilder);
+
+    void constFold(splc::IRBuilder &irBuilder);
+
+    void deadCodeElimination(IRBuilder &irBuilder);
+};
 
 } // namespace splc
 

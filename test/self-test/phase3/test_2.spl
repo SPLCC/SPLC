@@ -1,0 +1,13 @@
+int main()
+{
+    int i = 1;
+    if (i == 1) {
+        int j = 3;
+        if (j == 1) {
+            goto randomlabel;
+        }
+    }
+randomlabel:
+
+    return i;
+}

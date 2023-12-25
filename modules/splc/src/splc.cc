@@ -44,8 +44,12 @@ int main(const int argc, const char **argv)
     irBuilder.parseAST(astRoot);
     // std::ofstream fout;
     // fout.open("a.ir");
-    irBuilder.writeProgram(std::cout);
 
+    // optimizer
+    splc::IROptimizer irOptimizer{};
+    irOptimizer.optimize(irBuilder);
+
+    irBuilder.writeProgram(std::cout);
     // test
     // using namespace splc;
     // using splc::AST;
