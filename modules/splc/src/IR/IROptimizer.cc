@@ -4,7 +4,7 @@
 namespace splc {
 
 void IROptimizer::optimize(IRBuilder &irBuilder) {
-    // TODO: Panding to finish
+    // TODO: Pending to finish
     // constantFold(irBuilder);
     // deadCodeElimination(irBuilder);
 }
