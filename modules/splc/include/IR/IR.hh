@@ -109,7 +109,10 @@ class IRVar {
 
                 return "#" + std::to_string(getValue<ASTUIntType>());
             }
-            splc_error();
+            else if (holdsValueType<ASTIDType>()) {
+
+                return getValue<ASTIDType>();
+            }
         }
         return name;
     }

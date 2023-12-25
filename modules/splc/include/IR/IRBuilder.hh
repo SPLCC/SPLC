@@ -86,7 +86,7 @@ class IRBuilder {
             break;
         }
         case IRType::InvokeFunc: {
-            os << stmt.op1->getName() << " := CALL " << stmt.target->name
+            os << stmt.op1->getName() << " := CALL " << stmt.op2->getName()
                << "\n";
             break;
         }
@@ -103,6 +103,7 @@ class IRBuilder {
             break;
         }
         }
+        os.flush();
     }
 
     void writeFunction(std::ostream &os, Ptr<IRFunction> func)

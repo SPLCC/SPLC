@@ -145,6 +145,7 @@ void IRBuilder::recRegisterDeclVal(IRVec<Ptr<IRVar>> &varList,
         }
     }
 }
+
 // Now try to parse all expressions
 Ptr<IRVar> IRBuilder::recRegisterExprs(IRVec<Ptr<IRVar>> &varList,
                                        IRMap<IRIDType, Ptr<IRVar>> &varMap,
@@ -152,7 +153,36 @@ Ptr<IRVar> IRBuilder::recRegisterExprs(IRVec<Ptr<IRVar>> &varList,
                                        PtrAST stmtRoot)
 {
     // register expression
-    if (stmtRoot->getChildrenNum() == 1) {
+    if (stmtRoot->getSymbolType() == ASTSymbolType::CallExpr) {
+        Ptr<IRVar> funcName = getTmpVar();
+        funcName->isConst = true;
+        funcName->name =
+            stmtRoot->getChildren()[0]->getChildren()[0]->getValue<IRIDType>();
+
+        SPLC_LOG_DEBUG(nullptr, false)
+            << "evaluating CallExpr: " << funcName->name;
+
+        auto tmp = getTmpVar();
+
+        // try push all vars
+        IRVec<Ptr<IRVar>> params;
+
+        for (auto &arg : stmtRoot->getChildren()[1]->getChildren()) {
+            params.push_back(recRegisterExprs(varList, varMap, stmtList, arg));
+        }
+
+        for (auto &p : std::views::reverse(params)) {
+            SPLC_LOG_ERROR(nullptr, false) << "pushing call arg: " << p->getName();
+            Ptr<IRStmt> argDecl = makeSharedPtr<IRStmt>(IRType::PushCallArg, p);
+            stmtList.push_back(argDecl);
+        }
+
+        Ptr<IRStmt> stmt =
+            makeSharedPtr<IRStmt>(IRType::InvokeFunc, tmp, funcName);
+        stmtList.push_back(stmt);
+        return tmp;
+    }
+    else if (stmtRoot->getChildrenNum() == 1) {
         // either constant or ID
         auto &child = stmtRoot->getChildren()[0];
         if (child->getSymbolType() == ASTSymbolType::ID) {
@@ -169,7 +199,7 @@ Ptr<IRVar> IRBuilder::recRegisterExprs(IRVec<Ptr<IRVar>> &varList,
             return tmp;
         }
     }
-    if (stmtRoot->getChildrenNum() == 2) {
+    else if (stmtRoot->getChildrenNum() == 2) {
         splc_error() << "unary operations are unsupported";
     }
     else if (stmtRoot->getChildrenNum() == 3) {
