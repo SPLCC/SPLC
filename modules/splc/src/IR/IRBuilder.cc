@@ -127,8 +127,15 @@ void IRBuilder::recRegisterInitDecltr(IRVec<Ptr<IRVar>> &varList,
         // There is an initializer
         auto initExpr = root->getChildren()[2]->getChildren()[0];
         auto ret = recRegisterExprs(varList, varMap, stmtList, initExpr);
-        Ptr<IRStmt> irStmt = makeSharedPtr<IRStmt>(IRType::Assign, var, ret);
-        stmtList.push_back(irStmt);
+        if (!ret->isConst) {
+            Ptr<IRStmt> irStmt =
+                makeSharedPtr<IRStmt>(IRType::Assign, var, ret);
+            stmtList.push_back(irStmt);
+        }
+        else {
+            var->val = ret->val;
+            var->isConst = true;
+        }
     }
 }
 
@@ -200,8 +207,8 @@ Ptr<IRVar> IRBuilder::recRegisterExprs(IRVec<Ptr<IRVar>> &varList,
             Ptr<IRVar> tmp = getTmpVar();
             tmp->val = child->getChildren()[0]->getVariant();
             tmp->isConst = true;
-            varList.push_back(tmp);
-            varMap.insert({tmp->name, tmp});
+            // varList.push_back(tmp);
+            // varMap.insert({tmp->name, tmp});
             return tmp;
         }
     }
@@ -238,8 +245,8 @@ Ptr<IRVar> IRBuilder::recRegisterExprs(IRVec<Ptr<IRVar>> &varList,
             default:
                 splc_error();
             }
-            varList.push_back(res);
-            varMap.insert({res->name, res});
+            // varList.push_back(res);
+            // varMap.insert({res->name, res});
             Ptr<IRStmt> stmt = makeSharedPtr<IRStmt>(irType, res, op1, op2);
             stmtList.push_back(stmt);
             return res;
@@ -247,22 +254,105 @@ Ptr<IRVar> IRBuilder::recRegisterExprs(IRVec<Ptr<IRVar>> &varList,
         case ASTSymbolType::OpAssign: {
             auto op1 = recRegisterExprs(varList, varMap, stmtList, children[0]);
             auto op2 = recRegisterExprs(varList, varMap, stmtList, children[2]);
-            Ptr<IRStmt> stmt = makeSharedPtr<IRStmt>(IRType::Assign, op1, op2);
-            stmtList.push_back(stmt);
-            SPLC_LOG_DEBUG(nullptr, false)
-                << "pushed assignment: " << op1->getName() << " <- "
-                << op2->getName();
+            if (!op2->isConst) {
+                Ptr<IRStmt> stmt =
+                    makeSharedPtr<IRStmt>(IRType::Assign, op1, op2);
+                stmtList.push_back(stmt);
+                SPLC_LOG_DEBUG(nullptr, false)
+                    << "pushed assignment: " << op1->getName() << " <- "
+                    << op2->getName();
+            }
+            else {
+                op1->val = op2->val;
+                op1->isConst = true;
+            }
             return op1;
         }
-        // case ASTSymbolType::OpLT:
-        // case ASTSymbolType::OpLE:
-        // case ASTSymbolType::OpGT:
-        // case ASTSymbolType::OpGE:
-        // case ASTSymbolType::OpEQ:
-        // case ASTSymbolType::OpNE: {
-        // }
-        default:
+        case ASTSymbolType::OpLT:
+        case ASTSymbolType::OpLE:
+        case ASTSymbolType::OpGT:
+        case ASTSymbolType::OpGE:
+        case ASTSymbolType::OpEQ:
+        case ASTSymbolType::OpNE: {
+            Ptr<IRVar> tmp = getTmpVar();
+            Ptr<IRVar> d1 = getTmpVar();
+            d1->isConst = true;
+            d1->val = 1ULL;
+            Ptr<IRVar> d0 = getTmpVar();
+            d0->isConst = true;
+            d0->val = 0ULL;
+            auto expr1 =
+                recRegisterExprs(varList, varMap, stmtList, children[0]);
+            auto expr2 =
+                recRegisterExprs(varList, varMap, stmtList, children[2]);
+            IRBranchType branchType;
+
+            auto op = children[1]->getSymbolType();
+
+            switch (op) {
+            // GO REVERSE
+            case ASTSymbolType::OpLT: {
+                branchType = IRBranchType::GE;
+                break;
+            }
+            case ASTSymbolType::OpLE: {
+                branchType = IRBranchType::GT;
+                break;
+            }
+            case ASTSymbolType::OpGT: {
+                branchType = IRBranchType::LE;
+                break;
+            }
+            case ASTSymbolType::OpGE: {
+                branchType = IRBranchType::LT;
+                break;
+            }
+            case ASTSymbolType::OpEQ: {
+                branchType = IRBranchType::NE;
+                break;
+            }
+            case ASTSymbolType::OpNE: {
+                branchType = IRBranchType::EQ;
+                break;
+            }
+            default:
+                splc_error();
+            }
+
+            Ptr<IRVar> labelElse = getTmpLabel();
+            Ptr<IRStmt> EBDecl =
+                makeSharedPtr<IRStmt>(IRType::SetLabel, labelElse);
+
+            Ptr<IRStmt> ifStmt = makeSharedPtr<IRStmt>(
+                IRType::BranchIf, expr1, expr2, labelElse, branchType);
+            stmtList.push_back(ifStmt);
+
+            Ptr<IRStmt> assign1 =
+                makeSharedPtr<IRStmt>(IRType::Assign, tmp, d1);
+            stmtList.push_back(assign1);
+
+            stmtList.push_back(EBDecl);
+
+            Ptr<IRVar> labelEnd = getTmpLabel();
+            Ptr<IRStmt> labelEndDecl =
+                makeSharedPtr<IRStmt>(IRType::SetLabel, labelEnd);
+
+            Ptr<IRStmt> gotoStmt =
+                makeSharedPtr<IRStmt>(IRType::Goto, labelEnd);
+
+            stmtList.push_back(gotoStmt);
+
+            Ptr<IRStmt> assign0 =
+                makeSharedPtr<IRStmt>(IRType::Assign, tmp, d0);
+            stmtList.push_back(assign0);
+
+            stmtList.push_back(labelEndDecl);
+
+            return tmp;
+        }
+        default: {
             splc_error();
+        }
         }
     }
     else {
@@ -290,12 +380,65 @@ void IRBuilder::recRegisterSingleStmt(IRVec<Ptr<IRVar>> &varList,
     }
     case ASTSymbolType::IterStmt: {
         // CHECK: WHILE
-        splc_dbgassert(realStmt->getSymbolType() == ASTSymbolType::KwdWhile);
-        auto label = getTmpLabel();
+        auto &children = realStmt->getChildren();
+        splc_dbgassert(children[0]->getSymbolType() == ASTSymbolType::KwdWhile);
+        auto bLabel = getTmpLabel();
+        Ptr<IRStmt> bLabelStmt = makeSharedPtr<IRStmt>(IRType::Goto, bLabel);
+        auto eLabel = getTmpLabel();
+        Ptr<IRStmt> eLabelStmt = makeSharedPtr<IRStmt>(IRType::Goto, eLabel);
 
-        Ptr<IRStmt> irStmt = makeSharedPtr<IRStmt>(IRType::Goto, label);
-        // TODO
-        stmtList.push_back(irStmt);
+        auto exprNodeL = children[1]->getChildren()[0];
+        auto op = children[1]->getChildren()[1]->getSymbolType();
+        auto exprNodeR = children[1]->getChildren()[2];
+
+        IRBranchType branchType;
+        switch (op) {
+        // GO REVERSE
+        case ASTSymbolType::OpLT: {
+            branchType = IRBranchType::GE;
+            break;
+        }
+        case ASTSymbolType::OpLE: {
+            branchType = IRBranchType::GT;
+            break;
+        }
+        case ASTSymbolType::OpGT: {
+            branchType = IRBranchType::LE;
+            break;
+        }
+        case ASTSymbolType::OpGE: {
+            branchType = IRBranchType::LT;
+            break;
+        }
+        case ASTSymbolType::OpEQ: {
+            branchType = IRBranchType::NE;
+            break;
+        }
+        case ASTSymbolType::OpNE: {
+            branchType = IRBranchType::EQ;
+            break;
+        }
+        default:
+            splc_error();
+        }
+
+        stmtList.push_back(bLabelStmt);
+
+        auto exprL = recRegisterExprs(varList, varMap, stmtList, exprNodeL);
+
+        auto exprR = recRegisterExprs(varList, varMap, stmtList, exprNodeR);
+
+        Ptr<IRStmt> BNEStmt = makeSharedPtr<IRStmt>(IRType::BranchIf, exprL,
+                                                    exprR, eLabel, branchType);
+
+        stmtList.push_back(BNEStmt);
+
+        recRegisterStmts(varList, varMap, stmtList, children[2]);
+
+        Ptr<IRStmt> gotoStmt = makeSharedPtr<IRStmt>(IRType::Goto, bLabel);
+        stmtList.push_back(gotoStmt);
+        stmtList.push_back(eLabelStmt);
+
         break;
     }
     case ASTSymbolType::SelStmt: {
@@ -358,10 +501,8 @@ void IRBuilder::recRegisterSingleStmt(IRVec<Ptr<IRVar>> &varList,
             Ptr<IRStmt> labelEndDecl =
                 makeSharedPtr<IRStmt>(IRType::SetLabel, labelEnd);
 
-            Ptr<IRVar> gotoTarget = getTmpVar();
-            gotoTarget->name = labelEnd->getName();
             Ptr<IRStmt> gotoStmt =
-                makeSharedPtr<IRStmt>(IRType::Goto, gotoTarget);
+                makeSharedPtr<IRStmt>(IRType::Goto, labelEnd);
 
             stmtList.push_back(gotoStmt);
 
