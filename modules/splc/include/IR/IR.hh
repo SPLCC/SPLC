@@ -144,8 +144,8 @@ class IRStmt {
 
     IRType irType;
     IRBranchType branchType = IRBranchType::None;
-    Ptr<IRVar> op1 =
-        nullptr; ///< Stores: Name, Label, Param, Arg, lvalue of all OP
+    Ptr<IRVar> op1 = nullptr; ///< Stores: Name, Label,
+                              ///< Param, Arg, lvalue of all OP
     Ptr<IRVar> op2 = nullptr; ///< Stores: RHS of assign, 1st OP of Expr
     Ptr<IRVar> op3 = nullptr; ///< Stores:
     IRFunction *target = nullptr;

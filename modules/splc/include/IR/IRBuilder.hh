@@ -63,8 +63,37 @@ class IRBuilder {
         }
         case IRType::BranchIf: {
             os << "IF " << stmt.op1->getName() << " ";
-
-            os << " " << stmt.op2->getName() << " GOTO " << stmt.op2->getName()
+            switch (stmt.branchType) {
+            case IRBranchType::None: {
+                splc_error();
+                break;
+            }
+            case IRBranchType::LT: {
+                os << "<";
+                break;
+            }
+            case IRBranchType::LE: {
+                os << "<=";
+                break;
+            }
+            case IRBranchType::GT: {
+                os << ">";
+                break;
+            }
+            case IRBranchType::GE: {
+                os << ">=";
+                break;
+            }
+            case IRBranchType::EQ: {
+                os << "==";
+                break;
+            }
+            case IRBranchType::NE: {
+                os << "!=";
+                break;
+            }
+            }
+            os << " " << stmt.op2->getName() << " GOTO " << stmt.op3->getName()
                << "\n";
             break;
         }
@@ -109,9 +138,9 @@ class IRBuilder {
     void writeFunction(std::ostream &os, Ptr<IRFunction> func)
     {
         os << "FUNCTION " << func->name << " :\n";
-
-        for (auto &param : func->paramMap) {
-            os << "PARAM " << param.second->getName() << "\n";
+        size_t cnt = 0;
+        for (auto &ent : func->paramMap) {
+            os << "PARAM " << ent.first << "\n";
         }
 
         for (auto &var : func->varList) {
@@ -140,7 +169,7 @@ class IRBuilder {
 
     void writeAllIRStmt(std::ostream &os)
     {
-        for (auto &func : funcMap) {
+        for (auto func : funcMap) {
             writeFunction(os, func.second);
         }
     }
@@ -162,7 +191,17 @@ class IRBuilder {
                 return IRPair<IRIDType, Ptr<IRVar>>{
                     pID, makeSharedPtr<IRVar>(pID, IRVarType::Variable, pTy)};
             });
+
+        for (auto &p : params) {
+            SPLC_LOG_WARN(nullptr, false)
+                << "established parameter mapping from " << p.first << " to "
+                << p.second->getName();
+        }
         function->paramMap.insert(params.begin(), params.end());
+        for (auto &ent : function->paramMap) {
+            SPLC_LOG_WARN(nullptr, false)
+                << "Get param: " << ent.first << ", " << ent.second->getName();
+        }
         funcMap.insert({funcName, function});
         return function;
     }
@@ -193,9 +232,9 @@ class IRBuilder {
                             IRMap<IRIDType, Ptr<IRVar>> &varMap,
                             IRVec<Ptr<IRStmt>> &stmtList, PtrAST declRoot);
 
-    void recfindFuncDecls(IRVec<Ptr<IRVar>> &varList,
-                          IRMap<IRIDType, Ptr<IRVar>> &varMap, PtrAST funcRoot,
-                          IRIDType funcID);
+    // void recfindFuncDecls(IRVec<Ptr<IRVar>> &varList,
+    //                       IRMap<IRIDType, Ptr<IRVar>> &varMap, PtrAST
+    //                       funcRoot, IRIDType funcID);
 
     Ptr<IRVar> recRegisterExprs(IRVec<Ptr<IRVar>> &varList,
                                 IRMap<IRIDType, Ptr<IRVar>> &varMap,

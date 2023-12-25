@@ -74,38 +74,38 @@ void recfindFuncParam(IRVec<IRIDType> &vec, PtrAST funcRoot)
     }
 }
 
-// Now try to parse all declarations
-void IRBuilder::recfindFuncDecls(IRVec<Ptr<IRVar>> &varList,
-                                 IRMap<IRIDType, Ptr<IRVar>> &varMap,
-                                 PtrAST funcRoot, IRIDType funcID)
-{
-    SPLC_LOG_WARN(nullptr, false) << "trying to find funcDecls in: " << funcID;
-    auto &vec = rootCtxt->getSymbolList();
-    bool tryFindDecl = false;
-    for (auto &ent : std::views::reverse(vec)) {
-        if (tryFindDecl && ent.second.symEntTy == SymEntryType::Variable) {
-            const auto &id = ent.first;
-            const auto val =
-                ent.second.hasValue()
-                    ? static_cast<int>(ent.second.getValue<ASTUIntType>())
-                    : ASTValueType{};
-            Ptr<IRVar> var =
-                makeSharedPtr<IRVar>(id, IRVarType::Variable, &tyCtxt.SInt32Ty,
-                                     val, ent.second.hasValue());
-            varList.push_back(var);
-            varMap.insert({id, var});
-            SPLC_LOG_DEBUG(nullptr, false) << "pushed " << var->name;
-        }
-        else if (ent.second.symEntTy == SymEntryType::Function) {
-            if (tryFindDecl) {
-                break;
-            }
-            else if (ent.first == funcID) {
-                tryFindDecl = true;
-            }
-        }
-    }
-}
+// // Now try to parse all declarations
+// void IRBuilder::recfindFuncDecls(IRVec<Ptr<IRVar>> &varList,
+//                                  IRMap<IRIDType, Ptr<IRVar>> &varMap,
+//                                  PtrAST funcRoot, IRIDType funcID)
+// {
+//     SPLC_LOG_WARN(nullptr, false) << "trying to find funcDecls in: " <<
+//     funcID; auto &vec = rootCtxt->getSymbolList(); bool tryFindDecl = false;
+//     for (auto &ent : std::views::reverse(vec)) {
+//         if (tryFindDecl && ent.second.symEntTy == SymEntryType::Variable) {
+//             const auto &id = ent.first;
+//             const auto val =
+//                 ent.second.hasValue()
+//                     ? static_cast<int>(ent.second.getValue<ASTUIntType>())
+//                     : ASTValueType{};
+//             Ptr<IRVar> var =
+//                 makeSharedPtr<IRVar>(id, IRVarType::Variable,
+//                 &tyCtxt.SInt32Ty,
+//                                      val, ent.second.hasValue());
+//             varList.push_back(var);
+//             varMap.insert({id, var});
+//             SPLC_LOG_DEBUG(nullptr, false) << "pushed " << var->name;
+//         }
+//         else if (ent.second.symEntTy == SymEntryType::Function) {
+//             if (tryFindDecl) {
+//                 break;
+//             }
+//             else if (ent.first == funcID) {
+//                 tryFindDecl = true;
+//             }
+//         }
+//     }
+// }
 
 void IRBuilder::recRegisterInitDecltr(IRVec<Ptr<IRVar>> &varList,
                                       IRMap<IRIDType, Ptr<IRVar>> &varMap,
@@ -115,15 +115,19 @@ void IRBuilder::recRegisterInitDecltr(IRVec<Ptr<IRVar>> &varList,
     // get ID first
     auto id = getNearestIDBelow(root);
     auto it = varMap.find(id);
-    splc_dbgassert(it != varMap.end()) << " cannot find id in varMap: " << id;
+    splc_dbgassert(it == varMap.end()) << " redefinition id in varMap: " << id;
+    Ptr<IRVar> var =
+        makeSharedPtr<IRVar>(id, IRVarType::Variable, &tyCtxt.SInt32Ty);
+    varList.push_back(var);
+    varMap.insert({id, var});
+    SPLC_LOG_DEBUG(nullptr, false) << " defined id in varMap: " << id;
 
     if (root->getChildrenNum() == 3 &&
         root->getChildren()[2]->getChildrenNum() > 0) {
         // There is an initializer
         auto initExpr = root->getChildren()[2]->getChildren()[0];
         auto ret = recRegisterExprs(varList, varMap, stmtList, initExpr);
-        Ptr<IRStmt> irStmt =
-            makeSharedPtr<IRStmt>(IRType::Assign, it->second, ret);
+        Ptr<IRStmt> irStmt = makeSharedPtr<IRStmt>(IRType::Assign, var, ret);
         stmtList.push_back(irStmt);
     }
 }
@@ -173,7 +177,7 @@ Ptr<IRVar> IRBuilder::recRegisterExprs(IRVec<Ptr<IRVar>> &varList,
         }
 
         for (auto &p : std::views::reverse(params)) {
-            SPLC_LOG_ERROR(nullptr, false)
+            SPLC_LOG_DEBUG(nullptr, false)
                 << "pushing call arg: " << p->getName();
             Ptr<IRStmt> argDecl = makeSharedPtr<IRStmt>(IRType::PushCallArg, p);
             stmtList.push_back(argDecl);
@@ -296,21 +300,113 @@ void IRBuilder::recRegisterSingleStmt(IRVec<Ptr<IRVar>> &varList,
     }
     case ASTSymbolType::SelStmt: {
         // CHECK: IF/ELSE
+        // TODO:
+        auto &children = realStmt->getChildren();
+        auto expr1 = recRegisterExprs(varList, varMap, stmtList,
+                                      children[1]->getChildren()[0]);
+        auto expr2 = recRegisterExprs(varList, varMap, stmtList,
+                                      children[1]->getChildren()[2]);
+        IRBranchType branchType;
 
+        auto op = children[1]->getChildren()[1]->getSymbolType();
+
+        switch (op) {
+        // GO REVERSE
+        case ASTSymbolType::OpLT: {
+            branchType = IRBranchType::GE;
+            break;
+        }
+        case ASTSymbolType::OpLE: {
+            branchType = IRBranchType::GT;
+            break;
+        }
+        case ASTSymbolType::OpGT: {
+            branchType = IRBranchType::LE;
+            break;
+        }
+        case ASTSymbolType::OpGE: {
+            branchType = IRBranchType::LT;
+            break;
+        }
+        case ASTSymbolType::OpEQ: {
+            branchType = IRBranchType::NE;
+            break;
+        }
+        case ASTSymbolType::OpNE: {
+            branchType = IRBranchType::EQ;
+            break;
+        }
+        default:
+            splc_error();
+        }
+
+        Ptr<IRVar> labelElse = getTmpLabel();
+        Ptr<IRStmt> ifLabelDecl =
+            makeSharedPtr<IRStmt>(IRType::SetLabel, labelElse);
+
+        Ptr<IRStmt> ifStmt = makeSharedPtr<IRStmt>(
+            IRType::BranchIf, expr1, expr2, labelElse, branchType);
+        stmtList.push_back(ifStmt);
+
+        recRegisterStmts(varList, varMap, stmtList, children[2]);
+
+        stmtList.push_back(ifLabelDecl);
+
+        if (children.size() > 3) {
+
+            Ptr<IRVar> labelEnd = getTmpLabel();
+            Ptr<IRStmt> labelEndDecl =
+                makeSharedPtr<IRStmt>(IRType::SetLabel, labelEnd);
+
+            Ptr<IRVar> gotoTarget = getTmpVar();
+            gotoTarget->name = labelEnd->getName();
+            Ptr<IRStmt> gotoStmt =
+                makeSharedPtr<IRStmt>(IRType::Goto, gotoTarget);
+
+            stmtList.push_back(gotoStmt);
+
+            recRegisterStmts(varList, varMap, stmtList, children[5]);
+
+            stmtList.push_back(labelEndDecl);
+        }
         break;
     }
     case ASTSymbolType::JumpStmt: {
         // Jump Statement: return only
         // TODO: maybe support more
-
         splc_dbgassert(realStmt->getSymbolType() == ASTSymbolType::JumpStmt);
-        auto &children = realStmt->getChildren();
-        splc_dbgassert(children[1]->getSymbolType() == ASTSymbolType::Expr);
-        Ptr<IRVar> var =
-            recRegisterExprs(varList, varMap, stmtList, children[1]);
-        Ptr<IRStmt> irStmt = makeSharedPtr<IRStmt>(IRType::Return, var);
 
-        stmtList.push_back(irStmt);
+        auto &children = realStmt->getChildren();
+        auto op = children[0]->getSymbolType();
+        if (op == ASTSymbolType::KwdGoto) {
+            // Goto
+            // 2 is an ID
+            auto ID = realStmt->getChildren()[1]->getValue<IRIDType>();
+
+            // Ptr<IRStmt> irStmt = makeSharedPtr<IRStmt>(IRType::Return, var);
+            // stmtList.push_back(irStmt);
+        }
+        else if (op == ASTSymbolType::KwdReturn) {
+            // Return
+            splc_dbgassert(children[1]->getSymbolType() == ASTSymbolType::Expr);
+            Ptr<IRVar> var =
+                recRegisterExprs(varList, varMap, stmtList, children[1]);
+            Ptr<IRStmt> irStmt = makeSharedPtr<IRStmt>(IRType::Return, var);
+            stmtList.push_back(irStmt);
+        }
+        else {
+            splc_error();
+        }
+
+        break;
+    }
+    case ASTSymbolType::LabeledStmt: {
+        // ASSUME ID Wrapper Only
+        auto ID = realStmt->getChildren()[0]->getValue<IRIDType>();
+        auto var = getTmpLabel();
+        var->name = ID;
+        Ptr<IRStmt> labelEndDecl = makeSharedPtr<IRStmt>(IRType::SetLabel, var);
+        stmtList.push_back(labelEndDecl);
         break;
     }
     default: {
@@ -348,6 +444,7 @@ void IRBuilder::parseFunction(PtrAST funcRoot)
     IRIDType funcID = recfindFuncID(funcRoot);
     IRVec<IRIDType> paramIDs;
     recfindFuncParam(paramIDs, funcRoot);
+
     IRVec<Type *> paramTys{paramIDs.size(), &tyCtxt.SInt32Ty};
     SPLC_LOG_WARN(nullptr, false) << "parsed func: " << funcID;
     for (auto &pid : paramIDs) {
@@ -362,7 +459,7 @@ void IRBuilder::parseFunction(PtrAST funcRoot)
     auto &varList = func->varList;
     auto &varMap = func->varMap;
     IRVec<Ptr<IRStmt>> stmtList; // just insert them linearly
-    recfindFuncDecls(varList, varMap, funcRoot, funcID);
+    // recfindFuncDecls(varList, varMap, funcRoot, funcID);
 
     // just find the function root first
     auto &body = funcRoot->getChildren()[2];
