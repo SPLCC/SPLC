@@ -13,7 +13,7 @@ class IROptimizer {
   public:
     void optimize(splc::IRBuilder &irBuilder);
 
-    void constFold(splc::IRBuilder &irBuilder);
+    void constantFold(splc::IRBuilder &irBuilder);
 
     void deadCodeElimination(IRBuilder &irBuilder);
 };

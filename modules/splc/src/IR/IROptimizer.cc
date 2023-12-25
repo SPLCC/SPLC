@@ -4,11 +4,13 @@
 namespace splc {
 
 void IROptimizer::optimize(IRBuilder &irBuilder) {
+    // TODO: Panding to finish
+    // constantFold(irBuilder);
     // deadCodeElimination(irBuilder);
 }
 
 
-void IROptimizer::constFold(IRBuilder &irBuilder)
+void IROptimizer::constantFold(IRBuilder &irBuilder)
 {
     for (auto &func : irBuilder.funcMap) {
 
@@ -74,38 +76,45 @@ void IROptimizer::constFold(IRBuilder &irBuilder)
     }
 }
 
-void IROptimizer::deadCodeElimination(splc::IRBuilder &irBuilder)
-{
+void IROptimizer::deadCodeElimination(splc::IRBuilder &irBuilder) {
     for (auto &func : irBuilder.funcMap) {
         std::set<IRIDType> usedVars;
+        std::map<IRIDType, std::vector<Ptr<IRStmt>>::iterator> lastAssign;
 
-        // 首先，收集所有被使用的变量
-        for (auto &stmt : func.second->functionBody) {
-            if (stmt->op1 && stmt->op1->irVarType == IRVarType::Variable) {
-                usedVars.insert(stmt->op1->name);
-            }
+        auto &stmtList = func.second->functionBody;
+        // 逆向遍历，确定每个变量的使用情况
+        for (auto it = stmtList.rbegin(); it != stmtList.rend(); ++it) {
+            auto &stmt = *it;
+
+            // 检查赋值语句的右值，如果是变量，则标记为已使用
             if (stmt->op2 && stmt->op2->irVarType == IRVarType::Variable) {
                 usedVars.insert(stmt->op2->name);
             }
             if (stmt->op3 && stmt->op3->irVarType == IRVarType::Variable) {
                 usedVars.insert(stmt->op3->name);
             }
+            // 对于赋值语句，记录最后一次赋值的位置
+            if (stmt->irType == IRType::Assign && 
+                stmt->op1->irVarType == IRVarType::Variable) {
+                if (usedVars.find(stmt->op1->name) == usedVars.end()) {
+                    // 如果赋值后未使用，则记录这个位置
+                    
+                    lastAssign[stmt->op1->name] = (std::next(it)).base();
+                } else {
+                    // 如果变量被使用，则从记录中移除
+                    lastAssign.erase(stmt->op1->name);
+                }
+            }
         }
 
-        // 然后，移除没有被使用的变量赋值语句
-        auto &stmtList = func.second->functionBody;
-        for (auto it = stmtList.begin(); it != stmtList.end();) {
-            if ((*it)->irType == IRType::Assign && (*it)->op1 &&
-                (*it)->op1->irVarType == IRVarType::Variable &&
-                usedVars.find((*it)->op1->name) == usedVars.end()) {
-                // 该赋值语句是死代码，移除它
-                it = stmtList.erase(it);
-            }
-            else {
-                ++it;
-            }
+        // 移除未使用的赋值
+        for (const auto &assign : lastAssign) {
+            stmtList.erase(assign.second);
         }
     }
 }
+
+
+
 
 } // namespace splc
