@@ -134,7 +134,7 @@ void IRBuilder::recRegisterInitDecltr(IRVec<Ptr<IRVar>> &varList,
         }
         else {
             var->val = ret->val;
-            var->isConst = true;
+            var->isConst = false; // TODO: bug if true
         }
     }
 }
@@ -173,6 +173,20 @@ Ptr<IRVar> IRBuilder::recRegisterExprs(IRVec<Ptr<IRVar>> &varList,
 
         SPLC_LOG_DEBUG(nullptr, false)
             << "evaluating CallExpr: " << funcName->name;
+        
+        if (funcName->name == std::string("write")) {
+            SPLC_LOG_DEBUG(nullptr, false) << "Write to terminal\n";
+            auto arg = recRegisterExprs(varList, varMap, stmtList, stmtRoot->getChildren()[1]->getChildren()[0]);
+            auto writeStmt = makeSharedPtr<IRStmt>(IRType::Write, arg);
+            stmtList.push_back(writeStmt);
+            return nullptr;
+        } else if (funcName->name == std::string("read")) {
+            SPLC_LOG_DEBUG(nullptr, false) << "Read from input\n";
+            auto var = getTmpVar();
+            auto readStmt = makeSharedPtr<IRStmt>(IRType::Read, var);
+            stmtList.push_back(readStmt);
+            return var;
+        }
 
         auto tmp = getTmpVar();
 
@@ -204,8 +218,8 @@ Ptr<IRVar> IRBuilder::recRegisterExprs(IRVec<Ptr<IRVar>> &varList,
             return it->second;
         }
         else if (child->getSymbolType() == ASTSymbolType::Expr) {
-            return makeSharedPtr<IRVar>(recRegisterExprs(varList, varMap, stmtList, child));
-        } 
+            return recRegisterExprs(varList, varMap, stmtList, child);
+        }
         else {
             splc_dbgassert(child->getSymbolType() == ASTSymbolType::Constant);
             Ptr<IRVar> tmp = getTmpVar();
@@ -217,7 +231,17 @@ Ptr<IRVar> IRBuilder::recRegisterExprs(IRVec<Ptr<IRVar>> &varList,
         }
     }
     else if (stmtRoot->getChildrenNum() == 2) {
-        splc_error() << "unary operations are unsupported";
+        if (stmtRoot->getChildren()[0]->getSymbolType() ==
+            ASTSymbolType::OpMinus) {
+
+            auto tmp = recRegisterExprs(varList, varMap, stmtList,
+                                        stmtRoot->getChildren()[1]);
+            tmp->val = -static_cast<ASTSIntType>(tmp->getValue<ASTUIntType>());
+            return tmp;
+        }
+        else {
+            splc_error() << "unary operations are unsupported";
+        }
     }
     else if (stmtRoot->getChildrenNum() == 3) {
         // either conditional or assignment
@@ -387,9 +411,9 @@ void IRBuilder::recRegisterSingleStmt(IRVec<Ptr<IRVar>> &varList,
         auto &children = realStmt->getChildren();
         splc_dbgassert(children[0]->getSymbolType() == ASTSymbolType::KwdWhile);
         auto bLabel = getTmpLabel();
-        Ptr<IRStmt> bLabelStmt = makeSharedPtr<IRStmt>(IRType::Goto, bLabel);
+        Ptr<IRStmt> bLabelStmt = makeSharedPtr<IRStmt>(IRType::SetLabel, bLabel);
         auto eLabel = getTmpLabel();
-        Ptr<IRStmt> eLabelStmt = makeSharedPtr<IRStmt>(IRType::Goto, eLabel);
+        Ptr<IRStmt> eLabelStmt = makeSharedPtr<IRStmt>(IRType::SetLabel, eLabel);
 
         auto exprNodeL = children[1]->getChildren()[0];
         auto op = children[1]->getChildren()[1]->getSymbolType();
@@ -449,10 +473,7 @@ void IRBuilder::recRegisterSingleStmt(IRVec<Ptr<IRVar>> &varList,
         // CHECK: IF/ELSE
         // TODO:
         auto &children = realStmt->getChildren();
-        auto expr1 = recRegisterExprs(varList, varMap, stmtList,
-                                      children[1]->getChildren()[0]);
-        auto expr2 = recRegisterExprs(varList, varMap, stmtList,
-                                      children[1]->getChildren()[2]);
+
         IRBranchType branchType;
 
         auto op = children[1]->getChildren()[1]->getSymbolType();
@@ -483,21 +504,42 @@ void IRBuilder::recRegisterSingleStmt(IRVec<Ptr<IRVar>> &varList,
             branchType = IRBranchType::EQ;
             break;
         }
+        case ASTSymbolType::OpAnd:
+        case ASTSymbolType::OpOr: {
+            branchType = IRBranchType::None;
+            splc_error();
+            break;
+        }
         default:
             splc_error();
         }
 
-        Ptr<IRVar> labelElse = getTmpLabel();
-        Ptr<IRStmt> ifLabelDecl =
-            makeSharedPtr<IRStmt>(IRType::SetLabel, labelElse);
+        if (branchType != IRBranchType::None) {
+            auto expr1 = recRegisterExprs(varList, varMap, stmtList,
+                                          children[1]->getChildren()[0]);
+            auto expr2 = recRegisterExprs(varList, varMap, stmtList,
+                                          children[1]->getChildren()[2]);
 
-        Ptr<IRStmt> ifStmt = makeSharedPtr<IRStmt>(
-            IRType::BranchIf, expr1, expr2, labelElse, branchType);
-        stmtList.push_back(ifStmt);
+            Ptr<IRVar> labelElse = getTmpLabel();
+            Ptr<IRStmt> ifLabelDecl =
+                makeSharedPtr<IRStmt>(IRType::SetLabel, labelElse);
 
-        recRegisterStmts(varList, varMap, stmtList, children[2]);
+            Ptr<IRStmt> ifStmt = makeSharedPtr<IRStmt>(
+                IRType::BranchIf, expr1, expr2, labelElse, branchType);
+            stmtList.push_back(ifStmt);
 
-        stmtList.push_back(ifLabelDecl);
+            recRegisterStmts(varList, varMap, stmtList, children[2]);
+
+            stmtList.push_back(ifLabelDecl);
+        } else {
+            
+            // auto expr1 = recRegisterExprs(varList, varMap, stmtList, stmtRoot);
+            // Ptr<IRVar> labelElse = getTmpLabel();
+            // Ptr<IRStmt> ifLabelDecl = 
+            //     makeSharedPtr<IRStmt>(IRType::SetLabel, labelElse);
+
+            // Ptr<IRStmt> ifStmt = makeSharedPtr<IRStmt>();
+        }
 
         if (children.size() > 3) {
 
@@ -510,7 +552,7 @@ void IRBuilder::recRegisterSingleStmt(IRVec<Ptr<IRVar>> &varList,
 
             stmtList.push_back(gotoStmt);
 
-            recRegisterStmts(varList, varMap, stmtList, children[5]);
+            recRegisterStmts(varList, varMap, stmtList, children[4]);
 
             stmtList.push_back(labelEndDecl);
         }
