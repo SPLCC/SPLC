@@ -70,7 +70,7 @@ void IROptimizer::constantFold(IRBuilder &irBuilder)
             
             // Panding fix bugs
             auto newStmt = makeSharedPtr<IRStmt>(IRType::Assign, stmt->op1, newConstVar);
-            newStmt->op1->isConst = true;
+            // newStmt->op1->isConst = true;
             stmt = newStmt;
         }
     }

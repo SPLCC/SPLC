@@ -203,6 +203,9 @@ Ptr<IRVar> IRBuilder::recRegisterExprs(IRVec<Ptr<IRVar>> &varList,
             splc_dbgassert(it != varMap.end());
             return it->second;
         }
+        else if (child->getSymbolType() == ASTSymbolType::Expr) {
+            return makeSharedPtr<IRVar>(recRegisterExprs(varList, varMap, stmtList, child));
+        } 
         else {
             splc_dbgassert(child->getSymbolType() == ASTSymbolType::Constant);
             Ptr<IRVar> tmp = getTmpVar();
