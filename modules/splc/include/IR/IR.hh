@@ -90,13 +90,28 @@ class IRVar {
     template <IsValidASTValue T>
     void emplaceValue(T &&val_)
     {
-        val.emplace<T>(std::forward(val_));
+        val.emplace<T>(std::forward<T>(val_));
     }
 
     template <IsValidASTValue T>
     constexpr bool holdsValueType() const noexcept
     {
         return std::holds_alternative<T>(val);
+    }
+
+    inline std::string getName()
+    {
+        if (irVarType == IRVarType::Variable && isConst) {
+            if (holdsValueType<ASTSIntType>()) {
+                return "#" + std::to_string(getValue<ASTSIntType>());
+            }
+            else if (holdsValueType<ASTUIntType>()) {
+
+                return "#" + std::to_string(getValue<ASTUIntType>());
+            }
+            splc_error();
+        }
+        return name;
     }
 
     // ASSUMPTION: NO SEMANTIC ERROR

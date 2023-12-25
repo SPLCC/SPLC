@@ -42,9 +42,9 @@ int main(const int argc, const char **argv)
     splc::IRBuilder irBuilder{*tunit->getTypeContext()};
 
     irBuilder.parseAST(astRoot);
-    std::ofstream fout;
-    fout.open("a.ir");
-    irBuilder.writeProgram(fout);
+    // std::ofstream fout;
+    // fout.open("a.ir");
+    irBuilder.writeProgram(std::cout);
 
     // test
     // using namespace splc;

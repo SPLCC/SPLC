@@ -17,81 +17,85 @@ class IRBuilder {
     {
         switch (stmt.irType) {
         case IRType::SetLabel: {
-            os << "LABEL " << stmt.op1->name << " :\n";
+            os << "LABEL " << stmt.op1->getName() << " :\n";
             break;
         }
         case IRType::Assign: {
-            os << stmt.op1->name << " := " << stmt.op2->name << "\n";
+            os << stmt.op1->getName() << " := " << stmt.op2->getName() << "\n";
             break;
         }
         case IRType::Plus: {
-            os << stmt.op1->name << " := " << stmt.op2->name << " + "
-               << stmt.op3->name << "\n";
+            os << stmt.op1->getName() << " := " << stmt.op2->getName() << " + "
+               << stmt.op3->getName() << "\n";
             break;
         }
         case IRType::Minus: {
-            os << stmt.op1->name << " := " << stmt.op2->name << " - "
-               << stmt.op3->name << "\n";
+            os << stmt.op1->getName() << " := " << stmt.op2->getName() << " - "
+               << stmt.op3->getName() << "\n";
             break;
         }
         case IRType::Mul: {
-            os << stmt.op1->name << " := " << stmt.op2->name << " * "
-               << stmt.op3->name << "\n";
+            os << stmt.op1->getName() << " := " << stmt.op2->getName() << " * "
+               << stmt.op3->getName() << "\n";
             break;
         }
         case IRType::Div: {
-            os << stmt.op1->name << " := " << stmt.op2->name << " / "
-               << stmt.op3->name << "\n";
+            os << stmt.op1->getName() << " := " << stmt.op2->getName() << " / "
+               << stmt.op3->getName() << "\n";
             break;
         }
         case IRType::AddrOf: {
-            os << stmt.op1->name << " := &" << stmt.op2->name << "\n";
+            os << stmt.op1->getName() << " := &" << stmt.op2->getName() << "\n";
             break;
         }
         case IRType::Deref: {
-            os << stmt.op1->name << " := *" << stmt.op2->name << "\n";
+            os << stmt.op1->getName() << " := *" << stmt.op2->getName() << "\n";
             break;
         }
         case IRType::CopyToAddr: {
-            os << "*" << stmt.op1->name << " := " << stmt.op2->name << "\n";
+            os << "*" << stmt.op1->getName() << " := " << stmt.op2->getName()
+               << "\n";
             break;
         }
         case IRType::Goto: {
-            os << "GOTO " << stmt.op1->name << "\n";
+            os << "GOTO " << stmt.op1->getName() << "\n";
             break;
         }
         case IRType::BranchIf: {
-            os << "IF " << stmt.op1->name << " ";
+            os << "IF " << stmt.op1->getName() << " ";
 
-            os << " " << stmt.op2->name << " GOTO " << stmt.op2->name << "\n";
+            os << " " << stmt.op2->getName() << " GOTO " << stmt.op2->getName()
+               << "\n";
             break;
         }
         case IRType::Return: {
-            os << "RETURN " << stmt.op1->name << "\n";
+            os << "RETURN " << stmt.op1->getName() << "\n";
             break;
         }
         case IRType::Alloc: {
-            os << "DEC " << stmt.op1->name << " " << stmt.op2->name << "\n";
+            os << "DEC " << stmt.op1->getName() << " " << stmt.op2->getName()
+               << "\n";
             break;
         }
         case IRType::PopCallArg: {
-            os << "PARAM " << stmt.op1->name << "\n";
+            os << "PARAM " << stmt.op1->getName() << "\n";
             break;
         }
         case IRType::PushCallArg: {
-            os << "ARG " << stmt.op1->name << "\n";
+            os << "ARG " << stmt.op1->getName() << "\n";
             break;
         }
         case IRType::InvokeFunc: {
-            os << stmt.op1->name << " := CALL " << stmt.target->name << "\n";
+            os << stmt.op1->getName() << " := CALL " << stmt.target->name
+               << "\n";
             break;
         }
         case IRType::Read: {
-            os << "READ " << stmt.op1->name << "\n";
+            os << "READ " << stmt.op1->getName() << "\n";
             break;
         }
         case IRType::Write: {
-            os << "WRITE " << stmt.op1->name << "\n";
+            os << "WRITE " << stmt.op1->getName() << "\n";
             break;
         }
         case IRType::FuncDecl: {
@@ -106,7 +110,26 @@ class IRBuilder {
         os << "FUNCTION " << func->name << " :\n";
 
         for (auto &param : func->paramMap) {
-            os << "PARAM " << param.second->name << "\n";
+            os << "PARAM " << param.second->getName() << "\n";
+        }
+
+        for (auto &var : func->varList) {
+            if (var->isConst) {
+                // auto dummy = getTmpVar();
+                // dummy->name = var->name;
+                // Ptr<IRStmt> decl =
+                //     makeSharedPtr<IRStmt>(IRType::Assign, dummy, var);
+                // writeIRStmt(os, *decl);
+            }
+            else {
+                auto dummy = getTmpVar();
+                dummy->name = var->name;
+                dummy->emplaceValue(0ULL);
+                dummy->isConst = 1;
+                Ptr<IRStmt> decl =
+                    makeSharedPtr<IRStmt>(IRType::Assign, var, dummy);
+                writeIRStmt(os, *decl);
+            }
         }
 
         for (auto &stmt : func->functionBody) {
@@ -139,6 +162,7 @@ class IRBuilder {
                     pID, makeSharedPtr<IRVar>(pID, IRVarType::Variable, pTy)};
             });
         function->paramMap.insert(params.begin(), params.end());
+        funcMap.insert({funcName, function});
         return function;
     }
 
@@ -150,38 +174,39 @@ class IRBuilder {
     IRMap<IRIDType, Ptr<IRFunction>> funcMap;
 
     // private:
+    Ptr<IRVar> createVar(IRIDType id, IRVarType type, Type *ty);
 
     Ptr<IRVar> getTmpVar();
+
+    Ptr<IRVar> getTmpLabel();
 
     void parseExpr(PtrAST exprRoot);
 
     void parseDecl(PtrAST declRoot);
 
-    void recRegisterWhileLoop(IRVec<Ptr<IRVar>> &varList,
-                              IRMap<IRIDType, Ptr<IRVar>> &varMap,
-                              IRVec<Ptr<IRStmt>> &stmtList, PtrAST loopRoot);
-
-    void recRegisterIfStmt(IRVec<Ptr<IRVar>> &varList,
-                           IRMap<IRIDType, Ptr<IRVar>> &varMap,
-                           IRVec<Ptr<IRStmt>> &stmtList, PtrAST loopRoot);
-
-    void recRegisterInitzrExpr(IRMap<IRIDType, Ptr<IRVar>> &varMap,
-                               IRVec<Ptr<IRStmt>> &stmtList, Ptr<IRVar> var,
-                               PtrAST dirDecltr);
-
-    void recRegisterInitDecltr(IRMap<IRIDType, Ptr<IRVar>> &varMap,
+    void recRegisterInitDecltr(IRVec<Ptr<IRVar>> &varList,
+                               IRMap<IRIDType, Ptr<IRVar>> &varMap,
                                IRVec<Ptr<IRStmt>> &stmtList, PtrAST dirDecltr);
 
-    void recRegisterDecl(IRMap<IRIDType, Ptr<IRVar>> &varMap,
-                         IRVec<Ptr<IRStmt>> &stmtList, PtrAST declRoot);
+    void recRegisterDeclVal(IRVec<Ptr<IRVar>> &varList,
+                            IRMap<IRIDType, Ptr<IRVar>> &varMap,
+                            IRVec<Ptr<IRStmt>> &stmtList, PtrAST declRoot);
 
     void recfindFuncDecls(IRVec<Ptr<IRVar>> &varList,
                           IRMap<IRIDType, Ptr<IRVar>> &varMap, PtrAST funcRoot,
                           IRIDType funcID);
 
-    Ptr<IRVar> recRegisterStmts(IRVec<Ptr<IRVar>> &varList,
+    Ptr<IRVar> recRegisterExprs(IRVec<Ptr<IRVar>> &varList,
                                 IRMap<IRIDType, Ptr<IRVar>> &varMap,
                                 IRVec<Ptr<IRStmt>> &stmtList, PtrAST stmtRoot);
+
+    void recRegisterSingleStmt(IRVec<Ptr<IRVar>> &varList,
+                               IRMap<IRIDType, Ptr<IRVar>> &varMap,
+                               IRVec<Ptr<IRStmt>> &stmtList, PtrAST stmtRoot);
+
+    void recRegisterStmts(IRVec<Ptr<IRVar>> &varList,
+                          IRMap<IRIDType, Ptr<IRVar>> &varMap,
+                          IRVec<Ptr<IRStmt>> &stmtList, PtrAST stmtRoot);
 
     void parseFunction(PtrAST funcRoot);
 
