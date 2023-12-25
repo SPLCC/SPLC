@@ -18,9 +18,13 @@ class ASTContext {
   public:
     ASTContext(ASTContextDepthType depth_) : depth{depth_} {}
 
-    ASTSymbolMap &getSymbolMap() { return symbolMap; }
+    auto &getSymbolMap() { return symbolMap; }
 
-    const ASTSymbolMap &getSymbolMap() const { return symbolMap; }
+    const auto &getSymbolMap() const { return symbolMap; }
+
+    auto &getSymbolList() { return symbolList; }
+
+    const auto &getSymbolList() const { return symbolList; }
 
     bool isSymbolDeclared(SymEntryType symEntTy_,
                           std::string_view name_) const noexcept;
@@ -38,9 +42,9 @@ class ASTContext {
                                const Location *location_,
                                ASTValueType value_ = ASTValueType{},
                                PtrAST body_ = nullptr);
-    
+
     auto &getParentContexts() { return parentContexts; }
-    
+
     const auto &getParentContexts() const { return parentContexts; }
 
     friend std::ostream &operator<<(std::ostream &os, const ASTContext &ctxt);
@@ -48,6 +52,7 @@ class ASTContext {
   protected:
     ASTContextDepthType depth;
     ASTSymbolMap symbolMap;
+    std::vector<std::pair<ASTIDType, SymbolEntry>> symbolList; // TODO: just refactor
     std::vector<WeakPtr<ASTContext>> parentContexts;
 
   public:

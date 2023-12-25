@@ -73,6 +73,32 @@ class IRVar {
     {
     }
 
+    constexpr bool hasValue() const noexcept { return val.index() != 0; }
+
+    template <IsValidASTValue T>
+    auto getValue()
+    {
+        return std::get<T>(val);
+    }
+
+    template <class Visitor>
+    auto visitValue(Visitor &&vis) const
+    {
+        return std::visit(vis, val);
+    }
+
+    template <IsValidASTValue T>
+    void emplaceValue(T &&val_)
+    {
+        val.emplace<T>(std::forward(val_));
+    }
+
+    template <IsValidASTValue T>
+    constexpr bool holdsValueType() const noexcept
+    {
+        return std::holds_alternative<T>(val);
+    }
+
     // ASSUMPTION: NO SEMANTIC ERROR
     // ASSUMPTION: NO RVALUE ASSIGNMENT, THUS CONST PROPAGATION
     IRIDType name;
@@ -116,6 +142,8 @@ class IRFunction {
 
     IRIDType name;
     Type *retTy;
+    IRVec<Ptr<IRVar>> varList;
+    IRMap<IRIDType, Ptr<IRVar>> varMap;
     IRMap<IRIDType, Ptr<IRVar>> paramMap;
     IRVec<IRStmt> functionBody;
 };

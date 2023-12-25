@@ -34,16 +34,20 @@ SymbolEntry ASTContext::registerSymbol(SymEntryType summary_,
                                        ASTValueType value_, PtrAST body_)
 {
     auto it = symbolMap.find(name_);
-    if (it != symbolMap.end() && it->second.defined) {
-        throw SemanticError{
-            &it->second.location,
-            "redefining identifier of same type in the same scope"};
+    if (it != symbolMap.end()) {
+        if (it->second.defined) {
+            throw SemanticError{
+                &it->second.location,
+                "redefining identifier of same type in the same scope"};
+        }
+        symbolMap.erase(it);
     }
 
     auto symEntry = SymbolEntry::createSymbolEntry(summary_, type_, defined_,
                                                    location_, value_, body_);
-    symbolMap.insert_or_assign(ASTIDType{name_}, std::move(symEntry));
-
+    auto p = std::make_pair(ASTIDType{name_}, symEntry);
+    symbolMap.insert(p);
+    symbolList.push_back(p);
     return symEntry;
 }
 
