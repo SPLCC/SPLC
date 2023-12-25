@@ -124,6 +124,7 @@ void IRBuilder::recRegisterInitDecltr(IRVec<Ptr<IRVar>> &varList,
         auto ret = recRegisterExprs(varList, varMap, stmtList, initExpr);
         Ptr<IRStmt> irStmt =
             makeSharedPtr<IRStmt>(IRType::Assign, it->second, ret);
+        stmtList.push_back(irStmt);
     }
 }
 
@@ -172,7 +173,8 @@ Ptr<IRVar> IRBuilder::recRegisterExprs(IRVec<Ptr<IRVar>> &varList,
         }
 
         for (auto &p : std::views::reverse(params)) {
-            SPLC_LOG_ERROR(nullptr, false) << "pushing call arg: " << p->getName();
+            SPLC_LOG_ERROR(nullptr, false)
+                << "pushing call arg: " << p->getName();
             Ptr<IRStmt> argDecl = makeSharedPtr<IRStmt>(IRType::PushCallArg, p);
             stmtList.push_back(argDecl);
         }
@@ -243,6 +245,9 @@ Ptr<IRVar> IRBuilder::recRegisterExprs(IRVec<Ptr<IRVar>> &varList,
             auto op2 = recRegisterExprs(varList, varMap, stmtList, children[2]);
             Ptr<IRStmt> stmt = makeSharedPtr<IRStmt>(IRType::Assign, op1, op2);
             stmtList.push_back(stmt);
+            SPLC_LOG_DEBUG(nullptr, false)
+                << "pushed assignment: " << op1->getName() << " <- "
+                << op2->getName();
             return op1;
         }
         // case ASTSymbolType::OpLT:
@@ -335,9 +340,6 @@ void IRBuilder::recRegisterStmts(IRVec<Ptr<IRVar>> &varList,
     }
     else if (stmtRoot->getSymbolType() == ASTSymbolType::Stmt) {
         recRegisterSingleStmt(varList, varMap, stmtList, stmtRoot);
-    }
-    else if (stmtRoot->getSymbolType() == ASTSymbolType::Expr) {
-        recRegisterExprs(varList, varMap, stmtList, stmtRoot);
     }
 }
 
