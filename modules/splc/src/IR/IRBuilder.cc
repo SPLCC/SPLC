@@ -378,7 +378,7 @@ void IRBuilder::recRegisterSingleStmt(IRVec<Ptr<IRVar>> &varList,
 
         auto &children = realStmt->getChildren();
         auto op = children[0]->getSymbolType();
-        
+
         if (op == ASTSymbolType::KwdGoto) {
             // Goto
             // 2 is an ID
@@ -389,6 +389,7 @@ void IRBuilder::recRegisterSingleStmt(IRVec<Ptr<IRVar>> &varList,
             stmtList.push_back(irStmt);
         }
         else if (op == ASTSymbolType::KwdReturn) {
+            SPLC_LOG_ERROR(nullptr, false) << "hi?";
             // Return
             splc_dbgassert(children[1]->getSymbolType() == ASTSymbolType::Expr);
             Ptr<IRVar> var =
@@ -404,11 +405,13 @@ void IRBuilder::recRegisterSingleStmt(IRVec<Ptr<IRVar>> &varList,
     }
     case ASTSymbolType::LabeledStmt: {
         // ASSUME ID Wrapper Only
-        auto ID = realStmt->getChildren()[0]->getValue<IRIDType>();
+        auto &children = realStmt->getChildren();
+        auto ID = children[0]->getValue<IRIDType>();
         auto var = getTmpLabel();
         var->name = ID;
         Ptr<IRStmt> labelEndDecl = makeSharedPtr<IRStmt>(IRType::SetLabel, var);
         stmtList.push_back(labelEndDecl);
+        recRegisterStmts(varList, varMap, stmtList, children[2]);
         break;
     }
     default: {
