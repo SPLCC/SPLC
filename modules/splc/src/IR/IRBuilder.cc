@@ -378,13 +378,15 @@ void IRBuilder::recRegisterSingleStmt(IRVec<Ptr<IRVar>> &varList,
 
         auto &children = realStmt->getChildren();
         auto op = children[0]->getSymbolType();
+        
         if (op == ASTSymbolType::KwdGoto) {
             // Goto
             // 2 is an ID
             auto ID = realStmt->getChildren()[1]->getValue<IRIDType>();
-
-            // Ptr<IRStmt> irStmt = makeSharedPtr<IRStmt>(IRType::Return, var);
-            // stmtList.push_back(irStmt);
+            auto var = getTmpLabel();
+            var->name = ID;
+            Ptr<IRStmt> irStmt = makeSharedPtr<IRStmt>(IRType::Goto, var);
+            stmtList.push_back(irStmt);
         }
         else if (op == ASTSymbolType::KwdReturn) {
             // Return
