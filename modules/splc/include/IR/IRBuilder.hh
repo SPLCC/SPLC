@@ -8,253 +8,103 @@
 
 namespace splc {
 
+class IRBuilder;
+class IRBuilderHelper;
+
 // TODO: The entire IRBuilder is essentially trash. Try refactor entirely.
 class IRBuilder {
   public:
-    IRBuilder(TypeContext &C) : tyCtxt{C} {}
+    IRBuilder(TypeContext &C) : tyCtxt(C) {}
 
-    void writeIRStmt(std::ostream &os, const IRStmt &stmt)
-    {
-        switch (stmt.irType) {
-        case IRType::SetLabel: {
-            os << "LABEL " << stmt.op1->getName() << " :\n";
-            break;
-        }
-        case IRType::Assign: {
-            os << stmt.op1->getName() << " := " << stmt.op2->getName() << "\n";
-            break;
-        }
-        case IRType::Plus: {
-            os << stmt.op1->getName() << " := " << stmt.op2->getName() << " + "
-               << stmt.op3->getName() << "\n";
-            break;
-        }
-        case IRType::Minus: {
-            os << stmt.op1->getName() << " := " << stmt.op2->getName() << " - "
-               << stmt.op3->getName() << "\n";
-            break;
-        }
-        case IRType::Mul: {
-            os << stmt.op1->getName() << " := " << stmt.op2->getName() << " * "
-               << stmt.op3->getName() << "\n";
-            break;
-        }
-        case IRType::Div: {
-            os << stmt.op1->getName() << " := " << stmt.op2->getName() << " / "
-               << stmt.op3->getName() << "\n";
-            break;
-        }
-        case IRType::AddrOf: {
-            os << stmt.op1->getName() << " := &" << stmt.op2->getName() << "\n";
-            break;
-        }
-        case IRType::Deref: {
-            os << stmt.op1->getName() << " := *" << stmt.op2->getName() << "\n";
-            break;
-        }
-        case IRType::CopyToAddr: {
-            os << "*" << stmt.op1->getName() << " := " << stmt.op2->getName()
-               << "\n";
-            break;
-        }
-        case IRType::Goto: {
-            os << "GOTO " << stmt.op1->getName() << "\n";
-            break;
-        }
-        case IRType::BranchIf: {
-            os << "IF " << stmt.op1->getName() << " ";
-            switch (stmt.branchType) {
-            case IRBranchType::None: {
-                splc_error();
-                break;
-            }
-            case IRBranchType::LT: {
-                os << "<";
-                break;
-            }
-            case IRBranchType::LE: {
-                os << "<=";
-                break;
-            }
-            case IRBranchType::GT: {
-                os << ">";
-                break;
-            }
-            case IRBranchType::GE: {
-                os << ">=";
-                break;
-            }
-            case IRBranchType::EQ: {
-                os << "==";
-                break;
-            }
-            case IRBranchType::NE: {
-                os << "!=";
-                break;
-            }
-            }
-            os << " " << stmt.op2->getName() << " GOTO " << stmt.op3->getName()
-               << "\n";
-            break;
-        }
-        case IRType::Return: {
-            os << "RETURN " << stmt.op1->getName() << "\n";
-            break;
-        }
-        case IRType::Alloc: {
-            os << "DEC " << stmt.op1->getName() << " " << stmt.op2->getName()
-               << "\n";
-            break;
-        }
-        case IRType::PopCallArg: {
-            os << "PARAM " << stmt.op1->getName() << "\n";
-            break;
-        }
-        case IRType::PushCallArg: {
-            os << "ARG " << stmt.op1->getName() << "\n";
-            break;
-        }
-        case IRType::InvokeFunc: {
-            os << stmt.op1->getName() << " := CALL " << stmt.op2->getName()
-               << "\n";
-            break;
-        }
-        case IRType::Read: {
-            os << "READ " << stmt.op1->getName() << "\n";
-            break;
-        }
-        case IRType::Write: {
-            os << "WRITE " << stmt.op1->getName() << "\n";
-            break;
-        }
-        case IRType::FuncDecl: {
-            splc_error();
-            break;
-        }
-        }
-        os.flush();
-    }
+    void writeFunction(std::ostream &os, Ptr<IRFunction> func);
 
-    void writeFunction(std::ostream &os, Ptr<IRFunction> func)
-    {
-        os << "FUNCTION " << func->name << " :\n";
-        size_t cnt = 0;
-        for (auto &ent : func->paramMap) {
-            os << "PARAM " << ent.first << "\n";
-        }
-
-        for (auto &var : func->varList) {
-            if (var->isConst) {
-                // auto dummy = getTmpVar();
-                // dummy->name = var->name;
-                // Ptr<IRStmt> decl =
-                //     makeSharedPtr<IRStmt>(IRType::Assign, dummy, var);
-                // writeIRStmt(os, *decl);
-            }
-            else {
-                auto dummy = getTmpVar();
-                dummy->name = var->name;
-                dummy->emplaceValue(0ULL);
-                dummy->isConst = 1;
-                Ptr<IRStmt> decl =
-                    makeSharedPtr<IRStmt>(IRType::Assign, var, dummy);
-                writeIRStmt(os, *decl);
-            }
-        }
-
-        for (auto &stmt : func->functionBody) {
-            writeIRStmt(os, *stmt);
-        }
-    }
-
-    void writeAllIRStmt(std::ostream &os)
-    {
-        for (auto func : funcMap) {
-            writeFunction(os, func.second);
-        }
-    }
+    void writeAllIRStmt(std::ostream &os);
 
     void writeProgram(std::ostream &os) { writeAllIRStmt(os); }
 
-    Ptr<IRFunction> registerFunction(IRIDType funcName, Type *retTy,
-                                     const IRVec<Type *> &paramTys,
-                                     const IRVec<IRIDType> paramIDs)
-    {
-        splc_dbgassert(paramTys.size() == paramIDs.size());
-        // let us just assume all are integers.
-        auto function = makeSharedPtr<IRFunction>(funcName, retTy);
-        IRVec<IRPair<IRIDType, Ptr<IRVar>>> params;
-        params.reserve(paramIDs.size());
-        std::transform(
-            paramTys.begin(), paramTys.end(), paramIDs.begin(),
-            std::back_inserter(params), [](Type *pTy, IRIDType pID) {
-                return IRPair<IRIDType, Ptr<IRVar>>{
-                    pID, makeSharedPtr<IRVar>(pID, IRVarType::Variable, pTy)};
-            });
+    void registerFunction(PtrAST funcRoot);
 
-        for (auto &p : params) {
-            SPLC_LOG_WARN(nullptr, false)
-                << "established parameter mapping from " << p.first << " to "
-                << p.second->getName();
-        }
-        function->paramMap.insert(params.begin(), params.end());
-        function->varMap.insert(params.begin(), params.end());
-        for (auto &ent : function->paramMap) {
-            SPLC_LOG_WARN(nullptr, false)
-                << "Get param: " << ent.first << ", " << ent.second->getName();
-        }
-        funcMap.insert({funcName, function});
-        return function;
-    }
+    // register stmt
+    void recRegisterStmts(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot);
+    void recRegisterIterStmt(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot);
+    void recRegisterSelStmt(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot);
+    void recRegisterJumpStmt(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot);
 
-    void parseAST(PtrAST astRoot);
+    // register expr
+    void recRegisterExprs(IRVec<PtrIRStmt> stmtList, PtrAST exprRoot);
+    // TODO: May can combine
+    PtrIRVar recRegisterBasicExpr(IRVec<PtrIRStmt> stmtList, PtrAST exprRoot);
+    IRPair<PtrIRVar, PtrIRVar> recRegisterCondExpr(IRVec<PtrIRStmt> stmtList,
+                                                   PtrAST exprRoot);
+
+    void recRegisterInitDecltr(IRVec<PtrIRStmt> stmtList, PtrAST dirDecltr);
+
+    void recRegisterDeclVal(IRVec<PtrIRStmt> stmtList, PtrAST declRoot);
+
+    void recursiveParseAST(PtrAST parseRoot);
+
+    PtrIRVar getTmpLabel();
+    PtrIRVar getTmpVar();
 
     size_t allocCnt = 0;
     TypeContext &tyCtxt;
-    Ptr<ASTContext> rootCtxt; ///< TODO
+    Ptr<ASTContext> rootCtxt;
     IRMap<IRIDType, Ptr<IRFunction>> funcMap;
 
-    // private:
-    Ptr<IRVar> createVar(IRIDType id, IRVarType type, Type *ty);
-
-    Ptr<IRVar> getTmpVar();
-
-    Ptr<IRVar> getTmpLabel();
-
-    void parseExpr(PtrAST exprRoot);
-
-    void parseDecl(PtrAST declRoot);
-
-    void recRegisterInitDecltr(IRVec<Ptr<IRVar>> &varList,
-                               IRMap<IRIDType, Ptr<IRVar>> &varMap,
-                               IRVec<Ptr<IRStmt>> &stmtList, PtrAST dirDecltr);
-
-    void recRegisterDeclVal(IRVec<Ptr<IRVar>> &varList,
-                            IRMap<IRIDType, Ptr<IRVar>> &varMap,
-                            IRVec<Ptr<IRStmt>> &stmtList, PtrAST declRoot);
-
-    // void recfindFuncDecls(IRVec<Ptr<IRVar>> &varList,
-    //                       IRMap<IRIDType, Ptr<IRVar>> &varMap, PtrAST
-    //                       funcRoot, IRIDType funcID);
-
-    Ptr<IRVar> recRegisterExprs(IRVec<Ptr<IRVar>> &varList,
-                                IRMap<IRIDType, Ptr<IRVar>> &varMap,
-                                IRVec<Ptr<IRStmt>> &stmtList, PtrAST stmtRoot);
-
-    void recRegisterSingleStmt(IRVec<Ptr<IRVar>> &varList,
-                               IRMap<IRIDType, Ptr<IRVar>> &varMap,
-                               IRVec<Ptr<IRStmt>> &stmtList, PtrAST stmtRoot);
-
-    void recRegisterStmts(IRVec<Ptr<IRVar>> &varList,
-                          IRMap<IRIDType, Ptr<IRVar>> &varMap,
-                          IRVec<Ptr<IRStmt>> &stmtList, PtrAST stmtRoot);
-
-    void parseFunction(PtrAST funcRoot);
-
-    void recursiveParseAST(PtrAST parseRoot);
+    IRVec<PtrIRVar> varList;
+    IRMap<IRIDType, PtrIRVar> varMap;
 };
 
-inline void linkStmt(Ptr<IRStmt> prev, Ptr<IRStmt> next)
+class IRBuilderHelper {
+  public:
+    static IRIDType recfindFuncID(PtrAST funcRoot);
+
+    static IRVec<IRIDType> recfindFuncParam(PtrAST funcRoot)
+    {
+        IRVec<IRIDType> vec;
+        _recfindFuncParam(vec, funcRoot);
+        return vec;
+    }
+
+    static IRBranchType reverseBranchType(ASTSymbolType type)
+    {
+        IRBranchType branchType;
+        switch (type) {
+        case ASTSymbolType::OpLT: {
+            branchType = IRBranchType::GE;
+            break;
+        }
+        case ASTSymbolType::OpLE: {
+            branchType = IRBranchType::GT;
+            break;
+        }
+        case ASTSymbolType::OpGT: {
+            branchType = IRBranchType::LE;
+            break;
+        }
+        case ASTSymbolType::OpGE: {
+            branchType = IRBranchType::LT;
+            break;
+        }
+        case ASTSymbolType::OpEQ: {
+            branchType = IRBranchType::NE;
+            break;
+        }
+        case ASTSymbolType::OpNE: {
+            branchType = IRBranchType::EQ;
+            break;
+        }
+        default:
+            splc_error();
+        }
+        return branchType;
+    }
+
+  protected:
+    static void _recfindFuncParam(IRVec<IRIDType> &vec, PtrAST funcRoot);
+};
+
+inline void linkStmt(PtrIRStmt prev, PtrIRStmt next)
 {
     prev->next = next.get();
     next->prev = prev.get();
