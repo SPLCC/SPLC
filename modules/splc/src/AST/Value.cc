@@ -1,5 +1,5 @@
 #include "AST/Value.hh"
-#include "AST/AST.hh"
+#include "AST/DerivedAST.hh"
 
 namespace splc {
 

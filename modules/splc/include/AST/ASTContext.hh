@@ -26,11 +26,11 @@ class ASTContext {
 
     const auto &getSymbolList() const { return symbolList; }
 
-    bool isSymbolDeclared(SymEntryType symEntTy_,
-                          std::string_view name_) const noexcept;
+    bool isSymDeclared(SymEntryType symEntTy_,
+                       std::string_view name_) const noexcept;
 
-    bool isSymbolDefined(SymEntryType symEntTy_,
-                         std::string_view name_) const noexcept;
+    bool isSymDefined(SymEntryType symEntTy_,
+                      std::string_view name_) const noexcept;
 
     SymbolEntry getSymbol(SymEntryType symEntTy_, std::string_view name_);
 

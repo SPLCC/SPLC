@@ -9,8 +9,8 @@
 
 #include "Core/splc.hh"
 
-#include "AST/AST.hh"
 #include "AST/ASTContextManager.hh"
+#include "AST/DerivedAST.hh"
 
 #include "Translation/TranslationBase.hh"
 #include "Translation/TranslationOption.hh"
@@ -38,25 +38,9 @@ class TranslationManager {
 
     void setTransUnitRootAST(PtrAST rootNode_) { tunit->rootNode = rootNode_; }
 
-    ///
-    /// \brief Create a new node, and add all following children `PtrAST`
-    /// to the list of its children.
-    ///
-    template <IsBaseAST ASTType, AllArePtrAST... Children>
-    Ptr<ASTType> makeAST(ASTSymType type, const Location &loc,
-                         Children &&...children);
+    auto getTyContext() { return tunit->getTypeContext(); }
 
-    ///
-    /// \brief Create a new node, and add all following children `PtrAST`
-    /// to the list of its children.
-    ///
-    template <IsBaseAST ASTType, IsValidASTValue T, AllArePtrAST... Children>
-    Ptr<ASTType> makeAST(ASTSymType type, const Location &loc, T &&value,
-                         Children &&...children);
-
-    auto getTypeContext() { return tunit->typeContext; }
-
-    const auto getTypeContext() const { return tunit->typeContext; }
+    const auto getTyContext() const { return tunit->getTypeContext(); }
 
     Ptr<ASTContext> getCurrentASTContext() noexcept
     {
@@ -67,16 +51,16 @@ class TranslationManager {
 
     void popASTContext() noexcept { tunit->astCtxtMgr.popContext(); }
 
-    bool isSymbolDeclared(SymEntryType symEntTy,
-                          std::string_view name_) const noexcept
+    bool isSymDeclared(SymEntryType symEntTy,
+                       std::string_view name_) const noexcept
     {
-        return tunit->astCtxtMgr.isSymbolDeclared(symEntTy, name_);
+        return tunit->astCtxtMgr.isSymDeclared(symEntTy, name_);
     }
 
-    bool isSymbolDefined(SymEntryType symEntTy,
-                         std::string_view name_) const noexcept
+    bool isSymDefined(SymEntryType symEntTy,
+                      std::string_view name_) const noexcept
     {
-        return tunit->astCtxtMgr.isSymbolDefined(symEntTy, name_);
+        return tunit->astCtxtMgr.isSymDefined(symEntTy, name_);
     }
 
     SymbolEntry getSymbol(SymEntryType symEntTy, std::string_view name_);
@@ -187,27 +171,6 @@ class TranslationManager {
     // TODO: add options
     // TODO: allow manager to retrieve include options and stuff
 };
-
-template <IsBaseAST ASTType, AllArePtrAST... Children>
-inline Ptr<ASTType> TranslationManager::makeAST(ASTSymType type,
-                                                const Location &loc,
-                                                Children &&...children)
-{
-    auto parentNode = splc::makeAST<ASTType>(
-        tunit->typeContext, type, loc, std::forward<Children>(children)...);
-    return parentNode;
-}
-
-template <IsBaseAST ASTType, IsValidASTValue T, AllArePtrAST... Children>
-inline Ptr<ASTType> TranslationManager::makeAST(ASTSymType type,
-                                                const Location &loc, T &&value,
-                                                Children &&...children)
-{
-    auto parentNode = splc::makeAST<ASTType>(
-        tunit->typeContext, type, loc, std::forward<T>(value),
-        std::forward<Children>(children)...);
-    return parentNode;
-}
 
 } // namespace splc
 

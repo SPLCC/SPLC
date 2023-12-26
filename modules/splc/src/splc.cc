@@ -1,5 +1,5 @@
 #include "Core/splc.hh"
-#include "AST/AST.hh"
+#include "AST/DerivedAST.hh"
 #include "AST/ASTContext.hh"
 #include "AST/ASTProcess.hh"
 #include "IO/Driver.hh"

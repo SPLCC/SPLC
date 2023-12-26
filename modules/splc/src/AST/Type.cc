@@ -15,7 +15,7 @@
 #include "AST/TypeContext.hh"
 #include "Core/Base.hh"
 
-#include "AST/AST.hh"
+#include "AST/DerivedAST.hh"
 #include "AST/DerivedTypes.hh"
 #include "Core/Utils/Logging.hh"
 #include <algorithm>
@@ -204,7 +204,7 @@ bool FunctionType::isValidReturnType(Type *retTy)
 
 bool FunctionType::isValidArgumentType(Type *argTy)
 {
-    return argTy->isFirstClassType();
+    return argTy->isFirstClassymType();
 }
 
 //===----------------------------------------------------------------------===//

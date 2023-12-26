@@ -7,7 +7,7 @@
 
 #include "Core/splc.hh"
 
-#include "AST/AST.hh"
+#include "AST/DerivedAST.hh"
 
 namespace splc {
 

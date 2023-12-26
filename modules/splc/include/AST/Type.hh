@@ -185,7 +185,7 @@ class Type {
 
     /// Return true if the type is "first class", meaning it is a valid type for
     /// a Value.
-    bool isFirstClassType() const { return !isFunctionTy() && !isVoidTy(); }
+    bool isFirstClassymType() const { return !isFunctionTy() && !isVoidTy(); }
 
     /// Return true if the type is a valid type for a register in codegen. This
     /// includes all first-class types except struct and array types.

@@ -2,15 +2,15 @@
 
 namespace splc {
 
-bool ASTContext::isSymbolDeclared(SymEntryType symEntTy_,
-                                  std::string_view name_) const noexcept
+bool ASTContext::isSymDeclared(SymEntryType symEntTy_,
+                               std::string_view name_) const noexcept
 {
     auto it = symbolMap.find(name_);
     return (it != symbolMap.end() && it->second.symEntTy == symEntTy_);
 }
 
-bool ASTContext::isSymbolDefined(SymEntryType symEntTy_,
-                                 std::string_view name_) const noexcept
+bool ASTContext::isSymDefined(SymEntryType symEntTy_,
+                              std::string_view name_) const noexcept
 {
     auto it = symbolMap.find(name_);
     if (it == symbolMap.end())

@@ -35,29 +35,29 @@ class AST : public std::enable_shared_from_this<AST> {
     ///
     /// \brief This constructor should be called by AST internal method
     ///
-    explicit AST() noexcept : sType{ASTSymType::YYEMPTY} {}
+    explicit AST() noexcept : symType{ASTSymType::YYEMPTY} {}
 
-    AST(const ASTSymType symbolType, const Location &loc_) noexcept
-        : sType{symbolType}, loc{loc_}
+    AST(const ASTSymType symType, const Location &loc_) noexcept
+        : symType{symType}, loc{loc_}
     {
     }
 
-    AST(Ptr<TypeContext> typeContext_, const ASTSymType symbolType,
+    AST(Ptr<TypeContext> typeContext_, const ASTSymType symType,
         const Location &loc_) noexcept
-        : typeContext{typeContext_}, sType{symbolType}, loc{loc_}
+        : typeContext{typeContext_}, symType{symType}, loc{loc_}
     {
     }
 
     template <IsValidASTValue T>
-    AST(const ASTSymType symbolType, const Location &loc_, T &&value_) noexcept
-        : sType{symbolType}, loc{loc_}, value{value_}
+    AST(const ASTSymType symType, const Location &loc_, T &&value_) noexcept
+        : symType{symType}, loc{loc_}, value{value_}
     {
     }
 
     template <IsValidASTValue T>
-    AST(Ptr<TypeContext> typeContext_, const ASTSymType symbolType,
+    AST(Ptr<TypeContext> typeContext_, const ASTSymType symType,
         const Location &loc_, T &&value_) noexcept
-        : typeContext{typeContext_}, sType{symbolType}, loc{loc_}, value{value_}
+        : typeContext{typeContext_}, symType{symType}, loc{loc_}, value{value_}
     {
     }
 
@@ -88,7 +88,7 @@ class AST : public std::enable_shared_from_this<AST> {
 
     static inline bool isASTAppendable(const AST &node) noexcept
     {
-        return !isASTSymbolTypeOneOf(node.sType, ASTSymType::YYEMPTY,
+        return !isASTSymbolTypeOneOf(node.symType, ASTSymType::YYEMPTY,
                                      ASTSymType::YYEOF, ASTSymType::YYerror);
     }
 
@@ -158,7 +158,7 @@ class AST : public std::enable_shared_from_this<AST> {
 
     auto getTypeContext() const { return typeContext; }
 
-    auto getSymType() const noexcept { return sType; }
+    auto getSymType() const noexcept { return symType; }
 
     template <AllAreASTSymbolType... OtherTypes>
     bool isSymTypeOneOf(OtherTypes &&...othertypes) const noexcept
@@ -196,7 +196,7 @@ class AST : public std::enable_shared_from_this<AST> {
 
   protected:
     Ptr<TypeContext> typeContext;
-    ASTSymType sType;
+    ASTSymType symType;
     WeakPtrAST parent;
     std::vector<PtrAST> children;
     Location loc;
@@ -228,6 +228,34 @@ class AST : public std::enable_shared_from_this<AST> {
     friend Ptr<ASTType> makeAST(Ptr<TypeContext> typeContext, ASTSymType type,
                                 const Location &loc, T &&value,
                                 Children &&...children);
+
+    template <AllArePtrAST... Children>
+    static PtrAST make(ASTSymType type, const Location &loc,
+                       Children &&...children)
+    {
+        return makeAST<AST>(type, loc, children...);
+    }
+
+    template <IsValidASTValue T, AllArePtrAST... Children>
+    static PtrAST make(ASTSymType type, const Location &loc, T &&value,
+                       Children &&...children)
+    {
+        return makeAST<AST>(type, loc, value, children...);
+    }
+
+    template <AllArePtrAST... Children>
+    static PtrAST make(Ptr<TypeContext> typeContext, ASTSymType type,
+                       const Location &loc, Children &&...children)
+    {
+        return makeAST<AST>(typeContext, type, loc, children...);
+    }
+
+    template <IsValidASTValue T, AllArePtrAST... Children>
+    static PtrAST make(Ptr<TypeContext> typeContext, ASTSymType type,
+                       const Location &loc, T &&value, Children &&...children)
+    {
+        return makeAST<AST>(typeContext, type, loc, value, children...);
+    }
 
     ///
     /// Allow stream-like operation on ASTs for processing.
@@ -329,8 +357,8 @@ inline std::ostream &operator<<(std::ostream &os, const AST &node)
     using utils::logging::ControlSeq;
 
     // print node type
-    os << ControlSeq::Bold << getASTSymbolColor(node.sType)
-       << getASTSymbolName(node.sType) << ControlSeq::Reset;
+    os << ControlSeq::Bold << getASTSymbolColor(node.symType)
+       << getASTSymbolName(node.symType) << ControlSeq::Reset;
 
     // TODO: print node address (allocated)
 
@@ -361,7 +389,7 @@ inline std::ostream &operator<<(std::ostream &os, const AST &node)
         // template magic
         // TODO: add support for other types
         os << " ";
-        os << getASTSymbolColor(node.sType);
+        os << getASTSymbolColor(node.symType);
         node.visitValue(overloaded{[&](const auto arg) {},
                                    [&](ASTCharType arg) { os << arg; },
                                    [&](ASTSIntType arg) { os << arg; },

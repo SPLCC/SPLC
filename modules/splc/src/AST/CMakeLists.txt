@@ -1,6 +1,5 @@
 # splc_AST shared library
 add_library(splc_AST SHARED
-    AST.cc
     ASTBase.cc
     ASTBaseProcess.cc
     ASTBaseType.cc
@@ -9,6 +8,7 @@ add_library(splc_AST SHARED
     ASTContextManager.cc
     ASTProcess.cc
     ASTSymbol.cc
+    DerivedAST.cc
     Expr.cc
     SymbolEntry.cc
     Type.cc

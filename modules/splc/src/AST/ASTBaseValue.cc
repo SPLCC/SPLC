@@ -8,12 +8,12 @@ ASTValueType ASTHelper::getNearestValue(const AST &root) noexcept
     auto ptr = root.shared_from_this();
     decltype(ptr) nextPtr;
 
-    while (ptr->sType != ASTSymType::InitDecltr &&
+    while (ptr->symType != ASTSymType::InitDecltr &&
            (nextPtr = ptr->getParent().lock()) != nullptr)
         ptr = nextPtr;
 
     // If there isn't such one
-    if (ptr->sType != ASTSymType::InitDecltr)
+    if (ptr->symType != ASTSymType::InitDecltr)
         return std::monostate{};
 
     // Else, go inside
@@ -45,7 +45,7 @@ void ASTHelper::getIDRecursive(std::vector<ASTDeclEntityType> &vec,
     std::for_each(
         root.children.begin(), root.children.end(),
         [&vec](const Ptr<AST> &node) {
-            if (node->sType == ASTSymType::ID) {
+            if (node->symType == ASTSymType::ID) {
                 ASTIDType id = node->getValue<ASTIDType>();
                 Location loc = node->loc;
                 vec.push_back({id, loc, getNearestValue(*node)});

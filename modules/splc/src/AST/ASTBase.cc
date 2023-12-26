@@ -22,7 +22,7 @@ PtrAST AST::copy(const std::function<bool(Ptr<const AST>)> &predicate,
 {
     PtrAST ret = makeSharedPtr<AST>();
     ret->typeContext = this->typeContext;
-    ret->sType = this->sType;
+    ret->symType = this->symType;
     ret->parent = this->parent;
 
     // Copy child if and only if they satisfy the predicate.
@@ -57,12 +57,12 @@ Value AST::evaluate()
 
 Ptr<AST> ASTHelper::getPtrDeclEndPoint(AST &root) noexcept
 {
-    splc_assert(root.sType == ASTSymType::PtrDecltr);
+    splc_assert(root.symType == ASTSymType::PtrDecltr);
 
     // Use a bit hack here to remove constness
     AST *tmp = &root;
     while (!tmp->children.empty()) {
-        if (tmp->children.back()->sType != ASTSymType::PtrDecltr) {
+        if (tmp->children.back()->symType != ASTSymType::PtrDecltr) {
             return tmp->shared_from_this();
         }
         tmp = tmp->children.back().get();
