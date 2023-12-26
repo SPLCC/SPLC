@@ -35,8 +35,6 @@ class IRBuilder {
     PtrIRVar recRegisterCallExpr(IRVec<PtrIRStmt> stmtList, PtrAST exprRoot);
     void recRegisterCondExpr(IRVec<PtrIRStmt> stmtList, PtrAST exprRoot, PtrIRVar lbt, PtrIRVar lbf);
 
-    void recRegisterInitDecltr(IRVec<PtrIRStmt> stmtList, PtrAST dirDecltr);
-
     void recRegisterDeclVal(IRVec<PtrIRStmt> stmtList, PtrAST declRoot);
 
     void recursiveParseAST(PtrAST parseRoot);
@@ -64,39 +62,7 @@ class IRBuilderHelper {
         return vec;
     }
 
-    static IRBranchType convSymbolType(ASTSymbolType type)
-    {
-        IRBranchType branchType;
-        switch (type) {
-        case ASTSymbolType::OpLT: {
-            branchType = IRBranchType::LT;
-            break;
-        }
-        case ASTSymbolType::OpLE: {
-            branchType = IRBranchType::LE;
-            break;
-        }
-        case ASTSymbolType::OpGT: {
-            branchType = IRBranchType::GT;
-            break;
-        }
-        case ASTSymbolType::OpGE: {
-            branchType = IRBranchType::GE;
-            break;
-        }
-        case ASTSymbolType::OpEQ: {
-            branchType = IRBranchType::EQ;
-            break;
-        }
-        case ASTSymbolType::OpNE: {
-            branchType = IRBranchType::NE;
-            break;
-        }
-        default:
-            splc_error();
-        }
-        return branchType;
-    }
+    static IRIDType recFindNearestIDBelow(PtrAST declRoot);
 
   protected:
     static void _recfindFuncParam(IRVec<IRIDType> &vec, PtrAST funcRoot);

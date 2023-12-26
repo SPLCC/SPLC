@@ -290,10 +290,8 @@ void IRBuilder::recRegisterStmts(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot)
         }
     }
     else if (stmtRoot->getSymbolType() == ASTSymbolType::Decl) {
-        for (auto &child : stmtRoot->getChildren()) {
-            recRegisterDeclVal(stmtList, child);
-            // ASSIGN INITIAL VALUES, IF NONCONSTEXPR
-        }
+        // ASSIGN INITIAL VALUES, IF NONCONSTEXPR
+        recRegisterDeclVal(stmtList, stmtRoot);
     }
     else if (stmtRoot->getSymbolType() == ASTSymbolType::Stmt) {
         PtrAST realStmt = stmtRoot->getChildren()[0];
@@ -420,12 +418,49 @@ void IRBuilder::recRegisterJumpStmt(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot)
     stmtList.push_back(IRStmt::createReturnStmt(var));
 }
 
-void IRBuilder::recRegisterInitDecltr(IRVec<PtrIRStmt> stmtList, PtrAST dirDecltr) {
+void IRBuilder::recRegisterDeclVal(IRVec<PtrIRStmt> stmtList, PtrAST declRoot)
+{
     // TODO
-}
+    if (isASTSymbolTypeOneOfThem(declRoot->getSymbolType(),
+                                 ASTSymbolType::Decl)) {
+        recRegisterDeclVal(stmtList, declRoot->getChildren()[0]);
+    }
+    else if (declRoot->getSymbolType() == ASTSymbolType::DirDecl) {
+        splc_dbgassert(declRoot->getChildrenNum() == 2);
+        for (auto &initDecltr : declRoot->getChildren()[1]->getChildren()) {
+            PtrAST decltr = initDecltr->getChildren()[0];
 
-void IRBuilder::recRegisterDeclVal(IRVec<PtrIRStmt> stmtList, PtrAST declRoot) {
-    // TODO
+            if (decltr->getChildren()[0]->getSymbolType() ==
+                ASTSymbolType::DirDecltr) {
+                IRIDType id = decltr->getChildren()[0]
+                                  ->getChildren()[0]
+                                  ->getValue<IRIDType>();
+                auto it = varMap.find(id);
+                splc_dbgassert(it == varMap.end())
+                    << " redefinition id in varMap: " << id;
+                PtrIRVar var = IRVar::createVariableVar(id, &tyCtxt.SInt32Ty);
+
+                varList.push_back(var);
+                varMap.insert({id, var});
+                SPLC_LOG_DEBUG(nullptr, false)
+                    << " defined id in varMap: " << id;
+
+                // Process initializer, if any
+                if (initDecltr->getChildrenNum() == 3) {
+                    PtrIRVar init = recRegisterExprs(
+                        stmtList, initDecltr->getChildren()[2]);
+                    stmtList.push_back(IRStmt::createAssignStmt(var, init));
+                }
+            }
+            else if (declRoot->getChildren()[0]->getSymbolType() ==
+                     ASTSymbolType::PtrDecltr) {
+                splc_error() << "Not support pointer decltr\n";
+            }
+            else {
+                splc_error();
+            }
+        }
+    }
 }
 
 PtrIRVar IRBuilder::getTmpLabel()
