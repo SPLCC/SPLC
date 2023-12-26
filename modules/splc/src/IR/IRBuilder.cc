@@ -39,8 +39,7 @@ void IRBuilder::registerFunction(PtrAST funcRoot)
 
     // TODO (future): support more type
     for (auto &pid : paramIDs) {
-        params.emplace_back(pid,
-                            IRVar::createVariableVar(pid, &tyCtxt.SInt32Ty));
+        params.emplace_back(pid, IRVar::createVariableVar(pid, &tyCtxt.SInt32Ty));
     }
 
     for (auto &p : params) {
