@@ -8,18 +8,18 @@ ASTValueType ASTHelper::getNearestValue(const AST &root) noexcept
     auto ptr = root.shared_from_this();
     decltype(ptr) nextPtr;
 
-    while (ptr->symbolType != ASTSymbolType::InitDecltr &&
+    while (ptr->sType != ASTSymType::InitDecltr &&
            (nextPtr = ptr->getParent().lock()) != nullptr)
         ptr = nextPtr;
 
     // If there isn't such one
-    if (ptr->symbolType != ASTSymbolType::InitDecltr)
+    if (ptr->sType != ASTSymType::InitDecltr)
         return std::monostate{};
 
     // Else, go inside
     auto it =
         std::find_if(ptr->children.begin(), ptr->children.end(), [](auto &p) {
-            return p->symbolType == ASTSymbolType::Initializer;
+            return p->isSymTypeOneOf(ASTSymType::Initializer);
         });
 
     if (it == ptr->children.end())
@@ -31,7 +31,7 @@ ASTValueType ASTHelper::getNearestValue(const AST &root) noexcept
     // ASSUMPTION: ONLY ConstExpr in intiializer
     auto &exprNode = ptr->children[0];
     for (auto &child : exprNode->children) {
-        if (child->getSymbolType() != ASTSymbolType::Constant)
+        if (child->getSymType() != ASTSymType::Constant)
             return {};
     }
     ptr = ptr->children[0]->children[0]->children[0];
@@ -45,22 +45,20 @@ void ASTHelper::getIDRecursive(std::vector<ASTDeclEntityType> &vec,
     std::for_each(
         root.children.begin(), root.children.end(),
         [&vec](const Ptr<AST> &node) {
-            if (node->symbolType == ASTSymbolType::ID) {
+            if (node->sType == ASTSymType::ID) {
                 ASTIDType id = node->getValue<ASTIDType>();
                 Location loc = node->loc;
                 vec.push_back({id, loc, getNearestValue(*node)});
             }
-            else if (isASTSymbolTypeOneOf(
-                         node->symbolType, ASTSymbolType::FuncDef,
-                         ASTSymbolType::FuncDecl, ASTSymbolType::FuncDecltr,
-                         ASTSymbolType::DirFuncDecltr, ASTSymbolType::PtrDecltr,
-                         ASTSymbolType::ID, ASTSymbolType::DirDecl,
-                         ASTSymbolType::InitDecltrList,
-                         ASTSymbolType::InitDecltr, ASTSymbolType::Decltr,
-                         ASTSymbolType::DirDecltr,
-                         ASTSymbolType::WrappedDirDecltr,
-                         ASTSymbolType::ParamTypeList, ASTSymbolType::ParamList,
-                         ASTSymbolType::ParamDecltr)) {
+            else if (node->isSymTypeOneOf(
+                         ASTSymType::FuncDef, ASTSymType::FuncDecl,
+                         ASTSymType::FuncDecltr, ASTSymType::DirFuncDecltr,
+                         ASTSymType::PtrDecltr, ASTSymType::ID,
+                         ASTSymType::DirDecl, ASTSymType::InitDecltrList,
+                         ASTSymType::InitDecltr, ASTSymType::Decltr,
+                         ASTSymType::DirDecltr, ASTSymType::WrappedDirDecltr,
+                         ASTSymType::ParamTypeList, ASTSymType::ParamList,
+                         ASTSymType::ParamDecltr)) {
                 getIDRecursive(vec, *node);
             }
         });
@@ -77,8 +75,7 @@ ASTHelper::getNamedDeclRecursive(const AST &root) noexcept
 // TODO(future): get type also
 std::vector<ASTDeclEntityType> AST::getNamedDeclEntities() const
 {
-    splc_dbgassert(isASTSymbolTypeOneOf(symbolType, ASTSymbolType::Decl,
-                                            ASTSymbolType::FuncDecl,
-                                            ASTSymbolType::FuncDef));
+    splc_dbgassert(isSymTypeOneOf(ASTSymType::Decl, ASTSymType::FuncDecl,
+                                  ASTSymType::FuncDef));
     return ASTHelper::getNamedDeclRecursive(*this);
 }

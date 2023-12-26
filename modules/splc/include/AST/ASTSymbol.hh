@@ -213,12 +213,12 @@ enum class symbol_kind_type {
     IDWrapper = 194          // IDWrapper
 };
 
-using SPLSymbolType = symbol_kind_type;
+using SPLSymType = symbol_kind_type;
 
-std::string_view getSymbolName(SPLSymbolType sym) noexcept;
+std::string_view getSymbolName(SPLSymType sym) noexcept;
 
 std::ostream &printSymbolConsoleTraits(std::ostream &os,
-                                       SPLSymbolType symbol) noexcept;
+                                       SPLSymType symbol) noexcept;
 
 inline std::ostream &operator<<(std::ostream &os, symbol_kind_type sym) noexcept
 {
@@ -235,50 +235,49 @@ inline std::ostream &operator<<(std::ostream &os, symbol_kind_type sym) noexcept
 /// using its symbol_kind_type, thus creating encapsulation and
 /// allow easy debugging/replacement of the actual ASTSymbolType.
 // using ASTSymbolType = IO::Parser::symbol_kind::symbol_kind_type;
-using ASTSymbolType = internal::SPLSymbolType;
+using ASTSymType = internal::SPLSymType;
 
-inline std::string_view getASTSymbolName(ASTSymbolType sym) noexcept
+inline std::string_view getASTSymbolName(ASTSymType sym) noexcept
 {
     // return IO::Parser::symbol_name(sym);
     return internal::getSymbolName(sym);
 }
 
 // TODO: maybe implement
-bool isSymExpr(ASTSymbolType sym) noexcept;
-bool isSymStmt(ASTSymbolType sym) noexcept;
-bool isSymTypeSpecifier(ASTSymbolType sym) noexcept;
-bool isSymTypeQualifier(ASTSymbolType sym) noexcept;
-bool isSymDeclSpecChildren(ASTSymbolType sym) noexcept;
-bool isSymStruct(ASTSymbolType sym) noexcept;
-bool isSymStruct(ASTSymbolType sym) noexcept;
+bool isSymExpr(ASTSymType sym) noexcept;
+bool isSymStmt(ASTSymType sym) noexcept;
+bool isSymTypeSpecifier(ASTSymType sym) noexcept;
+bool isSymTypeQualifier(ASTSymType sym) noexcept;
+bool isSymDeclSpecChildren(ASTSymType sym) noexcept;
+bool isSymStruct(ASTSymType sym) noexcept;
+bool isSymStruct(ASTSymType sym) noexcept;
 
 //===----------------------------------------------------------------------===//
 //                      ASTSymbolType Helper Templates
 //===----------------------------------------------------------------------===//
 template <class... Types>
 concept AllAreASTSymbolType =
-    (std::is_same_v<ASTSymbolType,
-                    typename std::remove_reference<Types>::type> &&
+    (std::is_same_v<ASTSymType, typename std::remove_reference<Types>::type> &&
      ...);
 
 template <AllAreASTSymbolType... SourceTypes>
-bool isASTSymbolTypeOneOf(ASTSymbolType type, SourceTypes &&...otherTypes)
+bool isASTSymbolTypeOneOf(ASTSymType type, SourceTypes &&...otherTypes)
 {
     return ((type == otherTypes) || ...);
 }
 
 class ASTSymbolColorManipulator {
   public:
-    friend ASTSymbolColorManipulator getASTSymbolColor(ASTSymbolType sym);
+    friend ASTSymbolColorManipulator getASTSymbolColor(ASTSymType sym);
     friend std::ostream &operator<<(std::ostream &os,
                                     const ASTSymbolColorManipulator &m);
 
   private:
-    ASTSymbolType sym;
-    ASTSymbolColorManipulator(ASTSymbolType sym_) : sym{sym_} {}
+    ASTSymType sym;
+    ASTSymbolColorManipulator(ASTSymType sym_) : sym{sym_} {}
 };
 
-inline ASTSymbolColorManipulator getASTSymbolColor(ASTSymbolType sym)
+inline ASTSymbolColorManipulator getASTSymbolColor(ASTSymType sym)
 {
     return ASTSymbolColorManipulator{sym};
 }

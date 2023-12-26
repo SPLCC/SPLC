@@ -60,245 +60,245 @@ const yytname_[] =
 };
 // clang-format on
 
-std::string_view getSymbolName(ASTSymbolType symbol) noexcept
+std::string_view getSymbolName(ASTSymType symbol) noexcept
 {
     return {yytname_[static_cast<int>(symbol)]};
 }
 
 std::ostream &printSymbolConsoleTraits(std::ostream &os,
-                                       SPLSymbolType symbol) noexcept
+                                       SPLSymType symbol) noexcept
 {
     switch (symbol) {
-    case SPLSymbolType::YYNTOKENS:
-    case SPLSymbolType::YYEMPTY:
-    case SPLSymbolType::YYEOF:
-    case SPLSymbolType::YYerror:
-    case SPLSymbolType::YYUNDEF: {
+    case SPLSymType::YYNTOKENS:
+    case SPLSymType::YYEMPTY:
+    case SPLSymType::YYEOF:
+    case SPLSymType::YYerror:
+    case SPLSymType::YYUNDEF: {
         os << ControlSeq::Bold << ControlSeq::Red;
         break;
     }
-    case SPLSymbolType::KwdAuto:
-    case SPLSymbolType::KwdExtern:
-    case SPLSymbolType::KwdRegister:
-    case SPLSymbolType::KwdStatic:
-    case SPLSymbolType::KwdTypedef:
-    case SPLSymbolType::KwdConst:
-    case SPLSymbolType::KwdRestrict:
-    case SPLSymbolType::KwdVolatile:
-    case SPLSymbolType::KwdInline:
-    case SPLSymbolType::VoidTy:
-    case SPLSymbolType::IntTy:
-    case SPLSymbolType::SignedTy:
-    case SPLSymbolType::UnsignedTy:
-    case SPLSymbolType::LongTy:
-    case SPLSymbolType::FloatTy:
-    case SPLSymbolType::DoubleTy:
-    case SPLSymbolType::CharTy: {
+    case SPLSymType::KwdAuto:
+    case SPLSymType::KwdExtern:
+    case SPLSymType::KwdRegister:
+    case SPLSymType::KwdStatic:
+    case SPLSymType::KwdTypedef:
+    case SPLSymType::KwdConst:
+    case SPLSymType::KwdRestrict:
+    case SPLSymType::KwdVolatile:
+    case SPLSymType::KwdInline:
+    case SPLSymType::VoidTy:
+    case SPLSymType::IntTy:
+    case SPLSymType::SignedTy:
+    case SPLSymType::UnsignedTy:
+    case SPLSymType::LongTy:
+    case SPLSymType::FloatTy:
+    case SPLSymType::DoubleTy:
+    case SPLSymType::CharTy: {
         os << ControlSeq::Bold << ControlSeq::Blue;
         break;
     }
-    case SPLSymbolType::KwdEnum:
-    case SPLSymbolType::KwdStruct:
-    case SPLSymbolType::KwdUnion:
-    case SPLSymbolType::KwdIf:
-    case SPLSymbolType::KwdElse:
-    case SPLSymbolType::KwdSwitch:
-    case SPLSymbolType::KwdWhile:
-    case SPLSymbolType::KwdFor:
-    case SPLSymbolType::KwdDo:
-    case SPLSymbolType::KwdDefault:
-    case SPLSymbolType::KwdCase:
-    case SPLSymbolType::KwdGoto:
-    case SPLSymbolType::KwdContinue:
-    case SPLSymbolType::KwdBreak:
-    case SPLSymbolType::KwdReturn: {
+    case SPLSymType::KwdEnum:
+    case SPLSymType::KwdStruct:
+    case SPLSymType::KwdUnion:
+    case SPLSymType::KwdIf:
+    case SPLSymType::KwdElse:
+    case SPLSymType::KwdSwitch:
+    case SPLSymType::KwdWhile:
+    case SPLSymType::KwdFor:
+    case SPLSymType::KwdDo:
+    case SPLSymType::KwdDefault:
+    case SPLSymType::KwdCase:
+    case SPLSymType::KwdGoto:
+    case SPLSymType::KwdContinue:
+    case SPLSymType::KwdBreak:
+    case SPLSymType::KwdReturn: {
         os << ControlSeq::Bold << ControlSeq::Magenta;
         break;
     }
-    case SPLSymbolType::ID:
-    case SPLSymbolType::TypedefID: {
+    case SPLSymType::ID:
+    case SPLSymType::TypedefID: {
         os << ControlSeq::Bold << ControlSeq::BrightBlue;
         break;
     }
-    case SPLSymbolType::OpAssign:
-    case SPLSymbolType::OpMulAssign:
-    case SPLSymbolType::OpDivAssign:
-    case SPLSymbolType::OpModAssign:
-    case SPLSymbolType::OpPlusAssign:
-    case SPLSymbolType::OpMinusAssign:
-    case SPLSymbolType::OpLShiftAssign:
-    case SPLSymbolType::OpRShiftAssign:
-    case SPLSymbolType::OpBAndAssign:
-    case SPLSymbolType::OpBXorAssign:
-    case SPLSymbolType::OpBOrAssign:
-    case SPLSymbolType::OpAnd:
-    case SPLSymbolType::OpOr:
-    case SPLSymbolType::OpNot:
-    case SPLSymbolType::OpLT:
-    case SPLSymbolType::OpLE:
-    case SPLSymbolType::OpGT:
-    case SPLSymbolType::OpGE:
-    case SPLSymbolType::OpNE:
-    case SPLSymbolType::OpEQ:
-    case SPLSymbolType::OpQMark:
-    case SPLSymbolType::OpColon:
-    case SPLSymbolType::OpLShift:
-    case SPLSymbolType::OpRShift:
-    case SPLSymbolType::OpBAnd:
-    case SPLSymbolType::OpBOr:
-    case SPLSymbolType::OpBNot:
-    case SPLSymbolType::OpBXor:
-    case SPLSymbolType::OpDPlus:
-    case SPLSymbolType::OpDMinus:
-    case SPLSymbolType::OpPlus:
-    case SPLSymbolType::OpMinus:
-    case SPLSymbolType::OpAstrk:
-    case SPLSymbolType::OpDiv:
-    case SPLSymbolType::OpMod:
-    case SPLSymbolType::OpDot:
-    case SPLSymbolType::OpRArrow:
-    case SPLSymbolType::OpSizeOf:
-    case SPLSymbolType::OpLSB:
-    case SPLSymbolType::OpRSB:
-    case SPLSymbolType::OpComma:
-    case SPLSymbolType::OpEllipsis: {
+    case SPLSymType::OpAssign:
+    case SPLSymType::OpMulAssign:
+    case SPLSymType::OpDivAssign:
+    case SPLSymType::OpModAssign:
+    case SPLSymType::OpPlusAssign:
+    case SPLSymType::OpMinusAssign:
+    case SPLSymType::OpLShiftAssign:
+    case SPLSymType::OpRShiftAssign:
+    case SPLSymType::OpBAndAssign:
+    case SPLSymType::OpBXorAssign:
+    case SPLSymType::OpBOrAssign:
+    case SPLSymType::OpAnd:
+    case SPLSymType::OpOr:
+    case SPLSymType::OpNot:
+    case SPLSymType::OpLT:
+    case SPLSymType::OpLE:
+    case SPLSymType::OpGT:
+    case SPLSymType::OpGE:
+    case SPLSymType::OpNE:
+    case SPLSymType::OpEQ:
+    case SPLSymType::OpQMark:
+    case SPLSymType::OpColon:
+    case SPLSymType::OpLShift:
+    case SPLSymType::OpRShift:
+    case SPLSymType::OpBAnd:
+    case SPLSymType::OpBOr:
+    case SPLSymType::OpBNot:
+    case SPLSymType::OpBXor:
+    case SPLSymType::OpDPlus:
+    case SPLSymType::OpDMinus:
+    case SPLSymType::OpPlus:
+    case SPLSymType::OpMinus:
+    case SPLSymType::OpAstrk:
+    case SPLSymType::OpDiv:
+    case SPLSymType::OpMod:
+    case SPLSymType::OpDot:
+    case SPLSymType::OpRArrow:
+    case SPLSymType::OpSizeOf:
+    case SPLSymType::OpLSB:
+    case SPLSymType::OpRSB:
+    case SPLSymType::OpComma:
+    case SPLSymType::OpEllipsis: {
         break;
     }
-    case SPLSymbolType::PSemi:
-    case SPLSymbolType::PLC:
-    case SPLSymbolType::PRC:
-    case SPLSymbolType::PLP:
-    case SPLSymbolType::PRP: {
+    case SPLSymType::PSemi:
+    case SPLSymType::PLC:
+    case SPLSymType::PRC:
+    case SPLSymType::PLP:
+    case SPLSymType::PRP: {
         os << ControlSeq::Green;
         break;
     }
-    case SPLSymbolType::UIntLiteral:
-    case SPLSymbolType::SIntLiteral:
-    case SPLSymbolType::FloatLiteral: {
+    case SPLSymType::UIntLiteral:
+    case SPLSymType::SIntLiteral:
+    case SPLSymType::FloatLiteral: {
         os << ControlSeq::Bold << ControlSeq::Green;
         break;
     }
-    case SPLSymbolType::CharLiteral:
-    case SPLSymbolType::StrUnit: {
+    case SPLSymType::CharLiteral:
+    case SPLSymType::StrUnit: {
         os << ControlSeq::Yellow;
         break;
     }
-    case SPLSymbolType::SubscriptExpr:
-    case SPLSymbolType::CallExpr:
-    case SPLSymbolType::AccessExpr:
-    case SPLSymbolType::ExplicitCastExpr:
-    case SPLSymbolType::AddrOfExpr:
-    case SPLSymbolType::DerefExpr:
-    case SPLSymbolType::SizeOfExpr: {
+    case SPLSymType::SubscriptExpr:
+    case SPLSymType::CallExpr:
+    case SPLSymType::AccessExpr:
+    case SPLSymType::ExplicitCastExpr:
+    case SPLSymType::AddrOfExpr:
+    case SPLSymType::DerefExpr:
+    case SPLSymType::SizeOfExpr: {
         os << ControlSeq::Bold << ControlSeq::BrightMagenta;
         break;
     }
-    case SPLSymbolType::KwdThen:
-    case SPLSymbolType::DecltrPrec:
-    case SPLSymbolType::FuncDeclPrec:
-    case SPLSymbolType::OpUnaryPrec:
-    case SPLSymbolType::PLParen:
-    case SPLSymbolType::PRParen:
-    case SPLSymbolType::PLSBracket:
-    case SPLSymbolType::PRSBracket:
-    case SPLSymbolType::ParseRoot:
-    case SPLSymbolType::TransUnit:
-    case SPLSymbolType::ExternDeclList:
-    case SPLSymbolType::ExternDecl:
-    case SPLSymbolType::DeclSpec:
-    case SPLSymbolType::StorageSpec:
-    case SPLSymbolType::SpecQualList:
-    case SPLSymbolType::TypeSpec:
-    case SPLSymbolType::FuncSpec:
-    case SPLSymbolType::TypeQual:
-    case SPLSymbolType::TypeName:
-    case SPLSymbolType::BuiltinTypeSpec:
-    case SPLSymbolType::AbsDecltr:
-    case SPLSymbolType::DirAbsDecltr:
-    case SPLSymbolType::StructOrUnionSpec:
-    case SPLSymbolType::StructOrUnion:
-    case SPLSymbolType::StructDeclBody:
-    case SPLSymbolType::StructDeclList:
-    case SPLSymbolType::StructDecl:
-    case SPLSymbolType::StructDecltrList:
-    case SPLSymbolType::StructDecltr:
-    case SPLSymbolType::EnumSpec:
-    case SPLSymbolType::EnumBody:
-    case SPLSymbolType::EnumeratorList:
-    case SPLSymbolType::Enumerator:
-    case SPLSymbolType::EnumConst:
-    case SPLSymbolType::Decltr:
-    case SPLSymbolType::DirDecltr:
-    case SPLSymbolType::WrappedDirDecltr:
-    case SPLSymbolType::PtrDecltr:
-    case SPLSymbolType::TypeQualList:
-    case SPLSymbolType::Decl:
-    case SPLSymbolType::DirDecl:
-    case SPLSymbolType::InitDecltrList:
-    case SPLSymbolType::InitDecltr:
-    case SPLSymbolType::Initializer:
-    case SPLSymbolType::InitializerList:
-    case SPLSymbolType::Designation:
-    case SPLSymbolType::DesignatorList:
-    case SPLSymbolType::Designator:
-    case SPLSymbolType::FuncDef:
-    case SPLSymbolType::FuncDecl:
-    case SPLSymbolType::FuncDecltr:
-    case SPLSymbolType::DirFuncDecltr:
-    case SPLSymbolType::DirDecltrForFunc:
-    case SPLSymbolType::ParamTypeList:
-    case SPLSymbolType::ParamList:
-    case SPLSymbolType::ParamDecltr: {
+    case SPLSymType::KwdThen:
+    case SPLSymType::DecltrPrec:
+    case SPLSymType::FuncDeclPrec:
+    case SPLSymType::OpUnaryPrec:
+    case SPLSymType::PLParen:
+    case SPLSymType::PRParen:
+    case SPLSymType::PLSBracket:
+    case SPLSymType::PRSBracket:
+    case SPLSymType::ParseRoot:
+    case SPLSymType::TransUnit:
+    case SPLSymType::ExternDeclList:
+    case SPLSymType::ExternDecl:
+    case SPLSymType::DeclSpec:
+    case SPLSymType::StorageSpec:
+    case SPLSymType::SpecQualList:
+    case SPLSymType::TypeSpec:
+    case SPLSymType::FuncSpec:
+    case SPLSymType::TypeQual:
+    case SPLSymType::TypeName:
+    case SPLSymType::BuiltinTypeSpec:
+    case SPLSymType::AbsDecltr:
+    case SPLSymType::DirAbsDecltr:
+    case SPLSymType::StructOrUnionSpec:
+    case SPLSymType::StructOrUnion:
+    case SPLSymType::StructDeclBody:
+    case SPLSymType::StructDeclList:
+    case SPLSymType::StructDecl:
+    case SPLSymType::StructDecltrList:
+    case SPLSymType::StructDecltr:
+    case SPLSymType::EnumSpec:
+    case SPLSymType::EnumBody:
+    case SPLSymType::EnumeratorList:
+    case SPLSymType::Enumerator:
+    case SPLSymType::EnumConst:
+    case SPLSymType::Decltr:
+    case SPLSymType::DirDecltr:
+    case SPLSymType::WrappedDirDecltr:
+    case SPLSymType::PtrDecltr:
+    case SPLSymType::TypeQualList:
+    case SPLSymType::Decl:
+    case SPLSymType::DirDecl:
+    case SPLSymType::InitDecltrList:
+    case SPLSymType::InitDecltr:
+    case SPLSymType::Initializer:
+    case SPLSymType::InitializerList:
+    case SPLSymType::Designation:
+    case SPLSymType::DesignatorList:
+    case SPLSymType::Designator:
+    case SPLSymType::FuncDef:
+    case SPLSymType::FuncDecl:
+    case SPLSymType::FuncDecltr:
+    case SPLSymType::DirFuncDecltr:
+    case SPLSymType::DirDecltrForFunc:
+    case SPLSymType::ParamTypeList:
+    case SPLSymType::ParamList:
+    case SPLSymType::ParamDecltr: {
         os << ControlSeq::Bold << ControlSeq::Green;
         break;
     }
-    case SPLSymbolType::CompStmt:
-    case SPLSymbolType::GeneralStmtList:
-    case SPLSymbolType::Stmt:
-    case SPLSymbolType::ExprStmt:
-    case SPLSymbolType::SelStmt:
-    case SPLSymbolType::LabeledStmt:
-    case SPLSymbolType::JumpStmt:
-    case SPLSymbolType::IterStmt: {
+    case SPLSymType::CompStmt:
+    case SPLSymType::GeneralStmtList:
+    case SPLSymType::Stmt:
+    case SPLSymType::ExprStmt:
+    case SPLSymType::SelStmt:
+    case SPLSymType::LabeledStmt:
+    case SPLSymType::JumpStmt:
+    case SPLSymType::IterStmt: {
         os << ControlSeq::Bold << ControlSeq::BrightMagenta;
         break;
     }
-    case SPLSymbolType::ForLoopBody:
-    case SPLSymbolType::ConstExpr:
-    case SPLSymbolType::Constant:
-    case SPLSymbolType::PrimaryExpr:
-    case SPLSymbolType::PostfixExpr:
-    case SPLSymbolType::MemberAcessOp:
-    case SPLSymbolType::UnaryExpr:
-    case SPLSymbolType::UnaryArithOp:
-    case SPLSymbolType::CastExpr:
-    case SPLSymbolType::MulExpr:
-    case SPLSymbolType::MulOp:
-    case SPLSymbolType::DivOp:
-    case SPLSymbolType::AddExpr:
-    case SPLSymbolType::AddOp:
-    case SPLSymbolType::ShiftExpr:
-    case SPLSymbolType::ShiftOp:
-    case SPLSymbolType::RelExpr:
-    case SPLSymbolType::RelOp:
-    case SPLSymbolType::EqualityExpr:
-    case SPLSymbolType::EqualityOp:
-    case SPLSymbolType::OpBAndExpr:
-    case SPLSymbolType::OpBXorExpr:
-    case SPLSymbolType::OpBOrExpr:
-    case SPLSymbolType::LogicalOpAndExpr:
-    case SPLSymbolType::LogicalOpOrExpr:
-    case SPLSymbolType::CondExpr:
-    case SPLSymbolType::AssignExpr:
-    case SPLSymbolType::AssignOp:
-    case SPLSymbolType::Expr:
-    case SPLSymbolType::InitExpr:
-    case SPLSymbolType::ArgList: {
+    case SPLSymType::ForLoopBody:
+    case SPLSymType::ConstExpr:
+    case SPLSymType::Constant:
+    case SPLSymType::PrimaryExpr:
+    case SPLSymType::PostfixExpr:
+    case SPLSymType::MemberAcessOp:
+    case SPLSymType::UnaryExpr:
+    case SPLSymType::UnaryArithOp:
+    case SPLSymType::CastExpr:
+    case SPLSymType::MulExpr:
+    case SPLSymType::MulOp:
+    case SPLSymType::DivOp:
+    case SPLSymType::AddExpr:
+    case SPLSymType::AddOp:
+    case SPLSymType::ShiftExpr:
+    case SPLSymType::ShiftOp:
+    case SPLSymType::RelExpr:
+    case SPLSymType::RelOp:
+    case SPLSymType::EqualityExpr:
+    case SPLSymType::EqualityOp:
+    case SPLSymType::OpBAndExpr:
+    case SPLSymType::OpBXorExpr:
+    case SPLSymType::OpBOrExpr:
+    case SPLSymType::LogicalOpAndExpr:
+    case SPLSymType::LogicalOpOrExpr:
+    case SPLSymType::CondExpr:
+    case SPLSymType::AssignExpr:
+    case SPLSymType::AssignOp:
+    case SPLSymType::Expr:
+    case SPLSymType::InitExpr:
+    case SPLSymType::ArgList: {
         os << ControlSeq::Bold << ControlSeq::Green;
         break;
     }
-    case SPLSymbolType::StringLiteral:
-    case SPLSymbolType::IDWrapper: {
+    case SPLSymType::StringLiteral:
+    case SPLSymType::IDWrapper: {
         os << ControlSeq::Bold << ControlSeq::Yellow;
         break;
     }

@@ -41,7 +41,7 @@
     #include "AST/AST.hh"
     #include "Translation/TranslationManager.hh"
 
-    using SymbolType = splc::ASTSymbolType;
+    using SType = splc::ASTSymbolType;
 
     #undef yylex
     #define yylex scanner.yylex
@@ -191,29 +191,29 @@ ParseRoot:
     ;
 
 TransUnit: 
-      ExternDeclList { $$ = transMgr.makeAST<AST>(SymbolType::TransUnit, @$, $1); }
-    | { $$ = transMgr.makeAST<AST>(SymbolType::TransUnit, @$); }
+      ExternDeclList { $$ = transMgr.makeAST<AST>(SType::TransUnit, @$, $1); }
+    | { $$ = transMgr.makeAST<AST>(SType::TransUnit, @$); }
     ;
 
 /* External definition list: Recursive definition */
 ExternDeclList: 
-      ExternDecl { $$ = transMgr.makeAST<AST>(SymbolType::ExternDeclList, @1, $1); }
+      ExternDecl { $$ = transMgr.makeAST<AST>(SType::ExternDeclList, @1, $1); }
     | ExternDeclList ExternDecl { $1->addChild($2); $$ = $1; }
     ;
 
 /* External definition list: A single unit of one of {}. */
 ExternDecl: 
-      PSemi { $$ = transMgr.makeAST<AST>(SymbolType::ExternDecl, @$); }
-    | Decl { $$ = transMgr.makeAST<AST>(SymbolType::ExternDecl, @$, $1); }
-    | FuncDef { $$ = transMgr.makeAST<AST>(SymbolType::ExternDecl, @$, $1); }
-    | FuncDecl { $$ = transMgr.makeAST<AST>(SymbolType::ExternDecl, @$, $1); }
+      PSemi { $$ = transMgr.makeAST<AST>(SType::ExternDecl, @$); }
+    | Decl { $$ = transMgr.makeAST<AST>(SType::ExternDecl, @$, $1); }
+    | FuncDef { $$ = transMgr.makeAST<AST>(SType::ExternDecl, @$, $1); }
+    | FuncDecl { $$ = transMgr.makeAST<AST>(SType::ExternDecl, @$, $1); }
     ;
 
 DeclSpec:
-      StorageSpec { $$ = transMgr.makeAST<AST>(SymbolType::DeclSpec, @$, $1); }
-    | TypeSpec { $$ = transMgr.makeAST<AST>(SymbolType::DeclSpec, @$, $1); }
-    | TypeQual { $$ = transMgr.makeAST<AST>(SymbolType::DeclSpec, @$, $1); }
-    | FuncSpec { $$ = transMgr.makeAST<AST>(SymbolType::DeclSpec, @$, $1); }
+      StorageSpec { $$ = transMgr.makeAST<AST>(SType::DeclSpec, @$, $1); }
+    | TypeSpec { $$ = transMgr.makeAST<AST>(SType::DeclSpec, @$, $1); }
+    | TypeQual { $$ = transMgr.makeAST<AST>(SType::DeclSpec, @$, $1); }
+    | FuncSpec { $$ = transMgr.makeAST<AST>(SType::DeclSpec, @$, $1); }
     | DeclSpec TypeSpec { $1->addChild($2); $$ = $1; }
     | DeclSpec StorageSpec { $1->addChild($2); $$ = $1; }
     | DeclSpec TypeQual { $1->addChild($2); $$ = $1; }
@@ -221,41 +221,41 @@ DeclSpec:
     ;
 
 StorageSpec:
-      KwdAuto { $$ = transMgr.makeAST<AST>(SymbolType::StorageSpec, @$, $1); }
-    | KwdExtern { $$ = transMgr.makeAST<AST>(SymbolType::StorageSpec, @$, $1); }
-    | KwdRegister { $$ = transMgr.makeAST<AST>(SymbolType::StorageSpec, @$, $1); }
-    | KwdStatic { $$ = transMgr.makeAST<AST>(SymbolType::StorageSpec, @$, $1); }
-    | KwdTypedef { $$ = transMgr.makeAST<AST>(SymbolType::StorageSpec, @$, $1); }
+      KwdAuto { $$ = transMgr.makeAST<AST>(SType::StorageSpec, @$, $1); }
+    | KwdExtern { $$ = transMgr.makeAST<AST>(SType::StorageSpec, @$, $1); }
+    | KwdRegister { $$ = transMgr.makeAST<AST>(SType::StorageSpec, @$, $1); }
+    | KwdStatic { $$ = transMgr.makeAST<AST>(SType::StorageSpec, @$, $1); }
+    | KwdTypedef { $$ = transMgr.makeAST<AST>(SType::StorageSpec, @$, $1); }
     ;
 
 SpecQualList:
-      TypeSpec { $$ = transMgr.makeAST<AST>(SymbolType::SpecQualList, @$, $1); }
-    | TypeQual { $$ = transMgr.makeAST<AST>(SymbolType::SpecQualList, @$, $1); }
+      TypeSpec { $$ = transMgr.makeAST<AST>(SType::SpecQualList, @$, $1); }
+    | TypeQual { $$ = transMgr.makeAST<AST>(SType::SpecQualList, @$, $1); }
     | SpecQualList TypeSpec { $1->addChild($2); $$ = $1; }
     | SpecQualList TypeQual { $1->addChild($2); $$ = $1; }
     ;
 
 TypeSpec: 
-      BuiltinTypeSpec { $$ = transMgr.makeAST<AST>(SymbolType::TypeSpec, @$, $1); }
+      BuiltinTypeSpec { $$ = transMgr.makeAST<AST>(SType::TypeSpec, @$, $1); }
     /* | identifier {} */
-    | StructOrUnionSpec { $$ = transMgr.makeAST<AST>(SymbolType::TypeSpec, @$, $1); }
-    | EnumSpec { $$ = transMgr.makeAST<AST>(SymbolType::TypeSpec, @$, $1); }
-    | TypedefID { $$ = transMgr.makeAST<AST>(SymbolType::TypeSpec, @$, $1); }
+    | StructOrUnionSpec { $$ = transMgr.makeAST<AST>(SType::TypeSpec, @$, $1); }
+    | EnumSpec { $$ = transMgr.makeAST<AST>(SType::TypeSpec, @$, $1); }
+    | TypedefID { $$ = transMgr.makeAST<AST>(SType::TypeSpec, @$, $1); }
     ;
 
 FuncSpec:
-      KwdInline { $$ = transMgr.makeAST<AST>(SymbolType::FuncSpec, @$, $1); }
+      KwdInline { $$ = transMgr.makeAST<AST>(SType::FuncSpec, @$, $1); }
     ;
 
 TypeQual:
-      KwdConst { $$ = transMgr.makeAST<AST>(SymbolType::TypeQual, @$, $1); }
-    | KwdRestrict { $$ = transMgr.makeAST<AST>(SymbolType::TypeQual, @$, $1); }
-    | KwdVolatile { $$ = transMgr.makeAST<AST>(SymbolType::TypeQual, @$, $1); }
+      KwdConst { $$ = transMgr.makeAST<AST>(SType::TypeQual, @$, $1); }
+    | KwdRestrict { $$ = transMgr.makeAST<AST>(SType::TypeQual, @$, $1); }
+    | KwdVolatile { $$ = transMgr.makeAST<AST>(SType::TypeQual, @$, $1); }
     ;
 
 TypeName:
-      SpecQualList { $$ = transMgr.makeAST<AST>(SymbolType::TypeName, @$, $1); }
-    | SpecQualList AbsDecltr { $$ = transMgr.makeAST<AST>(SymbolType::TypeQual, @$, $1, $2); }
+      SpecQualList { $$ = transMgr.makeAST<AST>(SType::TypeName, @$, $1); }
+    | SpecQualList AbsDecltr { $$ = transMgr.makeAST<AST>(SType::TypeQual, @$, $1, $2); }
     ;
 
 BuiltinTypeSpec:
@@ -270,31 +270,31 @@ BuiltinTypeSpec:
     ;
 
 AbsDecltr:
-      PtrDecltr { $$ = transMgr.makeAST<AST>(SymbolType::AbsDecltr, @$, $1); }
+      PtrDecltr { $$ = transMgr.makeAST<AST>(SType::AbsDecltr, @$, $1); }
     | PtrDecltr DirAbsDecltr { 
         // Let PtrDecltr become the parent of this node.
         auto ptrDeclRoot = ASTHelper::getPtrDeclEndPoint(*$1);
         ptrDeclRoot->addChild($2);
-        $$ = transMgr.makeAST<AST>(SymbolType::AbsDecltr, @$, ptrDeclRoot);
+        $$ = transMgr.makeAST<AST>(SType::AbsDecltr, @$, ptrDeclRoot);
     }
     ;
 
 DirAbsDecltr:
-      PLP AbsDecltr PRP { $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $1); }
-    | DirAbsDecltr OpLSB AssignExpr OpRSB { $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $1, $2, $3, $4); }
-    | DirAbsDecltr OpLSB OpRSB { $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $1, $2, $3); }
-    | DirAbsDecltr PLP ParamList PRP { $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $1, $3); }
-    | PLP ParamList PRP { $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $2); }
+      PLP AbsDecltr PRP { $$ = transMgr.makeAST<AST>(SType::DirAbsDecltr, @$, $1); }
+    | DirAbsDecltr OpLSB AssignExpr OpRSB { $$ = transMgr.makeAST<AST>(SType::DirAbsDecltr, @$, $1, $2, $3, $4); }
+    | DirAbsDecltr OpLSB OpRSB { $$ = transMgr.makeAST<AST>(SType::DirAbsDecltr, @$, $1, $2, $3); }
+    | DirAbsDecltr PLP ParamList PRP { $$ = transMgr.makeAST<AST>(SType::DirAbsDecltr, @$, $1, $3); }
+    | PLP ParamList PRP { $$ = transMgr.makeAST<AST>(SType::DirAbsDecltr, @$, $2); }
     
-    | DirAbsDecltr OpLSB error { SPLC_LOG_ERROR(&@3, true) << "Expect ']' here"; $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $1); yyerrok; }
-    | DirAbsDecltr OpRSB { SPLC_LOG_ERROR(&@2, true) << "Expect '[' here"; $$ = transMgr.makeAST<AST>(SymbolType::DirAbsDecltr, @$, $1); yyerrok; } 
+    | DirAbsDecltr OpLSB error { SPLC_LOG_ERROR(&@3, true) << "Expect ']' here"; $$ = transMgr.makeAST<AST>(SType::DirAbsDecltr, @$, $1); yyerrok; }
+    | DirAbsDecltr OpRSB { SPLC_LOG_ERROR(&@2, true) << "Expect '[' here"; $$ = transMgr.makeAST<AST>(SType::DirAbsDecltr, @$, $1); yyerrok; } 
     ;
 
 /* Specify a structure */
 StructOrUnionSpec: 
-      StructOrUnion IDWrapper { $$ = transMgr.makeAST<AST>(SymbolType::StructOrUnionSpec, @$, $1, $2); }
-    | StructOrUnion StructDeclBody { $$ = transMgr.makeAST<AST>(SymbolType::StructOrUnionSpec, @$, $1, $2); }
-    | StructOrUnion IDWrapper StructDeclBody { $$ = transMgr.makeAST<AST>(SymbolType::StructOrUnionSpec, @$, $1, $2, $3); }
+      StructOrUnion IDWrapper { $$ = transMgr.makeAST<AST>(SType::StructOrUnionSpec, @$, $1, $2); }
+    | StructOrUnion StructDeclBody { $$ = transMgr.makeAST<AST>(SType::StructOrUnionSpec, @$, $1, $2); }
+    | StructOrUnion IDWrapper StructDeclBody { $$ = transMgr.makeAST<AST>(SType::StructOrUnionSpec, @$, $1, $2, $3); }
     ;
 
 StructOrUnion:
@@ -303,95 +303,95 @@ StructOrUnion:
     ;
 
 StructDeclBody:
-      PLC PRC { $$ = transMgr.makeAST<AST>(SymbolType::StructDeclBody, @$); }
-    | PLC StructDeclList PRC { $$ = transMgr.makeAST<AST>(SymbolType::StructDeclBody, @$, $1); }
+      PLC PRC { $$ = transMgr.makeAST<AST>(SType::StructDeclBody, @$); }
+    | PLC StructDeclList PRC { $$ = transMgr.makeAST<AST>(SType::StructDeclBody, @$, $1); }
 
-    | PLC error { SPLC_LOG_ERROR(&@1, true) << "expect token '}'"; $$ = transMgr.makeAST<AST>(SymbolType::StructDeclBody, @$); yyerrok; }
-    | PLC StructDeclList error { SPLC_LOG_ERROR(&@3, true) << "expect token '}'"; $$ = transMgr.makeAST<AST>(SymbolType::StructDeclBody, @$, $2); yyerrok; }
+    | PLC error { SPLC_LOG_ERROR(&@1, true) << "expect token '}'"; $$ = transMgr.makeAST<AST>(SType::StructDeclBody, @$); yyerrok; }
+    | PLC StructDeclList error { SPLC_LOG_ERROR(&@3, true) << "expect token '}'"; $$ = transMgr.makeAST<AST>(SType::StructDeclBody, @$, $2); yyerrok; }
     ;
 
 StructDeclList:
-      StructDecl { $$ = transMgr.makeAST<AST>(SymbolType::StructDeclBody, @$, $1); }
+      StructDecl { $$ = transMgr.makeAST<AST>(SType::StructDeclBody, @$, $1); }
     | StructDeclList StructDecl { $1->addChild($2); $$ = $1; }
     ;
 
 StructDecl:
-      SpecQualList PSemi { $$ = transMgr.makeAST<AST>(SymbolType::StructDecl, @$, $1); }
-    | SpecQualList StructDecltrList PSemi { $$ = transMgr.makeAST<AST>(SymbolType::StructDecl, @$, $1, $2); }
+      SpecQualList PSemi { $$ = transMgr.makeAST<AST>(SType::StructDecl, @$, $1); }
+    | SpecQualList StructDecltrList PSemi { $$ = transMgr.makeAST<AST>(SType::StructDecl, @$, $1, $2); }
 
     | SpecQualList error {}
     | SpecQualList StructDecltrList error {}
     ;
 
 StructDecltrList:
-      StructDecltr { $$ = transMgr.makeAST<AST>(SymbolType::StructDecltrList, @$, $1); }
+      StructDecltr { $$ = transMgr.makeAST<AST>(SType::StructDecltrList, @$, $1); }
     | StructDecltrList OpComma StructDecltr { $1->addChild($3); $$ = $1; }
 
     | StructDecltrList OpComma error {}
     ;
 
 StructDecltr:
-      Decltr { $$ = transMgr.makeAST<AST>(SymbolType::StructDecltr, @$, $1); }
-    | OpColon ConstExpr { $$ = transMgr.makeAST<AST>(SymbolType::StructDecltr, @$, $1, $2); }
-    | Decltr OpColon ConstExpr { $$ = transMgr.makeAST<AST>(SymbolType::StructDecltr, @$, $1, $2, $3); }
+      Decltr { $$ = transMgr.makeAST<AST>(SType::StructDecltr, @$, $1); }
+    | OpColon ConstExpr { $$ = transMgr.makeAST<AST>(SType::StructDecltr, @$, $1, $2); }
+    | Decltr OpColon ConstExpr { $$ = transMgr.makeAST<AST>(SType::StructDecltr, @$, $1, $2, $3); }
 
     | OpColon error {}
     | Decltr OpColon error {}
     ;
 
 EnumSpec:
-      KwdEnum IDWrapper { $$ = transMgr.makeAST<AST>(SymbolType::EnumSpec, @$, $1, $2); }
-    | KwdEnum EnumBody { $$ = transMgr.makeAST<AST>(SymbolType::EnumSpec, @$, $1, $2); }
-    | KwdEnum IDWrapper EnumBody { $$ = transMgr.makeAST<AST>(SymbolType::EnumSpec, @$, $1, $2, $3); }
+      KwdEnum IDWrapper { $$ = transMgr.makeAST<AST>(SType::EnumSpec, @$, $1, $2); }
+    | KwdEnum EnumBody { $$ = transMgr.makeAST<AST>(SType::EnumSpec, @$, $1, $2); }
+    | KwdEnum IDWrapper EnumBody { $$ = transMgr.makeAST<AST>(SType::EnumSpec, @$, $1, $2, $3); }
     
     | KwdEnum error {}
     ;
 
 EnumBody:
-      PLC PRC { $$ = transMgr.makeAST<AST>(SymbolType::EnumBody, @$); }
-    | PLC EnumeratorList PRC { $$ = transMgr.makeAST<AST>(SymbolType::EnumBody, @$, $2); }
-    | PLC EnumeratorList OpComma PRC { $$ = transMgr.makeAST<AST>(SymbolType::EnumBody, @$, $2); }
+      PLC PRC { $$ = transMgr.makeAST<AST>(SType::EnumBody, @$); }
+    | PLC EnumeratorList PRC { $$ = transMgr.makeAST<AST>(SType::EnumBody, @$, $2); }
+    | PLC EnumeratorList OpComma PRC { $$ = transMgr.makeAST<AST>(SType::EnumBody, @$, $2); }
 
     | PLC error {}
     | PLC EnumeratorList error {}
     ;
 
 EnumeratorList:
-      Enumerator { $$ = transMgr.makeAST<AST>(SymbolType::EnumeratorList, @$, $1); }
+      Enumerator { $$ = transMgr.makeAST<AST>(SType::EnumeratorList, @$, $1); }
     | EnumeratorList OpComma Enumerator { $1->addChild($3); $$ = $1; }
 
     | OpComma Enumerator {}
     ;
 
 Enumerator:
-      EnumConst { $$ = transMgr.makeAST<AST>(SymbolType::Enumerator, @$, $1); }
-    | EnumConst OpAssign ConstExpr { $$ = transMgr.makeAST<AST>(SymbolType::Enumerator, @$, $1, $2, $3); }
+      EnumConst { $$ = transMgr.makeAST<AST>(SType::Enumerator, @$, $1); }
+    | EnumConst OpAssign ConstExpr { $$ = transMgr.makeAST<AST>(SType::Enumerator, @$, $1, $2, $3); }
 
     | EnumConst OpAssign error {}
     ;
 
 EnumConst:
-      IDWrapper { $$ = transMgr.makeAST<AST>(SymbolType::EnumConst, @$, $1); }
+      IDWrapper { $$ = transMgr.makeAST<AST>(SType::EnumConst, @$, $1); }
     ;
 
 /* Single variable declaration */
 Decltr: 
-      DirDecltr { $$ = transMgr.makeAST<AST>(SymbolType::Decltr, @$, $1); }
+      DirDecltr { $$ = transMgr.makeAST<AST>(SType::Decltr, @$, $1); }
     | PtrDecltr DirDecltr  { 
         // Let PtrDecltr become the parent of this node.
         auto ptrDeclEndPoint = ASTHelper::getPtrDeclEndPoint(*$1);
         ptrDeclEndPoint->addChild($2);
-        $$ = transMgr.makeAST<AST>(SymbolType::Decltr, @$, $1);
+        $$ = transMgr.makeAST<AST>(SType::Decltr, @$, $1);
     }
     ;
 
 DirDecltr:
-      IDWrapper { $$ = transMgr.makeAST<AST>(SymbolType::DirDecltr, @$, $1); }
-    | WrappedDirDecltr { $$ = transMgr.makeAST<AST>(SymbolType::DirDecltr, @$, $1); }
-    | DirDecltr OpLSB AssignExpr OpRSB { $$ = transMgr.makeAST<AST>(SymbolType::DirDecltr, @$, $1, $2, $3, $4); }
-    | DirDecltr OpLSB OpRSB { $$ = transMgr.makeAST<AST>(SymbolType::DirDecltr, @$, $1, $2, $3); }
+      IDWrapper { $$ = transMgr.makeAST<AST>(SType::DirDecltr, @$, $1); }
+    | WrappedDirDecltr { $$ = transMgr.makeAST<AST>(SType::DirDecltr, @$, $1); }
+    | DirDecltr OpLSB AssignExpr OpRSB { $$ = transMgr.makeAST<AST>(SType::DirDecltr, @$, $1, $2, $3, $4); }
+    | DirDecltr OpLSB OpRSB { $$ = transMgr.makeAST<AST>(SType::DirDecltr, @$, $1, $2, $3); }
     | WrappedDirDecltr PLP ParamList PRP { 
-          $$ = transMgr.makeAST<AST>(SymbolType::DirDecltr, @$, $1, $3); 
+          $$ = transMgr.makeAST<AST>(SType::DirDecltr, @$, $1, $3); 
       }
     | DirDecltr OpLSB AssignExpr error {} 
     /* | direct-declarator error {}  */
@@ -399,18 +399,18 @@ DirDecltr:
     ;
 
 WrappedDirDecltr: 
-      PLP Decltr PRP { $$ = transMgr.makeAST<AST>(SymbolType::WrappedDirDecltr, @$, $2); }
+      PLP Decltr PRP { $$ = transMgr.makeAST<AST>(SType::WrappedDirDecltr, @$, $2); }
     ;
 
 PtrDecltr:
-      OpAstrk { $$ = transMgr.makeAST<AST>(SymbolType::PtrDecltr, @$, $1); }
-    | OpAstrk TypeQualList { $$ = transMgr.makeAST<AST>(SymbolType::PtrDecltr, @$, $1, $2); }
-    | OpAstrk PtrDecltr { $$ = transMgr.makeAST<AST>(SymbolType::PtrDecltr, @$, $1, $2); }
-    | OpAstrk TypeQualList PtrDecltr { $$ = transMgr.makeAST<AST>(SymbolType::PtrDecltr, @$, $1, $2, $3); }
+      OpAstrk { $$ = transMgr.makeAST<AST>(SType::PtrDecltr, @$, $1); }
+    | OpAstrk TypeQualList { $$ = transMgr.makeAST<AST>(SType::PtrDecltr, @$, $1, $2); }
+    | OpAstrk PtrDecltr { $$ = transMgr.makeAST<AST>(SType::PtrDecltr, @$, $1, $2); }
+    | OpAstrk TypeQualList PtrDecltr { $$ = transMgr.makeAST<AST>(SType::PtrDecltr, @$, $1, $2, $3); }
     ;
 
 TypeQualList:
-      TypeQual { $$ = transMgr.makeAST<AST>(SymbolType::TypeQualList, @$, $1); } 
+      TypeQual { $$ = transMgr.makeAST<AST>(SType::TypeQualList, @$, $1); } 
     | TypeQualList TypeQual { $1->addChild($2); $$ = $1; }
     ;
 
@@ -422,19 +422,19 @@ TypeQualList:
 
 /* Definition: Base */
 Decl: 
-      DirDecl PSemi { $$ = transMgr.makeAST<AST>(SymbolType::Decl, @$, $1); transMgr.tryRegisterSymbol($$); }
+      DirDecl PSemi { $$ = transMgr.makeAST<AST>(SType::Decl, @$, $1); transMgr.tryRegisterSymbol($$); }
 
     | DirDecl error {}
     ;
 
 DirDecl:
-      DeclSpec { $$ = transMgr.makeAST<AST>(SymbolType::DirDecl, @$, $1); }
-    | DeclSpec InitDecltrList { $$ = transMgr.makeAST<AST>(SymbolType::DirDecl, @$, $1, $2); }
+      DeclSpec { $$ = transMgr.makeAST<AST>(SType::DirDecl, @$, $1); }
+    | DeclSpec InitDecltrList { $$ = transMgr.makeAST<AST>(SType::DirDecl, @$, $1, $2); }
     ;
 
 /* Definition: Declaration of multiple variable.  */ 
 InitDecltrList: 
-      InitDecltr { $$ = transMgr.makeAST<AST>(SymbolType::InitDecltrList, @$, $1); }
+      InitDecltr { $$ = transMgr.makeAST<AST>(SType::InitDecltrList, @$, $1); }
     | InitDecltrList OpComma InitDecltr { $1->addChild($3); $$ = $1; }
 
     | InitDecltrList OpComma {}
@@ -444,23 +444,23 @@ InitDecltrList:
 
 /* Definition: Single declaration unit. */
 InitDecltr: 
-      Decltr { $$ = transMgr.makeAST<AST>(SymbolType::InitDecltr, @$, $1); }
-    | Decltr OpAssign Initializer { $$ = transMgr.makeAST<AST>(SymbolType::InitDecltr, @$, $1, $2, $3); }
+      Decltr { $$ = transMgr.makeAST<AST>(SType::InitDecltr, @$, $1); }
+    | Decltr OpAssign Initializer { $$ = transMgr.makeAST<AST>(SType::InitDecltr, @$, $1, $2, $3); }
 
     | Decltr OpAssign error {}
     ;
 
 Initializer:
-      AssignExpr { $$ = transMgr.makeAST<AST>(SymbolType::Initializer, @$, $1); }
-    | PLC InitializerList PRC { $$ = transMgr.makeAST<AST>(SymbolType::Initializer, @$, $2); }
-    | PLC InitializerList OpComma PRC { $$ = transMgr.makeAST<AST>(SymbolType::Initializer, @$, $2); }
+      AssignExpr { $$ = transMgr.makeAST<AST>(SType::Initializer, @$, $1); }
+    | PLC InitializerList PRC { $$ = transMgr.makeAST<AST>(SType::Initializer, @$, $2); }
+    | PLC InitializerList OpComma PRC { $$ = transMgr.makeAST<AST>(SType::Initializer, @$, $2); }
 
     | PLC InitializerList error {}
     ;
 
 InitializerList:
-      Initializer { $$ = transMgr.makeAST<AST>(SymbolType::InitializerList, @$, $1); }
-    | Designation Initializer { $$ = transMgr.makeAST<AST>(SymbolType::InitializerList, @$, $1, $2); }
+      Initializer { $$ = transMgr.makeAST<AST>(SType::InitializerList, @$, $1); }
+    | Designation Initializer { $$ = transMgr.makeAST<AST>(SType::InitializerList, @$, $1, $2); }
     | InitializerList OpComma Designation Initializer { $1->addChildren($3, $4) ; $$ = $1; }
     | InitializerList OpComma Initializer { $1->addChild($3) ; $$ = $1; }
 
@@ -469,28 +469,28 @@ InitializerList:
     ;
 
 Designation:
-      DesignatorList OpAssign { $$ = transMgr.makeAST<AST>(SymbolType::Designation, @$, $1, $2); }
+      DesignatorList OpAssign { $$ = transMgr.makeAST<AST>(SType::Designation, @$, $1, $2); }
     ;
 
 DesignatorList:
-      Designator { $$ = transMgr.makeAST<AST>(SymbolType::DesignatorList, @$, $1); }
+      Designator { $$ = transMgr.makeAST<AST>(SType::DesignatorList, @$, $1); }
     | DesignatorList Designator { $1->addChild($2) ; $$ = $1; }
     ;
 
 Designator:
-      OpLSB ConstExpr OpRSB { $$ = transMgr.makeAST<AST>(SymbolType::Designator, @$, $1, $2, $3); }
-    | OpDot IDWrapper { $$ = transMgr.makeAST<AST>(SymbolType::Designator, @$, $1, $2); }
+      OpLSB ConstExpr OpRSB { $$ = transMgr.makeAST<AST>(SType::Designator, @$, $1, $2, $3); }
+    | OpDot IDWrapper { $$ = transMgr.makeAST<AST>(SType::Designator, @$, $1, $2); }
 
     | OpLSB ConstExpr error {}
     | OpDot error {}
     ;
 
 FuncDef:
-      DeclSpec FuncDecltr CompStmt { $$ = transMgr.makeAST<AST>(SymbolType::FuncDef, @$, $1, $2, $3); transMgr.tryRegisterSymbol($$); }
+      DeclSpec FuncDecltr CompStmt { $$ = transMgr.makeAST<AST>(SType::FuncDef, @$, $1, $2, $3); transMgr.tryRegisterSymbol($$); }
     | FuncDecltr CompStmt { 
           SPLC_LOG_WARN(&@1, true) << "function is missing a specifier and will default to 'int'";
-          auto declSpec = ASTHelper::makeDeclSpecifierTree(Location{@$.begin}, SymbolType::IntTy);
-          $$ = transMgr.makeAST<AST>(SymbolType::FuncDef, @$, declSpec, $1, $2);
+          auto declSpec = ASTHelper::makeDeclSpecifierTree(Location{@$.begin}, SType::IntTy);
+          $$ = transMgr.makeAST<AST>(SType::FuncDef, @$, declSpec, $1, $2);
           transMgr.tryRegisterSymbol($$); 
       } 
     | DeclSpec FuncDecltr error {}
@@ -499,27 +499,27 @@ FuncDef:
 FuncDecl:
       FuncDecltr PSemi { 
           SPLC_LOG_WARN(&@1, true) << "function is missing a specifier and will default to 'int'";
-          auto declSpec = ASTHelper::makeDeclSpecifierTree(Location{@$.begin}, SymbolType::IntTy);
-          $$ = transMgr.makeAST<AST>(SymbolType::FuncDecl, @$, declSpec, $1);
+          auto declSpec = ASTHelper::makeDeclSpecifierTree(Location{@$.begin}, SType::IntTy);
+          $$ = transMgr.makeAST<AST>(SType::FuncDecl, @$, declSpec, $1);
            transMgr.tryRegisterSymbol($$); 
       } 
-    | DeclSpec FuncDecltr PSemi { $$ = transMgr.makeAST<AST>(SymbolType::FuncDecl, @$, $1, $2); transMgr.tryRegisterSymbol($$); }
+    | DeclSpec FuncDecltr PSemi { $$ = transMgr.makeAST<AST>(SType::FuncDecl, @$, $1, $2); transMgr.tryRegisterSymbol($$); }
     ;
 
 
 /* Function: Function name and body. */
 FuncDecltr: 
-      DirFuncDecltr { $$ = transMgr.makeAST<AST>(SymbolType::FuncDecltr, @$, $1); }
+      DirFuncDecltr { $$ = transMgr.makeAST<AST>(SType::FuncDecltr, @$, $1); }
     | PtrDecltr DirFuncDecltr { 
         // Let PtrDecltr become the parent of this node.
         auto ptrDeclRoot = ASTHelper::getPtrDeclEndPoint(*$1);
         ptrDeclRoot->addChild($2);
-        $$ = transMgr.makeAST<AST>(SymbolType::FuncDecltr, @$, ptrDeclRoot);
+        $$ = transMgr.makeAST<AST>(SType::FuncDecltr, @$, ptrDeclRoot);
     }
     ;
 
 DirFuncDecltr:
-      DirDecltrForFunc PLP ParamTypeList PRP { $$ = transMgr.makeAST<AST>(SymbolType::DirFuncDecltr, @$, $1, $3); }
+      DirDecltrForFunc PLP ParamTypeList PRP { $$ = transMgr.makeAST<AST>(SType::DirFuncDecltr, @$, $1, $3); }
     /* | direct-declarator-for-function PLP PRP {} */
 
     /* | direct-declarator-for-function PLP error {} */
@@ -536,13 +536,13 @@ DirDecltrForFunc:
 
 /* List of variables names */
 ParamTypeList: 
-      ParamList { $$ = transMgr.makeAST<AST>(SymbolType::ParamTypeList, @$, $1); }
-    | ParamList OpComma OpEllipsis { $$ = transMgr.makeAST<AST>(SymbolType::ParamTypeList, @$, $1, $3); }
+      ParamList { $$ = transMgr.makeAST<AST>(SType::ParamTypeList, @$, $1); }
+    | ParamList OpComma OpEllipsis { $$ = transMgr.makeAST<AST>(SType::ParamTypeList, @$, $1, $3); }
     ;
 
 ParamList:
-      { $$ = transMgr.makeAST<AST>(SymbolType::ParamList, @$); }
-    | ParamDecltr { $$ = transMgr.makeAST<AST>(SymbolType::ParamList, @$, $1); }
+      { $$ = transMgr.makeAST<AST>(SType::ParamList, @$); }
+    | ParamDecltr { $$ = transMgr.makeAST<AST>(SType::ParamList, @$, $1); }
     | ParamList OpComma ParamDecltr { $1->addChild($3); $$ = $1; }
 
     | ParamList OpComma error {}
@@ -550,9 +550,9 @@ ParamList:
 
 /* Parameter declaration */ 
 ParamDecltr: 
-      DeclSpec Decltr { $$ = transMgr.makeAST<AST>(SymbolType::ParamDecltr, @$, $1, $2); }
-    | DeclSpec AbsDecltr { $$ = transMgr.makeAST<AST>(SymbolType::ParamDecltr, @$, $1, $2); }
-    | DeclSpec { $$ = transMgr.makeAST<AST>(SymbolType::ParamDecltr, @$, $1); }
+      DeclSpec Decltr { $$ = transMgr.makeAST<AST>(SType::ParamDecltr, @$, $1, $2); }
+    | DeclSpec AbsDecltr { $$ = transMgr.makeAST<AST>(SType::ParamDecltr, @$, $1, $2); }
+    | DeclSpec { $$ = transMgr.makeAST<AST>(SType::ParamDecltr, @$, $1); }
 
     /* | error {} */
     ;
@@ -560,8 +560,8 @@ ParamDecltr:
 /* Compound statement: A new scope. */
 CompStmt: 
       /* PLC general-statement-list PRC */
-      PLC GeneralStmtList PRC { $$ = transMgr.makeAST<AST>(SymbolType::CompStmt, @$, $2); }
-    | PLC PRC { $$ = transMgr.makeAST<AST>(SymbolType::CompStmt, @$); }
+      PLC GeneralStmtList PRC { $$ = transMgr.makeAST<AST>(SType::CompStmt, @$, $2); }
+    | PLC PRC { $$ = transMgr.makeAST<AST>(SType::CompStmt, @$); }
 
     | PLC GeneralStmtList error {}
     | PLC error {}
@@ -569,9 +569,9 @@ CompStmt:
 
 /* wrapper for C99 standard for statements */
 GeneralStmtList: 
-      Stmt { $$ = transMgr.makeAST<AST>(SymbolType::GeneralStmtList, @$, $1); }
-    | Decl { $$ = transMgr.makeAST<AST>(SymbolType::GeneralStmtList, @$, $1); }
-    /* | FuncDecl { $$ = transMgr.makeAST<AST>(SymbolType::GeneralStmtList, @$, $1); } */
+      Stmt { $$ = transMgr.makeAST<AST>(SType::GeneralStmtList, @$, $1); }
+    | Decl { $$ = transMgr.makeAST<AST>(SType::GeneralStmtList, @$, $1); }
+    /* | FuncDecl { $$ = transMgr.makeAST<AST>(SType::GeneralStmtList, @$, $1); } */
     | GeneralStmtList Stmt { $1->addChild($2); $$ = $1; }
     | GeneralStmtList Decl { $1->addChild($2); $$ = $1; }
     ;
@@ -584,31 +584,31 @@ GeneralStmtList:
 
 /* Statement: A single statement. */
 Stmt: // TODO: use hierarchy
-      PSemi { $$ = transMgr.makeAST<AST>(SymbolType::Stmt, @$); }
-    | CompStmt { $$ = transMgr.makeAST<AST>(SymbolType::Stmt, @$, $1); }
-    | ExprStmt { $$ = transMgr.makeAST<AST>(SymbolType::Stmt, @$, $1); }
-    | SelStmt { $$ = transMgr.makeAST<AST>(SymbolType::Stmt, @$, $1); }
-    | IterStmt { $$ = transMgr.makeAST<AST>(SymbolType::Stmt, @$, $1); }
-    | LabeledStmt { $$ = transMgr.makeAST<AST>(SymbolType::Stmt, @$, $1); }
-    | JumpStmt { $$ = transMgr.makeAST<AST>(SymbolType::Stmt, @$, $1); }
+      PSemi { $$ = transMgr.makeAST<AST>(SType::Stmt, @$); }
+    | CompStmt { $$ = transMgr.makeAST<AST>(SType::Stmt, @$, $1); }
+    | ExprStmt { $$ = transMgr.makeAST<AST>(SType::Stmt, @$, $1); }
+    | SelStmt { $$ = transMgr.makeAST<AST>(SType::Stmt, @$, $1); }
+    | IterStmt { $$ = transMgr.makeAST<AST>(SType::Stmt, @$, $1); }
+    | LabeledStmt { $$ = transMgr.makeAST<AST>(SType::Stmt, @$, $1); }
+    | JumpStmt { $$ = transMgr.makeAST<AST>(SType::Stmt, @$, $1); }
 
     /* | error PSemi {} */
     ;
 
 ExprStmt:
-      Expr PSemi { $$ = transMgr.makeAST<AST>(SymbolType::ExprStmt, @$, $1); }
+      Expr PSemi { $$ = transMgr.makeAST<AST>(SType::ExprStmt, @$, $1); }
     | Expr error {}
     ;
 
 SelStmt:
-      KwdIf PLP Expr PRP Stmt %prec KwdThen { $$ = transMgr.makeAST<AST>(SymbolType::SelStmt, @$, $1, $3, $5); }
+      KwdIf PLP Expr PRP Stmt %prec KwdThen { $$ = transMgr.makeAST<AST>(SType::SelStmt, @$, $1, $3, $5); }
 
     | KwdIf error PRP Stmt %prec KwdThen {}
     | KwdIf PLP PRP Stmt %prec KwdThen {}
     | KwdIf PLP Expr PRP error %prec KwdThen {}
     | KwdIf PLP PRP error %prec KwdThen {}
     
-    | KwdIf PLP Expr PRP Stmt KwdElse Stmt %prec KwdElse { $$ = transMgr.makeAST<AST>(SymbolType::SelStmt, @$, $1, $3, $5, $6, $7); }
+    | KwdIf PLP Expr PRP Stmt KwdElse Stmt %prec KwdElse { $$ = transMgr.makeAST<AST>(SType::SelStmt, @$, $1, $3, $5, $6, $7); }
 
     | KwdIf error PRP Stmt KwdElse Stmt %prec KwdElse {}
     | KwdIf PLP Expr PRP Stmt KwdElse error %prec KwdElse {}
@@ -617,76 +617,76 @@ SelStmt:
     | KwdIf PLP Expr error %prec KwdElse {}
     | KwdElse Stmt {}
 
-    | KwdSwitch PLP Expr PRP Stmt { $$ = transMgr.makeAST<AST>(SymbolType::SelStmt, @$, $KwdSwitch, $Expr, $Stmt); }
+    | KwdSwitch PLP Expr PRP Stmt { $$ = transMgr.makeAST<AST>(SType::SelStmt, @$, $KwdSwitch, $Expr, $Stmt); }
     /* | KwdSwitch PLP expression statement {} */
     | KwdSwitch error PRP Stmt {}
     ;
 
 LabeledStmt:
-      IDWrapper OpColon Stmt { $$ = transMgr.makeAST<AST>(SymbolType::LabeledStmt, @$, $1, $2, $3); }
-    | KwdCase ConstExpr OpColon Stmt { $$ = transMgr.makeAST<AST>(SymbolType::LabeledStmt, @$, $1, $2, $3, $4); }
-    | KwdDefault OpColon Stmt { $$ = transMgr.makeAST<AST>(SymbolType::LabeledStmt, @$, $1, $2, $3); }
+      IDWrapper OpColon Stmt { $$ = transMgr.makeAST<AST>(SType::LabeledStmt, @$, $1, $2, $3); }
+    | KwdCase ConstExpr OpColon Stmt { $$ = transMgr.makeAST<AST>(SType::LabeledStmt, @$, $1, $2, $3, $4); }
+    | KwdDefault OpColon Stmt { $$ = transMgr.makeAST<AST>(SType::LabeledStmt, @$, $1, $2, $3); }
 
     | OpColon Stmt {}
     ;
 
 JumpStmt:
-      KwdGoto IDWrapper PSemi { $$ = transMgr.makeAST<AST>(SymbolType::JumpStmt, @$, $1, $2); }
-    | KwdContinue PSemi { $$ = transMgr.makeAST<AST>(SymbolType::JumpStmt, @$, $1); }
-    | KwdBreak PSemi { $$ = transMgr.makeAST<AST>(SymbolType::JumpStmt, @$, $1); }
-    | KwdReturn Expr PSemi { $$ = transMgr.makeAST<AST>(SymbolType::JumpStmt, @$, $1, $2); }
-    | KwdReturn PSemi { $$ = transMgr.makeAST<AST>(SymbolType::JumpStmt, @$, $1); }
+      KwdGoto IDWrapper PSemi { $$ = transMgr.makeAST<AST>(SType::JumpStmt, @$, $1, $2); }
+    | KwdContinue PSemi { $$ = transMgr.makeAST<AST>(SType::JumpStmt, @$, $1); }
+    | KwdBreak PSemi { $$ = transMgr.makeAST<AST>(SType::JumpStmt, @$, $1); }
+    | KwdReturn Expr PSemi { $$ = transMgr.makeAST<AST>(SType::JumpStmt, @$, $1, $2); }
+    | KwdReturn PSemi { $$ = transMgr.makeAST<AST>(SType::JumpStmt, @$, $1); }
 
     | KwdReturn Expr error {}
     | KwdReturn error {}
     ;
 
 IterStmt:
-      KwdWhile PLP Expr PRP Stmt { $$ = transMgr.makeAST<AST>(SymbolType::IterStmt, @$, $KwdWhile, $Expr, $Stmt); }
+      KwdWhile PLP Expr PRP Stmt { $$ = transMgr.makeAST<AST>(SType::IterStmt, @$, $KwdWhile, $Expr, $Stmt); }
     | KwdWhile error PRP Stmt {}
     | KwdWhile PLP Expr PRP error {}
     | KwdWhile PLP Expr error {}
     
-    | KwdDo Stmt KwdWhile PLP Expr PRP PSemi { $$ = transMgr.makeAST<AST>(SymbolType::IterStmt, @$, $KwdDo, $Stmt, $KwdWhile, $Expr); }
+    | KwdDo Stmt KwdWhile PLP Expr PRP PSemi { $$ = transMgr.makeAST<AST>(SType::IterStmt, @$, $KwdDo, $Stmt, $KwdWhile, $Expr); }
     | KwdDo Stmt KwdWhile PLP error PSemi {}
 
-    | KwdFor PLP ForLoopBody PRP Stmt { $$ = transMgr.makeAST<AST>(SymbolType::IterStmt, @$, $KwdFor, $ForLoopBody, $Stmt); }
+    | KwdFor PLP ForLoopBody PRP Stmt { $$ = transMgr.makeAST<AST>(SType::IterStmt, @$, $KwdFor, $ForLoopBody, $Stmt); }
     | KwdFor PLP ForLoopBody PRP error {}
     | KwdFor PLP ForLoopBody error {}
     ;
 
 ForLoopBody: // TODO: add constant expressions 
-      InitExpr PSemi Expr PSemi Expr { $$ = transMgr.makeAST<AST>(SymbolType::ForLoopBody, @$, $1, $2, $3, $4, $5); }
+      InitExpr PSemi Expr PSemi Expr { $$ = transMgr.makeAST<AST>(SType::ForLoopBody, @$, $1, $2, $3, $4, $5); }
 
-    | PSemi Expr PSemi Expr { $$ = transMgr.makeAST<AST>(SymbolType::ForLoopBody, @$, $1, $2, $3, $4); } 
-    | InitExpr PSemi Expr PSemi { $$ = transMgr.makeAST<AST>(SymbolType::ForLoopBody, @$, $1, $2, $3, $4); }
-    | InitExpr PSemi PSemi Expr { $$ = transMgr.makeAST<AST>(SymbolType::ForLoopBody, @$, $1, $2, $3, $4); }
+    | PSemi Expr PSemi Expr { $$ = transMgr.makeAST<AST>(SType::ForLoopBody, @$, $1, $2, $3, $4); } 
+    | InitExpr PSemi Expr PSemi { $$ = transMgr.makeAST<AST>(SType::ForLoopBody, @$, $1, $2, $3, $4); }
+    | InitExpr PSemi PSemi Expr { $$ = transMgr.makeAST<AST>(SType::ForLoopBody, @$, $1, $2, $3, $4); }
 
-    | PSemi Expr PSemi { $$ = transMgr.makeAST<AST>(SymbolType::ForLoopBody, @$, $1, $2, $3); }
-    | PSemi PSemi Expr { $$ = transMgr.makeAST<AST>(SymbolType::ForLoopBody, @$, $1, $2, $3); }
+    | PSemi Expr PSemi { $$ = transMgr.makeAST<AST>(SType::ForLoopBody, @$, $1, $2, $3); }
+    | PSemi PSemi Expr { $$ = transMgr.makeAST<AST>(SType::ForLoopBody, @$, $1, $2, $3); }
     /* | definition PSemi {} */
-    | InitExpr PSemi PSemi { $$ = transMgr.makeAST<AST>(SymbolType::ForLoopBody, @$, $1, $2, $3); }
+    | InitExpr PSemi PSemi { $$ = transMgr.makeAST<AST>(SType::ForLoopBody, @$, $1, $2, $3); }
     
-    | PSemi PSemi { $$ = transMgr.makeAST<AST>(SymbolType::ForLoopBody, @$, $1, $2); }
+    | PSemi PSemi { $$ = transMgr.makeAST<AST>(SType::ForLoopBody, @$, $1, $2); }
     ;
 
 ConstExpr: 
-      CondExpr { $$ = transMgr.makeAST<AST>(SymbolType::ConstExpr, @$, $1); }
+      CondExpr { $$ = transMgr.makeAST<AST>(SType::ConstExpr, @$, $1); }
     ;
 
 Constant:
-      UIntLiteral { $$ = transMgr.makeAST<AST>(SymbolType::Constant, @$, $1); }
-    | SIntLiteral { $$ = transMgr.makeAST<AST>(SymbolType::Constant, @$, $1); }
-    | FloatLiteral { $$ = transMgr.makeAST<AST>(SymbolType::Constant, @$, $1); }
-    | CharLiteral { $$ = transMgr.makeAST<AST>(SymbolType::Constant, @$, $1); }
+      UIntLiteral { $$ = transMgr.makeAST<AST>(SType::Constant, @$, $1); }
+    | SIntLiteral { $$ = transMgr.makeAST<AST>(SType::Constant, @$, $1); }
+    | FloatLiteral { $$ = transMgr.makeAST<AST>(SType::Constant, @$, $1); }
+    | CharLiteral { $$ = transMgr.makeAST<AST>(SType::Constant, @$, $1); }
     /* | StrUnit {} */
     ;
 
 PrimaryExpr:
-      IDWrapper { $$ = transMgr.makeAST<AST>(SymbolType::Expr, @$, $1); }
-    | Constant { $$ = transMgr.makeAST<AST>(SymbolType::Expr, @$, $1); }
-    | StringLiteral { $$ = transMgr.makeAST<AST>(SymbolType::Expr, @$, $1); }
-    | PLP Expr PRP { $$ = transMgr.makeAST<AST>(SymbolType::Expr, @$, $2); }
+      IDWrapper { $$ = transMgr.makeAST<AST>(SType::Expr, @$, $1); }
+    | Constant { $$ = transMgr.makeAST<AST>(SType::Expr, @$, $1); }
+    | StringLiteral { $$ = transMgr.makeAST<AST>(SType::Expr, @$, $1); }
+    | PLP Expr PRP { $$ = transMgr.makeAST<AST>(SType::Expr, @$, $2); }
 
     | PLP Expr error {}
     /* | PLP expression {} */
@@ -694,14 +694,14 @@ PrimaryExpr:
 
 PostfixExpr:
       PrimaryExpr
-    | PostfixExpr OpLSB Expr OpRSB { $$ = transMgr.makeAST<AST>(SymbolType::SubscriptExpr, @$, $1, $2, $3, $4); }
-    | PostfixExpr PLP ArgList PRP { $$ = transMgr.makeAST<AST>(SymbolType::CallExpr, @$, $1, $3); }
+    | PostfixExpr OpLSB Expr OpRSB { $$ = transMgr.makeAST<AST>(SType::SubscriptExpr, @$, $1, $2, $3, $4); }
+    | PostfixExpr PLP ArgList PRP { $$ = transMgr.makeAST<AST>(SType::CallExpr, @$, $1, $3); }
     /* | postfix-expression PLP PRP {} */
-    | PostfixExpr MemberAcessOp IDWrapper { $$ = transMgr.makeAST<AST>(SymbolType::AccessExpr, @$, $1, $2, $3); }
-    | PostfixExpr OpDPlus { $$ = transMgr.makeAST<AST>(SymbolType::Expr, @$, $1, $2); }
-    | PostfixExpr OpDMinus { $$ = transMgr.makeAST<AST>(SymbolType::Expr, @$, $1, $2); }
-    | PLP TypeName PRP PLC InitializerList PRC { $$ = transMgr.makeAST<AST>(SymbolType::ExplicitCastExpr, @$, $1, $2, $3, $5); }
-    | PLP TypeName PRP PLC InitializerList OpComma PRC { $$ = transMgr.makeAST<AST>(SymbolType::ExplicitCastExpr, @$, $1, $2, $3, $5); }
+    | PostfixExpr MemberAcessOp IDWrapper { $$ = transMgr.makeAST<AST>(SType::AccessExpr, @$, $1, $2, $3); }
+    | PostfixExpr OpDPlus { $$ = transMgr.makeAST<AST>(SType::Expr, @$, $1, $2); }
+    | PostfixExpr OpDMinus { $$ = transMgr.makeAST<AST>(SType::Expr, @$, $1, $2); }
+    | PLP TypeName PRP PLC InitializerList PRC { $$ = transMgr.makeAST<AST>(SType::ExplicitCastExpr, @$, $1, $2, $3, $5); }
+    | PLP TypeName PRP PLC InitializerList OpComma PRC { $$ = transMgr.makeAST<AST>(SType::ExplicitCastExpr, @$, $1, $2, $3, $5); }
 
     | PostfixExpr OpLSB Expr error {}
     | PostfixExpr PLP ArgList error {}
@@ -717,13 +717,13 @@ MemberAcessOp:
 
 UnaryExpr:
       PostfixExpr
-    | OpDPlus UnaryExpr { $$ = transMgr.makeAST<AST>(SymbolType::Expr, @$, $1, $2); }
-    | OpDMinus UnaryExpr { $$ = transMgr.makeAST<AST>(SymbolType::Expr, @$, $1, $2); }
-    | OpBAnd CastExpr %prec OpUnaryPrec { $$ = transMgr.makeAST<AST>(SymbolType::AddrOfExpr, @$, $1, $2); }
-    | OpAstrk CastExpr %prec OpUnaryPrec { $$ = transMgr.makeAST<AST>(SymbolType::DerefExpr, @$, $1, $2); }
-    | UnaryArithOp CastExpr %prec OpUnaryPrec { $$ = transMgr.makeAST<AST>(SymbolType::Expr, @$, $1, $2); }
-    | OpSizeOf UnaryExpr { $$ = transMgr.makeAST<AST>(SymbolType::Expr, @$, $1, $2); }
-    | OpSizeOf PLP TypeName PRP { $$ = transMgr.makeAST<AST>(SymbolType::SizeOfExpr, @$, $1, $3); }
+    | OpDPlus UnaryExpr { $$ = transMgr.makeAST<AST>(SType::Expr, @$, $1, $2); }
+    | OpDMinus UnaryExpr { $$ = transMgr.makeAST<AST>(SType::Expr, @$, $1, $2); }
+    | OpBAnd CastExpr %prec OpUnaryPrec { $$ = transMgr.makeAST<AST>(SType::AddrOfExpr, @$, $1, $2); }
+    | OpAstrk CastExpr %prec OpUnaryPrec { $$ = transMgr.makeAST<AST>(SType::DerefExpr, @$, $1, $2); }
+    | UnaryArithOp CastExpr %prec OpUnaryPrec { $$ = transMgr.makeAST<AST>(SType::Expr, @$, $1, $2); }
+    | OpSizeOf UnaryExpr { $$ = transMgr.makeAST<AST>(SType::Expr, @$, $1, $2); }
+    | OpSizeOf PLP TypeName PRP { $$ = transMgr.makeAST<AST>(SType::SizeOfExpr, @$, $1, $3); }
 
     | OpBAnd error {}
     | OpAstrk error {}
@@ -745,7 +745,7 @@ UnaryArithOp: /* Take the default behavior, that is, `$$ = $1` */
 
 CastExpr:
       UnaryExpr
-    | PLP TypeName PRP CastExpr { $$ = transMgr.makeAST<AST>(SymbolType::ExplicitCastExpr, @$, $1, $2); }
+    | PLP TypeName PRP CastExpr { $$ = transMgr.makeAST<AST>(SType::ExplicitCastExpr, @$, $1, $2); }
 
     | PLP TypeName PRP error {}
     | PLP TypeName error {}
@@ -753,10 +753,10 @@ CastExpr:
 
 MulExpr:
       CastExpr
-    | MulExpr MulOp CastExpr { $$ = transMgr.makeAST<AST>(SymbolType::Expr, @$, $1, $2, $3); }
+    | MulExpr MulOp CastExpr { $$ = transMgr.makeAST<AST>(SType::Expr, @$, $1, $2, $3); }
 
     | MulExpr MulOp error {}
-    | DivOp CastExpr { $$ = transMgr.makeAST<AST>(SymbolType::Expr, @$, $1, $2); }
+    | DivOp CastExpr { $$ = transMgr.makeAST<AST>(SType::Expr, @$, $1, $2); }
     ;
   
 MulOp:
@@ -771,7 +771,7 @@ DivOp:
 
 AddExpr:
       MulExpr
-    | AddExpr AddOp MulExpr { $$ = transMgr.makeAST<AST>(SymbolType::Expr, @$, $1, $2, $3); }
+    | AddExpr AddOp MulExpr { $$ = transMgr.makeAST<AST>(SType::Expr, @$, $1, $2, $3); }
 
     | AddExpr AddOp error {}
     ;
@@ -783,7 +783,7 @@ AddOp:
 
 ShiftExpr:
       AddExpr
-    | ShiftExpr ShiftOp AddExpr { $$ = transMgr.makeAST<AST>(SymbolType::Expr, @$, $1, $2, $3); }
+    | ShiftExpr ShiftOp AddExpr { $$ = transMgr.makeAST<AST>(SType::Expr, @$, $1, $2, $3); }
 
     | ShiftExpr ShiftOp error {}
     | ShiftOp AddExpr {}
@@ -796,7 +796,7 @@ ShiftOp:
 
 RelExpr:
       ShiftExpr
-    | RelExpr RelOp ShiftExpr { $$ = transMgr.makeAST<AST>(SymbolType::Expr, @$, $1, $2, $3); }
+    | RelExpr RelOp ShiftExpr { $$ = transMgr.makeAST<AST>(SType::Expr, @$, $1, $2, $3); }
 
     | RelExpr RelOp error {}
     | RelOp ShiftExpr {}
@@ -811,7 +811,7 @@ RelOp:
 
 EqualityExpr:
       RelExpr
-    | EqualityExpr EqualityOp RelExpr { $$ = transMgr.makeAST<AST>(SymbolType::Expr, @$, $1, $2, $3); }
+    | EqualityExpr EqualityOp RelExpr { $$ = transMgr.makeAST<AST>(SType::Expr, @$, $1, $2, $3); }
 
     | EqualityExpr EqualityOp error {}
     | EqualityOp RelExpr {}
@@ -824,14 +824,14 @@ EqualityOp:
 
 OpBAndExpr:
       EqualityExpr
-    | OpBAndExpr OpBAnd EqualityExpr { $$ = transMgr.makeAST<AST>(SymbolType::Expr, @$, $1, $2, $3); }
+    | OpBAndExpr OpBAnd EqualityExpr { $$ = transMgr.makeAST<AST>(SType::Expr, @$, $1, $2, $3); }
 
     | OpBAndExpr OpBAnd error {}
     ;
 
 OpBXorExpr:
       OpBAndExpr
-    | OpBXorExpr OpBXor OpBAndExpr { $$ = transMgr.makeAST<AST>(SymbolType::Expr, @$, $1, $2, $3); }
+    | OpBXorExpr OpBXor OpBAndExpr { $$ = transMgr.makeAST<AST>(SType::Expr, @$, $1, $2, $3); }
 
     | OpBXorExpr OpBXor error {}
     | OpBXor OpBAndExpr {}
@@ -839,7 +839,7 @@ OpBXorExpr:
 
 OpBOrExpr:
       OpBXorExpr
-    | OpBOrExpr OpBOr OpBXorExpr { $$ = transMgr.makeAST<AST>(SymbolType::Expr, @$, $1, $2, $3); }
+    | OpBOrExpr OpBOr OpBXorExpr { $$ = transMgr.makeAST<AST>(SType::Expr, @$, $1, $2, $3); }
 
     | OpBOrExpr OpBOr error {}
     | OpBOr OpBXorExpr {}
@@ -847,7 +847,7 @@ OpBOrExpr:
 
 LogicalOpAndExpr:
       OpBOrExpr
-    | LogicalOpAndExpr OpAnd OpBOrExpr { $$ = transMgr.makeAST<AST>(SymbolType::Expr, @$, $1, $2, $3); }
+    | LogicalOpAndExpr OpAnd OpBOrExpr { $$ = transMgr.makeAST<AST>(SType::Expr, @$, $1, $2, $3); }
 
     | LogicalOpAndExpr OpAnd error {}
     | OpAnd OpBOrExpr {}
@@ -855,7 +855,7 @@ LogicalOpAndExpr:
 
 LogicalOpOrExpr:
       LogicalOpAndExpr
-    | LogicalOpOrExpr OpOr LogicalOpAndExpr { $$ = transMgr.makeAST<AST>(SymbolType::Expr, @$, $1, $2, $3); }
+    | LogicalOpOrExpr OpOr LogicalOpAndExpr { $$ = transMgr.makeAST<AST>(SType::Expr, @$, $1, $2, $3); }
 
     | LogicalOpOrExpr OpOr error {}
     | OpOr LogicalOpAndExpr {}
@@ -863,7 +863,7 @@ LogicalOpOrExpr:
 
 CondExpr:
       LogicalOpOrExpr
-    | LogicalOpOrExpr OpQMark Expr OpColon CondExpr { $$ = transMgr.makeAST<AST>(SymbolType::Expr, @$, $1, $2, $3, $4, $5); }
+    | LogicalOpOrExpr OpQMark Expr OpColon CondExpr { $$ = transMgr.makeAST<AST>(SType::Expr, @$, $1, $2, $3, $4, $5); }
 
     | LogicalOpOrExpr OpQMark OpColon CondExpr {}
     | LogicalOpOrExpr OpQMark Expr OpColon {}
@@ -873,7 +873,7 @@ CondExpr:
 AssignExpr:
       CondExpr
     
-    | CondExpr AssignOp AssignExpr { $$ = transMgr.makeAST<AST>(SymbolType::Expr, @$, $1, $2, $3); }
+    | CondExpr AssignOp AssignExpr { $$ = transMgr.makeAST<AST>(SType::Expr, @$, $1, $2, $3); }
     | CondExpr AssignOp error {}
     | AssignOp AssignExpr {}
     
@@ -899,22 +899,22 @@ AssignOp: /* Use the default behavior to pass the value */
 /* expressions */
 Expr: 
       AssignExpr
-    | Expr OpComma AssignExpr { $$ = transMgr.makeAST<AST>(SymbolType::Expr, @$, $1, $3); }
+    | Expr OpComma AssignExpr { $$ = transMgr.makeAST<AST>(SType::Expr, @$, $1, $3); }
 
     | Expr OpComma error {}
     | OpComma AssignExpr {}
     ;
   
 InitExpr:
-      Expr { $$ = transMgr.makeAST<AST>(SymbolType::InitExpr, @$, $1); }
-    | DirDecl { $$ = transMgr.makeAST<AST>(SymbolType::InitExpr, @$, $1); }
+      Expr { $$ = transMgr.makeAST<AST>(SType::InitExpr, @$, $1); }
+    | DirDecl { $$ = transMgr.makeAST<AST>(SType::InitExpr, @$, $1); }
     ;
 
 /* Argument: List of arguments */
 ArgList: 
-      { $$ = transMgr.makeAST<AST>(SymbolType::ArgList, @$); }
+      { $$ = transMgr.makeAST<AST>(SType::ArgList, @$); }
     | ArgList OpComma AssignExpr { $1->addChild($3); $$ = $1; }
-    | AssignExpr { $$ = transMgr.makeAST<AST>(SymbolType::ArgList, @$, $1); }
+    | AssignExpr { $$ = transMgr.makeAST<AST>(SType::ArgList, @$, $1); }
 
     | ArgList OpComma error {}
     /* | error {} */
@@ -922,7 +922,7 @@ ArgList:
 
 /* String intermediate expression. Allowing concatenation of strings. */
 StringLiteral: 
-      StrUnit { $$ = transMgr.makeAST<AST>(SymbolType::StringLiteral, @$, $1); }
+      StrUnit { $$ = transMgr.makeAST<AST>(SType::StringLiteral, @$, $1); }
     | StringLiteral StrUnit { $1->addChild($2); $$ = $1; }
     ;
 

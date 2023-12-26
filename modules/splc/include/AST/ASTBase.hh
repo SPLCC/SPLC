@@ -35,31 +35,29 @@ class AST : public std::enable_shared_from_this<AST> {
     ///
     /// \brief This constructor should be called by AST internal method
     ///
-    explicit AST() noexcept : symbolType{ASTSymbolType::YYEMPTY} {}
+    explicit AST() noexcept : sType{ASTSymType::YYEMPTY} {}
 
-    AST(const ASTSymbolType symbolType, const Location &loc_) noexcept
-        : symbolType{symbolType}, loc{loc_}
+    AST(const ASTSymType symbolType, const Location &loc_) noexcept
+        : sType{symbolType}, loc{loc_}
     {
     }
 
-    AST(Ptr<TypeContext> typeContext_, const ASTSymbolType symbolType,
+    AST(Ptr<TypeContext> typeContext_, const ASTSymType symbolType,
         const Location &loc_) noexcept
-        : typeContext{typeContext_}, symbolType{symbolType}, loc{loc_}
+        : typeContext{typeContext_}, sType{symbolType}, loc{loc_}
     {
     }
 
     template <IsValidASTValue T>
-    AST(const ASTSymbolType symbolType, const Location &loc_,
-        T &&value_) noexcept
-        : symbolType{symbolType}, loc{loc_}, value{value_}
+    AST(const ASTSymType symbolType, const Location &loc_, T &&value_) noexcept
+        : sType{symbolType}, loc{loc_}, value{value_}
     {
     }
 
     template <IsValidASTValue T>
-    AST(Ptr<TypeContext> typeContext_, const ASTSymbolType symbolType,
+    AST(Ptr<TypeContext> typeContext_, const ASTSymType symbolType,
         const Location &loc_, T &&value_) noexcept
-        : typeContext{typeContext_}, symbolType{symbolType}, loc{loc_},
-          value{value_}
+        : typeContext{typeContext_}, sType{symbolType}, loc{loc_}, value{value_}
     {
     }
 
@@ -90,9 +88,8 @@ class AST : public std::enable_shared_from_this<AST> {
 
     static inline bool isASTAppendable(const AST &node) noexcept
     {
-        return !isASTSymbolTypeOneOf(node.symbolType, ASTSymbolType::YYEMPTY,
-                                     ASTSymbolType::YYEOF,
-                                     ASTSymbolType::YYerror);
+        return !isASTSymbolTypeOneOf(node.sType, ASTSymType::YYEMPTY,
+                                     ASTSymType::YYEOF, ASTSymType::YYerror);
     }
 
     void addChild(PtrAST child) noexcept
@@ -112,7 +109,7 @@ class AST : public std::enable_shared_from_this<AST> {
          ...);
     }
 
-    PtrAST findFirstChild(ASTSymbolType type) const noexcept;
+    PtrAST findFirstChild(ASTSymType type) const noexcept;
 
     constexpr bool hasValue() const noexcept { return value.index() != 0; }
 
@@ -161,12 +158,12 @@ class AST : public std::enable_shared_from_this<AST> {
 
     auto getTypeContext() const { return typeContext; }
 
-    auto getSymbolType() const noexcept { return symbolType; }
+    auto getSymType() const noexcept { return sType; }
 
     template <AllAreASTSymbolType... OtherTypes>
-    bool isTypeOneOf(OtherTypes &&...othertypes) const noexcept
+    bool isSymTypeOneOf(OtherTypes &&...othertypes) const noexcept
     {
-        return isASTSymbolTypeOneOf(getSymbolType(),
+        return isASTSymbolTypeOneOf(getSymType(),
                                     std::forward<OtherTypes>(othertypes)...);
     }
 
@@ -199,7 +196,7 @@ class AST : public std::enable_shared_from_this<AST> {
 
   protected:
     Ptr<TypeContext> typeContext;
-    ASTSymbolType symbolType;
+    ASTSymType sType;
     WeakPtrAST parent;
     std::vector<PtrAST> children;
     Location loc;
@@ -212,26 +209,25 @@ class AST : public std::enable_shared_from_this<AST> {
     /// to the list of its children.
     ///
     template <IsBaseAST ASTType, AllArePtrAST... Children>
-    friend Ptr<ASTType> makeAST(ASTSymbolType type, const Location &loc,
+    friend Ptr<ASTType> makeAST(ASTSymType type, const Location &loc,
                                 Children &&...children);
 
     template <IsBaseAST ASTType, AllArePtrAST... Children>
-    friend Ptr<ASTType> makeAST(Ptr<TypeContext> typeContext,
-                                ASTSymbolType type, const Location &loc,
-                                Children &&...children);
+    friend Ptr<ASTType> makeAST(Ptr<TypeContext> typeContext, ASTSymType type,
+                                const Location &loc, Children &&...children);
 
     ///
     /// \brief Create a new node, and add all following children `PtrAST`
     /// to the list of its children.
     ///
     template <IsBaseAST ASTType, IsValidASTValue T, AllArePtrAST... Children>
-    friend Ptr<ASTType> makeAST(ASTSymbolType type, const Location &loc,
-                                T &&value, Children &&...children);
+    friend Ptr<ASTType> makeAST(ASTSymType type, const Location &loc, T &&value,
+                                Children &&...children);
 
     template <IsBaseAST ASTType, IsValidASTValue T, AllArePtrAST... Children>
-    friend Ptr<ASTType> makeAST(Ptr<TypeContext> typeContext,
-                                ASTSymbolType type, const Location &loc,
-                                T &&value, Children &&...children);
+    friend Ptr<ASTType> makeAST(Ptr<TypeContext> typeContext, ASTSymType type,
+                                const Location &loc, T &&value,
+                                Children &&...children);
 
     ///
     /// Allow stream-like operation on ASTs for processing.
@@ -276,7 +272,7 @@ class AST : public std::enable_shared_from_this<AST> {
 }; // class: AST
 
 template <IsBaseAST ASTType, AllArePtrAST... Children>
-inline Ptr<ASTType> makeAST(ASTSymbolType type, const Location &loc,
+inline Ptr<ASTType> makeAST(ASTSymType type, const Location &loc,
                             Children &&...children)
 {
     Ptr<ASTType> parentNode = makeSharedPtr<ASTType>(type, loc);
@@ -285,7 +281,7 @@ inline Ptr<ASTType> makeAST(ASTSymbolType type, const Location &loc,
 }
 
 template <IsBaseAST ASTType, AllArePtrAST... Children>
-inline Ptr<ASTType> makeAST(Ptr<TypeContext> typeContext, ASTSymbolType type,
+inline Ptr<ASTType> makeAST(Ptr<TypeContext> typeContext, ASTSymType type,
                             const Location &loc, Children &&...children)
 {
     Ptr<ASTType> parentNode = makeSharedPtr<ASTType>(typeContext, type, loc);
@@ -294,7 +290,7 @@ inline Ptr<ASTType> makeAST(Ptr<TypeContext> typeContext, ASTSymbolType type,
 }
 
 template <IsBaseAST ASTType, IsValidASTValue T, AllArePtrAST... Children>
-inline Ptr<ASTType> makeAST(ASTSymbolType type, const Location &loc, T &&value,
+inline Ptr<ASTType> makeAST(ASTSymType type, const Location &loc, T &&value,
                             Children &&...children)
 {
     Ptr<ASTType> parentNode =
@@ -304,7 +300,7 @@ inline Ptr<ASTType> makeAST(ASTSymbolType type, const Location &loc, T &&value,
 }
 
 template <IsBaseAST ASTType, IsValidASTValue T, AllArePtrAST... Children>
-inline Ptr<ASTType> makeAST(Ptr<TypeContext> typeContext, ASTSymbolType type,
+inline Ptr<ASTType> makeAST(Ptr<TypeContext> typeContext, ASTSymType type,
                             const Location &loc, T &&value,
                             Children &&...children)
 {
@@ -333,8 +329,8 @@ inline std::ostream &operator<<(std::ostream &os, const AST &node)
     using utils::logging::ControlSeq;
 
     // print node type
-    os << ControlSeq::Bold << getASTSymbolColor(node.symbolType)
-       << getASTSymbolName(node.symbolType) << ControlSeq::Reset;
+    os << ControlSeq::Bold << getASTSymbolColor(node.sType)
+       << getASTSymbolName(node.sType) << ControlSeq::Reset;
 
     // TODO: print node address (allocated)
 
@@ -365,7 +361,7 @@ inline std::ostream &operator<<(std::ostream &os, const AST &node)
         // template magic
         // TODO: add support for other types
         os << " ";
-        os << getASTSymbolColor(node.symbolType);
+        os << getASTSymbolColor(node.sType);
         node.visitValue(overloaded{[&](const auto arg) {},
                                    [&](ASTCharType arg) { os << arg; },
                                    [&](ASTSIntType arg) { os << arg; },
@@ -436,7 +432,7 @@ class ASTHelper {
     // TODO: document them
 
     static PtrAST makeDeclSpecifierTree(const Location &loc,
-                                        ASTSymbolType specSymbolType);
+                                        ASTSymType specSymbolType);
 
     static Type *getBaseTySpec(const AST &root) noexcept;
 

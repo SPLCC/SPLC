@@ -63,7 +63,7 @@ void TranslationManager::tryRegisterSymbol(PtrAST root)
             if (auto it = std::find_if(
                     root->getChildren().begin(), root->getChildren().end(),
                     [](const PtrAST &node) {
-                        return node->getSymbolType() == ASTSymbolType::CompStmt;
+                        return node->getSymType() == ASTSymType::CompStmt;
                     });
                 it != root->getChildren().end()) {
                 defined = true;

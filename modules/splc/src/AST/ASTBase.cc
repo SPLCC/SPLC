@@ -11,7 +11,7 @@ thread_local ASTPrintMap splc::astPrintMap;
 
 void resetASTPrintMapContext() noexcept { astPrintMap.clear(); }
 
-PtrAST AST::findFirstChild(ASTSymbolType type) const noexcept
+PtrAST AST::findFirstChild(ASTSymType type) const noexcept
 {
     // TODO: find the first available child
     return makeSharedPtr<AST>();
@@ -22,7 +22,7 @@ PtrAST AST::copy(const std::function<bool(Ptr<const AST>)> &predicate,
 {
     PtrAST ret = makeSharedPtr<AST>();
     ret->typeContext = this->typeContext;
-    ret->symbolType = this->symbolType;
+    ret->sType = this->sType;
     ret->parent = this->parent;
 
     // Copy child if and only if they satisfy the predicate.
@@ -57,12 +57,12 @@ Value AST::evaluate()
 
 Ptr<AST> ASTHelper::getPtrDeclEndPoint(AST &root) noexcept
 {
-    splc_assert(root.symbolType == ASTSymbolType::PtrDecltr);
+    splc_assert(root.sType == ASTSymType::PtrDecltr);
 
     // Use a bit hack here to remove constness
     AST *tmp = &root;
     while (!tmp->children.empty()) {
-        if (tmp->children.back()->symbolType != ASTSymbolType::PtrDecltr) {
+        if (tmp->children.back()->sType != ASTSymType::PtrDecltr) {
             return tmp->shared_from_this();
         }
         tmp = tmp->children.back().get();
@@ -72,11 +72,11 @@ Ptr<AST> ASTHelper::getPtrDeclEndPoint(AST &root) noexcept
 }
 
 PtrAST ASTHelper::makeDeclSpecifierTree(const Location &loc,
-                                        ASTSymbolType specSymbolType)
+                                        ASTSymType specSymbolType)
 {
 
     auto intTyNode = makeAST<AST>(specSymbolType, loc);
-    auto typeSpec = makeAST<AST>(ASTSymbolType::TypeSpec, loc, intTyNode);
-    auto declSpec = makeAST<AST>(ASTSymbolType::DeclSpec, loc, typeSpec);
+    auto typeSpec = makeAST<AST>(ASTSymType::TypeSpec, loc, intTyNode);
+    auto declSpec = makeAST<AST>(ASTSymType::DeclSpec, loc, typeSpec);
     return declSpec;
 }

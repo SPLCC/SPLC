@@ -7,7 +7,7 @@ Type *ASTHelper::getBaseTySpecRecursive(const AST &root) noexcept
 {
     // TODO: use a general judge:
     // TODO: require refactoring of the ASTSymbolType class.
-    if (root.symbolType == ASTSymbolType::IntTy)
+    if (root.sType == ASTSymType::IntTy)
         return &root.typeContext->SInt32Ty; // Just assume it is signed int32
 
     Type *ty = nullptr;
@@ -25,7 +25,7 @@ Type *ASTHelper::getBaseTySpecRecursive(const AST &root) noexcept
 Type *ASTHelper::getBaseTySpec(const AST &root) noexcept
 {
     splc_dbgassert(
-        isASTSymbolTypeOneOf(root.symbolType, ASTSymbolType::DeclSpec));
+        isASTSymbolTypeOneOf(root.sType, ASTSymType::DeclSpec));
     // TODO: remove the assumption
     // ASSUMPTION: only one type specifier, i.e. no things like unsigned long
     // long or some stupid things. Either BE Int32Ty, or just **** up everything
@@ -37,7 +37,7 @@ Type *ASTHelper::getBaseTySpec(const AST &root) noexcept
 
 Type *ASTHelper::processParamDeclRecursive(const AST &root) noexcept
 {
-    splc_dbgassert(root.symbolType == ASTSymbolType::ParamDecltr);
+    splc_dbgassert(root.sType == ASTSymType::ParamDecltr);
 
     Ptr<AST> paramDeclSpecNode = root.children[0];
     Type *paramDeclSpec = getBaseTySpec(*paramDeclSpecNode);
@@ -57,13 +57,13 @@ Type *ASTHelper::processParamDeclRecursive(const AST &root) noexcept
 
 Type *ASTHelper::processDecltrSubDispatch(const AST &root, Type *base) noexcept
 {
-    if (isASTSymbolTypeOneOf(root.getSymbolType(), ASTSymbolType::DirDecltr,
-                                 ASTSymbolType::DirFuncDecltr)) {
-        if (root.children[0]->symbolType == ASTSymbolType::ID) {
+    if (isASTSymbolTypeOneOf(root.getSymType(), ASTSymType::DirDecltr,
+                                 ASTSymType::DirFuncDecltr)) {
+        if (root.children[0]->sType == ASTSymType::ID) {
             return base;
         }
-        else if (root.children[0]->symbolType ==
-                 ASTSymbolType::WrappedDirDecltr) {
+        else if (root.children[0]->sType ==
+                 ASTSymType::WrappedDirDecltr) {
             ///===----If root contains a function declaration and a parameter
             /// list
             std::vector<Type *> params;
@@ -72,7 +72,7 @@ Type *ASTHelper::processDecltrSubDispatch(const AST &root, Type *base) noexcept
             if (auto it = std::find_if(
                     root.children.begin(), root.children.end(),
                     [](const Ptr<AST> &node) {
-                        return node->symbolType == ASTSymbolType::ParamList;
+                        return node->sType == ASTSymType::ParamList;
                     });
                 it != root.children.end()) {
                 auto &paramNode = *it;
@@ -88,9 +88,9 @@ Type *ASTHelper::processDecltrSubDispatch(const AST &root, Type *base) noexcept
 
             return processDecltrSubDispatch(*root.children[0], func);
         }
-        else if (root.children[0]->symbolType == ASTSymbolType::DirDecltr &&
+        else if (root.children[0]->sType == ASTSymType::DirDecltr &&
                  root.getChildrenNum() >= 3 &&
-                 root.children[1]->symbolType == ASTSymbolType::OpLSB) {
+                 root.children[1]->sType == ASTSymType::OpLSB) {
 
             splc_dbgassert(root.getChildrenNum() == 4)
                 << " at " << root.loc
@@ -108,31 +108,31 @@ Type *ASTHelper::processDecltrSubDispatch(const AST &root, Type *base) noexcept
             return processDecltrSubDispatch(*dirDeclNode, arrType);
         }
     }
-    else if (root.symbolType == ASTSymbolType::PtrDecltr) {
+    else if (root.sType == ASTSymType::PtrDecltr) {
         ///===----Pointers
         return processDecltrSubDispatch(*root.children[1],
                                         base->getPointerTo());
     }
-    else if (root.symbolType == ASTSymbolType::WrappedDirDecltr) {
+    else if (root.sType == ASTSymType::WrappedDirDecltr) {
         return processDecltrRecursive(*root.children[0], base);
     }
 
     splc_error() << "\neither a syntax error is present, or the system does "
                     "not support this type: "
-                 << root.getSymbolType();
+                 << root.getSymType();
     return nullptr;
 }
 
 Type *ASTHelper::processDecltrRecursive(const AST &root, Type *base) noexcept
 {
-    splc_dbgassert(root.getSymbolType() == ASTSymbolType::Decltr)
+    splc_dbgassert(root.getSymType() == ASTSymType::Decltr)
         << ", at " << root.loc;
     return processDecltrSubDispatch(*root.children[0], base);
 }
 
 Type *ASTHelper::processInitDecltr(const AST &root, Type *base) noexcept
 {
-    splc_dbgassert(root.getSymbolType() == ASTSymbolType::InitDecltr);
+    splc_dbgassert(root.getSymType() == ASTSymType::InitDecltr);
     // don't care about the initializer
     return processDecltrRecursive(*root.children[0], base);
 }
@@ -140,7 +140,7 @@ Type *ASTHelper::processInitDecltr(const AST &root, Type *base) noexcept
 std::vector<Type *> ASTHelper::processInitDeclList(const AST &root,
                                                    Type *base) noexcept
 {
-    splc_dbgassert(root.symbolType == ASTSymbolType::InitDecltrList);
+    splc_dbgassert(root.sType == ASTSymType::InitDecltrList);
     std::vector<Type *> res;
     std::transform(
         root.children.begin(), root.children.end(), std::back_inserter(res),
@@ -175,12 +175,12 @@ Type *ASTHelper::getFuncTy(const AST &root) noexcept
 
     auto dirDeclRoot = root.children[1]->children[0]; // FuncDef -> FuncDecltr
     Type *retType = processDecltrSubDispatch(*dirDeclRoot, baseType);
-    while (dirDeclRoot->getSymbolType() != ASTSymbolType::DirFuncDecltr &&
+    while (dirDeclRoot->getSymType() != ASTSymType::DirFuncDecltr &&
            !dirDeclRoot->isChildrenEmpty()) {
         dirDeclRoot = dirDeclRoot->children.back();
     }
-    splc_dbgassert(dirDeclRoot->getSymbolType() == ASTSymbolType::DirFuncDecltr)
-        << ": " << dirDeclRoot->getSymbolType();
+    splc_dbgassert(dirDeclRoot->getSymType() == ASTSymType::DirFuncDecltr)
+        << ": " << dirDeclRoot->getSymType();
 
     // There is always a parameter list for a function. It can be either
     // empty, or contains ParamDecltr. In both cases, we can directly
@@ -203,15 +203,15 @@ Type *ASTHelper::getFuncTy(const AST &root) noexcept
 std::vector<Type *> ASTHelper::getTypeHelperDispatch(const AST &root)
 {
     // TODO: deal with more types
-    switch (root.symbolType) {
-    case ASTSymbolType::Decl:
+    switch (root.sType) {
+    case ASTSymType::Decl:
         return getDeclTy(root);
-    case ASTSymbolType::FuncDef:
-    case ASTSymbolType::FuncDecl:
+    case ASTSymType::FuncDef:
+    case ASTSymType::FuncDecl:
         return {getFuncTy(root)};
     default:
         splc_error() << "invalid symbol type: "
-                     << getASTSymbolColor(root.symbolType) << root.symbolType;
+                     << getASTSymbolColor(root.sType) << root.sType;
     }
     // TODO: verify
     SPLC_LOG_ERROR(&root.loc, true) << "invalid type";
@@ -221,8 +221,8 @@ std::vector<Type *> ASTHelper::getTypeHelperDispatch(const AST &root)
 std::vector<Type *> AST::getType() const
 {
     splc_dbgassert(isASTSymbolTypeOneOf(
-        this->symbolType, ASTSymbolType::Decl, ASTSymbolType::FuncDef,
-        ASTSymbolType::FuncDecl));
+        this->sType, ASTSymType::Decl, ASTSymType::FuncDef,
+        ASTSymType::FuncDecl));
     auto vec = ASTHelper::getTypeHelperDispatch(*this);
     return vec;
 }

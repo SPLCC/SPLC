@@ -43,7 +43,7 @@ class TranslationManager {
     /// to the list of its children.
     ///
     template <IsBaseAST ASTType, AllArePtrAST... Children>
-    Ptr<ASTType> makeAST(ASTSymbolType type, const Location &loc,
+    Ptr<ASTType> makeAST(ASTSymType type, const Location &loc,
                          Children &&...children);
 
     ///
@@ -51,7 +51,7 @@ class TranslationManager {
     /// to the list of its children.
     ///
     template <IsBaseAST ASTType, IsValidASTValue T, AllArePtrAST... Children>
-    Ptr<ASTType> makeAST(ASTSymbolType type, const Location &loc, T &&value,
+    Ptr<ASTType> makeAST(ASTSymType type, const Location &loc, T &&value,
                          Children &&...children);
 
     auto getTypeContext() { return tunit->typeContext; }
@@ -189,7 +189,7 @@ class TranslationManager {
 };
 
 template <IsBaseAST ASTType, AllArePtrAST... Children>
-inline Ptr<ASTType> TranslationManager::makeAST(ASTSymbolType type,
+inline Ptr<ASTType> TranslationManager::makeAST(ASTSymType type,
                                                 const Location &loc,
                                                 Children &&...children)
 {
@@ -199,7 +199,7 @@ inline Ptr<ASTType> TranslationManager::makeAST(ASTSymbolType type,
 }
 
 template <IsBaseAST ASTType, IsValidASTValue T, AllArePtrAST... Children>
-inline Ptr<ASTType> TranslationManager::makeAST(ASTSymbolType type,
+inline Ptr<ASTType> TranslationManager::makeAST(ASTSymType type,
                                                 const Location &loc, T &&value,
                                                 Children &&...children)
 {
