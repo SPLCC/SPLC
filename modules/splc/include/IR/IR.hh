@@ -149,9 +149,9 @@ class IRVar {
 // TODO: modify everything
 class IRStmt {
   public:
-    static PtrIRStmt createLabelStmt(PtrIRVar op1_);
+    static PtrIRStmt createLabelStmt(PtrIRVar op_);
 
-    static PtrIRStmt createFuncDecl(PtrIRVar op1_);
+    static PtrIRStmt createFuncDecl(PtrIRVar op_);
 
     static PtrIRStmt createAssignStmt(PtrIRVar lhs, PtrIRVar rhs);
 
@@ -164,7 +164,7 @@ class IRStmt {
 
     static PtrIRStmt createCopyToAddrStmt(PtrIRVar op1_, PtrIRVar op2_);
 
-    static PtrIRStmt createGotoStmt(PtrIRVar op1_);
+    static PtrIRStmt createGotoStmt(PtrIRVar op_);
 
     static PtrIRStmt createBranchIfStmt(IRBranchType branchType_, PtrIRVar lhs_,
                                         PtrIRVar rhs_, PtrIRVar label_);
@@ -173,16 +173,16 @@ class IRStmt {
 
     static PtrIRStmt createAllocStmt(PtrIRVar op1_, PtrIRVar op2_);
 
-    static PtrIRStmt createPopCallArgStmt(PtrIRVar op1_);
+    static PtrIRStmt createPopCallArgStmt(PtrIRVar op_);
 
-    static PtrIRStmt createPushCallArgStmt(PtrIRVar op1_);
+    static PtrIRStmt createPushCallArgStmt(PtrIRVar op_);
 
-    static PtrIRStmt createInvokeFunc(Ptr<IRFunction> func,
+    static PtrIRStmt createInvokeFuncStmt(PtrIRVar func,
                                       PtrIRVar lhs_ = nullptr);
 
-    static PtrIRStmt createReadStmt(PtrIRVar op1_);
+    static PtrIRStmt createReadStmt(PtrIRVar op_);
 
-    static PtrIRStmt createWriteStmt(PtrIRVar op2_);
+    static PtrIRStmt createWriteStmt(PtrIRVar op_);
 
     friend std::ostream &operator<<(std::ostream &os, const IRStmt &stmt);
 

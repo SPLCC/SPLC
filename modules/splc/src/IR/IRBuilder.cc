@@ -39,7 +39,8 @@ void IRBuilder::registerFunction(PtrAST funcRoot)
 
     // TODO (future): support more type
     for (auto &pid : paramIDs) {
-        params.emplace_back(pid, IRVar::createVariableVar(pid, &tyCtxt.SInt32Ty));
+        params.emplace_back(pid,
+                            IRVar::createVariableVar(pid, &tyCtxt.SInt32Ty));
     }
 
     for (auto &p : params) {
@@ -62,59 +63,7 @@ void IRBuilder::registerFunction(PtrAST funcRoot)
     recRegisterStmts(function->body, body);
 }
 
-void IRBuilder::recRegisterStmts(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot)
-{
-    SPLC_LOG_DEBUG(nullptr, false) << "dispatch: " << stmtRoot->getSymbolType();
-    if (isASTSymbolTypeOneOfThem(stmtRoot->getSymbolType(),
-                                 ASTSymbolType::GeneralStmtList,
-                                 ASTSymbolType::CompStmt)) {
-        for (auto &child : stmtRoot->getChildren()) {
-            recRegisterStmts(stmtList, child);
-        }
-    }
-    else if (stmtRoot->getSymbolType() == ASTSymbolType::Decl) {
-        for (auto &child : stmtRoot->getChildren()) {
-            recRegisterDeclVal(stmtList, child);
-            // ASSIGN INITIAL VALUES, IF NONCONSTEXPR
-        }
-    }
-    else if (stmtRoot->getSymbolType() == ASTSymbolType::Stmt) {
-        PtrAST realStmt = stmtRoot->getChildren()[0];
-        switch (realStmt->getSymbolType()) {
-        case ASTSymbolType::CompStmt: {
-            recRegisterStmts(stmtList, realStmt);
-            break;
-        }
-        case ASTSymbolType::ExprStmt: {
-            recRegisterExprs(stmtList, realStmt);
-            break;
-        }
-        case ASTSymbolType::IterStmt: {
-            recRegisterIterStmt(stmtList, realStmt);
-            break;
-        }
-        case ASTSymbolType::SelStmt: {
-            recRegisterSelStmt(stmtList, realStmt);
-            break;
-        }
-        case ASTSymbolType::LabeledStmt: {
-            splc_error() << "Not implement.\n";
-            break;
-        }
-        case ASTSymbolType::JumpStmt: {
-            recRegisterJumpStmt(stmtList, realStmt);
-            break;
-        }
-        default: {
-            splc_error();
-        }
-        }
-    }
-}
-
-
-PtrIRVar IRBuilder::recRegisterExprs(IRVec<PtrIRStmt> stmtList,
-                                         PtrAST exprRoot)
+PtrIRVar IRBuilder::recRegisterExprs(IRVec<PtrIRStmt> stmtList, PtrAST exprRoot)
 {
     if (exprRoot->getChildrenNum() == 1) {
         PtrAST child = exprRoot->getChildren()[0];
@@ -295,6 +244,91 @@ void IRBuilder::recRegisterCondExpr(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot,
     }
 }
 
+PtrIRVar IRBuilder::recRegisterCallExpr(IRVec<PtrIRStmt> stmtList,
+                                        PtrAST exprRoot)
+{
+    PtrAST idAST = exprRoot->getChildren()[0];
+    PtrAST argAST = exprRoot->getChildren()[1];
+    PtrIRVar funcID = recRegisterExprs(stmtList, idAST);
+    SPLC_LOG_DEBUG(nullptr, false) << "evaluating CallExpr: " << funcID->name;
+    if (funcID->name == "write") {
+        SPLC_LOG_DEBUG(nullptr, false) << "Write to terminal\n";
+        PtrIRVar arg = recRegisterExprs(stmtList, argAST->getChildren()[0]);
+        stmtList.push_back(IRStmt::createWriteStmt(arg));
+        return nullptr; // Nothing to return
+    }
+    else if (funcID->name == "read") {
+        SPLC_LOG_DEBUG(nullptr, false) << "Read from input\n";
+        PtrIRVar res = getTmpVar();
+        stmtList.push_back(IRStmt::createReadStmt(res));
+        return res;
+    }
+
+    // normal function call
+    PtrIRVar res = getTmpVar();
+
+    for (auto &arg : argAST->getChildren()) {
+        PtrIRVar argVar = recRegisterExprs(stmtList, arg);
+        SPLC_LOG_DEBUG(nullptr, false)
+            << "pushing call arg: " << argVar->getName();
+        stmtList.push_back(IRStmt::createPushCallArgStmt(argVar));
+    }
+
+    // CALL stmt
+    stmtList.push_back(IRStmt::createInvokeFuncStmt(funcID, res));
+    return res;
+}
+
+void IRBuilder::recRegisterStmts(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot)
+{
+    SPLC_LOG_DEBUG(nullptr, false) << "dispatch: " << stmtRoot->getSymbolType();
+    if (isASTSymbolTypeOneOfThem(stmtRoot->getSymbolType(),
+                                 ASTSymbolType::GeneralStmtList,
+                                 ASTSymbolType::CompStmt)) {
+        for (auto &child : stmtRoot->getChildren()) {
+            recRegisterStmts(stmtList, child);
+        }
+    }
+    else if (stmtRoot->getSymbolType() == ASTSymbolType::Decl) {
+        for (auto &child : stmtRoot->getChildren()) {
+            recRegisterDeclVal(stmtList, child);
+            // ASSIGN INITIAL VALUES, IF NONCONSTEXPR
+        }
+    }
+    else if (stmtRoot->getSymbolType() == ASTSymbolType::Stmt) {
+        PtrAST realStmt = stmtRoot->getChildren()[0];
+        switch (realStmt->getSymbolType()) {
+        case ASTSymbolType::CompStmt: {
+            recRegisterStmts(stmtList, realStmt);
+            break;
+        }
+        case ASTSymbolType::ExprStmt: {
+            recRegisterExprs(stmtList, realStmt);
+            break;
+        }
+        case ASTSymbolType::IterStmt: {
+            recRegisterIterStmt(stmtList, realStmt);
+            break;
+        }
+        case ASTSymbolType::SelStmt: {
+            recRegisterSelStmt(stmtList, realStmt);
+            break;
+        }
+        case ASTSymbolType::LabeledStmt: {
+            splc_error() << "Not implement.\n";
+            break;
+        }
+        case ASTSymbolType::JumpStmt: {
+            recRegisterJumpStmt(stmtList, realStmt);
+            break;
+        }
+        default: {
+            splc_error();
+        }
+        }
+    }
+}
+
 void IRBuilder::recRegisterIterStmt(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot)
 {
     // CHECK: WHILE
@@ -386,6 +420,14 @@ void IRBuilder::recRegisterJumpStmt(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot)
     stmtList.push_back(IRStmt::createReturnStmt(var));
 }
 
+void IRBuilder::recRegisterInitDecltr(IRVec<PtrIRStmt> stmtList, PtrAST dirDecltr) {
+    // TODO
+}
+
+void IRBuilder::recRegisterDeclVal(IRVec<PtrIRStmt> stmtList, PtrAST declRoot) {
+    // TODO
+}
+
 PtrIRVar IRBuilder::getTmpLabel()
 {
     return IRVar::createLabelVar("_lb_" + std::to_string(allocCnt++));
@@ -393,5 +435,5 @@ PtrIRVar IRBuilder::getTmpLabel()
 
 PtrIRVar IRBuilder::getTmpVar()
 {
-    return IRVar::createVariableVar("_var_", &tyCtxt.SInt32Ty);
+    return IRVar::createVariableVar("_tmp_", &tyCtxt.SInt32Ty);
 }
