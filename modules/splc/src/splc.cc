@@ -33,8 +33,9 @@ int main(const int argc, const char **argv)
 
     auto node = tunit->getRootNode();
     if (node) {
-        std::cout << splc::treePrintTransform(*node);
-        std::cout << *node->getASTContext();
+        SPLC_LOG_DEBUG(nullptr, false) << "\n"
+                                       << splc::treePrintTransform(*node);
+        SPLC_LOG_DEBUG(nullptr, false) << "\n" << *node->getASTContext();
     }
 
     // test

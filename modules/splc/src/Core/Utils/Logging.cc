@@ -37,6 +37,11 @@ Logger::Logger(const bool enable_, const Level level_,
 
 void Logger::printInitial() const noexcept
 {
+    // If the level is empty, don't print any initial banners
+    if (level == Level::Empty) {
+        return;
+    }
+
     std::lock_guard<std::mutex> lockGuard{logStreamMutex};
 
     // Trace
@@ -55,10 +60,8 @@ void Logger::printInitial() const noexcept
     localLogStream << ":" << ControlSeq::Reset << " ";
 
     // Body
-    if (level != Level::Empty) {
-        localLogStream << getLevelColor(level) << level << ControlSeq::Reset
-                       << ": ";
-    }
+    localLogStream << getLevelColor(level) << level << ControlSeq::Reset
+                   << ": ";
 }
 
 void printIndicatorUnderline(std::ostream &os, Level level, size_t start,
