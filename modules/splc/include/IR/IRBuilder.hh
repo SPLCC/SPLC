@@ -31,11 +31,9 @@ class IRBuilder {
     void recRegisterJumpStmt(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot);
 
     // register expr
-    void recRegisterExprs(IRVec<PtrIRStmt> stmtList, PtrAST exprRoot);
-    // TODO: May can combine
-    PtrIRVar recRegisterBasicExpr(IRVec<PtrIRStmt> stmtList, PtrAST exprRoot);
-    IRPair<PtrIRVar, PtrIRVar> recRegisterCondExpr(IRVec<PtrIRStmt> stmtList,
-                                                   PtrAST exprRoot);
+    PtrIRVar recRegisterExprs(IRVec<PtrIRStmt> stmtList, PtrAST exprRoot);
+    PtrIRVar recRegisterCallExpr(IRVec<PtrIRStmt> stmtList, PtrAST exprRoot);
+    void recRegisterCondExpr(IRVec<PtrIRStmt> stmtList, PtrAST exprRoot, PtrIRVar lbt, PtrIRVar lbf);
 
     void recRegisterInitDecltr(IRVec<PtrIRStmt> stmtList, PtrAST dirDecltr);
 
@@ -66,32 +64,32 @@ class IRBuilderHelper {
         return vec;
     }
 
-    static IRBranchType reverseBranchType(ASTSymbolType type)
+    static IRBranchType convSymbolType(ASTSymbolType type)
     {
         IRBranchType branchType;
         switch (type) {
         case ASTSymbolType::OpLT: {
-            branchType = IRBranchType::GE;
-            break;
-        }
-        case ASTSymbolType::OpLE: {
-            branchType = IRBranchType::GT;
-            break;
-        }
-        case ASTSymbolType::OpGT: {
-            branchType = IRBranchType::LE;
-            break;
-        }
-        case ASTSymbolType::OpGE: {
             branchType = IRBranchType::LT;
             break;
         }
+        case ASTSymbolType::OpLE: {
+            branchType = IRBranchType::LE;
+            break;
+        }
+        case ASTSymbolType::OpGT: {
+            branchType = IRBranchType::GT;
+            break;
+        }
+        case ASTSymbolType::OpGE: {
+            branchType = IRBranchType::GE;
+            break;
+        }
         case ASTSymbolType::OpEQ: {
-            branchType = IRBranchType::NE;
+            branchType = IRBranchType::EQ;
             break;
         }
         case ASTSymbolType::OpNE: {
-            branchType = IRBranchType::EQ;
+            branchType = IRBranchType::NE;
             break;
         }
         default:

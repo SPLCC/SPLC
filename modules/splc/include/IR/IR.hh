@@ -10,6 +10,7 @@ namespace splc {
 class IRVar;
 class IRStmt;
 class IRFunction;
+class IRSB; // IR Super Block
 
 using IRIDType = ASTIDType;
 using StrRef = std::string_view;
@@ -81,10 +82,9 @@ class IRVar {
 
     static PtrIRVar createFuncionVar(IRIDType name_, Type *type_);
 
-    static PtrIRVar createVariableVar(IRIDType name_, Type *type_,
-                                      bool isConst_ = false);
+    static PtrIRVar createVariableVar(IRIDType name_, Type *type_);
 
-    static PtrIRVar createConstantVar(IRIDType name_, Type *type_);
+    static PtrIRVar createConstantVar(Type *type_, ASTValueType val);
 
     IRVar(IRIDType name_, IRVarType varType_ = IRVarType::Label,
           Type *type_ = nullptr, ASTValueType val_ = {}, bool isConst_ = false)
@@ -153,10 +153,10 @@ class IRStmt {
 
     static PtrIRStmt createFuncDecl(PtrIRVar op1_);
 
-    static PtrIRStmt createAssignStmt(PtrIRVar op1_, PtrIRVar op2_);
+    static PtrIRStmt createAssignStmt(PtrIRVar lhs, PtrIRVar rhs);
 
     static PtrIRStmt createArithmeticStmt(IRType irType, PtrIRVar op1_,
-                                          Ptr<IRType> op2, Ptr<IRType> op3);
+                                          PtrIRVar op2, PtrIRVar op3);
 
     static PtrIRStmt createAddrOfStmt(PtrIRVar op1_, PtrIRVar op2_);
 
@@ -214,6 +214,10 @@ class IRStmt {
     }
 };
 
+class IRSB : public IRStmt {
+
+};
+
 class IRFunction {
   public:
     static Ptr<IRFunction> create(IRIDType name_, Type *retTy_);
@@ -227,6 +231,7 @@ class IRFunction {
     IRMap<IRIDType, PtrIRVar> paramMap;
     IRVec<PtrIRStmt> body;
 };
+
 
 inline std::ostream &operator<<(std::ostream &os, const IRStmt &stmt)
 {
