@@ -291,7 +291,7 @@ void IRBuilder::recRegisterStmts(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot)
     }
     else if (stmtRoot->getSymbolType() == ASTSymbolType::Decl) {
         // ASSIGN INITIAL VALUES, IF NONCONSTEXPR
-        recRegisterDeclVal(stmtList, stmtRoot);
+        recRegisterDecl(stmtList, stmtRoot);
     }
     else if (stmtRoot->getSymbolType() == ASTSymbolType::Stmt) {
         PtrAST realStmt = stmtRoot->getChildren()[0];
@@ -418,12 +418,12 @@ void IRBuilder::recRegisterJumpStmt(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot)
     stmtList.push_back(IRStmt::createReturnStmt(var));
 }
 
-void IRBuilder::recRegisterDeclVal(IRVec<PtrIRStmt> stmtList, PtrAST declRoot)
+void IRBuilder::recRegisterDecl(IRVec<PtrIRStmt> stmtList, PtrAST declRoot)
 {
     // TODO
     if (isASTSymbolTypeOneOfThem(declRoot->getSymbolType(),
                                  ASTSymbolType::Decl)) {
-        recRegisterDeclVal(stmtList, declRoot->getChildren()[0]);
+        recRegisterDecl(stmtList, declRoot->getChildren()[0]);
     }
     else if (declRoot->getSymbolType() == ASTSymbolType::DirDecl) {
         splc_dbgassert(declRoot->getChildrenNum() == 2);

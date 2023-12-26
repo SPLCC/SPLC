@@ -22,6 +22,8 @@ class IRBuilder {
 
     void writeProgram(std::ostream &os) { writeAllIRStmt(os); }
 
+    // ------------------------ register ------------------------
+    // register function
     void registerFunction(PtrAST funcRoot);
 
     // register stmt
@@ -33,9 +35,12 @@ class IRBuilder {
     // register expr
     PtrIRVar recRegisterExprs(IRVec<PtrIRStmt> stmtList, PtrAST exprRoot);
     PtrIRVar recRegisterCallExpr(IRVec<PtrIRStmt> stmtList, PtrAST exprRoot);
-    void recRegisterCondExpr(IRVec<PtrIRStmt> stmtList, PtrAST exprRoot, PtrIRVar lbt, PtrIRVar lbf);
+    void recRegisterCondExpr(IRVec<PtrIRStmt> stmtList, PtrAST exprRoot,
+                             PtrIRVar lbt, PtrIRVar lbf);
 
-    void recRegisterDeclVal(IRVec<PtrIRStmt> stmtList, PtrAST declRoot);
+    // register declaration
+    void recRegisterDecl(IRVec<PtrIRStmt> stmtList, PtrAST declRoot);
+    // ----------------------------------------------------------
 
     void recursiveParseAST(PtrAST parseRoot);
 
