@@ -52,7 +52,6 @@ class ASTContextManager {
     SymbolEntry registerSymbol(SymEntryType summary_, std::string_view name_,
                                Type *type_, bool defined_,
                                const Location *location_,
-                               ASTValueType value_ = ASTValueType{},
                                PtrAST body_ = nullptr);
 
     ///

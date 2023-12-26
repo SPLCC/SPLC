@@ -30,8 +30,7 @@ SymbolEntry ASTContext::getSymbol(SymEntryType symEntTy_,
 
 SymbolEntry ASTContext::registerSymbol(SymEntryType symEntTy_,
                                        std::string_view name_, Type *type_,
-                                       bool defined_, const Location *location_,
-                                       ASTValueType value_, PtrAST body_)
+                                       bool defined_, const Location *location_, PtrAST body_)
 {
     auto it = symbolMap.find(name_);
     if (it != symbolMap.end()) {
@@ -43,7 +42,7 @@ SymbolEntry ASTContext::registerSymbol(SymEntryType symEntTy_,
     }
 
     auto symEntry = SymbolEntry::createSymbolEntry(symEntTy_, type_, defined_,
-                                                   location_, value_, body_);
+                                                   location_, body_);
     auto p = std::make_pair(ASTIDType{name_}, symEntry);
     symbolMap.insert(p);
     symbolList.push_back(p);

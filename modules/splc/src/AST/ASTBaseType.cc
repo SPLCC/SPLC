@@ -101,7 +101,7 @@ Type *ASTHelper::processDecltrSubDispatch(const AST &root, Type *base) noexcept
             // ASSUMPTION: don't mess up with AssignExpr
             Ptr<AST> dirDeclNode = root.children_[0];
             Ptr<AST> literalNode = root.children_[2]->children_[0]->children_[0];
-            auto val = literalNode->getValue<ASTUIntType>();
+            auto val = literalNode->getConstVal<ASTUIntType>();
 
             auto &context = base->getContext();
             Type *arrType = ArrayType::get(base, val);
@@ -218,7 +218,7 @@ std::vector<Type *> ASTHelper::getTypeHelperDispatch(const AST &root)
     throw RuntimeError(233, "invalid type");
 }
 
-std::vector<Type *> AST::getType() const
+std::vector<Type *> AST::getContainedTys() const
 {
     splc_dbgassert(isASTSymbolTypeOneOf(
         this->symType, ASTSymType::Decl, ASTSymType::FuncDef,

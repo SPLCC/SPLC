@@ -24,7 +24,7 @@ typedef std::string ASTIDType;
 using ASTValueType = std::variant<std::monostate, ASTCharType, ASTSIntType,
                                   ASTUIntType, ASTFloatType, ASTIDType>;
 
-using ASTDeclEntityType = std::tuple<ASTIDType, Location, ASTValueType>;
+using ASTDeclEntityType = std::tuple<ASTIDType, Location>;
 
 template <class T>
 concept IsValidASTValue =

@@ -79,20 +79,24 @@ class AST : public std::enable_shared_from_this<AST> {
 
     /// \brief [Experimental] You should call this only on FuntionDef/Decl
     /// nodes.
-    virtual std::vector<Type *> getType() const;
+    virtual std::vector<Type *> getContainedTys() const;
 
     virtual std::vector<ASTDeclEntityType> getNamedDeclEntities() const;
+
+    /// \brief [Experimental] You should call this only on FuntionDef/Decl
+    /// nodes.
+    auto getVarType() const { return varType; }
 
     // TODO(sem): semantic analysis generation
     virtual Value evaluate();
 
     static inline bool isASTAppendable(const AST &node) noexcept
     {
-        return !isASTSymbolTypeOneOf(node.symType, ASTSymType::YYEMPTY,
-                                     ASTSymType::YYEOF, ASTSymType::YYerror);
+        return !node.isSymTypeOneOf(ASTSymType::YYEMPTY, ASTSymType::YYEOF,
+                                    ASTSymType::YYerror);
     }
 
-    void addChild(PtrAST child) noexcept
+    virtual void addChild(PtrAST child) noexcept
     {
         children_.push_back(child);
         child->tyContext = this->tyContext;
@@ -111,40 +115,40 @@ class AST : public std::enable_shared_from_this<AST> {
 
     PtrAST findFirstChild(ASTSymType type) const noexcept;
 
-    constexpr bool hasValue() const noexcept { return value.index() != 0; }
+    constexpr bool hasConstVal() const noexcept { return value.index() != 0; }
 
     template <IsValidASTValue T>
-    auto getValue() noexcept
+    auto getConstVal() noexcept
     {
         return std::get<T>(value);
     }
 
     template <IsValidASTValue T>
-    auto getValue() const noexcept
+    auto getConstVal() const noexcept
     {
         return std::get<T>(value);
     }
 
     template <class Visitor>
-    auto visitValue(Visitor &&vis) noexcept
+    auto visitConstVal(Visitor &&vis) noexcept
     {
         return std::visit(vis, value);
     }
 
     template <class Visitor>
-    auto visitValue(Visitor &&vis) const noexcept
+    auto visitConstVal(Visitor &&vis) const noexcept
     {
         return std::visit(vis, value);
     }
 
     template <IsValidASTValue T>
-    void emplaceValue(T &&val) noexcept
+    void emplaceConstVal(T &&val) noexcept
     {
         value.emplace<T>(std::forward(val));
     }
 
     template <IsValidASTValue T>
-    constexpr bool holdsValueType() const noexcept
+    constexpr bool holdsConstType() const noexcept
     {
         return std::holds_alternative<T>(value);
     }
@@ -197,6 +201,7 @@ class AST : public std::enable_shared_from_this<AST> {
   protected:
     Ptr<TypeContext> tyContext;
     ASTSymType symType;
+    Type *varType;
     WeakPtrAST parent;
     std::vector<PtrAST> children_;
     Location loc;
@@ -385,17 +390,17 @@ inline std::ostream &operator<<(std::ostream &os, const AST &node)
     // TODO: print symbol table
 
     // print node value
-    if (node.hasValue()) {
+    if (node.hasConstVal()) {
         // template magic
         // TODO: add support for other types
         os << " ";
         os << getASTSymbolColor(node.symType);
-        node.visitValue(overloaded{[&](const auto arg) {},
-                                   [&](ASTCharType arg) { os << arg; },
-                                   [&](ASTSIntType arg) { os << arg; },
-                                   [&](ASTUIntType arg) { os << arg; },
-                                   [&](ASTFloatType arg) { os << arg; },
-                                   [&](const ASTIDType &arg) { os << arg; }});
+        node.visitConstVal(overloaded{
+            [&](const auto arg) {}, [&](ASTCharType arg) { os << arg; },
+            [&](ASTSIntType arg) { os << arg; },
+            [&](ASTUIntType arg) { os << arg; },
+            [&](ASTFloatType arg) { os << arg; },
+            [&](const ASTIDType &arg) { os << arg; }});
         os << ControlSeq::Reset;
     }
 
@@ -472,8 +477,6 @@ class ASTHelper {
     static Type *getFuncTy(const AST &root) noexcept;
 
     static std::vector<Type *> getTypeHelperDispatch(const AST &root);
-
-    static ASTValueType getNearestValue(const AST &root) noexcept;
 
     static void getIDRecursive(std::vector<ASTDeclEntityType> &vec,
                                const AST &root) noexcept;

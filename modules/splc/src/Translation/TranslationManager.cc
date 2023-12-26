@@ -21,19 +21,21 @@ SymbolEntry TranslationManager::getSymbol(SymEntryType symEntTy,
     return ent;
 }
 
-SymbolEntry TranslationManager::registerSymbol(
-    SymEntryType symEntTy, std::string_view name_, Type *type_, bool defined_,
-    const Location *location_, ASTValueType value_, PtrAST body_)
+SymbolEntry TranslationManager::registerSymbol(SymEntryType symEntTy,
+                                               std::string_view name_,
+                                               Type *type_, bool defined_,
+                                               const Location *location_,
+                                               PtrAST body_)
 {
-    auto ent = tunit->astCtxtMgr.registerSymbol(
-        symEntTy, name_, type_, defined_, location_, value_, body_);
+    auto ent = tunit->astCtxtMgr.registerSymbol(symEntTy, name_, type_,
+                                                defined_, location_, body_);
     return ent;
 }
 
 void TranslationManager::tryRegisterSymbol(PtrAST root)
 {
     // TODO:
-    std::vector<Type *> rootTysFetched = root->getType();
+    std::vector<Type *> rootTysFetched = root->getContainedTys();
     std::vector<ASTDeclEntityType> ids = root->getNamedDeclEntities();
     std::vector<Type *> rootTys;
 
@@ -52,7 +54,7 @@ void TranslationManager::tryRegisterSymbol(PtrAST root)
     for (size_t i = 0; i < numChild; ++i) {
         Type *ty = rootTys[i];
         ASTDeclEntityType &idLoc = ids[i];
-        auto [declID, declLoc, declVal] = idLoc;
+        auto [declID, declLoc] = idLoc;
 
         SymEntryType symEntTy;
         bool defined = false;
@@ -78,8 +80,8 @@ void TranslationManager::tryRegisterSymbol(PtrAST root)
         }
         try {
             // TODO: revise
-            auto ent = registerSymbol(symEntTy, declID, ty, defined, &declLoc,
-                                      declVal, body);
+            auto ent =
+                registerSymbol(symEntTy, declID, ty, defined, &declLoc, body);
             SPLC_LOG_DEBUG(&declLoc, false)
                 << "registered identifier " << declID << ", type: " << *ty;
         }

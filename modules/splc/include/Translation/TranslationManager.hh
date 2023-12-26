@@ -67,7 +67,6 @@ class TranslationManager {
     SymbolEntry registerSymbol(SymEntryType symEntTy, std::string_view name_,
                                Type *type_, bool defined_,
                                const Location *location_,
-                               ASTValueType value_ = ASTValueType{},
                                PtrAST body_ = nullptr);
 
     /// \brief This is just experimental.

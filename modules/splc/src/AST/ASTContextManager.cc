@@ -26,10 +26,10 @@ SymbolEntry ASTContextManager::registerSymbol(SymEntryType summary_,
                                               std::string_view name_,
                                               Type *type_, bool defined_,
                                               const Location *location_,
-                                              ASTValueType value_, PtrAST body_)
+                                              PtrAST body_)
 {
     return contextStack.back()->registerSymbol(summary_, name_, type_, defined_,
-                                               location_, value_, body_);
+                                               location_, body_);
 }
 
 } // namespace splc
