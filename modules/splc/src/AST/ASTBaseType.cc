@@ -8,10 +8,10 @@ Type *ASTHelper::getBaseTySpecRecursive(const AST &root) noexcept
     // TODO: use a general judge:
     // TODO: require refactoring of the ASTSymbolType class.
     if (root.symType == ASTSymType::IntTy)
-        return &root.typeContext->SInt32Ty; // Just assume it is signed int32
+        return &root.tyContext->SInt32Ty; // Just assume it is signed int32
 
     Type *ty = nullptr;
-    for (auto &child : root.children) {
+    for (auto &child : root.children_) {
         Type *cTy = getBaseTySpecRecursive(*child);
         ty = cTy == nullptr ? ty : cTy;
         if (ty != nullptr)
@@ -39,13 +39,13 @@ Type *ASTHelper::processParamDeclRecursive(const AST &root) noexcept
 {
     splc_dbgassert(root.symType == ASTSymType::ParamDecltr);
 
-    Ptr<AST> paramDeclSpecNode = root.children[0];
+    Ptr<AST> paramDeclSpecNode = root.children_[0];
     Type *paramDeclSpec = getBaseTySpec(*paramDeclSpecNode);
     Type *paramTy = paramDeclSpec;
 
     // If there is a declarator, then use it.
     if (root.getChildrenNum() > 1) {
-        Ptr<AST> paramDirDeclNode = root.children[1];
+        Ptr<AST> paramDirDeclNode = root.children_[1];
         paramTy = processDecltrRecursive(*paramDirDeclNode, paramDeclSpec);
     }
 
@@ -59,10 +59,10 @@ Type *ASTHelper::processDecltrSubDispatch(const AST &root, Type *base) noexcept
 {
     if (isASTSymbolTypeOneOf(root.getSymType(), ASTSymType::DirDecltr,
                                  ASTSymType::DirFuncDecltr)) {
-        if (root.children[0]->symType == ASTSymType::ID) {
+        if (root.children_[0]->symType == ASTSymType::ID) {
             return base;
         }
-        else if (root.children[0]->symType ==
+        else if (root.children_[0]->symType ==
                  ASTSymType::WrappedDirDecltr) {
             ///===----If root contains a function declaration and a parameter
             /// list
@@ -70,14 +70,14 @@ Type *ASTHelper::processDecltrSubDispatch(const AST &root, Type *base) noexcept
 
             // If there is indeed param list
             if (auto it = std::find_if(
-                    root.children.begin(), root.children.end(),
+                    root.children_.begin(), root.children_.end(),
                     [](const Ptr<AST> &node) {
                         return node->symType == ASTSymType::ParamList;
                     });
-                it != root.children.end()) {
+                it != root.children_.end()) {
                 auto &paramNode = *it;
-                std::transform(paramNode->children.begin(),
-                               paramNode->children.end(),
+                std::transform(paramNode->children_.begin(),
+                               paramNode->children_.end(),
                                std::back_inserter(params), [](Ptr<AST> child) {
                                    return processParamDeclRecursive(*child);
                                });
@@ -86,11 +86,11 @@ Type *ASTHelper::processDecltrSubDispatch(const AST &root, Type *base) noexcept
                 FunctionType::get(base, params, false); // TODO: support VarArg
                                                         // no var arg support
 
-            return processDecltrSubDispatch(*root.children[0], func);
+            return processDecltrSubDispatch(*root.children_[0], func);
         }
-        else if (root.children[0]->symType == ASTSymType::DirDecltr &&
+        else if (root.children_[0]->symType == ASTSymType::DirDecltr &&
                  root.getChildrenNum() >= 3 &&
-                 root.children[1]->symType == ASTSymType::OpLSB) {
+                 root.children_[1]->symType == ASTSymType::OpLSB) {
 
             splc_dbgassert(root.getChildrenNum() == 4)
                 << " at " << root.loc
@@ -99,8 +99,8 @@ Type *ASTHelper::processDecltrSubDispatch(const AST &root, Type *base) noexcept
             // TODO: add `CallDecltr` and `ArrayDecltr` to `ASTSymbolType`
             // TODO: add support for constant expression
             // ASSUMPTION: don't mess up with AssignExpr
-            Ptr<AST> dirDeclNode = root.children[0];
-            Ptr<AST> literalNode = root.children[2]->children[0]->children[0];
+            Ptr<AST> dirDeclNode = root.children_[0];
+            Ptr<AST> literalNode = root.children_[2]->children_[0]->children_[0];
             auto val = literalNode->getValue<ASTUIntType>();
 
             auto &context = base->getContext();
@@ -110,11 +110,11 @@ Type *ASTHelper::processDecltrSubDispatch(const AST &root, Type *base) noexcept
     }
     else if (root.symType == ASTSymType::PtrDecltr) {
         ///===----Pointers
-        return processDecltrSubDispatch(*root.children[1],
+        return processDecltrSubDispatch(*root.children_[1],
                                         base->getPointerTo());
     }
     else if (root.symType == ASTSymType::WrappedDirDecltr) {
-        return processDecltrRecursive(*root.children[0], base);
+        return processDecltrRecursive(*root.children_[0], base);
     }
 
     splc_error() << "\neither a syntax error is present, or the system does "
@@ -127,14 +127,14 @@ Type *ASTHelper::processDecltrRecursive(const AST &root, Type *base) noexcept
 {
     splc_dbgassert(root.getSymType() == ASTSymType::Decltr)
         << ", at " << root.loc;
-    return processDecltrSubDispatch(*root.children[0], base);
+    return processDecltrSubDispatch(*root.children_[0], base);
 }
 
 Type *ASTHelper::processInitDecltr(const AST &root, Type *base) noexcept
 {
     splc_dbgassert(root.getSymType() == ASTSymType::InitDecltr);
     // don't care about the initializer
-    return processDecltrRecursive(*root.children[0], base);
+    return processDecltrRecursive(*root.children_[0], base);
 }
 
 std::vector<Type *> ASTHelper::processInitDeclList(const AST &root,
@@ -143,7 +143,7 @@ std::vector<Type *> ASTHelper::processInitDeclList(const AST &root,
     splc_dbgassert(root.symType == ASTSymType::InitDecltrList);
     std::vector<Type *> res;
     std::transform(
-        root.children.begin(), root.children.end(), std::back_inserter(res),
+        root.children_.begin(), root.children_.end(), std::back_inserter(res),
         [=](const Ptr<AST> &node) { return processInitDecltr(*node, base); });
     return res;
 }
@@ -151,33 +151,33 @@ std::vector<Type *> ASTHelper::processInitDeclList(const AST &root,
 std::vector<Type *> ASTHelper::getDeclTy(const AST &root) noexcept
 {
     // TODO: maybe just add more support, whatsoever
-    TypeContext &context = *root.typeContext;
-    const AST &dirDecl = *root.children[0];
+    TypeContext &context = *root.tyContext;
+    const AST &dirDecl = *root.children_[0];
 
     // Get base type
-    Type *baseType = getBaseTySpec(*dirDecl.children[0]);
+    Type *baseType = getBaseTySpec(*dirDecl.children_[0]);
 
     // From base type, get extended type
     std::vector<Type *> extTypes =
-        processInitDeclList(*dirDecl.children[1], baseType);
+        processInitDeclList(*dirDecl.children_[1], baseType);
 
     return extTypes;
 }
 
 Type *ASTHelper::getFuncTy(const AST &root) noexcept
 {
-    TypeContext &context = *root.typeContext;
+    TypeContext &context = *root.tyContext;
 
     // Get base type. There is always
     // a base type specifier, provided by the parser.
     Type *baseType = nullptr;
-    baseType = getBaseTySpec(*root.children[0]);
+    baseType = getBaseTySpec(*root.children_[0]);
 
-    auto dirDeclRoot = root.children[1]->children[0]; // FuncDef -> FuncDecltr
+    auto dirDeclRoot = root.children_[1]->children_[0]; // FuncDef -> FuncDecltr
     Type *retType = processDecltrSubDispatch(*dirDeclRoot, baseType);
     while (dirDeclRoot->getSymType() != ASTSymType::DirFuncDecltr &&
            !dirDeclRoot->isChildrenEmpty()) {
-        dirDeclRoot = dirDeclRoot->children.back();
+        dirDeclRoot = dirDeclRoot->children_.back();
     }
     splc_dbgassert(dirDeclRoot->getSymType() == ASTSymType::DirFuncDecltr)
         << ": " << dirDeclRoot->getSymType();
@@ -186,11 +186,11 @@ Type *ASTHelper::getFuncTy(const AST &root) noexcept
     // empty, or contains ParamDecltr. In both cases, we can directly
     // transform its children using processParamDeclRecursive()
     std::vector<Type *> paramTys;
-    auto &paramListNode = dirDeclRoot->children[1]->children[0];
+    auto &paramListNode = dirDeclRoot->children_[1]->children_[0];
     // SPLC_LOG_DEBUG(&root.loc, true) << "processing";
     if (paramListNode->getChildrenNum() > 0) {
-        std::transform(paramListNode->children.begin(),
-                       paramListNode->children.end(),
+        std::transform(paramListNode->children_.begin(),
+                       paramListNode->children_.end(),
                        std::back_inserter(paramTys), [](const Ptr<AST> &node) {
                            return processParamDeclRecursive(*node);
                        });

@@ -18,23 +18,23 @@ ASTValueType ASTHelper::getNearestValue(const AST &root) noexcept
 
     // Else, go inside
     auto it =
-        std::find_if(ptr->children.begin(), ptr->children.end(), [](auto &p) {
+        std::find_if(ptr->children_.begin(), ptr->children_.end(), [](auto &p) {
             return p->isSymTypeOneOf(ASTSymType::Initializer);
         });
 
-    if (it == ptr->children.end())
+    if (it == ptr->children_.end())
         return {};
 
     ptr = *it; // ptr is now the initializer.
 
     // TODO: support initializer-list
     // ASSUMPTION: ONLY ConstExpr in intiializer
-    auto &exprNode = ptr->children[0];
-    for (auto &child : exprNode->children) {
+    auto &exprNode = ptr->children_[0];
+    for (auto &child : exprNode->children_) {
         if (child->getSymType() != ASTSymType::Constant)
             return {};
     }
-    ptr = ptr->children[0]->children[0]->children[0];
+    ptr = ptr->children_[0]->children_[0]->children_[0];
     return ptr->value;
 }
 
@@ -43,7 +43,7 @@ void ASTHelper::getIDRecursive(std::vector<ASTDeclEntityType> &vec,
 {
     // TODO: revise
     std::for_each(
-        root.children.begin(), root.children.end(),
+        root.children_.begin(), root.children_.end(),
         [&vec](const Ptr<AST> &node) {
             if (node->symType == ASTSymType::ID) {
                 ASTIDType id = node->getValue<ASTIDType>();

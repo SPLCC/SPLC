@@ -78,7 +78,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     //       `yylex()` initialization: executed at beginning of `yylex()`
     //===------------------------------------------------------------------===*/
 %{          
-            yyloc->switchToContext(transMgr.getCurrentTransContextKey());
+            yyloc->switchToContext(transMgr.getCurTransCtxtKey());
             glval = yylval;
             gloc = yyloc;
 %}

@@ -42,9 +42,9 @@ class AST : public std::enable_shared_from_this<AST> {
     {
     }
 
-    AST(Ptr<TypeContext> typeContext_, const ASTSymType symType,
+    AST(Ptr<TypeContext> typeContext, const ASTSymType symType,
         const Location &loc_) noexcept
-        : typeContext{typeContext_}, symType{symType}, loc{loc_}
+        : tyContext{typeContext}, symType{symType}, loc{loc_}
     {
     }
 
@@ -55,9 +55,9 @@ class AST : public std::enable_shared_from_this<AST> {
     }
 
     template <IsValidASTValue T>
-    AST(Ptr<TypeContext> typeContext_, const ASTSymType symType,
+    AST(Ptr<TypeContext> typeContext, const ASTSymType symType,
         const Location &loc_, T &&value_) noexcept
-        : typeContext{typeContext_}, symType{symType}, loc{loc_}, value{value_}
+        : tyContext{typeContext}, symType{symType}, loc{loc_}, value{value_}
     {
     }
 
@@ -94,8 +94,8 @@ class AST : public std::enable_shared_from_this<AST> {
 
     void addChild(PtrAST child) noexcept
     {
-        children.push_back(child);
-        child->typeContext = this->typeContext;
+        children_.push_back(child);
+        child->tyContext = this->tyContext;
         child->parent = shared_from_this();
         this->loc += child->loc; // TODO: check if required
     }
@@ -149,14 +149,14 @@ class AST : public std::enable_shared_from_this<AST> {
         return std::holds_alternative<T>(value);
     }
 
-    void setTypeContext(Ptr<TypeContext> typeContext_)
+    void setTyContext(Ptr<TypeContext> typeContext_)
     {
-        typeContext = typeContext_;
+        tyContext = typeContext_;
     }
 
-    auto getTypeContext() { return typeContext; }
+    auto getTyContext() { return tyContext; }
 
-    auto getTypeContext() const { return typeContext; }
+    auto getTyContext() const { return tyContext; }
 
     auto getSymType() const noexcept { return symType; }
 
@@ -171,36 +171,36 @@ class AST : public std::enable_shared_from_this<AST> {
 
     auto getParent() const noexcept { return parent; }
 
-    auto getChildrenNum() const noexcept { return children.size(); }
+    auto getChildrenNum() const noexcept { return children_.size(); }
 
-    auto isChildrenEmpty() const noexcept { return children.empty(); }
+    auto isChildrenEmpty() const noexcept { return children_.empty(); }
 
-    auto &getChildren() noexcept { return children; }
+    auto &children() noexcept { return children_; }
 
-    auto &getChildren() const noexcept { return children; }
+    auto &children() const noexcept { return children_; }
 
-    auto &getLocation() noexcept { return loc; }
+    auto &location() noexcept { return loc; }
 
-    auto &getLocation() const noexcept { return loc; }
+    auto &location() const noexcept { return loc; }
 
-    void setASTContext(Ptr<ASTContext> astContext_) noexcept
+    void setContext(Ptr<ASTContext> astContext_) noexcept
     {
-        astContext = astContext_;
+        context_ = astContext_;
     }
 
-    auto getASTContext() noexcept { return astContext; }
+    auto getContext() noexcept { return context_; }
 
-    auto getASTContext() const noexcept { return astContext; }
+    auto getContext() const noexcept { return context_; }
 
     auto &getVariant() noexcept { return value; }
 
   protected:
-    Ptr<TypeContext> typeContext;
+    Ptr<TypeContext> tyContext;
     ASTSymType symType;
     WeakPtrAST parent;
-    std::vector<PtrAST> children;
+    std::vector<PtrAST> children_;
     Location loc;
-    Ptr<ASTContext> astContext;
+    Ptr<ASTContext> context_;
     ASTValueType value;
 
   public:
@@ -421,9 +421,9 @@ inline void recursivePrintNode(std::ostream &os, const AST &node,
 
     std::string newPrefix;
 
-    for (auto &child : node.children) {
+    for (auto &child : node.children_) {
         os << ControlSeq::Blue;
-        if (child == node.children.back())
+        if (child == node.children_.back())
             newPrefix = prefix + treeEndArrow;
         else
             newPrefix = prefix + treeMidArrow;
@@ -433,12 +433,12 @@ inline void recursivePrintNode(std::ostream &os, const AST &node,
 
         os << *child << "\n";
 
-        if (child == node.children.back())
+        if (child == node.children_.back())
             newPrefix = prefix + noSegment;
         else
             newPrefix = prefix + midSegment;
 
-        if (!child->children.empty()) {
+        if (!child->children_.empty()) {
             recursivePrintNode(os, *child, newPrefix);
         }
     }

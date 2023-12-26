@@ -18,6 +18,17 @@ class ASTContext {
   public:
     ASTContext(ASTContextDepthType depth_) : depth{depth_} {}
 
+    ASTContext(ASTContextDepthType depth_,
+               const std::vector<Ptr<ASTContext>> &parentContexts_)
+        : depth{depth_}
+    {
+        parentContexts.reserve(parentContexts_.size());
+        std::transform(
+            parentContexts_.begin(), parentContexts_.end(),
+            std::back_inserter(parentContexts),
+            [](const Ptr<ASTContext> &ctxt) { return std::weak_ptr(ctxt); });
+    }
+
     auto &getSymbolMap() { return symbolMap; }
 
     const auto &getSymbolMap() const { return symbolMap; }

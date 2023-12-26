@@ -22,11 +22,9 @@ class ASTContextManager {
     ///
     Ptr<ASTContext> pushContext() noexcept
     {
-        auto ctxtSz = contextStack.size();
-        auto context = makeSharedPtr<ASTContext>(ctxtSz);
+        auto context =
+            makeSharedPtr<ASTContext>(contextStack.size(), contextStack);
         contextStack.push_back(context);
-        context->parentContexts.reserve(ctxtSz);
-        std::copy(this->contextStack.begin(), this->contextStack.end(), std::back_inserter(context->parentContexts));
         return context;
     }
 
@@ -40,18 +38,20 @@ class ASTContextManager {
         return context;
     }
 
-    bool isSymDeclared(SymEntryType symEntTy_, std::string_view name_) const noexcept;
+    bool isSymDeclared(SymEntryType symEntTy_,
+                       std::string_view name_) const noexcept;
 
-    bool isSymDefined(SymEntryType symEntTy_, std::string_view name_) const noexcept;
+    bool isSymDefined(SymEntryType symEntTy_,
+                      std::string_view name_) const noexcept;
 
     SymbolEntry getSymbol(SymEntryType symEntTy_, std::string_view name_);
 
     ///
     /// \brief Register a `SymbolEntry` at the top context.
     ///
-    SymbolEntry registerSymbol(SymEntryType summary_,
-                               std::string_view name_, Type *type_,
-                               bool defined_, const Location *location_,
+    SymbolEntry registerSymbol(SymEntryType summary_, std::string_view name_,
+                               Type *type_, bool defined_,
+                               const Location *location_,
                                ASTValueType value_ = ASTValueType{},
                                PtrAST body_ = nullptr);
 

@@ -27,7 +27,7 @@
 
 %parse-param { TranslationManager  &transMgr }
 %parse-param { Ptr<TypeContext>     tyCtxt   }
-%parse-param { Driver              &driver  }
+%parse-param { Driver              &driver   }
 %parse-param { Scanner             &scanner  }
 
 %code{
@@ -171,7 +171,7 @@
 %left PLParen PRParen PLSBracket PRSBracket OpDot
 
 //===----------------------------------------------------------------------===//
-//                              Test Specification
+//                             Test Specification
 //===----------------------------------------------------------------------===//
 
 //===----------------------------------------------------------------------===//
@@ -180,13 +180,13 @@
 %%
 /* Entire translation unit */
 ParseRoot: 
-    { transMgr.pushASTContext(); } 
+    { transMgr.pushASTCtxt(); } 
     TransUnit {
         transMgr.setRootNode($TransUnit);
         SPLC_LOG_DEBUG(&@TransUnit, true) << "completed parsing";
 
-        $TransUnit->setASTContext(transMgr.getCurrentASTContext()); 
-        transMgr.popASTContext();
+        $TransUnit->setContext(transMgr.getASTCtxtMgr()[0]);
+        transMgr.popASTCtxt();
     }
     ;
 

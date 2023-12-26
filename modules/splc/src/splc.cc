@@ -35,7 +35,7 @@ int main(const int argc, const char **argv)
     if (node) {
         SPLC_LOG_DEBUG(nullptr, false) << "\n"
                                        << splc::treePrintTransform(*node);
-        SPLC_LOG_DEBUG(nullptr, false) << "\n" << *node->getASTContext();
+        SPLC_LOG_DEBUG(nullptr, false) << "\n" << *node->getContext();
     }
 
     // test

@@ -61,11 +61,11 @@ void TranslationManager::tryRegisterSymbol(PtrAST root)
         if (ty->isFunctionTy()) {
             symEntTy = SymEntryType::Function;
             if (auto it = std::find_if(
-                    root->getChildren().begin(), root->getChildren().end(),
+                    root->children().begin(), root->children().end(),
                     [](const PtrAST &node) {
                         return node->getSymType() == ASTSymType::CompStmt;
                     });
-                it != root->getChildren().end()) {
+                it != root->children().end()) {
                 defined = true;
                 body = *it;
             }

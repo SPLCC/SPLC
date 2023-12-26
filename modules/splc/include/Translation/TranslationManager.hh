@@ -42,14 +42,13 @@ class TranslationManager {
 
     const auto getTyContext() const { return tunit->getTypeContext(); }
 
-    Ptr<ASTContext> getCurrentASTContext() noexcept
-    {
-        return tunit->astCtxtMgr[0];
-    }
+    auto getASTCtxtMgr() noexcept { return tunit->astCtxtMgr; }
 
-    void pushASTContext() noexcept { tunit->astCtxtMgr.pushContext(); }
+    auto getASTCtxtMgr() const noexcept { return tunit->astCtxtMgr; }
 
-    void popASTContext() noexcept { tunit->astCtxtMgr.popContext(); }
+    void pushASTCtxt() noexcept { tunit->astCtxtMgr.pushContext(); }
+
+    void popASTCtxt() noexcept { tunit->astCtxtMgr.popContext(); }
 
     bool isSymDeclared(SymEntryType symEntTy,
                        std::string_view name_) const noexcept
@@ -74,32 +73,32 @@ class TranslationManager {
     /// \brief This is just experimental.
     void tryRegisterSymbol(PtrAST root);
 
-    Ptr<TranslationContext> getCurrentTransContext() noexcept
+    Ptr<TranslationContext> getCurTransCtxt() noexcept
     {
         return tunit->transCtxtMgr[0];
     }
 
-    const std::string &getCurrentTransContextName() const noexcept
+    const std::string &getCurTransCtxtName() const noexcept
     {
         return tunit->transCtxtMgr[0]->name;
     }
 
-    const TranslationContextIDType getCurrentTransContextID() const noexcept
+    const TranslationContextIDType getCurTransCtxtID() const noexcept
     {
         return tunit->transCtxtMgr[0]->contextID;
     }
 
-    TranslationContextKeyType getCurrentTransContextKey() const noexcept
+    TranslationContextKeyType getCurTransCtxtKey() const noexcept
     {
         return tunit->transCtxtMgr.getCurrentContextKey();
     }
 
-    bool transContextStackEmpty() const
+    bool transCtxtStackEmpty() const
     {
         return tunit->transCtxtMgr.contextStackEmpty();
     }
 
-    size_t transContextStackSize() const
+    size_t transCtxtStackSize() const
     {
         return tunit->transCtxtMgr.contextStackSize();
     }
