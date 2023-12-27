@@ -34,9 +34,9 @@ class AST : public std::enable_shared_from_this<AST> {
     //===----------------------------------------------------------------------===//
     // Runtime Polymorphism
   public:
-    /// ID denote the variant of the AST instance. Each subclass of AST behaves differently,
-    /// e.g., an ExprAST will deduce its type from its children.
-    /// ID is used to determine the type AST and convert them at runtime.
+    /// ID denote the variant of the AST instance. Each subclass of AST behaves
+    /// differently, e.g., an ExprAST will deduce its type from its children. ID
+    /// is used to determine the type AST and convert them at runtime.
     enum class ASTID {
         Universal,
         TransUnit,
@@ -67,26 +67,16 @@ class AST : public std::enable_shared_from_this<AST> {
     ///
     explicit AST() noexcept : symType{ASTSymType::YYEMPTY} {}
 
-    AST(const ASTSymType symType, const Location &loc_) noexcept
-        : symType{symType}, loc{loc_}
-    {
-    }
-
-    AST(Ptr<TypeContext> typeContext, const ASTSymType symType,
-        const Location &loc_) noexcept
-        : tyContext{typeContext}, symType{symType}, loc{loc_}
-    {
-    }
-
-    template <IsValidASTValue T>
-    AST(const ASTSymType symType, const Location &loc_, T &&value_) noexcept
+    template <IsValidASTValue T = ASTValueType>
+    AST(const ASTSymType symType, const Location &loc_,
+        T &&value_ = {}) noexcept
         : symType{symType}, loc{loc_}, value{value_}
     {
     }
 
-    template <IsValidASTValue T>
+    template <IsValidASTValue T = ASTValueType>
     AST(Ptr<TypeContext> typeContext, const ASTSymType symType,
-        const Location &loc_, T &&value_) noexcept
+        const Location &loc_, T &&value_ = {}) noexcept
         : tyContext{typeContext}, symType{symType}, loc{loc_}, value{value_}
     {
     }
@@ -230,6 +220,7 @@ class AST : public std::enable_shared_from_this<AST> {
 
   protected:
     Ptr<TypeContext> tyContext;
+    ASTID astID;
     ASTSymType symType;
     Type *varType;
     WeakPtrAST parent;
@@ -237,10 +228,71 @@ class AST : public std::enable_shared_from_this<AST> {
     Location loc;
     Ptr<ASTContext> context_;
     ASTValueType value;
-    
+
     //===----------------------------------------------------------------------===//
     // Runtime Polymorphism
   public:
+    ASTID getASTID() const noexcept { return astID; }
+
+    bool isTransUnit() const noexcept { return getASTID() == ASTID::TransUnit; }
+
+    bool isExternDeclList() const noexcept
+    {
+        return getASTID() == ASTID::ExternDeclList;
+    }
+
+    bool isExternDecl() const noexcept
+    {
+        return getASTID() == ASTID::ExternDecl;
+    }
+
+    bool isFuncDef() const noexcept { return getASTID() == ASTID::FuncDef; }
+
+    bool isExpr() const noexcept { return getASTID() == ASTID::Expr; }
+
+    bool isCompStmt() const noexcept { return getASTID() == ASTID::CompStmt; }
+
+    bool isStmt() const noexcept { return getASTID() == ASTID::Stmt; }
+
+    bool isDecl() const noexcept { return getASTID() == ASTID::Decl; }
+
+    bool isDirDecl() const noexcept { return getASTID() == ASTID::DirDecl; }
+
+    bool isDeclSpec() const noexcept { return getASTID() == ASTID::DeclSpec; }
+
+    bool isInitDecltrList() const noexcept
+    {
+        return getASTID() == ASTID::InitDecltrList;
+    }
+
+    bool isInitDecltr() const noexcept
+    {
+        return getASTID() == ASTID::InitDecltr;
+    }
+
+    bool isDecltr() const noexcept { return getASTID() == ASTID::Decltr; }
+
+    bool isAbsDecltr() const noexcept { return getASTID() == ASTID::AbsDecltr; }
+
+    bool isInitializer() const noexcept
+    {
+        return getASTID() == ASTID::Initializer;
+    }
+
+    bool isInitializerList() const noexcept
+    {
+        return getASTID() == ASTID::InitializerList;
+    }
+
+    bool isDesignation() const noexcept
+    {
+        return getASTID() == ASTID::Designation;
+    }
+
+    bool isDesignatorList() const noexcept
+    {
+        return getASTID() == ASTID::DesignatorList;
+    }
 
     //===----------------------------------------------------------------------===//
     // Helper Methods
