@@ -28,7 +28,9 @@ void IRBuilder::recursiveParseAST(PtrAST parseRoot)
 void IRBuilder::registerFunction(PtrAST funcRoot)
 {
     // Find function name (id)
-    IRIDType funcID = IRBuilderHelper::recfindFuncID(funcRoot);
+    IRIDType funcID = funcRoot->getChildren()[1]->getChildren()[0]->getChildren()[0]->getValue<IRIDType>();
+
+    // assume SInt32Ty
     Ptr<IRFunction> function = IRFunction::create(funcID, &tyCtxt.SInt32Ty);
 
     // Find all params
@@ -61,6 +63,8 @@ void IRBuilder::registerFunction(PtrAST funcRoot)
 
     SPLC_LOG_DEBUG(nullptr, false) << "trying to register statement";
     recRegisterStmts(function->body, body);
+
+    
 }
 
 PtrIRVar IRBuilder::recRegisterExprs(IRVec<PtrIRStmt> stmtList, PtrAST exprRoot)
@@ -291,7 +295,7 @@ void IRBuilder::recRegisterStmts(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot)
     }
     else if (stmtRoot->getSymbolType() == ASTSymbolType::Decl) {
         // ASSIGN INITIAL VALUES, IF NONCONSTEXPR
-        recRegisterDecl(stmtList, stmtRoot);
+        recRegisterDeclVar(stmtList, stmtRoot);
     }
     else if (stmtRoot->getSymbolType() == ASTSymbolType::Stmt) {
         PtrAST realStmt = stmtRoot->getChildren()[0];
@@ -387,26 +391,6 @@ void IRBuilder::recRegisterSelStmt(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot)
     else {
         splc_error();
     }
-
-    // PtrAST op = exprRoot->getChildren()[1];
-    // switch (op->getSymbolType()) {
-    // case ASTSymbolType::OpAnd:
-    // case ASTSymbolType::OpOr: {
-    //     // TODO
-    //     break;
-    // }
-    // case ASTSymbolType::OpLT:
-    // case ASTSymbolType::OpLE:
-    // case ASTSymbolType::OpGT:
-    // case ASTSymbolType::OpGE:
-    // case ASTSymbolType::OpEQ:
-    // case ASTSymbolType::OpNE: {
-    //     // TODO
-    //     break;
-    // }
-    // default:{
-    //     splc_error();
-    // }
 }
 
 void IRBuilder::recRegisterJumpStmt(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot)
@@ -418,12 +402,12 @@ void IRBuilder::recRegisterJumpStmt(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot)
     stmtList.push_back(IRStmt::createReturnStmt(var));
 }
 
-void IRBuilder::recRegisterDecl(IRVec<PtrIRStmt> stmtList, PtrAST declRoot)
+void IRBuilder::recRegisterDeclVar(IRVec<PtrIRStmt> stmtList, PtrAST declRoot)
 {
     // TODO
     if (isASTSymbolTypeOneOfThem(declRoot->getSymbolType(),
                                  ASTSymbolType::Decl)) {
-        recRegisterDecl(stmtList, declRoot->getChildren()[0]);
+        recRegisterDeclVar(stmtList, declRoot->getChildren()[0]);
     }
     else if (declRoot->getSymbolType() == ASTSymbolType::DirDecl) {
         splc_dbgassert(declRoot->getChildrenNum() == 2);
@@ -470,5 +454,5 @@ PtrIRVar IRBuilder::getTmpLabel()
 
 PtrIRVar IRBuilder::getTmpVar()
 {
-    return IRVar::createVariableVar("_tmp_", &tyCtxt.SInt32Ty);
+    return IRVar::createVariableVar("_tmp_" + std::to_string(allocCnt++), &tyCtxt.SInt32Ty);
 }

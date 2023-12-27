@@ -11,14 +11,17 @@ namespace splc {
 class IRBuilder;
 class IRBuilderHelper;
 
-// TODO: The entire IRBuilder is essentially trash. Try refactor entirely.
 class IRBuilder {
   public:
     IRBuilder(TypeContext &C) : tyCtxt(C) {}
 
     void writeFunction(std::ostream &os, Ptr<IRFunction> func);
 
-    void writeAllIRStmt(std::ostream &os);
+    void writeAllIRStmt(std::ostream &os) {
+        for (auto func : funcMap) {
+            writeFunction(os, func.second);
+        }
+    }
 
     void writeProgram(std::ostream &os) { writeAllIRStmt(os); }
 
@@ -39,7 +42,7 @@ class IRBuilder {
                              PtrIRVar lbt, PtrIRVar lbf);
 
     // register declaration
-    void recRegisterDecl(IRVec<PtrIRStmt> stmtList, PtrAST declRoot);
+    void recRegisterDeclVar(IRVec<PtrIRStmt> stmtList, PtrAST declRoot);
     // ----------------------------------------------------------
 
     void recursiveParseAST(PtrAST parseRoot);
@@ -58,8 +61,6 @@ class IRBuilder {
 
 class IRBuilderHelper {
   public:
-    static IRIDType recfindFuncID(PtrAST funcRoot);
-
     static IRVec<IRIDType> recfindFuncParam(PtrAST funcRoot)
     {
         IRVec<IRIDType> vec;
@@ -67,10 +68,30 @@ class IRBuilderHelper {
         return vec;
     }
 
-    static IRIDType recFindNearestIDBelow(PtrAST declRoot);
-
   protected:
-    static void _recfindFuncParam(IRVec<IRIDType> &vec, PtrAST funcRoot);
+    static void _recfindFuncParam(IRVec<IRIDType> &vec, PtrAST funcRoot)
+    {
+        ASTSymbolType type = funcRoot->getSymbolType();
+        if (type == ASTSymbolType::FuncDef && funcRoot->getChildrenNum() == 3) {
+            _recfindFuncParam(vec, funcRoot->getChildren()[1]);
+        }
+        else if (type == ASTSymbolType::DirFuncDecltr) {
+            _recfindFuncParam(vec, funcRoot->getChildren()[1]);
+        }
+        else if (isASTSymbolTypeOneOfThem(type, ASTSymbolType::FuncDecltr,
+                                          ASTSymbolType::ParamTypeList)) {
+            _recfindFuncParam(vec, funcRoot->getChildren()[0]);
+        }
+        else if (type == ASTSymbolType::ParamList) {
+            for (auto &param : funcRoot->getChildren()) {
+                // ParamDecltr
+                vec.push_back(param->getChildren()[1]
+                                  ->getChildren()[0]
+                                  ->getChildren()[0]
+                                  ->getValue<IRIDType>());
+            }
+        }
+    }
 };
 
 inline void linkStmt(PtrIRStmt prev, PtrIRStmt next)

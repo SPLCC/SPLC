@@ -224,6 +224,8 @@ class IRFunction {
 
     IRFunction(IRIDType name_, Type *retTy_) : name{name_}, retTy{retTy_} {}
 
+    friend std::ostream &operator<<(std::ostream &os, const IRFunction &func);
+
     IRIDType name;
     Type *retTy;
     IRVec<PtrIRVar> varList;
@@ -367,7 +369,7 @@ inline std::ostream &operator<<(std::ostream &os, const IRFunction &func)
     }
 
     for (auto &var : func.varList) {
-
+        
     }
 }
 
