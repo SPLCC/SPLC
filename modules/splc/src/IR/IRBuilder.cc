@@ -1,8 +1,9 @@
 #include "IR/IRBuilder.hh"
+#include "IR/IR.hh"
 
 using namespace splc;
 
-void IRBuilder::recursiveParseAST(PtrAST parseRoot)
+void IRBuilder::parseAST(PtrAST parseRoot)
 {
     if (parseRoot->getSymbolType() == ASTSymbolType::FuncDef) {
         registerFunction(parseRoot);
@@ -13,7 +14,7 @@ void IRBuilder::recursiveParseAST(PtrAST parseRoot)
                     child->getSymbolType(), ASTSymbolType::ParseRoot,
                     ASTSymbolType::TransUnit, ASTSymbolType::ExternDeclList,
                     ASTSymbolType::ExternDecl, ASTSymbolType::FuncDef)) {
-                recursiveParseAST(child);
+                parseAST(child);
             }
             else {
                 // TODO
@@ -28,7 +29,10 @@ void IRBuilder::recursiveParseAST(PtrAST parseRoot)
 void IRBuilder::registerFunction(PtrAST funcRoot)
 {
     // Find function name (id)
-    IRIDType funcID = funcRoot->getChildren()[1]->getChildren()[0]->getChildren()[0]->getValue<IRIDType>();
+    IRIDType funcID = funcRoot->getChildren()[1]
+                          ->getChildren()[0]
+                          ->getChildren()[0]
+                          ->getValue<IRIDType>();
 
     // assume SInt32Ty
     Ptr<IRFunction> function = IRFunction::create(funcID, &tyCtxt.SInt32Ty);
@@ -46,16 +50,16 @@ void IRBuilder::registerFunction(PtrAST funcRoot)
     }
 
     for (auto &p : params) {
-        SPLC_LOG_WARN(nullptr, false)
-            << "established parameter mapping from " << p.first << " to "
-            << p.second->getName();
+        function->paramList.push_back(p.second);
     }
 
-    function->paramMap.insert(params.begin(), params.end());
     function->varMap.insert(params.begin(), params.end());
+    varMap.insert(params.begin(), params.end());
 
     // Insert to funcMap
     funcMap.insert({funcID, function});
+    funcVarMap.insert(
+        {funcID, IRVar::createFuncionVar(funcID, &tyCtxt.SInt32Ty)});
 
     // Register the body stmts
     PtrAST body = funcRoot->getChildren()[2];
@@ -64,25 +68,27 @@ void IRBuilder::registerFunction(PtrAST funcRoot)
     SPLC_LOG_DEBUG(nullptr, false) << "trying to register statement";
     recRegisterStmts(function->body, body);
 
-    function->varList.insert(function->varList.end(), varList.begin(), varList.end());
-    varList.clear();
-    for (const auto& pair : funcMap) {
-        function->varMap.insert_or_assign(pair.first, pair.second);
-    }
-    varMap.clear();
+    // function->varList.insert(function->varList.end(), varList.begin(),
+    // varList.end()); varList.clear(); for (const auto& pair : funcMap) {
+    //     function->varMap.insert_or_assign(pair.first, pair.second);
+    // }
+    // varMap.clear();
 }
 
-PtrIRVar IRBuilder::recRegisterExprs(IRVec<PtrIRStmt> stmtList, PtrAST exprRoot)
+PtrIRVar IRBuilder::recRegisterExprs(IRVec<PtrIRStmt> &stmtList,
+                                     PtrAST exprRoot)
 {
+    if (exprRoot->getSymbolType() == ASTSymbolType::CallExpr) {
+        return recRegisterCallExpr(stmtList, exprRoot);
+    }
+
     if (exprRoot->getChildrenNum() == 1) {
         PtrAST child = exprRoot->getChildren()[0];
         switch (child->getSymbolType()) {
         case ASTSymbolType::ExprStmt:
-        case ASTSymbolType::Expr: {
-            return recRegisterExprs(stmtList, child);
-        }
+        case ASTSymbolType::Expr:
         case ASTSymbolType::CallExpr: {
-            return recRegisterCallExpr(stmtList, child);
+            return recRegisterExprs(stmtList, child);
         }
         case ASTSymbolType::Constant: {
             return IRVar::createConstantVar(
@@ -118,7 +124,8 @@ PtrIRVar IRBuilder::recRegisterExprs(IRVec<PtrIRStmt> stmtList, PtrAST exprRoot)
         PtrIRVar rhs = recRegisterExprs(stmtList, exprR);
 
         if (opType == ASTSymbolType::OpAssign) {
-            splc_dbgassert(exprL->getSymbolType() == ASTSymbolType::ID);
+            splc_dbgassert(exprL->getChildren()[0]->getSymbolType() ==
+                           ASTSymbolType::ID);
             stmtList.push_back(IRStmt::createAssignStmt(lhs, rhs));
             return lhs;
         }
@@ -146,11 +153,11 @@ PtrIRVar IRBuilder::recRegisterExprs(IRVec<PtrIRStmt> stmtList, PtrAST exprRoot)
             default: {
                 splc_error();
             }
-                PtrIRVar res = getTmpVar();
-                stmtList.push_back(IRStmt::createArithmeticStmt(arithmeticType,
-                                                                res, lhs, rhs));
-                return res;
             }
+            PtrIRVar res = getTmpVar();
+            stmtList.push_back(
+                IRStmt::createArithmeticStmt(arithmeticType, res, lhs, rhs));
+            return res;
         }
         else if (isASTSymbolTypeOneOfThem(
                      opType, ASTSymbolType::OpLT, ASTSymbolType::OpLE,
@@ -181,7 +188,7 @@ PtrIRVar IRBuilder::recRegisterExprs(IRVec<PtrIRStmt> stmtList, PtrAST exprRoot)
     }
 }
 
-void IRBuilder::recRegisterCondExpr(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot,
+void IRBuilder::recRegisterCondExpr(IRVec<PtrIRStmt> &stmtList, PtrAST stmtRoot,
                                     PtrIRVar lbt, PtrIRVar lbf)
 {
     IRVec<PtrAST> children = stmtRoot->getChildren();
@@ -253,25 +260,32 @@ void IRBuilder::recRegisterCondExpr(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot,
     }
 }
 
-PtrIRVar IRBuilder::recRegisterCallExpr(IRVec<PtrIRStmt> stmtList,
+PtrIRVar IRBuilder::recRegisterCallExpr(IRVec<PtrIRStmt> &stmtList,
                                         PtrAST exprRoot)
 {
-    PtrAST idAST = exprRoot->getChildren()[0];
+    IRIDType funcID =
+        exprRoot->getChildren()[0]->getChildren()[0]->getValue<IRIDType>();
+
     PtrAST argAST = exprRoot->getChildren()[1];
-    PtrIRVar funcID = recRegisterExprs(stmtList, idAST);
-    SPLC_LOG_DEBUG(nullptr, false) << "evaluating CallExpr: " << funcID->name;
-    if (funcID->name == "write") {
+    SPLC_LOG_DEBUG(nullptr, false) << "evaluating CallExpr: " << funcID;
+
+    // Read or Write function call
+    if (funcID == "write") {
         SPLC_LOG_DEBUG(nullptr, false) << "Write to terminal\n";
         PtrIRVar arg = recRegisterExprs(stmtList, argAST->getChildren()[0]);
         stmtList.push_back(IRStmt::createWriteStmt(arg));
         return nullptr; // Nothing to return
     }
-    else if (funcID->name == "read") {
+    else if (funcID == "read") {
         SPLC_LOG_DEBUG(nullptr, false) << "Read from input\n";
         PtrIRVar res = getTmpVar();
         stmtList.push_back(IRStmt::createReadStmt(res));
         return res;
     }
+
+    auto it = funcVarMap.find(funcID);
+    splc_dbgassert(it != funcVarMap.end());
+    PtrIRVar funcVar = it->second;
 
     // normal function call
     PtrIRVar res = getTmpVar();
@@ -284,11 +298,11 @@ PtrIRVar IRBuilder::recRegisterCallExpr(IRVec<PtrIRStmt> stmtList,
     }
 
     // CALL stmt
-    stmtList.push_back(IRStmt::createInvokeFuncStmt(res, funcID));
+    stmtList.push_back(IRStmt::createInvokeFuncStmt(res, funcVar));
     return res;
 }
 
-void IRBuilder::recRegisterStmts(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot)
+void IRBuilder::recRegisterStmts(IRVec<PtrIRStmt> &stmtList, PtrAST stmtRoot)
 {
     SPLC_LOG_DEBUG(nullptr, false) << "dispatch: " << stmtRoot->getSymbolType();
     if (isASTSymbolTypeOneOfThem(stmtRoot->getSymbolType(),
@@ -336,7 +350,7 @@ void IRBuilder::recRegisterStmts(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot)
     }
 }
 
-void IRBuilder::recRegisterIterStmt(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot)
+void IRBuilder::recRegisterIterStmt(IRVec<PtrIRStmt> &stmtList, PtrAST stmtRoot)
 {
     // CHECK: WHILE
     // KwdWhild Expr Stmt
@@ -364,7 +378,7 @@ void IRBuilder::recRegisterIterStmt(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot)
     stmtList.push_back(lbSt3);
 }
 
-void IRBuilder::recRegisterSelStmt(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot)
+void IRBuilder::recRegisterSelStmt(IRVec<PtrIRStmt> &stmtList, PtrAST stmtRoot)
 {
     IRVec<PtrAST> children = stmtRoot->getChildren();
     splc_dbgassert(children[0]->getSymbolType() == ASTSymbolType::KwdIf);
@@ -398,7 +412,7 @@ void IRBuilder::recRegisterSelStmt(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot)
     }
 }
 
-void IRBuilder::recRegisterJumpStmt(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot)
+void IRBuilder::recRegisterJumpStmt(IRVec<PtrIRStmt> &stmtList, PtrAST stmtRoot)
 {
     IRVec<PtrAST> children = stmtRoot->getChildren();
     splc_dbgassert(children[0]->getSymbolType() == ASTSymbolType::KwdReturn &&
@@ -407,7 +421,7 @@ void IRBuilder::recRegisterJumpStmt(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot)
     stmtList.push_back(IRStmt::createReturnStmt(var));
 }
 
-void IRBuilder::recRegisterDeclVar(IRVec<PtrIRStmt> stmtList, PtrAST declRoot)
+void IRBuilder::recRegisterDeclVar(IRVec<PtrIRStmt> &stmtList, PtrAST declRoot)
 {
     // TODO
     if (isASTSymbolTypeOneOfThem(declRoot->getSymbolType(),
@@ -454,10 +468,11 @@ void IRBuilder::recRegisterDeclVar(IRVec<PtrIRStmt> stmtList, PtrAST declRoot)
 
 PtrIRVar IRBuilder::getTmpLabel()
 {
-    return IRVar::createLabelVar("_lb_" + std::to_string(allocCnt++));
+    return IRVar::createLabelVar("lb_" + std::to_string(allocCnt++));
 }
 
 PtrIRVar IRBuilder::getTmpVar()
 {
-    return IRVar::createVariableVar("_tmp_" + std::to_string(allocCnt++), &tyCtxt.SInt32Ty);
+    return IRVar::createVariableVar("tmp_" + std::to_string(allocCnt++),
+                                    &tyCtxt.SInt32Ty);
 }

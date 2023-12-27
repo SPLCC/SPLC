@@ -1,0 +1,44 @@
+FUNCTION main :
+a := #1
+b := #2
+c := #3
+tu1 := #1
+tu2 := #1
+READ tmp_0
+m := tmp_0
+IF m < #1 GOTO lb_1
+GOTO lb_2
+LABEL lb_1 :
+WRITE #0
+GOTO lb_3
+LABEL lb_2 :
+IF m == #1 GOTO lb_4
+GOTO lb_6
+LABEL lb_6 :
+IF m == #2 GOTO lb_4
+GOTO lb_5
+LABEL lb_4 :
+WRITE #1
+GOTO lb_7
+LABEL lb_5 :
+IF m > #2 GOTO lb_8
+GOTO lb_9
+LABEL lb_8 :
+i := #3
+LABEL lb_10 :
+IF i <= m GOTO lb_11
+GOTO lb_12
+LABEL lb_11 :
+tmp_13 := tu1 + tu2
+tu3 := tmp_13
+tu1 := tu2
+tu2 := tu3
+tmp_14 := i + #1
+i := tmp_14
+GOTO lb_10
+LABEL lb_12 :
+WRITE tu3
+LABEL lb_9 :
+LABEL lb_7 :
+LABEL lb_3 :
+RETURN #0

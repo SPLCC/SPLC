@@ -5,6 +5,8 @@
 #include <AST/Type.hh>
 #include <Core/splc.hh>
 
+#include <ranges>
+
 namespace splc {
 
 class IRVar;
@@ -121,7 +123,8 @@ class IRVar {
 
     inline std::string getName()
     {
-        if (irVarType == IRVarType::Variable && isConst) {
+        if ((irVarType == IRVarType::Variable && isConst) ||
+            irVarType == IRVarType::Constant) {
             if (holdsValueType<ASTSIntType>()) {
                 return "#" + std::to_string(getValue<ASTSIntType>());
             }
@@ -196,7 +199,7 @@ class IRStmt {
     IRStmt *prev = nullptr;
     IRStmt *next = nullptr;
 
-  protected:
+    //   protected:
     IRStmt() = default;
 
     IRStmt(IRType irType_, PtrIRVar op1_, PtrIRVar op2_ = nullptr,
@@ -227,7 +230,7 @@ class IRFunction {
     Type *retTy;
     IRVec<PtrIRVar> varList;
     IRMap<IRIDType, PtrIRVar> varMap;
-    IRMap<IRIDType, PtrIRVar> paramMap;
+    IRVec<PtrIRVar> paramList;
     IRVec<PtrIRStmt> body;
 };
 
@@ -359,13 +362,12 @@ inline std::ostream &operator<<(std::ostream &os, const IRStmt &stmt)
 inline std::ostream &operator<<(std::ostream &os, const IRFunction &func)
 {
     os << "FUNCTION " << func.name << " :\n";
-    // reverse pop
-    for (auto it = func.paramMap.rbegin(); it != func.paramMap.rend(); ++it) {
-        os << "PARAM " << it->first << "\n";
+    for (auto &it : std::views::reverse(func.paramList)) {
+        os << *IRStmt::createPopCallArgStmt(it);
     }
 
-    for (auto &stmt : func.body) {
-        os << stmt;
+    for (auto stmt : func.body) {
+        os << *stmt;
     }
     return os;
 }

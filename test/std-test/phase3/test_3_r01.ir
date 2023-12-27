@@ -1,0 +1,51 @@
+FUNCTION isPalindrome :
+PARAM num
+reversed := #0
+original := num
+digit := #0
+LABEL lb_3 :
+IF num != #0 GOTO lb_4
+GOTO lb_5
+LABEL lb_4 :
+ARG num
+ARG #10
+tmp_6 := CALL mod
+digit := tmp_6
+tmp_7 := reversed * #10
+tmp_8 := tmp_7 + digit
+reversed := tmp_8
+tmp_9 := num / #10
+num := tmp_9
+GOTO lb_3
+LABEL lb_5 :
+IF reversed == original GOTO lb_10
+GOTO lb_11
+LABEL lb_10 :
+RETURN #1
+GOTO lb_12
+LABEL lb_11 :
+RETURN #0
+LABEL lb_12 :
+
+FUNCTION main :
+READ tmp_13
+number := tmp_13
+ARG number
+tmp_16 := CALL isPalindrome
+IF tmp_16 == #1 GOTO lb_14
+GOTO lb_15
+LABEL lb_14 :
+WRITE #1
+GOTO lb_17
+LABEL lb_15 :
+WRITE #-1
+LABEL lb_17 :
+RETURN #0
+
+FUNCTION mod :
+PARAM n
+PARAM x
+tmp_0 := x / n
+tmp_1 := tmp_0 * n
+tmp_2 := x - tmp_1
+RETURN tmp_2

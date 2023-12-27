@@ -1,0 +1,44 @@
+FUNCTION calculateBinomialCoefficient :
+PARAM col
+PARAM row
+coefficient := #1
+i := #0
+IF row < col GOTO lb_0
+GOTO lb_1
+LABEL lb_0 :
+RETURN #0
+LABEL lb_1 :
+tmp_4 := row - col
+IF col > tmp_4 GOTO lb_2
+GOTO lb_3
+LABEL lb_2 :
+tmp_5 := row - col
+col := tmp_5
+LABEL lb_3 :
+LABEL lb_6 :
+IF i < col GOTO lb_7
+GOTO lb_8
+LABEL lb_7 :
+tmp_9 := row - i
+tmp_10 := coefficient * tmp_9
+coefficient := tmp_10
+tmp_11 := i + #1
+tmp_12 := coefficient / tmp_11
+coefficient := tmp_12
+tmp_13 := i + #1
+i := tmp_13
+GOTO lb_6
+LABEL lb_8 :
+RETURN coefficient
+
+FUNCTION main :
+READ tmp_14
+r := tmp_14
+READ tmp_15
+c := tmp_15
+ARG r
+ARG c
+tmp_16 := CALL calculateBinomialCoefficient
+coe := tmp_16
+WRITE coe
+RETURN #0

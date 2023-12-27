@@ -15,11 +15,9 @@ class IRBuilder {
   public:
     IRBuilder(TypeContext &C) : tyCtxt(C) {}
 
-    void writeFunction(std::ostream &os, Ptr<IRFunction> func);
-
     void writeAllIRStmt(std::ostream &os) {
-        for (auto func : funcMap) {
-            writeFunction(os, func.second);
+        for (const auto &func : funcMap) {
+            os << *func.second << "\n";
         }
     }
 
@@ -30,22 +28,22 @@ class IRBuilder {
     void registerFunction(PtrAST funcRoot);
 
     // register stmt
-    void recRegisterStmts(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot);
-    void recRegisterIterStmt(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot);
-    void recRegisterSelStmt(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot);
-    void recRegisterJumpStmt(IRVec<PtrIRStmt> stmtList, PtrAST stmtRoot);
+    void recRegisterStmts(IRVec<PtrIRStmt> &stmtList, PtrAST stmtRoot);
+    void recRegisterIterStmt(IRVec<PtrIRStmt> &stmtList, PtrAST stmtRoot);
+    void recRegisterSelStmt(IRVec<PtrIRStmt> &stmtList, PtrAST stmtRoot);
+    void recRegisterJumpStmt(IRVec<PtrIRStmt> &stmtList, PtrAST stmtRoot);
 
     // register expr
-    PtrIRVar recRegisterExprs(IRVec<PtrIRStmt> stmtList, PtrAST exprRoot);
-    PtrIRVar recRegisterCallExpr(IRVec<PtrIRStmt> stmtList, PtrAST exprRoot);
-    void recRegisterCondExpr(IRVec<PtrIRStmt> stmtList, PtrAST exprRoot,
+    PtrIRVar recRegisterExprs(IRVec<PtrIRStmt> &stmtList, PtrAST exprRoot);
+    PtrIRVar recRegisterCallExpr(IRVec<PtrIRStmt> &stmtList, PtrAST exprRoot);
+    void recRegisterCondExpr(IRVec<PtrIRStmt> &stmtList, PtrAST exprRoot,
                              PtrIRVar lbt, PtrIRVar lbf);
 
     // register declaration
-    void recRegisterDeclVar(IRVec<PtrIRStmt> stmtList, PtrAST declRoot);
+    void recRegisterDeclVar(IRVec<PtrIRStmt> &stmtList, PtrAST declRoot);
     // ----------------------------------------------------------
 
-    void recursiveParseAST(PtrAST parseRoot);
+    void parseAST(PtrAST parseRoot);
 
     PtrIRVar getTmpLabel();
     PtrIRVar getTmpVar();
@@ -53,7 +51,9 @@ class IRBuilder {
     size_t allocCnt = 0;
     TypeContext &tyCtxt;
     Ptr<ASTContext> rootCtxt;
+
     IRMap<IRIDType, Ptr<IRFunction>> funcMap;
+    IRMap<IRIDType, PtrIRVar> funcVarMap;
 
     IRVec<PtrIRVar> varList;
     IRMap<IRIDType, PtrIRVar> varMap;

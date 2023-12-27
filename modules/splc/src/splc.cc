@@ -4,7 +4,7 @@
 #include "AST/ASTProcess.hh"
 #include "IO/Driver.hh"
 #include "IR/IRBuilder.hh"
-#include "IR/IROptimizer.hh"
+// #include "IR/IROptimizer.hh"
 #include <algorithm>
 #include <cassert>
 #include <cstdlib>
@@ -46,9 +46,9 @@ int main(const int argc, const char **argv)
     // fout.open("a.ir");
 
     // optimizer
-    splc::IROptimizer irOptimizer{};
-    irOptimizer.optimize(irBuilder);
-
+    // splc::IROptimizer irOptimizer{};
+    // irOptimizer.optimize(irBuilder);
+    
     irBuilder.writeProgram(std::cout);
     // test
     // using namespace splc;
