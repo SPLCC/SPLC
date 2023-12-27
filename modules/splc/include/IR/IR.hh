@@ -78,13 +78,13 @@ enum class IRLogicalOpType {
 
 class IRVar {
   public:
-    static PtrIRVar createLabelVar(IRIDType name_);
+    static PtrIRVar createLabelVar(IRIDType name);
 
-    static PtrIRVar createFuncionVar(IRIDType name_, Type *type_);
+    static PtrIRVar createFuncionVar(IRIDType name, Type *type);
 
-    static PtrIRVar createVariableVar(IRIDType name_, Type *type_);
+    static PtrIRVar createVariableVar(IRIDType name, Type *type);
 
-    static PtrIRVar createConstantVar(Type *type_, ASTValueType val);
+    static PtrIRVar createConstantVar(Type *type, ASTValueType val);
 
     IRVar(IRIDType name_, IRVarType varType_ = IRVarType::Label,
           Type *type_ = nullptr, ASTValueType val_ = {}, bool isConst_ = false)
@@ -149,40 +149,39 @@ class IRVar {
 // TODO: modify everything
 class IRStmt {
   public:
-    static PtrIRStmt createLabelStmt(PtrIRVar op_);
+    static PtrIRStmt createLabelStmt(PtrIRVar op);
 
-    static PtrIRStmt createFuncDecl(PtrIRVar op_);
+    static PtrIRStmt createFuncDeclStmt(PtrIRVar op);
 
     static PtrIRStmt createAssignStmt(PtrIRVar lhs, PtrIRVar rhs);
 
-    static PtrIRStmt createArithmeticStmt(IRType irType, PtrIRVar op1_,
+    static PtrIRStmt createArithmeticStmt(IRType irType, PtrIRVar op1,
                                           PtrIRVar op2, PtrIRVar op3);
 
-    static PtrIRStmt createAddrOfStmt(PtrIRVar op1_, PtrIRVar op2_);
+    static PtrIRStmt createAddrOfStmt(PtrIRVar op1, PtrIRVar op2);
 
-    static PtrIRStmt createDerefStmt(PtrIRVar op1_, PtrIRVar op2_);
+    static PtrIRStmt createDerefStmt(PtrIRVar op1, PtrIRVar op2);
 
-    static PtrIRStmt createCopyToAddrStmt(PtrIRVar op1_, PtrIRVar op2_);
+    static PtrIRStmt createCopyToAddrStmt(PtrIRVar op1, PtrIRVar op2);
 
-    static PtrIRStmt createGotoStmt(PtrIRVar op_);
+    static PtrIRStmt createGotoStmt(PtrIRVar op);
 
-    static PtrIRStmt createBranchIfStmt(IRBranchType branchType_, PtrIRVar lhs_,
-                                        PtrIRVar rhs_, PtrIRVar label_);
+    static PtrIRStmt createBranchIfStmt(IRBranchType branchType, PtrIRVar lhs,
+                                        PtrIRVar rhs, PtrIRVar label);
 
-    static PtrIRStmt createReturnStmt(PtrIRVar op1_);
+    static PtrIRStmt createReturnStmt(PtrIRVar op);
 
-    static PtrIRStmt createAllocStmt(PtrIRVar op1_, PtrIRVar op2_);
+    static PtrIRStmt createAllocStmt(PtrIRVar op1, PtrIRVar op2);
 
-    static PtrIRStmt createPopCallArgStmt(PtrIRVar op_);
+    static PtrIRStmt createPopCallArgStmt(PtrIRVar op);
 
-    static PtrIRStmt createPushCallArgStmt(PtrIRVar op_);
+    static PtrIRStmt createPushCallArgStmt(PtrIRVar op);
 
-    static PtrIRStmt createInvokeFuncStmt(PtrIRVar func,
-                                      PtrIRVar lhs_ = nullptr);
+    static PtrIRStmt createInvokeFuncStmt(PtrIRVar lhs, PtrIRVar func);
 
-    static PtrIRStmt createReadStmt(PtrIRVar op_);
+    static PtrIRStmt createReadStmt(PtrIRVar op);
 
-    static PtrIRStmt createWriteStmt(PtrIRVar op_);
+    static PtrIRStmt createWriteStmt(PtrIRVar op);
 
     friend std::ostream &operator<<(std::ostream &os, const IRStmt &stmt);
 
@@ -214,9 +213,7 @@ class IRStmt {
     }
 };
 
-class IRSB : public IRStmt {
-
-};
+class IRSB : public IRStmt {};
 
 class IRFunction {
   public:
@@ -233,7 +230,6 @@ class IRFunction {
     IRMap<IRIDType, PtrIRVar> paramMap;
     IRVec<PtrIRStmt> body;
 };
-
 
 inline std::ostream &operator<<(std::ostream &os, const IRStmt &stmt)
 {
@@ -360,7 +356,7 @@ inline std::ostream &operator<<(std::ostream &os, const IRStmt &stmt)
     return os;
 }
 
-inline std::ostream &operator<<(std::ostream &os, const IRFunction &func) 
+inline std::ostream &operator<<(std::ostream &os, const IRFunction &func)
 {
     os << "FUNCTION " << func.name << " :\n";
     // reverse pop
@@ -368,9 +364,10 @@ inline std::ostream &operator<<(std::ostream &os, const IRFunction &func)
         os << "PARAM " << it->first << "\n";
     }
 
-    for (auto &var : func.varList) {
-        
+    for (auto &stmt : func.body) {
+        os << stmt;
     }
+    return os;
 }
 
 } // namespace splc

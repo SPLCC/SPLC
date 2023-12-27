@@ -64,7 +64,12 @@ void IRBuilder::registerFunction(PtrAST funcRoot)
     SPLC_LOG_DEBUG(nullptr, false) << "trying to register statement";
     recRegisterStmts(function->body, body);
 
-    
+    function->varList.insert(function->varList.end(), varList.begin(), varList.end());
+    varList.clear();
+    for (const auto& pair : funcMap) {
+        function->varMap.insert_or_assign(pair.first, pair.second);
+    }
+    varMap.clear();
 }
 
 PtrIRVar IRBuilder::recRegisterExprs(IRVec<PtrIRStmt> stmtList, PtrAST exprRoot)
@@ -279,7 +284,7 @@ PtrIRVar IRBuilder::recRegisterCallExpr(IRVec<PtrIRStmt> stmtList,
     }
 
     // CALL stmt
-    stmtList.push_back(IRStmt::createInvokeFuncStmt(funcID, res));
+    stmtList.push_back(IRStmt::createInvokeFuncStmt(res, funcID));
     return res;
 }
 
