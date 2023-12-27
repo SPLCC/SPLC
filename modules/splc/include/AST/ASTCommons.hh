@@ -32,7 +32,8 @@ concept IsValidASTValue =
      std::is_same_v<ASTSIntType, std::remove_cvref_t<T>> ||
      std::is_same_v<ASTUIntType, std::remove_cvref_t<T>> ||
      std::is_same_v<ASTFloatType, std::remove_cvref_t<T>> ||
-     std::is_same_v<ASTIDType, std::remove_cvref_t<T>>);
+     std::is_same_v<ASTIDType, std::remove_cvref_t<T>> ||
+     std::is_same_v<ASTValueType, std::remove_cvref_t<T>>);
 
 class AST;
 
@@ -80,7 +81,6 @@ class ASTProcessor;
 //      std::is_invocable_v<Functor, const double> ||
 //      std::is_invocable_v<Functor, const std::string>);
 
-// Value forward decl
 class Value;
 
 enum class SymEntryType {

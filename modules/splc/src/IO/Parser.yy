@@ -270,13 +270,10 @@ BuiltinTypeSpec:
     ;
 
 AbsDecltr:
-      PtrDecltr { $$ = AST::make(tyCtxt, SymType::AbsDecltr, @$, $1); }
-    | PtrDecltr DirAbsDecltr { 
-        // Let PtrDecltr become the parent of this node.
-        auto ptrDeclRoot = ASTHelper::getPtrDeclEndPoint(*$1);
-        ptrDeclRoot->addChild($2);
-        $$ = AST::make(tyCtxt, SymType::AbsDecltr, @$, ptrDeclRoot);
-    }
+      OpAstrk { $$ = AST::make(tyCtxt, SymType::AbsDecltr, @$, $1); }
+    | DirAbsDecltr { $$ = AST::make(tyCtxt, SymType::AbsDecltr, @$, $1); }
+    | OpAstrk AbsDecltr { $$ = AST::make(tyCtxt, SymType::AbsDecltr, @$, $1, $2); }
+    | OpAstrk TypeQualList AbsDecltr { $$ = AST::make(tyCtxt, SymType::AbsDecltr, @$, $1, $2, $3); }
     ;
 
 DirAbsDecltr:
@@ -377,12 +374,8 @@ EnumConst:
 /* Single variable declaration */
 Decltr: 
       DirDecltr { $$ = AST::make(tyCtxt, SymType::Decltr, @$, $1); }
-    | PtrDecltr DirDecltr  { 
-        // Let PtrDecltr become the parent of this node.
-        auto ptrDeclEndPoint = ASTHelper::getPtrDeclEndPoint(*$1);
-        ptrDeclEndPoint->addChild($2);
-        $$ = AST::make(tyCtxt, SymType::Decltr, @$, $1);
-    }
+    | OpAstrk Decltr  { $$ = AST::make(tyCtxt, SymType::Decltr, @$, $1, $2); }
+    | OpAstrk TypeQualList Decltr  { $$ = AST::make(tyCtxt, SymType::Decltr, @$, $1, $2, $3); }
     ;
 
 DirDecltr:
@@ -402,12 +395,12 @@ WrappedDirDecltr:
       PLP Decltr PRP { $$ = AST::make(tyCtxt, SymType::WrappedDirDecltr, @$, $2); }
     ;
 
-PtrDecltr:
+/* PtrDecltr:
       OpAstrk { $$ = AST::make(tyCtxt, SymType::PtrDecltr, @$, $1); }
     | OpAstrk TypeQualList { $$ = AST::make(tyCtxt, SymType::PtrDecltr, @$, $1, $2); }
     | OpAstrk PtrDecltr { $$ = AST::make(tyCtxt, SymType::PtrDecltr, @$, $1, $2); }
     | OpAstrk TypeQualList PtrDecltr { $$ = AST::make(tyCtxt, SymType::PtrDecltr, @$, $1, $2, $3); }
-    ;
+    ; */
 
 TypeQualList:
       TypeQual { $$ = AST::make(tyCtxt, SymType::TypeQualList, @$, $1); } 
@@ -510,12 +503,8 @@ FuncDecl:
 /* Function: Function name and body. */
 FuncDecltr: 
       DirFuncDecltr { $$ = AST::make(tyCtxt, SymType::FuncDecltr, @$, $1); }
-    | PtrDecltr DirFuncDecltr { 
-        // Let PtrDecltr become the parent of this node.
-        auto ptrDeclRoot = ASTHelper::getPtrDeclEndPoint(*$1);
-        ptrDeclRoot->addChild($2);
-        $$ = AST::make(tyCtxt, SymType::FuncDecltr, @$, ptrDeclRoot);
-    }
+    | OpAstrk DirFuncDecltr { $$ = AST::make(tyCtxt, SymType::FuncDecltr, @$, $1, $2); }
+    | OpAstrk TypeQualList DirFuncDecltr { $$ = AST::make(tyCtxt, SymType::FuncDecltr, @$, $1, $2, $3); }
     ;
 
 DirFuncDecltr:

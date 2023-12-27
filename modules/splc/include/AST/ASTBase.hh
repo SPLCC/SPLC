@@ -31,6 +31,36 @@ class AST : public std::enable_shared_from_this<AST> {
     friend class Type;
     friend class Value;
 
+    //===----------------------------------------------------------------------===//
+    // Runtime Polymorphism
+  public:
+    /// ID denote the variant of the AST instance. Each subclass of AST behaves differently,
+    /// e.g., an ExprAST will deduce its type from its children.
+    /// ID is used to determine the type AST and convert them at runtime.
+    enum class ASTID {
+        Universal,
+        TransUnit,
+        ExternDeclList,
+        ExternDecl,
+        FuncDef,
+        Expr,
+        CompStmt,
+        Stmt,
+        Decl,
+        DirDecl,
+        DeclSpec,
+        InitDecltrList,
+        InitDecltr,
+        Decltr,
+        AbsDecltr,
+        Initializer,
+        InitializerList,
+        Designation,
+        DesignatorList,
+    };
+
+    //===----------------------------------------------------------------------===//
+    // Constructors and Accessors
   public:
     ///
     /// \brief This constructor should be called by AST internal method
@@ -207,7 +237,13 @@ class AST : public std::enable_shared_from_this<AST> {
     Location loc;
     Ptr<ASTContext> context_;
     ASTValueType value;
+    
+    //===----------------------------------------------------------------------===//
+    // Runtime Polymorphism
+  public:
 
+    //===----------------------------------------------------------------------===//
+    // Helper Methods
   public:
     ///
     /// \brief Create a new node, and add all following children `PtrAST`
@@ -494,10 +530,10 @@ class ASTHelper {
 
     static Type *processInitDecltr(const AST &root, Type *base) noexcept;
 
-    /// Transform Ptr<AST> containing Ptr, such that
-    /// The pointers form a rightmost tree hierarchy.
-    /// At the rightmost child of the tree shall the declarator lie.
-    static PtrAST getPtrDeclEndPoint(AST &root) noexcept;
+    // /// Transform Ptr<AST> containing Ptr, such that
+    // /// The pointers form a rightmost tree hierarchy.
+    // /// At the rightmost child of the tree shall the declarator lie.
+    // static PtrAST getPtrDeclEndPoint(AST &root) noexcept;
 };
 
 } // namespace splc
