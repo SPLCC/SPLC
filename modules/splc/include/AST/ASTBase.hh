@@ -14,14 +14,24 @@
 
 namespace splc {
 ///
-/// \brief Class `AST` describes a single node in the Abstract Syntax Tree
+/// \brief Class AST describes a single node in the Abstract Syntax Tree
 /// (AST), and acts as the foundation of the parse tree.
 ///
-/// `AST` accepts the following value types, if given:
+/// AST accepts the following value types as constant values, if given:
 /// - `Char`
 /// - `Unsigned long long`
+/// - `Signed long long`
 /// - `Double`
 /// - `String`
+///
+/// To make the template helper function `makeAST` work properly, subclasses of
+/// AST must implement the existing implicit constructors inside class AST.
+/// Namely, constructors that accept parameters of sequence (Ptr<TypeContext>,
+/// optional) ASTSymType, Location, T value. Each subclass of AST shall perform
+/// the necessary actions in their constructor, such that no more actions inside
+/// the parser would be needed. Despite that, each AST class must also support
+/// explicit constructor/construtor that accepts no parameter, to facilitate
+/// development without the actual IO library.
 ///
 class AST : public std::enable_shared_from_this<AST> {
     friend class ASTHelper;
@@ -32,40 +42,15 @@ class AST : public std::enable_shared_from_this<AST> {
     friend class Value;
 
     //===----------------------------------------------------------------------===//
-    // Runtime Polymorphism
-  public:
-    /// ID denote the variant of the AST instance. Each subclass of AST behaves
-    /// differently, e.g., an ExprAST will deduce its type from its children. ID
-    /// is used to determine the type AST and convert them at runtime.
-    enum class ASTID {
-        Universal,
-        TransUnit,
-        ExternDeclList,
-        ExternDecl,
-        FuncDef,
-        Expr,
-        CompStmt,
-        Stmt,
-        Decl,
-        DirDecl,
-        DeclSpec,
-        InitDecltrList,
-        InitDecltr,
-        Decltr,
-        AbsDecltr,
-        Initializer,
-        InitializerList,
-        Designation,
-        DesignatorList,
-    };
-
-    //===----------------------------------------------------------------------===//
     // Constructors and Accessors
   public:
     ///
     /// \brief This constructor should be called by AST internal method
     ///
-    explicit AST() noexcept : symType{ASTSymType::YYEMPTY} {}
+    explicit AST(ASTSymType symType_ = ASTSymType::YYEMPTY) noexcept
+        : symType{symType_}
+    {
+    }
 
     template <IsValidASTValue T = ASTValueType>
     AST(const ASTSymType symType, const Location &loc_,
@@ -86,6 +71,59 @@ class AST : public std::enable_shared_from_this<AST> {
     virtual AST &operator=(const AST &other) = default;
 
     virtual AST &operator=(AST &&other) = default;
+    
+    ///
+    /// \brief Create a new node, and add all following children `PtrAST`
+    /// to the list of its children.
+    ///
+    template <IsBaseAST ASTType, AllArePtrAST... Children>
+    friend Ptr<ASTType> makeAST(ASTSymType type, const Location &loc,
+                                Children &&...children);
+
+    template <IsBaseAST ASTType, AllArePtrAST... Children>
+    friend Ptr<ASTType> makeAST(Ptr<TypeContext> typeContext, ASTSymType type,
+                                const Location &loc, Children &&...children);
+
+    ///
+    /// \brief Create a new node, and add all following children `PtrAST`
+    /// to the list of its children.
+    ///
+    template <IsBaseAST ASTType, IsValidASTValue T, AllArePtrAST... Children>
+    friend Ptr<ASTType> makeAST(ASTSymType type, const Location &loc, T &&value,
+                                Children &&...children);
+
+    template <IsBaseAST ASTType, IsValidASTValue T, AllArePtrAST... Children>
+    friend Ptr<ASTType> makeAST(Ptr<TypeContext> typeContext, ASTSymType type,
+                                const Location &loc, T &&value,
+                                Children &&...children);
+
+    template <AllArePtrAST... Children>
+    static PtrAST make(ASTSymType type, const Location &loc,
+                       Children &&...children)
+    {
+        return makeAST<AST>(type, loc, children...);
+    }
+
+    template <IsValidASTValue T, AllArePtrAST... Children>
+    static PtrAST make(ASTSymType type, const Location &loc, T &&value,
+                       Children &&...children)
+    {
+        return makeAST<AST>(type, loc, value, children...);
+    }
+
+    template <AllArePtrAST... Children>
+    static PtrAST make(Ptr<TypeContext> typeContext, ASTSymType type,
+                       const Location &loc, Children &&...children)
+    {
+        return makeAST<AST>(typeContext, type, loc, children...);
+    }
+
+    template <IsValidASTValue T, AllArePtrAST... Children>
+    static PtrAST make(Ptr<TypeContext> typeContext, ASTSymType type,
+                       const Location &loc, T &&value, Children &&...children)
+    {
+        return makeAST<AST>(typeContext, type, loc, value, children...);
+    }
 
     ///
     /// \deprecated This function serves no particular purpose.
@@ -97,18 +135,18 @@ class AST : public std::enable_shared_from_this<AST> {
             [](Ptr<const AST>) { return true; },
         const bool copyContext = true) const;
 
+    ///
     /// \brief [Experimental] You should call this only on FuntionDef/Decl
     /// nodes.
+    /// \deprecated
+    ///
     virtual std::vector<Type *> getContainedTys() const;
 
     virtual std::vector<ASTDeclEntityType> getNamedDeclEntities() const;
 
     /// \brief [Experimental] You should call this only on FuntionDef/Decl
     /// nodes.
-    auto getVarType() const { return varType; }
-
-    // TODO(sem): semantic analysis generation
-    virtual Value evaluate();
+    auto getRelType() const { return relType; }
 
     static inline bool isASTAppendable(const AST &node) noexcept
     {
@@ -220,9 +258,8 @@ class AST : public std::enable_shared_from_this<AST> {
 
   protected:
     Ptr<TypeContext> tyContext;
-    ASTID astID;
     ASTSymType symType;
-    Type *varType;
+    Type *relType; ///< type related to this AST, e.g., type for specifiers.
     WeakPtrAST parent;
     std::vector<PtrAST> children_;
     Location loc;
@@ -232,123 +269,401 @@ class AST : public std::enable_shared_from_this<AST> {
     //===----------------------------------------------------------------------===//
     // Runtime Polymorphism
   public:
-    ASTID getASTID() const noexcept { return astID; }
+    // clang-format off
+    bool isYYNTOKENS() const noexcept { return getSymType() == ASTSymType::YYNTOKENS; }
 
-    bool isTransUnit() const noexcept { return getASTID() == ASTID::TransUnit; }
+    bool isYYEMPTY() const noexcept { return getSymType() == ASTSymType::YYEMPTY; }
 
-    bool isExternDeclList() const noexcept
-    {
-        return getASTID() == ASTID::ExternDeclList;
-    }
+    bool isYYEOF() const noexcept { return getSymType() == ASTSymType::YYEOF; }
 
-    bool isExternDecl() const noexcept
-    {
-        return getASTID() == ASTID::ExternDecl;
-    }
+    bool isYYerror() const noexcept { return getSymType() == ASTSymType::YYerror; }
 
-    bool isFuncDef() const noexcept { return getASTID() == ASTID::FuncDef; }
+    bool isYYUNDEF() const noexcept { return getSymType() == ASTSymType::YYUNDEF; }
 
-    bool isExpr() const noexcept { return getASTID() == ASTID::Expr; }
+    bool isKwdAuto() const noexcept { return getSymType() == ASTSymType::KwdAuto; }
 
-    bool isCompStmt() const noexcept { return getASTID() == ASTID::CompStmt; }
+    bool isKwdExtern() const noexcept { return getSymType() == ASTSymType::KwdExtern; }
 
-    bool isStmt() const noexcept { return getASTID() == ASTID::Stmt; }
+    bool isKwdRegister() const noexcept { return getSymType() == ASTSymType::KwdRegister; }
 
-    bool isDecl() const noexcept { return getASTID() == ASTID::Decl; }
+    bool isKwdStatic() const noexcept { return getSymType() == ASTSymType::KwdStatic; }
 
-    bool isDirDecl() const noexcept { return getASTID() == ASTID::DirDecl; }
+    bool isKwdTypedef() const noexcept { return getSymType() == ASTSymType::KwdTypedef; }
 
-    bool isDeclSpec() const noexcept { return getASTID() == ASTID::DeclSpec; }
+    bool isKwdConst() const noexcept { return getSymType() == ASTSymType::KwdConst; }
 
-    bool isInitDecltrList() const noexcept
-    {
-        return getASTID() == ASTID::InitDecltrList;
-    }
+    bool isKwdRestrict() const noexcept { return getSymType() == ASTSymType::KwdRestrict; }
 
-    bool isInitDecltr() const noexcept
-    {
-        return getASTID() == ASTID::InitDecltr;
-    }
+    bool isKwdVolatile() const noexcept { return getSymType() == ASTSymType::KwdVolatile; }
 
-    bool isDecltr() const noexcept { return getASTID() == ASTID::Decltr; }
+    bool isKwdInline() const noexcept { return getSymType() == ASTSymType::KwdInline; }
 
-    bool isAbsDecltr() const noexcept { return getASTID() == ASTID::AbsDecltr; }
+    bool isVoidTy() const noexcept { return getSymType() == ASTSymType::VoidTy; }
 
-    bool isInitializer() const noexcept
-    {
-        return getASTID() == ASTID::Initializer;
-    }
+    bool isIntTy() const noexcept { return getSymType() == ASTSymType::IntTy; }
 
-    bool isInitializerList() const noexcept
-    {
-        return getASTID() == ASTID::InitializerList;
-    }
+    bool isSignedTy() const noexcept { return getSymType() == ASTSymType::SignedTy; }
 
-    bool isDesignation() const noexcept
-    {
-        return getASTID() == ASTID::Designation;
-    }
+    bool isUnsignedTy() const noexcept { return getSymType() == ASTSymType::UnsignedTy; }
 
-    bool isDesignatorList() const noexcept
-    {
-        return getASTID() == ASTID::DesignatorList;
-    }
+    bool isLongTy() const noexcept { return getSymType() == ASTSymType::LongTy; }
+
+    bool isFloatTy() const noexcept { return getSymType() == ASTSymType::FloatTy; }
+
+    bool isDoubleTy() const noexcept { return getSymType() == ASTSymType::DoubleTy; }
+
+    bool isCharTy() const noexcept { return getSymType() == ASTSymType::CharTy; }
+
+    bool isKwdEnum() const noexcept { return getSymType() == ASTSymType::KwdEnum; }
+
+    bool isKwdStruct() const noexcept { return getSymType() == ASTSymType::KwdStruct; }
+
+    bool isKwdUnion() const noexcept { return getSymType() == ASTSymType::KwdUnion; }
+
+    bool isKwdIf() const noexcept { return getSymType() == ASTSymType::KwdIf; }
+
+    bool isKwdElse() const noexcept { return getSymType() == ASTSymType::KwdElse; }
+
+    bool isKwdSwitch() const noexcept { return getSymType() == ASTSymType::KwdSwitch; }
+
+    bool isKwdWhile() const noexcept { return getSymType() == ASTSymType::KwdWhile; }
+
+    bool isKwdFor() const noexcept { return getSymType() == ASTSymType::KwdFor; }
+
+    bool isKwdDo() const noexcept { return getSymType() == ASTSymType::KwdDo; }
+
+    bool isKwdDefault() const noexcept { return getSymType() == ASTSymType::KwdDefault; }
+
+    bool isKwdCase() const noexcept { return getSymType() == ASTSymType::KwdCase; }
+
+    bool isKwdGoto() const noexcept { return getSymType() == ASTSymType::KwdGoto; }
+
+    bool isKwdContinue() const noexcept { return getSymType() == ASTSymType::KwdContinue; }
+
+    bool isKwdBreak() const noexcept { return getSymType() == ASTSymType::KwdBreak; }
+
+    bool isKwdReturn() const noexcept { return getSymType() == ASTSymType::KwdReturn; }
+
+    bool isID() const noexcept { return getSymType() == ASTSymType::ID; }
+
+    bool isTypedefID() const noexcept { return getSymType() == ASTSymType::TypedefID; }
+
+    bool isOpAssign() const noexcept { return getSymType() == ASTSymType::OpAssign; }
+
+    bool isOpMulAssign() const noexcept { return getSymType() == ASTSymType::OpMulAssign; }
+
+    bool isOpDivAssign() const noexcept { return getSymType() == ASTSymType::OpDivAssign; }
+
+    bool isOpModAssign() const noexcept { return getSymType() == ASTSymType::OpModAssign; }
+
+    bool isOpPlusAssign() const noexcept { return getSymType() == ASTSymType::OpPlusAssign; }
+
+    bool isOpMinusAssign() const noexcept { return getSymType() == ASTSymType::OpMinusAssign; }
+
+    bool isOpLShiftAssign() const noexcept { return getSymType() == ASTSymType::OpLShiftAssign; }
+
+    bool isOpRShiftAssign() const noexcept { return getSymType() == ASTSymType::OpRShiftAssign; }
+
+    bool isOpBAndAssign() const noexcept { return getSymType() == ASTSymType::OpBAndAssign; }
+
+    bool isOpBXorAssign() const noexcept { return getSymType() == ASTSymType::OpBXorAssign; }
+
+    bool isOpBOrAssign() const noexcept { return getSymType() == ASTSymType::OpBOrAssign; }
+
+    bool isOpAnd() const noexcept { return getSymType() == ASTSymType::OpAnd; }
+
+    bool isOpOr() const noexcept { return getSymType() == ASTSymType::OpOr; }
+
+    bool isOpNot() const noexcept { return getSymType() == ASTSymType::OpNot; }
+
+    bool isOpLT() const noexcept { return getSymType() == ASTSymType::OpLT; }
+
+    bool isOpLE() const noexcept { return getSymType() == ASTSymType::OpLE; }
+
+    bool isOpGT() const noexcept { return getSymType() == ASTSymType::OpGT; }
+
+    bool isOpGE() const noexcept { return getSymType() == ASTSymType::OpGE; }
+
+    bool isOpNE() const noexcept { return getSymType() == ASTSymType::OpNE; }
+
+    bool isOpEQ() const noexcept { return getSymType() == ASTSymType::OpEQ; }
+
+    bool isOpQMark() const noexcept { return getSymType() == ASTSymType::OpQMark; }
+
+    bool isOpColon() const noexcept { return getSymType() == ASTSymType::OpColon; }
+
+    bool isOpLShift() const noexcept { return getSymType() == ASTSymType::OpLShift; }
+
+    bool isOpRShift() const noexcept { return getSymType() == ASTSymType::OpRShift; }
+
+    bool isOpBAnd() const noexcept { return getSymType() == ASTSymType::OpBAnd; }
+
+    bool isOpBOr() const noexcept { return getSymType() == ASTSymType::OpBOr; }
+
+    bool isOpBNot() const noexcept { return getSymType() == ASTSymType::OpBNot; }
+
+    bool isOpBXor() const noexcept { return getSymType() == ASTSymType::OpBXor; }
+
+    bool isOpDPlus() const noexcept { return getSymType() == ASTSymType::OpDPlus; }
+
+    bool isOpDMinus() const noexcept { return getSymType() == ASTSymType::OpDMinus; }
+
+    bool isOpPlus() const noexcept { return getSymType() == ASTSymType::OpPlus; }
+
+    bool isOpMinus() const noexcept { return getSymType() == ASTSymType::OpMinus; }
+
+    bool isOpAstrk() const noexcept { return getSymType() == ASTSymType::OpAstrk; }
+
+    bool isOpDiv() const noexcept { return getSymType() == ASTSymType::OpDiv; }
+
+    bool isOpMod() const noexcept { return getSymType() == ASTSymType::OpMod; }
+
+    bool isOpDot() const noexcept { return getSymType() == ASTSymType::OpDot; }
+
+    bool isOpRArrow() const noexcept { return getSymType() == ASTSymType::OpRArrow; }
+
+    bool isOpSizeOf() const noexcept { return getSymType() == ASTSymType::OpSizeOf; }
+
+    bool isOpLSB() const noexcept { return getSymType() == ASTSymType::OpLSB; }
+
+    bool isOpRSB() const noexcept { return getSymType() == ASTSymType::OpRSB; }
+
+    bool isOpComma() const noexcept { return getSymType() == ASTSymType::OpComma; }
+
+    bool isOpEllipsis() const noexcept { return getSymType() == ASTSymType::OpEllipsis; }
+
+    bool isPSemi() const noexcept { return getSymType() == ASTSymType::PSemi; }
+
+    bool isPLC() const noexcept { return getSymType() == ASTSymType::PLC; }
+
+    bool isPRC() const noexcept { return getSymType() == ASTSymType::PRC; }
+
+    bool isPLP() const noexcept { return getSymType() == ASTSymType::PLP; }
+
+    bool isPRP() const noexcept { return getSymType() == ASTSymType::PRP; }
+
+    bool isUIntLiteral() const noexcept { return getSymType() == ASTSymType::UIntLiteral; }
+
+    bool isSIntLiteral() const noexcept { return getSymType() == ASTSymType::SIntLiteral; }
+
+    bool isFloatLiteral() const noexcept { return getSymType() == ASTSymType::FloatLiteral; }
+
+    bool isCharLiteral() const noexcept { return getSymType() == ASTSymType::CharLiteral; }
+
+    bool isStrUnit() const noexcept { return getSymType() == ASTSymType::StrUnit; }
+
+    bool isSubscriptExpr() const noexcept { return getSymType() == ASTSymType::SubscriptExpr; }
+
+    bool isCallExpr() const noexcept { return getSymType() == ASTSymType::CallExpr; }
+
+    bool isAccessExpr() const noexcept { return getSymType() == ASTSymType::AccessExpr; }
+
+    bool isExplicitCastExpr() const noexcept { return getSymType() == ASTSymType::ExplicitCastExpr; }
+
+    bool isAddrOfExpr() const noexcept { return getSymType() == ASTSymType::AddrOfExpr; }
+
+    bool isDerefExpr() const noexcept { return getSymType() == ASTSymType::DerefExpr; }
+
+    bool isSizeOfExpr() const noexcept { return getSymType() == ASTSymType::SizeOfExpr; }
+
+    bool isKwdThen() const noexcept { return getSymType() == ASTSymType::KwdThen; }
+
+    bool isDecltrPrec() const noexcept { return getSymType() == ASTSymType::DecltrPrec; }
+
+    bool isFuncDeclPrec() const noexcept { return getSymType() == ASTSymType::FuncDeclPrec; }
+
+    bool isOpUnaryPrec() const noexcept { return getSymType() == ASTSymType::OpUnaryPrec; }
+
+    bool isPLParen() const noexcept { return getSymType() == ASTSymType::PLParen; }
+
+    bool isPRParen() const noexcept { return getSymType() == ASTSymType::PRParen; }
+
+    bool isPLSBracket() const noexcept { return getSymType() == ASTSymType::PLSBracket; }
+
+    bool isPRSBracket() const noexcept { return getSymType() == ASTSymType::PRSBracket; }
+
+    bool isYYACCEPT() const noexcept { return getSymType() == ASTSymType::YYACCEPT; }
+
+    bool isParseRoot() const noexcept { return getSymType() == ASTSymType::ParseRoot; }
+
+    bool isTransUnit() const noexcept { return getSymType() == ASTSymType::TransUnit; }
+
+    bool isExternDeclList() const noexcept { return getSymType() == ASTSymType::ExternDeclList; }
+
+    bool isExternDecl() const noexcept { return getSymType() == ASTSymType::ExternDecl; }
+
+    bool isDeclSpec() const noexcept { return getSymType() == ASTSymType::DeclSpec; }
+
+    bool isStorageSpec() const noexcept { return getSymType() == ASTSymType::StorageSpec; }
+
+    bool isSpecQualList() const noexcept { return getSymType() == ASTSymType::SpecQualList; }
+
+    bool isTypeSpec() const noexcept { return getSymType() == ASTSymType::TypeSpec; }
+
+    bool isFuncSpec() const noexcept { return getSymType() == ASTSymType::FuncSpec; }
+
+    bool isTypeQual() const noexcept { return getSymType() == ASTSymType::TypeQual; }
+
+    bool isTypeName() const noexcept { return getSymType() == ASTSymType::TypeName; }
+
+    bool isBuiltinTypeSpec() const noexcept { return getSymType() == ASTSymType::BuiltinTypeSpec; }
+
+    bool isAbsDecltr() const noexcept { return getSymType() == ASTSymType::AbsDecltr; }
+
+    bool isDirAbsDecltr() const noexcept { return getSymType() == ASTSymType::DirAbsDecltr; }
+
+    bool isStructOrUnionSpec() const noexcept { return getSymType() == ASTSymType::StructOrUnionSpec; }
+
+    bool isStructOrUnion() const noexcept { return getSymType() == ASTSymType::StructOrUnion; }
+
+    bool isStructDeclBody() const noexcept { return getSymType() == ASTSymType::StructDeclBody; }
+
+    bool isStructDeclList() const noexcept { return getSymType() == ASTSymType::StructDeclList; }
+
+    bool isStructDecl() const noexcept { return getSymType() == ASTSymType::StructDecl; }
+
+    bool isStructDecltrList() const noexcept { return getSymType() == ASTSymType::StructDecltrList; }
+
+    bool isStructDecltr() const noexcept { return getSymType() == ASTSymType::StructDecltr; }
+
+    bool isEnumSpec() const noexcept { return getSymType() == ASTSymType::EnumSpec; }
+
+    bool isEnumBody() const noexcept { return getSymType() == ASTSymType::EnumBody; }
+
+    bool isEnumeratorList() const noexcept { return getSymType() == ASTSymType::EnumeratorList; }
+
+    bool isEnumerator() const noexcept { return getSymType() == ASTSymType::Enumerator; }
+
+    bool isEnumConst() const noexcept { return getSymType() == ASTSymType::EnumConst; }
+
+    bool isDecltr() const noexcept { return getSymType() == ASTSymType::Decltr; }
+
+    bool isDirDecltr() const noexcept { return getSymType() == ASTSymType::DirDecltr; }
+
+    bool isWrappedDirDecltr() const noexcept { return getSymType() == ASTSymType::WrappedDirDecltr; }
+
+    bool isTypeQualList() const noexcept { return getSymType() == ASTSymType::TypeQualList; }
+
+    bool isDecl() const noexcept { return getSymType() == ASTSymType::Decl; }
+
+    bool isDirDecl() const noexcept { return getSymType() == ASTSymType::DirDecl; }
+
+    bool isInitDecltrList() const noexcept { return getSymType() == ASTSymType::InitDecltrList; }
+
+    bool isInitDecltr() const noexcept { return getSymType() == ASTSymType::InitDecltr; }
+
+    bool isInitializer() const noexcept { return getSymType() == ASTSymType::Initializer; }
+
+    bool isInitializerList() const noexcept { return getSymType() == ASTSymType::InitializerList; }
+
+    bool isDesignation() const noexcept { return getSymType() == ASTSymType::Designation; }
+
+    bool isDesignatorList() const noexcept { return getSymType() == ASTSymType::DesignatorList; }
+
+    bool isDesignator() const noexcept { return getSymType() == ASTSymType::Designator; }
+
+    bool isFuncDef() const noexcept { return getSymType() == ASTSymType::FuncDef; }
+
+    bool isFuncDecl() const noexcept { return getSymType() == ASTSymType::FuncDecl; }
+
+    bool isFuncDecltr() const noexcept { return getSymType() == ASTSymType::FuncDecltr; }
+
+    bool isDirFuncDecltr() const noexcept { return getSymType() == ASTSymType::DirFuncDecltr; }
+
+    bool isDirDecltrForFunc() const noexcept { return getSymType() == ASTSymType::DirDecltrForFunc; }
+
+    bool isParamTypeList() const noexcept { return getSymType() == ASTSymType::ParamTypeList; }
+
+    bool isParamList() const noexcept { return getSymType() == ASTSymType::ParamList; }
+
+    bool isParamDecltr() const noexcept { return getSymType() == ASTSymType::ParamDecltr; }
+
+    bool isCompStmt() const noexcept { return getSymType() == ASTSymType::CompStmt; }
+
+    bool isGeneralStmtList() const noexcept { return getSymType() == ASTSymType::GeneralStmtList; }
+
+    bool isStmt() const noexcept { return getSymType() == ASTSymType::Stmt; }
+
+    bool isExprStmt() const noexcept { return getSymType() == ASTSymType::ExprStmt; }
+
+    bool isSelStmt() const noexcept { return getSymType() == ASTSymType::SelStmt; }
+
+    bool isLabeledStmt() const noexcept { return getSymType() == ASTSymType::LabeledStmt; }
+
+    bool isJumpStmt() const noexcept { return getSymType() == ASTSymType::JumpStmt; }
+
+    bool isIterStmt() const noexcept { return getSymType() == ASTSymType::IterStmt; }
+
+    bool isForLoopBody() const noexcept { return getSymType() == ASTSymType::ForLoopBody; }
+
+    bool isConstExpr() const noexcept { return getSymType() == ASTSymType::ConstExpr; }
+
+    bool isConstant() const noexcept { return getSymType() == ASTSymType::Constant; }
+
+    bool isPrimaryExpr() const noexcept { return getSymType() == ASTSymType::PrimaryExpr; }
+
+    bool isPostfixExpr() const noexcept { return getSymType() == ASTSymType::PostfixExpr; }
+
+    bool isMemberAcessOp() const noexcept { return getSymType() == ASTSymType::MemberAcessOp; }
+
+    bool isUnaryExpr() const noexcept { return getSymType() == ASTSymType::UnaryExpr; }
+
+    bool isUnaryArithOp() const noexcept { return getSymType() == ASTSymType::UnaryArithOp; }
+
+    bool isCastExpr() const noexcept { return getSymType() == ASTSymType::CastExpr; }
+
+    bool isMulExpr() const noexcept { return getSymType() == ASTSymType::MulExpr; }
+
+    bool isMulOp() const noexcept { return getSymType() == ASTSymType::MulOp; }
+
+    bool isDivOp() const noexcept { return getSymType() == ASTSymType::DivOp; }
+
+    bool isAddExpr() const noexcept { return getSymType() == ASTSymType::AddExpr; }
+
+    bool isAddOp() const noexcept { return getSymType() == ASTSymType::AddOp; }
+
+    bool isShiftExpr() const noexcept { return getSymType() == ASTSymType::ShiftExpr; }
+
+    bool isShiftOp() const noexcept { return getSymType() == ASTSymType::ShiftOp; }
+
+    bool isRelExpr() const noexcept { return getSymType() == ASTSymType::RelExpr; }
+
+    bool isRelOp() const noexcept { return getSymType() == ASTSymType::RelOp; }
+
+    bool isEqualityExpr() const noexcept { return getSymType() == ASTSymType::EqualityExpr; }
+
+    bool isEqualityOp() const noexcept { return getSymType() == ASTSymType::EqualityOp; }
+
+    bool isOpBAndExpr() const noexcept { return getSymType() == ASTSymType::OpBAndExpr; }
+
+    bool isOpBXorExpr() const noexcept { return getSymType() == ASTSymType::OpBXorExpr; }
+
+    bool isOpBOrExpr() const noexcept { return getSymType() == ASTSymType::OpBOrExpr; }
+
+    bool isLogicalOpAndExpr() const noexcept { return getSymType() == ASTSymType::LogicalOpAndExpr; }
+
+    bool isLogicalOpOrExpr() const noexcept { return getSymType() == ASTSymType::LogicalOpOrExpr; }
+
+    bool isCondExpr() const noexcept { return getSymType() == ASTSymType::CondExpr; }
+
+    bool isAssignExpr() const noexcept { return getSymType() == ASTSymType::AssignExpr; }
+
+    bool isAssignOp() const noexcept { return getSymType() == ASTSymType::AssignOp; }
+
+    bool isExpr() const noexcept { return getSymType() == ASTSymType::Expr; }
+
+    bool isInitExpr() const noexcept { return getSymType() == ASTSymType::InitExpr; }
+
+    bool isArgList() const noexcept { return getSymType() == ASTSymType::ArgList; }
+
+    bool isStringLiteral() const noexcept { return getSymType() == ASTSymType::StringLiteral; }
+
+    bool isIDWrapper() const noexcept { return getSymType() == ASTSymType::IDWrapper; }
+    // clang-format on
 
     //===----------------------------------------------------------------------===//
     // Helper Methods
   public:
-    ///
-    /// \brief Create a new node, and add all following children `PtrAST`
-    /// to the list of its children.
-    ///
-    template <IsBaseAST ASTType, AllArePtrAST... Children>
-    friend Ptr<ASTType> makeAST(ASTSymType type, const Location &loc,
-                                Children &&...children);
-
-    template <IsBaseAST ASTType, AllArePtrAST... Children>
-    friend Ptr<ASTType> makeAST(Ptr<TypeContext> typeContext, ASTSymType type,
-                                const Location &loc, Children &&...children);
-
-    ///
-    /// \brief Create a new node, and add all following children `PtrAST`
-    /// to the list of its children.
-    ///
-    template <IsBaseAST ASTType, IsValidASTValue T, AllArePtrAST... Children>
-    friend Ptr<ASTType> makeAST(ASTSymType type, const Location &loc, T &&value,
-                                Children &&...children);
-
-    template <IsBaseAST ASTType, IsValidASTValue T, AllArePtrAST... Children>
-    friend Ptr<ASTType> makeAST(Ptr<TypeContext> typeContext, ASTSymType type,
-                                const Location &loc, T &&value,
-                                Children &&...children);
-
-    template <AllArePtrAST... Children>
-    static PtrAST make(ASTSymType type, const Location &loc,
-                       Children &&...children)
-    {
-        return makeAST<AST>(type, loc, children...);
-    }
-
-    template <IsValidASTValue T, AllArePtrAST... Children>
-    static PtrAST make(ASTSymType type, const Location &loc, T &&value,
-                       Children &&...children)
-    {
-        return makeAST<AST>(type, loc, value, children...);
-    }
-
-    template <AllArePtrAST... Children>
-    static PtrAST make(Ptr<TypeContext> typeContext, ASTSymType type,
-                       const Location &loc, Children &&...children)
-    {
-        return makeAST<AST>(typeContext, type, loc, children...);
-    }
-
-    template <IsValidASTValue T, AllArePtrAST... Children>
-    static PtrAST make(Ptr<TypeContext> typeContext, ASTSymType type,
-                       const Location &loc, T &&value, Children &&...children)
-    {
-        return makeAST<AST>(typeContext, type, loc, value, children...);
-    }
 
     ///
     /// Allow stream-like operation on ASTs for processing.

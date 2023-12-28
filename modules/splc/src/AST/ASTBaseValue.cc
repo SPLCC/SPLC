@@ -17,10 +17,10 @@ void ASTHelper::getIDRecursive(std::vector<ASTDeclEntityType> &vec,
             else if (node->isSymTypeOneOf(
                          ASTSymType::FuncDef, ASTSymType::FuncDecl,
                          ASTSymType::FuncDecltr, ASTSymType::DirFuncDecltr,
-                         ASTSymType::PtrDecltr, ASTSymType::ID,
-                         ASTSymType::DirDecl, ASTSymType::InitDecltrList,
-                         ASTSymType::InitDecltr, ASTSymType::Decltr,
-                         ASTSymType::DirDecltr, ASTSymType::WrappedDirDecltr,
+                         ASTSymType::ID, ASTSymType::DirDecl,
+                         ASTSymType::InitDecltrList, ASTSymType::InitDecltr,
+                         ASTSymType::Decltr, ASTSymType::DirDecltr,
+                         ASTSymType::WrappedDirDecltr,
                          ASTSymType::ParamTypeList, ASTSymType::ParamList,
                          ASTSymType::ParamDecltr)) {
                 getIDRecursive(vec, *node);

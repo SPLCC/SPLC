@@ -59,7 +59,11 @@
 // %define api.location.file "../../include/Core/Utils/location.hh"
 %define api.location.type { splc::Location }
 
-%define api.symbol.prefix {S_} // The empty prefix is generally invalid, but there is namespace in C++.
+%define api.symbol.prefix {S_} // The empty prefix is generally invalid, 
+                               // but there is namespace in C++.
+                               // However, mid-rule actions are named as symbols
+                               // beginning with digits, and thus require a
+                               // non-empty prefix.
 %define api.value.type { splc::PtrAST }
 %locations
 

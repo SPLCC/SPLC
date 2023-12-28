@@ -1,5 +1,5 @@
 #include "AST/ASTBase.hh"
-#include <AST/DerivedTypes.hh>
+#include "AST/DerivedTypes.hh"
 
 using namespace splc;
 
@@ -51,9 +51,6 @@ Type *ASTHelper::processParamDeclRecursive(const AST &root) noexcept
 
     return paramTy;
 }
-
-/// Examine
-/// - `PtrDecltr`
 
 Type *ASTHelper::processDecltrSubDispatch(const AST &root, Type *base) noexcept
 {
@@ -107,11 +104,6 @@ Type *ASTHelper::processDecltrSubDispatch(const AST &root, Type *base) noexcept
             Type *arrType = ArrayType::get(base, val);
             return processDecltrSubDispatch(*dirDeclNode, arrType);
         }
-    }
-    else if (root.symType == ASTSymType::PtrDecltr) {
-        ///===----Pointers
-        return processDecltrSubDispatch(*root.children_[1],
-                                        base->getPointerTo());
     }
     else if (root.symType == ASTSymType::WrappedDirDecltr) {
         return processDecltrRecursive(*root.children_[0], base);

@@ -9,6 +9,7 @@
 #include <memory>
 #include <set>
 #include <type_traits>
+#include <typeinfo>
 #include <utility>
 #include <variant>
 #include <vector>

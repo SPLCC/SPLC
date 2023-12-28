@@ -230,7 +230,7 @@ std::ostream &printSymbolConsoleTraits(std::ostream &os,
     case SPLSymType::Decltr:
     case SPLSymType::DirDecltr:
     case SPLSymType::WrappedDirDecltr:
-    case SPLSymType::PtrDecltr:
+    // case SPLSymType::PtrDecltr:
     case SPLSymType::TypeQualList:
     case SPLSymType::Decl:
     case SPLSymType::DirDecl:

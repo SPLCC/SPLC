@@ -49,29 +49,6 @@ PtrAST AST::copy(const std::function<bool(Ptr<const AST>)> &predicate,
     return ret;
 }
 
-Value AST::evaluate()
-{
-    // TODO: eval
-    return {nullptr};
-}
-
-// Ptr<AST> ASTHelper::getPtrDeclEndPoint(AST &root) noexcept
-// {
-//     splc_assert(root.symType == ASTSymType::PtrDecltr);
-
-//     // Use a bit hack here to remove constness
-//     // Which is UB, ignored.
-//     AST *tmp = &root;
-//     while (!tmp->children_.empty()) {
-//         if (tmp->children_.back()->symType != ASTSymType::PtrDecltr) {
-//             return tmp->shared_from_this();
-//         }
-//         tmp = tmp->children_.back().get();
-//     }
-
-//     splc_unreachable();
-// }
-
 PtrAST ASTHelper::makeDeclSpecifierTree(const Location &loc,
                                         ASTSymType specSymbolType)
 {
