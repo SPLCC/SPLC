@@ -339,7 +339,7 @@ namespace splc {
 
 /// PostfixExpr-AST declaration slot
 
-/// MemberAcessOp-AST declaration slot
+/// MemberAccessOp-AST declaration slot
 
 /// UnaryExpr-AST declaration slot
 
