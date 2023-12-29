@@ -11,8 +11,8 @@
 // stuff, look in DerivedTypes.h.
 //
 //===----------------------------------------------------------------------===//
-#ifndef __SPLC_BASIC_DERIVED_TYPES_HH__
-#define __SPLC_BASIC_DERIVED_TYPES_HH__ 1
+#ifndef __SPLC_BASIC_DERIVEDTYPES_HH__
+#define __SPLC_BASIC_DERIVEDTYPES_HH__ 1
 
 #include "AST/ASTCommons.hh"
 #include "Core/splc.hh"
@@ -253,4 +253,4 @@ class PointerType : public Type {
 
 } // namespace splc
 
-#endif // __SPLC_BASIC_DERIVED_TYPES_HH__
+#endif // __SPLC_BASIC_DERIVEDTYPES_HH__
