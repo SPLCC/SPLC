@@ -26,7 +26,7 @@
 }
 
 %parse-param { TranslationManager  &transMgr }
-%parse-param { Ptr<TypeContext>     tyCtxt   }
+%parse-param { Ptr<TypeContext>     tyCtx   }
 %parse-param { Driver              &driver   }
 %parse-param { Scanner             &scanner  }
 
@@ -184,40 +184,40 @@
 %%
 /* Entire translation unit */
 ParseRoot: 
-    { transMgr.pushASTCtxt(); } 
+    { transMgr.pushASTCtx(); } 
     TransUnit {
         transMgr.setRootNode($TransUnit);
         SPLC_LOG_DEBUG(&@TransUnit, true) << "completed parsing";
 
-        $TransUnit->setContext(transMgr.getASTCtxtMgr()[0]);
-        transMgr.popASTCtxt();
+        $TransUnit->setContext(transMgr.getASTCtxMgr()[0]);
+        transMgr.popASTCtx();
     }
     ;
 
 TransUnit: 
-      ExternDeclList { $$ = AST::make(tyCtxt, SymType::TransUnit, @$, $1); }
-    | { $$ = AST::make(tyCtxt, SymType::TransUnit, @$); }
+      ExternDeclList { $$ = AST::make(tyCtx, SymType::TransUnit, @$, $1); }
+    | { $$ = AST::make(tyCtx, SymType::TransUnit, @$); }
     ;
 
 /* External definition list: Recursive definition */
 ExternDeclList: 
-      ExternDecl { $$ = AST::make(tyCtxt, SymType::ExternDeclList, @1, $1); }
+      ExternDecl { $$ = AST::make(tyCtx, SymType::ExternDeclList, @1, $1); }
     | ExternDeclList ExternDecl { $1->addChild($2); $$ = $1; }
     ;
 
 /* External definition list: A single unit of one of {}. */
 ExternDecl: 
-      PSemi { $$ = AST::make(tyCtxt, SymType::ExternDecl, @$); }
-    | Decl { $$ = AST::make(tyCtxt, SymType::ExternDecl, @$, $1); }
-    | FuncDef { $$ = AST::make(tyCtxt, SymType::ExternDecl, @$, $1); }
-    | FuncDecl { $$ = AST::make(tyCtxt, SymType::ExternDecl, @$, $1); }
+      PSemi { $$ = AST::make(tyCtx, SymType::ExternDecl, @$); }
+    | Decl { $$ = AST::make(tyCtx, SymType::ExternDecl, @$, $1); }
+    | FuncDef { $$ = AST::make(tyCtx, SymType::ExternDecl, @$, $1); }
+    | FuncDecl { $$ = AST::make(tyCtx, SymType::ExternDecl, @$, $1); }
     ;
 
 DeclSpec:
-      StorageSpec { $$ = AST::make(tyCtxt, SymType::DeclSpec, @$, $1); }
-    | TypeSpec { $$ = AST::make(tyCtxt, SymType::DeclSpec, @$, $1); }
-    | TypeQual { $$ = AST::make(tyCtxt, SymType::DeclSpec, @$, $1); }
-    | FuncSpec { $$ = AST::make(tyCtxt, SymType::DeclSpec, @$, $1); }
+      StorageSpec { $$ = AST::make(tyCtx, SymType::DeclSpec, @$, $1); }
+    | TypeSpec { $$ = AST::make(tyCtx, SymType::DeclSpec, @$, $1); }
+    | TypeQual { $$ = AST::make(tyCtx, SymType::DeclSpec, @$, $1); }
+    | FuncSpec { $$ = AST::make(tyCtx, SymType::DeclSpec, @$, $1); }
     | DeclSpec TypeSpec { $1->addChild($2); $$ = $1; }
     | DeclSpec StorageSpec { $1->addChild($2); $$ = $1; }
     | DeclSpec TypeQual { $1->addChild($2); $$ = $1; }
@@ -225,41 +225,41 @@ DeclSpec:
     ;
 
 StorageSpec:
-      KwdAuto { $$ = AST::make(tyCtxt, SymType::StorageSpec, @$, $1); }
-    | KwdExtern { $$ = AST::make(tyCtxt, SymType::StorageSpec, @$, $1); }
-    | KwdRegister { $$ = AST::make(tyCtxt, SymType::StorageSpec, @$, $1); }
-    | KwdStatic { $$ = AST::make(tyCtxt, SymType::StorageSpec, @$, $1); }
-    | KwdTypedef { $$ = AST::make(tyCtxt, SymType::StorageSpec, @$, $1); }
+      KwdAuto { $$ = AST::make(tyCtx, SymType::StorageSpec, @$, $1); }
+    | KwdExtern { $$ = AST::make(tyCtx, SymType::StorageSpec, @$, $1); }
+    | KwdRegister { $$ = AST::make(tyCtx, SymType::StorageSpec, @$, $1); }
+    | KwdStatic { $$ = AST::make(tyCtx, SymType::StorageSpec, @$, $1); }
+    | KwdTypedef { $$ = AST::make(tyCtx, SymType::StorageSpec, @$, $1); }
     ;
 
 SpecQualList:
-      TypeSpec { $$ = AST::make(tyCtxt, SymType::SpecQualList, @$, $1); }
-    | TypeQual { $$ = AST::make(tyCtxt, SymType::SpecQualList, @$, $1); }
+      TypeSpec { $$ = AST::make(tyCtx, SymType::SpecQualList, @$, $1); }
+    | TypeQual { $$ = AST::make(tyCtx, SymType::SpecQualList, @$, $1); }
     | SpecQualList TypeSpec { $1->addChild($2); $$ = $1; }
     | SpecQualList TypeQual { $1->addChild($2); $$ = $1; }
     ;
 
 TypeSpec: 
-      BuiltinTypeSpec { $$ = AST::make(tyCtxt, SymType::TypeSpec, @$, $1); }
+      BuiltinTypeSpec { $$ = AST::make(tyCtx, SymType::TypeSpec, @$, $1); }
     /* | identifier {} */
-    | StructOrUnionSpec { $$ = AST::make(tyCtxt, SymType::TypeSpec, @$, $1); }
-    | EnumSpec { $$ = AST::make(tyCtxt, SymType::TypeSpec, @$, $1); }
-    | TypedefID { $$ = AST::make(tyCtxt, SymType::TypeSpec, @$, $1); }
+    | StructOrUnionSpec { $$ = AST::make(tyCtx, SymType::TypeSpec, @$, $1); }
+    | EnumSpec { $$ = AST::make(tyCtx, SymType::TypeSpec, @$, $1); }
+    | TypedefID { $$ = AST::make(tyCtx, SymType::TypeSpec, @$, $1); }
     ;
 
 FuncSpec:
-      KwdInline { $$ = AST::make(tyCtxt, SymType::FuncSpec, @$, $1); }
+      KwdInline { $$ = AST::make(tyCtx, SymType::FuncSpec, @$, $1); }
     ;
 
 TypeQual:
-      KwdConst { $$ = AST::make(tyCtxt, SymType::TypeQual, @$, $1); }
-    | KwdRestrict { $$ = AST::make(tyCtxt, SymType::TypeQual, @$, $1); }
-    | KwdVolatile { $$ = AST::make(tyCtxt, SymType::TypeQual, @$, $1); }
+      KwdConst { $$ = AST::make(tyCtx, SymType::TypeQual, @$, $1); }
+    | KwdRestrict { $$ = AST::make(tyCtx, SymType::TypeQual, @$, $1); }
+    | KwdVolatile { $$ = AST::make(tyCtx, SymType::TypeQual, @$, $1); }
     ;
 
 TypeName:
-      SpecQualList { $$ = AST::make(tyCtxt, SymType::TypeName, @$, $1); }
-    | SpecQualList AbsDecltr { $$ = AST::make(tyCtxt, SymType::TypeQual, @$, $1, $2); }
+      SpecQualList { $$ = AST::make(tyCtx, SymType::TypeName, @$, $1); }
+    | SpecQualList AbsDecltr { $$ = AST::make(tyCtx, SymType::TypeQual, @$, $1, $2); }
     ;
 
 BuiltinTypeSpec:
@@ -274,28 +274,28 @@ BuiltinTypeSpec:
     ;
 
 AbsDecltr:
-      OpAstrk { $$ = AST::make(tyCtxt, SymType::AbsDecltr, @$, $1); }
-    | DirAbsDecltr { $$ = AST::make(tyCtxt, SymType::AbsDecltr, @$, $1); }
-    | OpAstrk AbsDecltr { $$ = AST::make(tyCtxt, SymType::AbsDecltr, @$, $1, $2); }
-    | OpAstrk TypeQualList AbsDecltr { $$ = AST::make(tyCtxt, SymType::AbsDecltr, @$, $1, $2, $3); }
+      OpAstrk { $$ = AST::make(tyCtx, SymType::AbsDecltr, @$, $1); }
+    | DirAbsDecltr { $$ = AST::make(tyCtx, SymType::AbsDecltr, @$, $1); }
+    | OpAstrk AbsDecltr { $$ = AST::make(tyCtx, SymType::AbsDecltr, @$, $1, $2); }
+    | OpAstrk TypeQualList AbsDecltr { $$ = AST::make(tyCtx, SymType::AbsDecltr, @$, $1, $2, $3); }
     ;
 
 DirAbsDecltr:
-      PLP AbsDecltr PRP { $$ = AST::make(tyCtxt, SymType::DirAbsDecltr, @$, $1); }
-    | DirAbsDecltr OpLSB AssignExpr OpRSB { $$ = AST::make(tyCtxt, SymType::DirAbsDecltr, @$, $1, $2, $3, $4); }
-    | DirAbsDecltr OpLSB OpRSB { $$ = AST::make(tyCtxt, SymType::DirAbsDecltr, @$, $1, $2, $3); }
-    | DirAbsDecltr PLP ParamList PRP { $$ = AST::make(tyCtxt, SymType::DirAbsDecltr, @$, $1, $3); }
-    | PLP ParamList PRP { $$ = AST::make(tyCtxt, SymType::DirAbsDecltr, @$, $2); }
+      PLP AbsDecltr PRP { $$ = AST::make(tyCtx, SymType::DirAbsDecltr, @$, $1); }
+    | DirAbsDecltr OpLSB AssignExpr OpRSB { $$ = AST::make(tyCtx, SymType::DirAbsDecltr, @$, $1, $2, $3, $4); }
+    | DirAbsDecltr OpLSB OpRSB { $$ = AST::make(tyCtx, SymType::DirAbsDecltr, @$, $1, $2, $3); }
+    | DirAbsDecltr PLP ParamList PRP { $$ = AST::make(tyCtx, SymType::DirAbsDecltr, @$, $1, $3); }
+    | PLP ParamList PRP { $$ = AST::make(tyCtx, SymType::DirAbsDecltr, @$, $2); }
     
-    | DirAbsDecltr OpLSB error { SPLC_LOG_ERROR(&@3, true) << "Expect ']' here"; $$ = AST::make(tyCtxt, SymType::DirAbsDecltr, @$, $1); yyerrok; }
-    | DirAbsDecltr OpRSB { SPLC_LOG_ERROR(&@2, true) << "Expect '[' here"; $$ = AST::make(tyCtxt, SymType::DirAbsDecltr, @$, $1); yyerrok; } 
+    | DirAbsDecltr OpLSB error { SPLC_LOG_ERROR(&@3, true) << "Expect ']' here"; $$ = AST::make(tyCtx, SymType::DirAbsDecltr, @$, $1); yyerrok; }
+    | DirAbsDecltr OpRSB { SPLC_LOG_ERROR(&@2, true) << "Expect '[' here"; $$ = AST::make(tyCtx, SymType::DirAbsDecltr, @$, $1); yyerrok; } 
     ;
 
 /* Specify a structure */
 StructOrUnionSpec: 
-      StructOrUnion IDWrapper { $$ = AST::make(tyCtxt, SymType::StructOrUnionSpec, @$, $1, $2); }
-    | StructOrUnion StructDeclBody { $$ = AST::make(tyCtxt, SymType::StructOrUnionSpec, @$, $1, $2); }
-    | StructOrUnion IDWrapper StructDeclBody { $$ = AST::make(tyCtxt, SymType::StructOrUnionSpec, @$, $1, $2, $3); }
+      StructOrUnion IDWrapper { $$ = AST::make(tyCtx, SymType::StructOrUnionSpec, @$, $1, $2); }
+    | StructOrUnion StructDeclBody { $$ = AST::make(tyCtx, SymType::StructOrUnionSpec, @$, $1, $2); }
+    | StructOrUnion IDWrapper StructDeclBody { $$ = AST::make(tyCtx, SymType::StructOrUnionSpec, @$, $1, $2, $3); }
     ;
 
 StructOrUnion:
@@ -304,91 +304,91 @@ StructOrUnion:
     ;
 
 StructDeclBody:
-      PLC PRC { $$ = AST::make(tyCtxt, SymType::StructDeclBody, @$); }
-    | PLC StructDeclList PRC { $$ = AST::make(tyCtxt, SymType::StructDeclBody, @$, $1); }
+      PLC PRC { $$ = AST::make(tyCtx, SymType::StructDeclBody, @$); }
+    | PLC StructDeclList PRC { $$ = AST::make(tyCtx, SymType::StructDeclBody, @$, $1); }
 
-    | PLC error { SPLC_LOG_ERROR(&@1, true) << "expect token '}'"; $$ = AST::make(tyCtxt, SymType::StructDeclBody, @$); yyerrok; }
-    | PLC StructDeclList error { SPLC_LOG_ERROR(&@3, true) << "expect token '}'"; $$ = AST::make(tyCtxt, SymType::StructDeclBody, @$, $2); yyerrok; }
+    | PLC error { SPLC_LOG_ERROR(&@1, true) << "expect token '}'"; $$ = AST::make(tyCtx, SymType::StructDeclBody, @$); yyerrok; }
+    | PLC StructDeclList error { SPLC_LOG_ERROR(&@3, true) << "expect token '}'"; $$ = AST::make(tyCtx, SymType::StructDeclBody, @$, $2); yyerrok; }
     ;
 
 StructDeclList:
-      StructDecl { $$ = AST::make(tyCtxt, SymType::StructDeclBody, @$, $1); }
+      StructDecl { $$ = AST::make(tyCtx, SymType::StructDeclBody, @$, $1); }
     | StructDeclList StructDecl { $1->addChild($2); $$ = $1; }
     ;
 
 StructDecl:
-      SpecQualList PSemi { $$ = AST::make(tyCtxt, SymType::StructDecl, @$, $1); }
-    | SpecQualList StructDecltrList PSemi { $$ = AST::make(tyCtxt, SymType::StructDecl, @$, $1, $2); }
+      SpecQualList PSemi { $$ = AST::make(tyCtx, SymType::StructDecl, @$, $1); }
+    | SpecQualList StructDecltrList PSemi { $$ = AST::make(tyCtx, SymType::StructDecl, @$, $1, $2); }
 
     | SpecQualList error {}
     | SpecQualList StructDecltrList error {}
     ;
 
 StructDecltrList:
-      StructDecltr { $$ = AST::make(tyCtxt, SymType::StructDecltrList, @$, $1); }
+      StructDecltr { $$ = AST::make(tyCtx, SymType::StructDecltrList, @$, $1); }
     | StructDecltrList OpComma StructDecltr { $1->addChild($3); $$ = $1; }
 
     | StructDecltrList OpComma error {}
     ;
 
 StructDecltr:
-      Decltr { $$ = AST::make(tyCtxt, SymType::StructDecltr, @$, $1); }
-    | OpColon ConstExpr { $$ = AST::make(tyCtxt, SymType::StructDecltr, @$, $1, $2); }
-    | Decltr OpColon ConstExpr { $$ = AST::make(tyCtxt, SymType::StructDecltr, @$, $1, $2, $3); }
+      Decltr { $$ = AST::make(tyCtx, SymType::StructDecltr, @$, $1); }
+    | OpColon ConstExpr { $$ = AST::make(tyCtx, SymType::StructDecltr, @$, $1, $2); }
+    | Decltr OpColon ConstExpr { $$ = AST::make(tyCtx, SymType::StructDecltr, @$, $1, $2, $3); }
 
     | OpColon error {}
     | Decltr OpColon error {}
     ;
 
 EnumSpec:
-      KwdEnum IDWrapper { $$ = AST::make(tyCtxt, SymType::EnumSpec, @$, $1, $2); }
-    | KwdEnum EnumBody { $$ = AST::make(tyCtxt, SymType::EnumSpec, @$, $1, $2); }
-    | KwdEnum IDWrapper EnumBody { $$ = AST::make(tyCtxt, SymType::EnumSpec, @$, $1, $2, $3); }
+      KwdEnum IDWrapper { $$ = AST::make(tyCtx, SymType::EnumSpec, @$, $1, $2); }
+    | KwdEnum EnumBody { $$ = AST::make(tyCtx, SymType::EnumSpec, @$, $1, $2); }
+    | KwdEnum IDWrapper EnumBody { $$ = AST::make(tyCtx, SymType::EnumSpec, @$, $1, $2, $3); }
     
     | KwdEnum error {}
     ;
 
 EnumBody:
-      PLC PRC { $$ = AST::make(tyCtxt, SymType::EnumBody, @$); }
-    | PLC EnumeratorList PRC { $$ = AST::make(tyCtxt, SymType::EnumBody, @$, $2); }
-    | PLC EnumeratorList OpComma PRC { $$ = AST::make(tyCtxt, SymType::EnumBody, @$, $2); }
+      PLC PRC { $$ = AST::make(tyCtx, SymType::EnumBody, @$); }
+    | PLC EnumeratorList PRC { $$ = AST::make(tyCtx, SymType::EnumBody, @$, $2); }
+    | PLC EnumeratorList OpComma PRC { $$ = AST::make(tyCtx, SymType::EnumBody, @$, $2); }
 
     | PLC error {}
     | PLC EnumeratorList error {}
     ;
 
 EnumeratorList:
-      Enumerator { $$ = AST::make(tyCtxt, SymType::EnumeratorList, @$, $1); }
+      Enumerator { $$ = AST::make(tyCtx, SymType::EnumeratorList, @$, $1); }
     | EnumeratorList OpComma Enumerator { $1->addChild($3); $$ = $1; }
 
     | OpComma Enumerator {}
     ;
 
 Enumerator:
-      EnumConst { $$ = AST::make(tyCtxt, SymType::Enumerator, @$, $1); }
-    | EnumConst OpAssign ConstExpr { $$ = AST::make(tyCtxt, SymType::Enumerator, @$, $1, $2, $3); }
+      EnumConst { $$ = AST::make(tyCtx, SymType::Enumerator, @$, $1); }
+    | EnumConst OpAssign ConstExpr { $$ = AST::make(tyCtx, SymType::Enumerator, @$, $1, $2, $3); }
 
     | EnumConst OpAssign error {}
     ;
 
 EnumConst:
-      IDWrapper { $$ = AST::make(tyCtxt, SymType::EnumConst, @$, $1); }
+      IDWrapper { $$ = AST::make(tyCtx, SymType::EnumConst, @$, $1); }
     ;
 
 /* Single variable declaration */
 Decltr: 
-      DirDecltr { $$ = AST::make(tyCtxt, SymType::Decltr, @$, $1); }
-    | OpAstrk Decltr  { $$ = AST::make(tyCtxt, SymType::Decltr, @$, $1, $2); }
-    | OpAstrk TypeQualList Decltr  { $$ = AST::make(tyCtxt, SymType::Decltr, @$, $1, $2, $3); }
+      DirDecltr { $$ = AST::make(tyCtx, SymType::Decltr, @$, $1); }
+    | OpAstrk Decltr  { $$ = AST::make(tyCtx, SymType::Decltr, @$, $1, $2); }
+    | OpAstrk TypeQualList Decltr  { $$ = AST::make(tyCtx, SymType::Decltr, @$, $1, $2, $3); }
     ;
 
 DirDecltr:
-      IDWrapper { $$ = AST::make(tyCtxt, SymType::DirDecltr, @$, $1); }
-    | WrappedDirDecltr { $$ = AST::make(tyCtxt, SymType::DirDecltr, @$, $1); }
-    | DirDecltr OpLSB AssignExpr OpRSB { $$ = AST::make(tyCtxt, SymType::DirDecltr, @$, $1, $2, $3, $4); }
-    | DirDecltr OpLSB OpRSB { $$ = AST::make(tyCtxt, SymType::DirDecltr, @$, $1, $2, $3); }
+      IDWrapper { $$ = AST::make(tyCtx, SymType::DirDecltr, @$, $1); }
+    | WrappedDirDecltr { $$ = AST::make(tyCtx, SymType::DirDecltr, @$, $1); }
+    | DirDecltr OpLSB AssignExpr OpRSB { $$ = AST::make(tyCtx, SymType::DirDecltr, @$, $1, $2, $3, $4); }
+    | DirDecltr OpLSB OpRSB { $$ = AST::make(tyCtx, SymType::DirDecltr, @$, $1, $2, $3); }
     | WrappedDirDecltr PLP ParamList PRP { 
-          $$ = AST::make(tyCtxt, SymType::DirDecltr, @$, $1, $3); 
+          $$ = AST::make(tyCtx, SymType::DirDecltr, @$, $1, $3); 
       }
     | DirDecltr OpLSB AssignExpr error {} 
     /* | direct-declarator error {}  */
@@ -396,18 +396,18 @@ DirDecltr:
     ;
 
 WrappedDirDecltr: 
-      PLP Decltr PRP { $$ = AST::make(tyCtxt, SymType::WrappedDirDecltr, @$, $2); }
+      PLP Decltr PRP { $$ = AST::make(tyCtx, SymType::WrappedDirDecltr, @$, $2); }
     ;
 
 /* PtrDecltr:
-      OpAstrk { $$ = AST::make(tyCtxt, SymType::PtrDecltr, @$, $1); }
-    | OpAstrk TypeQualList { $$ = AST::make(tyCtxt, SymType::PtrDecltr, @$, $1, $2); }
-    | OpAstrk PtrDecltr { $$ = AST::make(tyCtxt, SymType::PtrDecltr, @$, $1, $2); }
-    | OpAstrk TypeQualList PtrDecltr { $$ = AST::make(tyCtxt, SymType::PtrDecltr, @$, $1, $2, $3); }
+      OpAstrk { $$ = AST::make(tyCtx, SymType::PtrDecltr, @$, $1); }
+    | OpAstrk TypeQualList { $$ = AST::make(tyCtx, SymType::PtrDecltr, @$, $1, $2); }
+    | OpAstrk PtrDecltr { $$ = AST::make(tyCtx, SymType::PtrDecltr, @$, $1, $2); }
+    | OpAstrk TypeQualList PtrDecltr { $$ = AST::make(tyCtx, SymType::PtrDecltr, @$, $1, $2, $3); }
     ; */
 
 TypeQualList:
-      TypeQual { $$ = AST::make(tyCtxt, SymType::TypeQualList, @$, $1); } 
+      TypeQual { $$ = AST::make(tyCtx, SymType::TypeQualList, @$, $1); } 
     | TypeQualList TypeQual { $1->addChild($2); $$ = $1; }
     ;
 
@@ -419,19 +419,19 @@ TypeQualList:
 
 /* Definition: Base */
 Decl: 
-      DirDecl PSemi { $$ = AST::make(tyCtxt, SymType::Decl, @$, $1); transMgr.tryRegisterSymbol($$); }
+      DirDecl PSemi { $$ = AST::make(tyCtx, SymType::Decl, @$, $1); transMgr.tryRegisterSymbol($$); }
 
     | DirDecl error {}
     ;
 
 DirDecl:
-      DeclSpec { $$ = AST::make(tyCtxt, SymType::DirDecl, @$, $1); }
-    | DeclSpec InitDecltrList { $$ = AST::make(tyCtxt, SymType::DirDecl, @$, $1, $2); }
+      DeclSpec { $$ = AST::make(tyCtx, SymType::DirDecl, @$, $1); }
+    | DeclSpec InitDecltrList { $$ = AST::make(tyCtx, SymType::DirDecl, @$, $1, $2); }
     ;
 
 /* Definition: Declaration of multiple variable.  */ 
 InitDecltrList: 
-      InitDecltr { $$ = AST::make(tyCtxt, SymType::InitDecltrList, @$, $1); }
+      InitDecltr { $$ = AST::make(tyCtx, SymType::InitDecltrList, @$, $1); }
     | InitDecltrList OpComma InitDecltr { $1->addChild($3); $$ = $1; }
 
     | InitDecltrList OpComma {}
@@ -441,23 +441,23 @@ InitDecltrList:
 
 /* Definition: Single declaration unit. */
 InitDecltr: 
-      Decltr { $$ = AST::make(tyCtxt, SymType::InitDecltr, @$, $1); }
-    | Decltr OpAssign Initializer { $$ = AST::make(tyCtxt, SymType::InitDecltr, @$, $1, $2, $3); }
+      Decltr { $$ = AST::make(tyCtx, SymType::InitDecltr, @$, $1); }
+    | Decltr OpAssign Initializer { $$ = AST::make(tyCtx, SymType::InitDecltr, @$, $1, $2, $3); }
 
     | Decltr OpAssign error {}
     ;
 
 Initializer:
-      AssignExpr { $$ = AST::make(tyCtxt, SymType::Initializer, @$, $1); }
-    | PLC InitializerList PRC { $$ = AST::make(tyCtxt, SymType::Initializer, @$, $2); }
-    | PLC InitializerList OpComma PRC { $$ = AST::make(tyCtxt, SymType::Initializer, @$, $2); }
+      AssignExpr { $$ = AST::make(tyCtx, SymType::Initializer, @$, $1); }
+    | PLC InitializerList PRC { $$ = AST::make(tyCtx, SymType::Initializer, @$, $2); }
+    | PLC InitializerList OpComma PRC { $$ = AST::make(tyCtx, SymType::Initializer, @$, $2); }
 
     | PLC InitializerList error {}
     ;
 
 InitializerList:
-      Initializer { $$ = AST::make(tyCtxt, SymType::InitializerList, @$, $1); }
-    | Designation Initializer { $$ = AST::make(tyCtxt, SymType::InitializerList, @$, $1, $2); }
+      Initializer { $$ = AST::make(tyCtx, SymType::InitializerList, @$, $1); }
+    | Designation Initializer { $$ = AST::make(tyCtx, SymType::InitializerList, @$, $1, $2); }
     | InitializerList OpComma Designation Initializer { $1->addChildren($3, $4) ; $$ = $1; }
     | InitializerList OpComma Initializer { $1->addChild($3) ; $$ = $1; }
 
@@ -466,28 +466,28 @@ InitializerList:
     ;
 
 Designation:
-      DesignatorList OpAssign { $$ = AST::make(tyCtxt, SymType::Designation, @$, $1, $2); }
+      DesignatorList OpAssign { $$ = AST::make(tyCtx, SymType::Designation, @$, $1, $2); }
     ;
 
 DesignatorList:
-      Designator { $$ = AST::make(tyCtxt, SymType::DesignatorList, @$, $1); }
+      Designator { $$ = AST::make(tyCtx, SymType::DesignatorList, @$, $1); }
     | DesignatorList Designator { $1->addChild($2) ; $$ = $1; }
     ;
 
 Designator:
-      OpLSB ConstExpr OpRSB { $$ = AST::make(tyCtxt, SymType::Designator, @$, $1, $2, $3); }
-    | OpDot IDWrapper { $$ = AST::make(tyCtxt, SymType::Designator, @$, $1, $2); }
+      OpLSB ConstExpr OpRSB { $$ = AST::make(tyCtx, SymType::Designator, @$, $1, $2, $3); }
+    | OpDot IDWrapper { $$ = AST::make(tyCtx, SymType::Designator, @$, $1, $2); }
 
     | OpLSB ConstExpr error {}
     | OpDot error {}
     ;
 
 FuncDef:
-      DeclSpec FuncDecltr CompStmt { $$ = AST::make(tyCtxt, SymType::FuncDef, @$, $1, $2, $3); transMgr.tryRegisterSymbol($$); }
+      DeclSpec FuncDecltr CompStmt { $$ = AST::make(tyCtx, SymType::FuncDef, @$, $1, $2, $3); transMgr.tryRegisterSymbol($$); }
     | FuncDecltr CompStmt { 
           SPLC_LOG_WARN(&@1, true) << "function is missing a specifier and will default to 'int'";
           auto declSpec = ASTHelper::makeDeclSpecifierTree(Location{@$.begin}, SymType::IntTy);
-          $$ = AST::make(tyCtxt, SymType::FuncDef, @$, declSpec, $1, $2);
+          $$ = AST::make(tyCtx, SymType::FuncDef, @$, declSpec, $1, $2);
           transMgr.tryRegisterSymbol($$); 
       } 
     | DeclSpec FuncDecltr error {}
@@ -497,22 +497,22 @@ FuncDecl:
       FuncDecltr PSemi { 
           SPLC_LOG_WARN(&@1, true) << "function is missing a specifier and will default to 'int'";
           auto declSpec = ASTHelper::makeDeclSpecifierTree(Location{@$.begin}, SymType::IntTy);
-          $$ = AST::make(tyCtxt, SymType::FuncDecl, @$, declSpec, $1);
+          $$ = AST::make(tyCtx, SymType::FuncDecl, @$, declSpec, $1);
            transMgr.tryRegisterSymbol($$); 
       } 
-    | DeclSpec FuncDecltr PSemi { $$ = AST::make(tyCtxt, SymType::FuncDecl, @$, $1, $2); transMgr.tryRegisterSymbol($$); }
+    | DeclSpec FuncDecltr PSemi { $$ = AST::make(tyCtx, SymType::FuncDecl, @$, $1, $2); transMgr.tryRegisterSymbol($$); }
     ;
 
 
 /* Function: Function name and body. */
 FuncDecltr: 
-      DirFuncDecltr { $$ = AST::make(tyCtxt, SymType::FuncDecltr, @$, $1); }
-    | OpAstrk DirFuncDecltr { $$ = AST::make(tyCtxt, SymType::FuncDecltr, @$, $1, $2); }
-    | OpAstrk TypeQualList DirFuncDecltr { $$ = AST::make(tyCtxt, SymType::FuncDecltr, @$, $1, $2, $3); }
+      DirFuncDecltr { $$ = AST::make(tyCtx, SymType::FuncDecltr, @$, $1); }
+    | OpAstrk DirFuncDecltr { $$ = AST::make(tyCtx, SymType::FuncDecltr, @$, $1, $2); }
+    | OpAstrk TypeQualList DirFuncDecltr { $$ = AST::make(tyCtx, SymType::FuncDecltr, @$, $1, $2, $3); }
     ;
 
 DirFuncDecltr:
-      DirDecltrForFunc PLP ParamTypeList PRP { $$ = AST::make(tyCtxt, SymType::DirFuncDecltr, @$, $1, $3); }
+      DirDecltrForFunc PLP ParamTypeList PRP { $$ = AST::make(tyCtx, SymType::DirFuncDecltr, @$, $1, $3); }
     /* | direct-declarator-for-function PLP PRP {} */
 
     /* | direct-declarator-for-function PLP error {} */
@@ -529,13 +529,13 @@ DirDecltrForFunc:
 
 /* List of variables names */
 ParamTypeList: 
-      ParamList { $$ = AST::make(tyCtxt, SymType::ParamTypeList, @$, $1); }
-    | ParamList OpComma OpEllipsis { $$ = AST::make(tyCtxt, SymType::ParamTypeList, @$, $1, $3); }
+      ParamList { $$ = AST::make(tyCtx, SymType::ParamTypeList, @$, $1); }
+    | ParamList OpComma OpEllipsis { $$ = AST::make(tyCtx, SymType::ParamTypeList, @$, $1, $3); }
     ;
 
 ParamList:
-      { $$ = AST::make(tyCtxt, SymType::ParamList, @$); }
-    | ParamDecltr { $$ = AST::make(tyCtxt, SymType::ParamList, @$, $1); }
+      { $$ = AST::make(tyCtx, SymType::ParamList, @$); }
+    | ParamDecltr { $$ = AST::make(tyCtx, SymType::ParamList, @$, $1); }
     | ParamList OpComma ParamDecltr { $1->addChild($3); $$ = $1; }
 
     | ParamList OpComma error {}
@@ -543,9 +543,9 @@ ParamList:
 
 /* Parameter declaration */ 
 ParamDecltr: 
-      DeclSpec Decltr { $$ = AST::make(tyCtxt, SymType::ParamDecltr, @$, $1, $2); }
-    | DeclSpec AbsDecltr { $$ = AST::make(tyCtxt, SymType::ParamDecltr, @$, $1, $2); }
-    | DeclSpec { $$ = AST::make(tyCtxt, SymType::ParamDecltr, @$, $1); }
+      DeclSpec Decltr { $$ = AST::make(tyCtx, SymType::ParamDecltr, @$, $1, $2); }
+    | DeclSpec AbsDecltr { $$ = AST::make(tyCtx, SymType::ParamDecltr, @$, $1, $2); }
+    | DeclSpec { $$ = AST::make(tyCtx, SymType::ParamDecltr, @$, $1); }
 
     /* | error {} */
     ;
@@ -553,8 +553,8 @@ ParamDecltr:
 /* Compound statement: A new scope. */
 CompStmt: 
       /* PLC general-statement-list PRC */
-      PLC GeneralStmtList PRC { $$ = AST::make(tyCtxt, SymType::CompStmt, @$, $2); }
-    | PLC PRC { $$ = AST::make(tyCtxt, SymType::CompStmt, @$); }
+      PLC GeneralStmtList PRC { $$ = AST::make(tyCtx, SymType::CompStmt, @$, $2); }
+    | PLC PRC { $$ = AST::make(tyCtx, SymType::CompStmt, @$); }
 
     | PLC GeneralStmtList error {}
     | PLC error {}
@@ -562,9 +562,9 @@ CompStmt:
 
 /* wrapper for C99 standard for statements */
 GeneralStmtList: 
-      Stmt { $$ = AST::make(tyCtxt, SymType::GeneralStmtList, @$, $1); }
-    | Decl { $$ = AST::make(tyCtxt, SymType::GeneralStmtList, @$, $1); }
-    /* | FuncDecl { $$ = AST::make(tyCtxt, SymType::GeneralStmtList, @$, $1); } */
+      Stmt { $$ = AST::make(tyCtx, SymType::GeneralStmtList, @$, $1); }
+    | Decl { $$ = AST::make(tyCtx, SymType::GeneralStmtList, @$, $1); }
+    /* | FuncDecl { $$ = AST::make(tyCtx, SymType::GeneralStmtList, @$, $1); } */
     | GeneralStmtList Stmt { $1->addChild($2); $$ = $1; }
     | GeneralStmtList Decl { $1->addChild($2); $$ = $1; }
     ;
@@ -577,31 +577,31 @@ GeneralStmtList:
 
 /* Statement: A single statement. */
 Stmt: // TODO: use hierarchy
-      PSemi { $$ = AST::make(tyCtxt, SymType::Stmt, @$); }
-    | CompStmt { $$ = AST::make(tyCtxt, SymType::Stmt, @$, $1); }
-    | ExprStmt { $$ = AST::make(tyCtxt, SymType::Stmt, @$, $1); }
-    | SelStmt { $$ = AST::make(tyCtxt, SymType::Stmt, @$, $1); }
-    | IterStmt { $$ = AST::make(tyCtxt, SymType::Stmt, @$, $1); }
-    | LabeledStmt { $$ = AST::make(tyCtxt, SymType::Stmt, @$, $1); }
-    | JumpStmt { $$ = AST::make(tyCtxt, SymType::Stmt, @$, $1); }
+      PSemi { $$ = AST::make(tyCtx, SymType::Stmt, @$); }
+    | CompStmt { $$ = AST::make(tyCtx, SymType::Stmt, @$, $1); }
+    | ExprStmt { $$ = AST::make(tyCtx, SymType::Stmt, @$, $1); }
+    | SelStmt { $$ = AST::make(tyCtx, SymType::Stmt, @$, $1); }
+    | IterStmt { $$ = AST::make(tyCtx, SymType::Stmt, @$, $1); }
+    | LabeledStmt { $$ = AST::make(tyCtx, SymType::Stmt, @$, $1); }
+    | JumpStmt { $$ = AST::make(tyCtx, SymType::Stmt, @$, $1); }
 
     /* | error PSemi {} */
     ;
 
 ExprStmt:
-      Expr PSemi { $$ = AST::make(tyCtxt, SymType::ExprStmt, @$, $1); }
+      Expr PSemi { $$ = AST::make(tyCtx, SymType::ExprStmt, @$, $1); }
     | Expr error {}
     ;
 
 SelStmt:
-      KwdIf PLP Expr PRP Stmt %prec KwdThen { $$ = AST::make(tyCtxt, SymType::SelStmt, @$, $1, $3, $5); }
+      KwdIf PLP Expr PRP Stmt %prec KwdThen { $$ = AST::make(tyCtx, SymType::SelStmt, @$, $1, $3, $5); }
 
     | KwdIf error PRP Stmt %prec KwdThen {}
     | KwdIf PLP PRP Stmt %prec KwdThen {}
     | KwdIf PLP Expr PRP error %prec KwdThen {}
     | KwdIf PLP PRP error %prec KwdThen {}
     
-    | KwdIf PLP Expr PRP Stmt KwdElse Stmt %prec KwdElse { $$ = AST::make(tyCtxt, SymType::SelStmt, @$, $1, $3, $5, $6, $7); }
+    | KwdIf PLP Expr PRP Stmt KwdElse Stmt %prec KwdElse { $$ = AST::make(tyCtx, SymType::SelStmt, @$, $1, $3, $5, $6, $7); }
 
     | KwdIf error PRP Stmt KwdElse Stmt %prec KwdElse {}
     | KwdIf PLP Expr PRP Stmt KwdElse error %prec KwdElse {}
@@ -610,76 +610,76 @@ SelStmt:
     | KwdIf PLP Expr error %prec KwdElse {}
     | KwdElse Stmt {}
 
-    | KwdSwitch PLP Expr PRP Stmt { $$ = AST::make(tyCtxt, SymType::SelStmt, @$, $KwdSwitch, $Expr, $Stmt); }
+    | KwdSwitch PLP Expr PRP Stmt { $$ = AST::make(tyCtx, SymType::SelStmt, @$, $KwdSwitch, $Expr, $Stmt); }
     /* | KwdSwitch PLP expression statement {} */
     | KwdSwitch error PRP Stmt {}
     ;
 
 LabeledStmt:
-      IDWrapper OpColon Stmt { $$ = AST::make(tyCtxt, SymType::LabeledStmt, @$, $1, $2, $3); }
-    | KwdCase ConstExpr OpColon Stmt { $$ = AST::make(tyCtxt, SymType::LabeledStmt, @$, $1, $2, $3, $4); }
-    | KwdDefault OpColon Stmt { $$ = AST::make(tyCtxt, SymType::LabeledStmt, @$, $1, $2, $3); }
+      IDWrapper OpColon Stmt { $$ = AST::make(tyCtx, SymType::LabeledStmt, @$, $1, $2, $3); }
+    | KwdCase ConstExpr OpColon Stmt { $$ = AST::make(tyCtx, SymType::LabeledStmt, @$, $1, $2, $3, $4); }
+    | KwdDefault OpColon Stmt { $$ = AST::make(tyCtx, SymType::LabeledStmt, @$, $1, $2, $3); }
 
     | OpColon Stmt {}
     ;
 
 JumpStmt:
-      KwdGoto IDWrapper PSemi { $$ = AST::make(tyCtxt, SymType::JumpStmt, @$, $1, $2); }
-    | KwdContinue PSemi { $$ = AST::make(tyCtxt, SymType::JumpStmt, @$, $1); }
-    | KwdBreak PSemi { $$ = AST::make(tyCtxt, SymType::JumpStmt, @$, $1); }
-    | KwdReturn Expr PSemi { $$ = AST::make(tyCtxt, SymType::JumpStmt, @$, $1, $2); }
-    | KwdReturn PSemi { $$ = AST::make(tyCtxt, SymType::JumpStmt, @$, $1); }
+      KwdGoto IDWrapper PSemi { $$ = AST::make(tyCtx, SymType::JumpStmt, @$, $1, $2); }
+    | KwdContinue PSemi { $$ = AST::make(tyCtx, SymType::JumpStmt, @$, $1); }
+    | KwdBreak PSemi { $$ = AST::make(tyCtx, SymType::JumpStmt, @$, $1); }
+    | KwdReturn Expr PSemi { $$ = AST::make(tyCtx, SymType::JumpStmt, @$, $1, $2); }
+    | KwdReturn PSemi { $$ = AST::make(tyCtx, SymType::JumpStmt, @$, $1); }
 
     | KwdReturn Expr error {}
     | KwdReturn error {}
     ;
 
 IterStmt:
-      KwdWhile PLP Expr PRP Stmt { $$ = AST::make(tyCtxt, SymType::IterStmt, @$, $KwdWhile, $Expr, $Stmt); }
+      KwdWhile PLP Expr PRP Stmt { $$ = AST::make(tyCtx, SymType::IterStmt, @$, $KwdWhile, $Expr, $Stmt); }
     | KwdWhile error PRP Stmt {}
     | KwdWhile PLP Expr PRP error {}
     | KwdWhile PLP Expr error {}
     
-    | KwdDo Stmt KwdWhile PLP Expr PRP PSemi { $$ = AST::make(tyCtxt, SymType::IterStmt, @$, $KwdDo, $Stmt, $KwdWhile, $Expr); }
+    | KwdDo Stmt KwdWhile PLP Expr PRP PSemi { $$ = AST::make(tyCtx, SymType::IterStmt, @$, $KwdDo, $Stmt, $KwdWhile, $Expr); }
     | KwdDo Stmt KwdWhile PLP error PSemi {}
 
-    | KwdFor PLP ForLoopBody PRP Stmt { $$ = AST::make(tyCtxt, SymType::IterStmt, @$, $KwdFor, $ForLoopBody, $Stmt); }
+    | KwdFor PLP ForLoopBody PRP Stmt { $$ = AST::make(tyCtx, SymType::IterStmt, @$, $KwdFor, $ForLoopBody, $Stmt); }
     | KwdFor PLP ForLoopBody PRP error {}
     | KwdFor PLP ForLoopBody error {}
     ;
 
 ForLoopBody: // TODO: add constant expressions 
-      InitExpr PSemi Expr PSemi Expr { $$ = AST::make(tyCtxt, SymType::ForLoopBody, @$, $1, $2, $3, $4, $5); }
+      InitExpr PSemi Expr PSemi Expr { $$ = AST::make(tyCtx, SymType::ForLoopBody, @$, $1, $2, $3, $4, $5); }
 
-    | PSemi Expr PSemi Expr { $$ = AST::make(tyCtxt, SymType::ForLoopBody, @$, $1, $2, $3, $4); } 
-    | InitExpr PSemi Expr PSemi { $$ = AST::make(tyCtxt, SymType::ForLoopBody, @$, $1, $2, $3, $4); }
-    | InitExpr PSemi PSemi Expr { $$ = AST::make(tyCtxt, SymType::ForLoopBody, @$, $1, $2, $3, $4); }
+    | PSemi Expr PSemi Expr { $$ = AST::make(tyCtx, SymType::ForLoopBody, @$, $1, $2, $3, $4); } 
+    | InitExpr PSemi Expr PSemi { $$ = AST::make(tyCtx, SymType::ForLoopBody, @$, $1, $2, $3, $4); }
+    | InitExpr PSemi PSemi Expr { $$ = AST::make(tyCtx, SymType::ForLoopBody, @$, $1, $2, $3, $4); }
 
-    | PSemi Expr PSemi { $$ = AST::make(tyCtxt, SymType::ForLoopBody, @$, $1, $2, $3); }
-    | PSemi PSemi Expr { $$ = AST::make(tyCtxt, SymType::ForLoopBody, @$, $1, $2, $3); }
+    | PSemi Expr PSemi { $$ = AST::make(tyCtx, SymType::ForLoopBody, @$, $1, $2, $3); }
+    | PSemi PSemi Expr { $$ = AST::make(tyCtx, SymType::ForLoopBody, @$, $1, $2, $3); }
     /* | definition PSemi {} */
-    | InitExpr PSemi PSemi { $$ = AST::make(tyCtxt, SymType::ForLoopBody, @$, $1, $2, $3); }
+    | InitExpr PSemi PSemi { $$ = AST::make(tyCtx, SymType::ForLoopBody, @$, $1, $2, $3); }
     
-    | PSemi PSemi { $$ = AST::make(tyCtxt, SymType::ForLoopBody, @$, $1, $2); }
+    | PSemi PSemi { $$ = AST::make(tyCtx, SymType::ForLoopBody, @$, $1, $2); }
     ;
 
 ConstExpr: 
-      CondExpr { $$ = AST::make(tyCtxt, SymType::ConstExpr, @$, $1); }
+      CondExpr { $$ = AST::make(tyCtx, SymType::ConstExpr, @$, $1); }
     ;
 
 Constant:
-      UIntLiteral { $$ = AST::make(tyCtxt, SymType::Constant, @$, $1); }
-    | SIntLiteral { $$ = AST::make(tyCtxt, SymType::Constant, @$, $1); }
-    | FloatLiteral { $$ = AST::make(tyCtxt, SymType::Constant, @$, $1); }
-    | CharLiteral { $$ = AST::make(tyCtxt, SymType::Constant, @$, $1); }
+      UIntLiteral { $$ = AST::make(tyCtx, SymType::Constant, @$, $1); }
+    | SIntLiteral { $$ = AST::make(tyCtx, SymType::Constant, @$, $1); }
+    | FloatLiteral { $$ = AST::make(tyCtx, SymType::Constant, @$, $1); }
+    | CharLiteral { $$ = AST::make(tyCtx, SymType::Constant, @$, $1); }
     /* | StrUnit {} */
     ;
 
 PrimaryExpr:
-      IDWrapper { $$ = AST::make(tyCtxt, SymType::Expr, @$, $1); }
-    | Constant { $$ = AST::make(tyCtxt, SymType::Expr, @$, $1); }
-    | StringLiteral { $$ = AST::make(tyCtxt, SymType::Expr, @$, $1); }
-    | PLP Expr PRP { $$ = AST::make(tyCtxt, SymType::Expr, @$, $2); }
+      IDWrapper { $$ = AST::make(tyCtx, SymType::Expr, @$, $1); }
+    | Constant { $$ = AST::make(tyCtx, SymType::Expr, @$, $1); }
+    | StringLiteral { $$ = AST::make(tyCtx, SymType::Expr, @$, $1); }
+    | PLP Expr PRP { $$ = AST::make(tyCtx, SymType::Expr, @$, $2); }
 
     | PLP Expr error {}
     /* | PLP expression {} */
@@ -687,14 +687,14 @@ PrimaryExpr:
 
 PostfixExpr:
       PrimaryExpr
-    | PostfixExpr OpLSB Expr OpRSB { $$ = AST::make(tyCtxt, SymType::SubscriptExpr, @$, $1, $2, $3, $4); }
-    | PostfixExpr PLP ArgList PRP { $$ = AST::make(tyCtxt, SymType::CallExpr, @$, $1, $3); }
+    | PostfixExpr OpLSB Expr OpRSB { $$ = AST::make(tyCtx, SymType::SubscriptExpr, @$, $1, $2, $3, $4); }
+    | PostfixExpr PLP ArgList PRP { $$ = AST::make(tyCtx, SymType::CallExpr, @$, $1, $3); }
     /* | postfix-expression PLP PRP {} */
-    | PostfixExpr MemberAccessOp IDWrapper { $$ = AST::make(tyCtxt, SymType::AccessExpr, @$, $1, $2, $3); }
-    | PostfixExpr OpDPlus { $$ = AST::make(tyCtxt, SymType::Expr, @$, $1, $2); }
-    | PostfixExpr OpDMinus { $$ = AST::make(tyCtxt, SymType::Expr, @$, $1, $2); }
-    | PLP TypeName PRP PLC InitializerList PRC { $$ = AST::make(tyCtxt, SymType::ExplicitCastExpr, @$, $1, $2, $3, $5); }
-    | PLP TypeName PRP PLC InitializerList OpComma PRC { $$ = AST::make(tyCtxt, SymType::ExplicitCastExpr, @$, $1, $2, $3, $5); }
+    | PostfixExpr MemberAccessOp IDWrapper { $$ = AST::make(tyCtx, SymType::AccessExpr, @$, $1, $2, $3); }
+    | PostfixExpr OpDPlus { $$ = AST::make(tyCtx, SymType::Expr, @$, $1, $2); }
+    | PostfixExpr OpDMinus { $$ = AST::make(tyCtx, SymType::Expr, @$, $1, $2); }
+    | PLP TypeName PRP PLC InitializerList PRC { $$ = AST::make(tyCtx, SymType::ExplicitCastExpr, @$, $1, $2, $3, $5); }
+    | PLP TypeName PRP PLC InitializerList OpComma PRC { $$ = AST::make(tyCtx, SymType::ExplicitCastExpr, @$, $1, $2, $3, $5); }
 
     | PostfixExpr OpLSB Expr error {}
     | PostfixExpr PLP ArgList error {}
@@ -710,13 +710,13 @@ MemberAccessOp:
 
 UnaryExpr:
       PostfixExpr
-    | OpDPlus UnaryExpr { $$ = AST::make(tyCtxt, SymType::Expr, @$, $1, $2); }
-    | OpDMinus UnaryExpr { $$ = AST::make(tyCtxt, SymType::Expr, @$, $1, $2); }
-    | OpBAnd CastExpr %prec OpUnaryPrec { $$ = AST::make(tyCtxt, SymType::AddrOfExpr, @$, $1, $2); }
-    | OpAstrk CastExpr %prec OpUnaryPrec { $$ = AST::make(tyCtxt, SymType::DerefExpr, @$, $1, $2); }
-    | UnaryArithOp CastExpr %prec OpUnaryPrec { $$ = AST::make(tyCtxt, SymType::Expr, @$, $1, $2); }
-    | OpSizeOf UnaryExpr { $$ = AST::make(tyCtxt, SymType::Expr, @$, $1, $2); }
-    | OpSizeOf PLP TypeName PRP { $$ = AST::make(tyCtxt, SymType::SizeOfExpr, @$, $1, $3); }
+    | OpDPlus UnaryExpr { $$ = AST::make(tyCtx, SymType::Expr, @$, $1, $2); }
+    | OpDMinus UnaryExpr { $$ = AST::make(tyCtx, SymType::Expr, @$, $1, $2); }
+    | OpBAnd CastExpr %prec OpUnaryPrec { $$ = AST::make(tyCtx, SymType::AddrOfExpr, @$, $1, $2); }
+    | OpAstrk CastExpr %prec OpUnaryPrec { $$ = AST::make(tyCtx, SymType::DerefExpr, @$, $1, $2); }
+    | UnaryArithOp CastExpr %prec OpUnaryPrec { $$ = AST::make(tyCtx, SymType::Expr, @$, $1, $2); }
+    | OpSizeOf UnaryExpr { $$ = AST::make(tyCtx, SymType::Expr, @$, $1, $2); }
+    | OpSizeOf PLP TypeName PRP { $$ = AST::make(tyCtx, SymType::SizeOfExpr, @$, $1, $3); }
 
     | OpBAnd error {}
     | OpAstrk error {}
@@ -738,7 +738,7 @@ UnaryArithOp: /* Take the default behavior, that is, `$$ = $1` */
 
 CastExpr:
       UnaryExpr
-    | PLP TypeName PRP CastExpr { $$ = AST::make(tyCtxt, SymType::ExplicitCastExpr, @$, $1, $2); }
+    | PLP TypeName PRP CastExpr { $$ = AST::make(tyCtx, SymType::ExplicitCastExpr, @$, $1, $2); }
 
     | PLP TypeName PRP error {}
     | PLP TypeName error {}
@@ -746,10 +746,10 @@ CastExpr:
 
 MulExpr:
       CastExpr
-    | MulExpr MulOp CastExpr { $$ = AST::make(tyCtxt, SymType::Expr, @$, $1, $2, $3); }
+    | MulExpr MulOp CastExpr { $$ = AST::make(tyCtx, SymType::Expr, @$, $1, $2, $3); }
 
     | MulExpr MulOp error {}
-    | DivOp CastExpr { $$ = AST::make(tyCtxt, SymType::Expr, @$, $1, $2); }
+    | DivOp CastExpr { $$ = AST::make(tyCtx, SymType::Expr, @$, $1, $2); }
     ;
   
 MulOp:
@@ -764,7 +764,7 @@ DivOp:
 
 AddExpr:
       MulExpr
-    | AddExpr AddOp MulExpr { $$ = AST::make(tyCtxt, SymType::Expr, @$, $1, $2, $3); }
+    | AddExpr AddOp MulExpr { $$ = AST::make(tyCtx, SymType::Expr, @$, $1, $2, $3); }
 
     | AddExpr AddOp error {}
     ;
@@ -776,7 +776,7 @@ AddOp:
 
 ShiftExpr:
       AddExpr
-    | ShiftExpr ShiftOp AddExpr { $$ = AST::make(tyCtxt, SymType::Expr, @$, $1, $2, $3); }
+    | ShiftExpr ShiftOp AddExpr { $$ = AST::make(tyCtx, SymType::Expr, @$, $1, $2, $3); }
 
     | ShiftExpr ShiftOp error {}
     | ShiftOp AddExpr {}
@@ -789,7 +789,7 @@ ShiftOp:
 
 RelExpr:
       ShiftExpr
-    | RelExpr RelOp ShiftExpr { $$ = AST::make(tyCtxt, SymType::Expr, @$, $1, $2, $3); }
+    | RelExpr RelOp ShiftExpr { $$ = AST::make(tyCtx, SymType::Expr, @$, $1, $2, $3); }
 
     | RelExpr RelOp error {}
     | RelOp ShiftExpr {}
@@ -804,7 +804,7 @@ RelOp:
 
 EqualityExpr:
       RelExpr
-    | EqualityExpr EqualityOp RelExpr { $$ = AST::make(tyCtxt, SymType::Expr, @$, $1, $2, $3); }
+    | EqualityExpr EqualityOp RelExpr { $$ = AST::make(tyCtx, SymType::Expr, @$, $1, $2, $3); }
 
     | EqualityExpr EqualityOp error {}
     | EqualityOp RelExpr {}
@@ -817,14 +817,14 @@ EqualityOp:
 
 OpBAndExpr:
       EqualityExpr
-    | OpBAndExpr OpBAnd EqualityExpr { $$ = AST::make(tyCtxt, SymType::Expr, @$, $1, $2, $3); }
+    | OpBAndExpr OpBAnd EqualityExpr { $$ = AST::make(tyCtx, SymType::Expr, @$, $1, $2, $3); }
 
     | OpBAndExpr OpBAnd error {}
     ;
 
 OpBXorExpr:
       OpBAndExpr
-    | OpBXorExpr OpBXor OpBAndExpr { $$ = AST::make(tyCtxt, SymType::Expr, @$, $1, $2, $3); }
+    | OpBXorExpr OpBXor OpBAndExpr { $$ = AST::make(tyCtx, SymType::Expr, @$, $1, $2, $3); }
 
     | OpBXorExpr OpBXor error {}
     | OpBXor OpBAndExpr {}
@@ -832,7 +832,7 @@ OpBXorExpr:
 
 OpBOrExpr:
       OpBXorExpr
-    | OpBOrExpr OpBOr OpBXorExpr { $$ = AST::make(tyCtxt, SymType::Expr, @$, $1, $2, $3); }
+    | OpBOrExpr OpBOr OpBXorExpr { $$ = AST::make(tyCtx, SymType::Expr, @$, $1, $2, $3); }
 
     | OpBOrExpr OpBOr error {}
     | OpBOr OpBXorExpr {}
@@ -840,7 +840,7 @@ OpBOrExpr:
 
 LogicalOpAndExpr:
       OpBOrExpr
-    | LogicalOpAndExpr OpAnd OpBOrExpr { $$ = AST::make(tyCtxt, SymType::Expr, @$, $1, $2, $3); }
+    | LogicalOpAndExpr OpAnd OpBOrExpr { $$ = AST::make(tyCtx, SymType::Expr, @$, $1, $2, $3); }
 
     | LogicalOpAndExpr OpAnd error {}
     | OpAnd OpBOrExpr {}
@@ -848,7 +848,7 @@ LogicalOpAndExpr:
 
 LogicalOpOrExpr:
       LogicalOpAndExpr
-    | LogicalOpOrExpr OpOr LogicalOpAndExpr { $$ = AST::make(tyCtxt, SymType::Expr, @$, $1, $2, $3); }
+    | LogicalOpOrExpr OpOr LogicalOpAndExpr { $$ = AST::make(tyCtx, SymType::Expr, @$, $1, $2, $3); }
 
     | LogicalOpOrExpr OpOr error {}
     | OpOr LogicalOpAndExpr {}
@@ -856,7 +856,7 @@ LogicalOpOrExpr:
 
 CondExpr:
       LogicalOpOrExpr
-    | LogicalOpOrExpr OpQMark Expr OpColon CondExpr { $$ = AST::make(tyCtxt, SymType::Expr, @$, $1, $2, $3, $4, $5); }
+    | LogicalOpOrExpr OpQMark Expr OpColon CondExpr { $$ = AST::make(tyCtx, SymType::Expr, @$, $1, $2, $3, $4, $5); }
 
     | LogicalOpOrExpr OpQMark OpColon CondExpr {}
     | LogicalOpOrExpr OpQMark Expr OpColon {}
@@ -866,7 +866,7 @@ CondExpr:
 AssignExpr:
       CondExpr
     
-    | CondExpr AssignOp AssignExpr { $$ = AST::make(tyCtxt, SymType::Expr, @$, $1, $2, $3); }
+    | CondExpr AssignOp AssignExpr { $$ = AST::make(tyCtx, SymType::Expr, @$, $1, $2, $3); }
     | CondExpr AssignOp error {}
     | AssignOp AssignExpr {}
     
@@ -892,22 +892,22 @@ AssignOp: /* Use the default behavior to pass the value */
 /* expressions */
 Expr: 
       AssignExpr
-    | Expr OpComma AssignExpr { $$ = AST::make(tyCtxt, SymType::Expr, @$, $1, $3); }
+    | Expr OpComma AssignExpr { $$ = AST::make(tyCtx, SymType::Expr, @$, $1, $3); }
 
     | Expr OpComma error {}
     | OpComma AssignExpr {}
     ;
   
 InitExpr:
-      Expr { $$ = AST::make(tyCtxt, SymType::InitExpr, @$, $1); }
-    | DirDecl { $$ = AST::make(tyCtxt, SymType::InitExpr, @$, $1); }
+      Expr { $$ = AST::make(tyCtx, SymType::InitExpr, @$, $1); }
+    | DirDecl { $$ = AST::make(tyCtx, SymType::InitExpr, @$, $1); }
     ;
 
 /* Argument: List of arguments */
 ArgList: 
-      { $$ = AST::make(tyCtxt, SymType::ArgList, @$); }
+      { $$ = AST::make(tyCtx, SymType::ArgList, @$); }
     | ArgList OpComma AssignExpr { $1->addChild($3); $$ = $1; }
-    | AssignExpr { $$ = AST::make(tyCtxt, SymType::ArgList, @$, $1); }
+    | AssignExpr { $$ = AST::make(tyCtx, SymType::ArgList, @$, $1); }
 
     | ArgList OpComma error {}
     /* | error {} */
@@ -915,7 +915,7 @@ ArgList:
 
 /* String intermediate expression. Allowing concatenation of strings. */
 StringLiteral: 
-      StrUnit { $$ = AST::make(tyCtxt, SymType::StringLiteral, @$, $1); }
+      StrUnit { $$ = AST::make(tyCtx, SymType::StringLiteral, @$, $1); }
     | StringLiteral StrUnit { $1->addChild($2); $$ = $1; }
     ;
 

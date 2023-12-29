@@ -2,7 +2,7 @@
 #define __SPLC_AST_ASTBASE_HH__ 1
 
 #include <AST/ASTCommons.hh>
-#include <AST/TypeContext.hh>
+#include <Basic/TypeContext.hh>
 #include <AST/Value.hh>
 #include <Core/splc.hh>
 #include <functional>
@@ -259,7 +259,7 @@ class AST : public std::enable_shared_from_this<AST> {
   protected:
     Ptr<TypeContext> tyContext;
     ASTSymType symType;
-    Type *relType; ///< type related to this AST, e.g., type for specifiers.
+    Type *relType = nullptr; ///< type related to this AST, e.g., type for specifiers.
     WeakPtrAST parent;
     std::vector<PtrAST> children_;
     Location loc;

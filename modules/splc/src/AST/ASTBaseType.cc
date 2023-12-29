@@ -1,5 +1,5 @@
 #include "AST/ASTBase.hh"
-#include "AST/DerivedTypes.hh"
+#include "Basic/DerivedTypes.hh"
 
 using namespace splc;
 

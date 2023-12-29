@@ -78,7 +78,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     //       `yylex()` initialization: executed at beginning of `yylex()`
     //===------------------------------------------------------------------===*/
 %{          
-            yyloc->switchToContext(transMgr.getCurTransCtxtKey());
+            yyloc->switchToContext(transMgr.getCurTransCtxKey());
             glval = yylval;
             gloc = yyloc;
 %}
@@ -284,7 +284,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 }
     /* Empty string */
 <INITIAL>\"\" {
-    *glval = AST::make(tyCtxt, SymType::StrUnit, *gloc, String{});
+    *glval = AST::make(tyCtx, SymType::StrUnit, *gloc, String{});
     return Token::StrUnit;
 }
 
@@ -337,7 +337,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     locVec.push_back(*gloc);
     String str = concatTmpStrVec();
     *gloc = concatTmpLocVec();
-    *glval = AST::make(tyCtxt, SymType::StrUnit, *gloc, str);
+    *glval = AST::make(tyCtx, SymType::StrUnit, *gloc, str);
     return Token::StrUnit;
 }
 
@@ -355,46 +355,46 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     /*===------------------------------------------------------------------===//
     //                  Token: Keyword/Qualifiers
     //===------------------------------------------------------------------===*/
-<INITIAL>"auto"     { *glval = AST::make(tyCtxt, SymType::KwdAuto, *gloc); return Token::KwdAuto; }
-<INITIAL>"extern"   { *glval = AST::make(tyCtxt, SymType::KwdExtern, *gloc); return Token::KwdExtern; }
-<INITIAL>"register" { *glval = AST::make(tyCtxt, SymType::KwdRegister, *gloc); return Token::KwdRegister; }
-<INITIAL>"static"   { *glval = AST::make(tyCtxt, SymType::KwdStatic, *gloc); return Token::KwdStatic; }
-<INITIAL>"typedef"  { *glval = AST::make(tyCtxt, SymType::KwdTypedef, *gloc); return Token::KwdTypedef; }
+<INITIAL>"auto"     { *glval = AST::make(tyCtx, SymType::KwdAuto, *gloc); return Token::KwdAuto; }
+<INITIAL>"extern"   { *glval = AST::make(tyCtx, SymType::KwdExtern, *gloc); return Token::KwdExtern; }
+<INITIAL>"register" { *glval = AST::make(tyCtx, SymType::KwdRegister, *gloc); return Token::KwdRegister; }
+<INITIAL>"static"   { *glval = AST::make(tyCtx, SymType::KwdStatic, *gloc); return Token::KwdStatic; }
+<INITIAL>"typedef"  { *glval = AST::make(tyCtx, SymType::KwdTypedef, *gloc); return Token::KwdTypedef; }
 
-<INITIAL>"const"    { *glval = AST::make(tyCtxt, SymType::KwdConst, *gloc); return Token::KwdConst; }
-<INITIAL>"restrict" { *glval = AST::make(tyCtxt, SymType::KwdRestrict, *gloc); return Token::KwdRestrict; }
-<INITIAL>"volatile" { *glval = AST::make(tyCtxt, SymType::KwdVolatile, *gloc); return Token::KwdVolatile; }
+<INITIAL>"const"    { *glval = AST::make(tyCtx, SymType::KwdConst, *gloc); return Token::KwdConst; }
+<INITIAL>"restrict" { *glval = AST::make(tyCtx, SymType::KwdRestrict, *gloc); return Token::KwdRestrict; }
+<INITIAL>"volatile" { *glval = AST::make(tyCtx, SymType::KwdVolatile, *gloc); return Token::KwdVolatile; }
 
-<INITIAL>"inline"   { *glval = AST::make(tyCtxt, SymType::KwdInline, *gloc); return Token::KwdInline; }
+<INITIAL>"inline"   { *glval = AST::make(tyCtx, SymType::KwdInline, *gloc); return Token::KwdInline; }
 
-<INITIAL>"void"     { *glval = AST::make(tyCtxt, SymType::VoidTy, *gloc); return Token::VoidTy; }
-<INITIAL>"int"      { *glval = AST::make(tyCtxt, SymType::IntTy, *gloc); return Token::IntTy; }
-<INITIAL>"signed"   { *glval = AST::make(tyCtxt, SymType::SignedTy, *gloc); return Token::SignedTy; }
-<INITIAL>"unsigned" { *glval = AST::make(tyCtxt, SymType::UnsignedTy, *gloc); return Token::UnsignedTy; }
-<INITIAL>"long"     { *glval = AST::make(tyCtxt, SymType::LongTy, *gloc); return Token::LongTy; }
-<INITIAL>"float"    { *glval = AST::make(tyCtxt, SymType::FloatTy, *gloc); return Token::FloatTy; }
-<INITIAL>"double"   { *glval = AST::make(tyCtxt, SymType::DoubleTy, *gloc); return Token::DoubleTy; }
-<INITIAL>"char"     { *glval = AST::make(tyCtxt, SymType::CharTy, *gloc); return Token::CharTy; }
-<INITIAL>"enum"     { *glval = AST::make(tyCtxt, SymType::KwdEnum, *gloc); return Token::KwdEnum; }
+<INITIAL>"void"     { *glval = AST::make(tyCtx, SymType::VoidTy, *gloc); return Token::VoidTy; }
+<INITIAL>"int"      { *glval = AST::make(tyCtx, SymType::IntTy, *gloc); return Token::IntTy; }
+<INITIAL>"signed"   { *glval = AST::make(tyCtx, SymType::SignedTy, *gloc); return Token::SignedTy; }
+<INITIAL>"unsigned" { *glval = AST::make(tyCtx, SymType::UnsignedTy, *gloc); return Token::UnsignedTy; }
+<INITIAL>"long"     { *glval = AST::make(tyCtx, SymType::LongTy, *gloc); return Token::LongTy; }
+<INITIAL>"float"    { *glval = AST::make(tyCtx, SymType::FloatTy, *gloc); return Token::FloatTy; }
+<INITIAL>"double"   { *glval = AST::make(tyCtx, SymType::DoubleTy, *gloc); return Token::DoubleTy; }
+<INITIAL>"char"     { *glval = AST::make(tyCtx, SymType::CharTy, *gloc); return Token::CharTy; }
+<INITIAL>"enum"     { *glval = AST::make(tyCtx, SymType::KwdEnum, *gloc); return Token::KwdEnum; }
 
-<INITIAL>"struct"   { *glval = AST::make(tyCtxt, SymType::KwdStruct, *gloc); return Token::KwdStruct; }
-<INITIAL>"union"    { *glval = AST::make(tyCtxt, SymType::KwdUnion, *gloc); return Token::KwdUnion; }
+<INITIAL>"struct"   { *glval = AST::make(tyCtx, SymType::KwdStruct, *gloc); return Token::KwdStruct; }
+<INITIAL>"union"    { *glval = AST::make(tyCtx, SymType::KwdUnion, *gloc); return Token::KwdUnion; }
 
-<INITIAL>"if"       { *glval = AST::make(tyCtxt, SymType::KwdIf, *gloc); return Token::KwdIf; }
-<INITIAL>"else"     { *glval = AST::make(tyCtxt, SymType::KwdElse, *gloc); return Token::KwdElse; }
-<INITIAL>"switch"   { *glval = AST::make(tyCtxt, SymType::KwdSwitch, *gloc); return Token::KwdSwitch; }
+<INITIAL>"if"       { *glval = AST::make(tyCtx, SymType::KwdIf, *gloc); return Token::KwdIf; }
+<INITIAL>"else"     { *glval = AST::make(tyCtx, SymType::KwdElse, *gloc); return Token::KwdElse; }
+<INITIAL>"switch"   { *glval = AST::make(tyCtx, SymType::KwdSwitch, *gloc); return Token::KwdSwitch; }
 
-<INITIAL>"while"    { *glval = AST::make(tyCtxt, SymType::KwdWhile, *gloc); return Token::KwdWhile; }
-<INITIAL>"for"      { *glval = AST::make(tyCtxt, SymType::KwdFor, *gloc); return Token::KwdFor; }
-<INITIAL>"do"       { *glval = AST::make(tyCtxt, SymType::KwdDo, *gloc); return Token::KwdDo; }
+<INITIAL>"while"    { *glval = AST::make(tyCtx, SymType::KwdWhile, *gloc); return Token::KwdWhile; }
+<INITIAL>"for"      { *glval = AST::make(tyCtx, SymType::KwdFor, *gloc); return Token::KwdFor; }
+<INITIAL>"do"       { *glval = AST::make(tyCtx, SymType::KwdDo, *gloc); return Token::KwdDo; }
 
-<INITIAL>"default"  { *glval = AST::make(tyCtxt, SymType::KwdDefault, *gloc); return Token::KwdDefault; }
-<INITIAL>"case"     { *glval = AST::make(tyCtxt, SymType::KwdCase, *gloc); return Token::KwdCase; }
+<INITIAL>"default"  { *glval = AST::make(tyCtx, SymType::KwdDefault, *gloc); return Token::KwdDefault; }
+<INITIAL>"case"     { *glval = AST::make(tyCtx, SymType::KwdCase, *gloc); return Token::KwdCase; }
 
-<INITIAL>"goto"     { *glval = AST::make(tyCtxt, SymType::KwdGoto, *gloc); return Token::KwdGoto; }
-<INITIAL>"continue" { *glval = AST::make(tyCtxt, SymType::KwdContinue, *gloc); return Token::KwdContinue; }
-<INITIAL>"break"    { *glval = AST::make(tyCtxt, SymType::KwdBreak, *gloc); return Token::KwdBreak; }
-<INITIAL>"return"   { *glval = AST::make(tyCtxt, SymType::KwdReturn, *gloc); return Token::KwdReturn; }
+<INITIAL>"goto"     { *glval = AST::make(tyCtx, SymType::KwdGoto, *gloc); return Token::KwdGoto; }
+<INITIAL>"continue" { *glval = AST::make(tyCtx, SymType::KwdContinue, *gloc); return Token::KwdContinue; }
+<INITIAL>"break"    { *glval = AST::make(tyCtx, SymType::KwdBreak, *gloc); return Token::KwdBreak; }
+<INITIAL>"return"   { *glval = AST::make(tyCtx, SymType::KwdReturn, *gloc); return Token::KwdReturn; }
 
 
     /*===------------------------------------------------------------------===//
@@ -409,14 +409,14 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     } catch (std::out_of_range e) {
         SPLC_LOG_ERROR(gloc, true) << e.what();
     }
-    *glval = AST::make(tyCtxt, SymType::FloatLiteral, *gloc, val);
+    *glval = AST::make(tyCtx, SymType::FloatLiteral, *gloc, val);
     return Token::FloatLiteral;
 }
     
 <INITIAL>[0-9]*\.[0-9]+([eE]|[-+]|[\.])+ {
     ASTFloatType val = 0.0;
     SPLC_LOG_ERROR(gloc, true) << "too many decimal points or exponential indicators";
-    *glval = AST::make(tyCtxt, SymType::FloatLiteral, *gloc, val);
+    *glval = AST::make(tyCtx, SymType::FloatLiteral, *gloc, val);
     return Token::FloatLiteral;
 }
 
@@ -428,7 +428,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     } catch (std::out_of_range e) {
         SPLC_LOG_ERROR(gloc, true) << e.what();
     }
-    *glval = AST::make(tyCtxt, SymType::UIntLiteral, *gloc, val);
+    *glval = AST::make(tyCtx, SymType::UIntLiteral, *gloc, val);
     return Token::UIntLiteral;
 }
 
@@ -439,7 +439,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     } catch (std::out_of_range e) {
         SPLC_LOG_ERROR(gloc, true) << e.what();
     }
-    *glval = AST::make(tyCtxt, SymType::UIntLiteral, *gloc, val);
+    *glval = AST::make(tyCtx, SymType::UIntLiteral, *gloc, val);
     return Token::UIntLiteral;
 }
 
@@ -447,46 +447,46 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 <INITIAL>0[xX][0-9a-zA-Z]+ {
     ASTUIntType val = 0ULL;
     SPLC_LOG_ERROR(gloc, true) << "ill-formed hexadecimal integer";
-    *glval = AST::make(tyCtxt, SymType::UIntLiteral, *gloc, val);
+    *glval = AST::make(tyCtx, SymType::UIntLiteral, *gloc, val);
     return Token::UIntLiteral;
 }
 
     /* =================== SPL: char =================== */
 <INITIAL>'\\x[0-9a-fA-F]{2}' {
     ASTCharType val = static_cast<ASTCharType>(std::stoi({yytext + 3}, nullptr, 16));
-    *glval = AST::make(tyCtxt, SymType::CharLiteral, *gloc, val);
+    *glval = AST::make(tyCtx, SymType::CharLiteral, *gloc, val);
     return Token::CharLiteral;
 }
 
 <INITIAL>'\\x[0-9a-zA-Z]*' {
     SPLC_LOG_ERROR(gloc, true) << "ill-formed char";
     ASTCharType val = '\0';
-    *glval = AST::make(tyCtxt, SymType::CharLiteral, *gloc, val);
+    *glval = AST::make(tyCtx, SymType::CharLiteral, *gloc, val);
     return Token::CharLiteral;
 }
 
 <INITIAL>'\\[abefnrtv\\\'\"\?]' {
     ASTCharType val = yytext[2];
-    *glval = AST::make(tyCtxt, SymType::CharLiteral, *gloc, val);
+    *glval = AST::make(tyCtx, SymType::CharLiteral, *gloc, val);
     return Token::CharLiteral;
 }
 
 <INITIAL>'\\0[0-7]{0,2}' {
     ASTCharType val = static_cast<ASTCharType>(std::stoi({yytext + 2}, nullptr, 8));
-    *glval = AST::make(tyCtxt, SymType::CharLiteral, *gloc, val);
+    *glval = AST::make(tyCtx, SymType::CharLiteral, *gloc, val);
     return Token::CharLiteral;
 }
 
 <INITIAL>'\\[0-9]{1,3}' {
     SPLC_LOG_ERROR(gloc, true) << "ill-formed char";
     ASTCharType val = '\0';
-    *glval = AST::make(tyCtxt, SymType::CharLiteral, *gloc, val);
+    *glval = AST::make(tyCtx, SymType::CharLiteral, *gloc, val);
     return Token::CharLiteral;
 }
 
 <INITIAL>'.' {
     ASTCharType val = yytext[1];
-    *glval = AST::make(tyCtxt, SymType::CharLiteral, *gloc, val);
+    *glval = AST::make(tyCtx, SymType::CharLiteral, *gloc, val);
     return Token::CharLiteral;
 }
 
@@ -495,72 +495,72 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     //===------------------------------------------------------------------===*/
 
     /* Assignments */
-<INITIAL>"="      { *glval = AST::make(tyCtxt, SymType::OpAssign, *gloc); return Token::OpAssign; }
-<INITIAL>"*="     { *glval = AST::make(tyCtxt, SymType::OpMulAssign, *gloc); return Token::OpMulAssign; }
-<INITIAL>"/="     { *glval = AST::make(tyCtxt, SymType::OpDivAssign, *gloc); return Token::OpDivAssign; }
-<INITIAL>"%="     { *glval = AST::make(tyCtxt, SymType::OpModAssign, *gloc); return Token::OpModAssign; }
-<INITIAL>"+="     { *glval = AST::make(tyCtxt, SymType::OpPlusAssign, *gloc); return Token::OpPlusAssign; }
-<INITIAL>"-="     { *glval = AST::make(tyCtxt, SymType::OpMinusAssign, *gloc); return Token::OpMinusAssign; }
-<INITIAL>"<<="    { *glval = AST::make(tyCtxt, SymType::OpLShiftAssign, *gloc); return Token::OpLShiftAssign; }
-<INITIAL>">>="    { *glval = AST::make(tyCtxt, SymType::OpRShiftAssign, *gloc); return Token::OpRShiftAssign; }
-<INITIAL>"&="     { *glval = AST::make(tyCtxt, SymType::OpBAndAssign, *gloc); return Token::OpBAndAssign; }
-<INITIAL>"^="     { *glval = AST::make(tyCtxt, SymType::OpBXorAssign, *gloc); return Token::OpBXorAssign; }
-<INITIAL>"|="     { *glval = AST::make(tyCtxt, SymType::OpBOrAssign, *gloc); return Token::OpBOrAssign; }
+<INITIAL>"="      { *glval = AST::make(tyCtx, SymType::OpAssign, *gloc); return Token::OpAssign; }
+<INITIAL>"*="     { *glval = AST::make(tyCtx, SymType::OpMulAssign, *gloc); return Token::OpMulAssign; }
+<INITIAL>"/="     { *glval = AST::make(tyCtx, SymType::OpDivAssign, *gloc); return Token::OpDivAssign; }
+<INITIAL>"%="     { *glval = AST::make(tyCtx, SymType::OpModAssign, *gloc); return Token::OpModAssign; }
+<INITIAL>"+="     { *glval = AST::make(tyCtx, SymType::OpPlusAssign, *gloc); return Token::OpPlusAssign; }
+<INITIAL>"-="     { *glval = AST::make(tyCtx, SymType::OpMinusAssign, *gloc); return Token::OpMinusAssign; }
+<INITIAL>"<<="    { *glval = AST::make(tyCtx, SymType::OpLShiftAssign, *gloc); return Token::OpLShiftAssign; }
+<INITIAL>">>="    { *glval = AST::make(tyCtx, SymType::OpRShiftAssign, *gloc); return Token::OpRShiftAssign; }
+<INITIAL>"&="     { *glval = AST::make(tyCtx, SymType::OpBAndAssign, *gloc); return Token::OpBAndAssign; }
+<INITIAL>"^="     { *glval = AST::make(tyCtx, SymType::OpBXorAssign, *gloc); return Token::OpBXorAssign; }
+<INITIAL>"|="     { *glval = AST::make(tyCtx, SymType::OpBOrAssign, *gloc); return Token::OpBOrAssign; }
 
     /* Conditional */
-<INITIAL>"&&"     { *glval = AST::make(tyCtxt, SymType::OpAnd, *gloc); return Token::OpAnd; }
-<INITIAL>"||"     { *glval = AST::make(tyCtxt, SymType::OpOr, *gloc); return Token::OpOr; }
-<INITIAL>"!"      { *glval = AST::make(tyCtxt, SymType::OpNot, *gloc); return Token::OpNot; }
+<INITIAL>"&&"     { *glval = AST::make(tyCtx, SymType::OpAnd, *gloc); return Token::OpAnd; }
+<INITIAL>"||"     { *glval = AST::make(tyCtx, SymType::OpOr, *gloc); return Token::OpOr; }
+<INITIAL>"!"      { *glval = AST::make(tyCtx, SymType::OpNot, *gloc); return Token::OpNot; }
 
-<INITIAL>"<"      { *glval = AST::make(tyCtxt, SymType::OpLT, *gloc); return Token::OpLT; }
-<INITIAL>"<="     { *glval = AST::make(tyCtxt, SymType::OpLE, *gloc); return Token::OpLE; }
-<INITIAL>">"      { *glval = AST::make(tyCtxt, SymType::OpGT, *gloc); return Token::OpGT; }
-<INITIAL>">="     { *glval = AST::make(tyCtxt, SymType::OpGE, *gloc); return Token::OpGE; }
-<INITIAL>"!="     { *glval = AST::make(tyCtxt, SymType::OpNE, *gloc); return Token::OpNE; }
-<INITIAL>"=="     { *glval = AST::make(tyCtxt, SymType::OpEQ, *gloc); return Token::OpEQ; }
+<INITIAL>"<"      { *glval = AST::make(tyCtx, SymType::OpLT, *gloc); return Token::OpLT; }
+<INITIAL>"<="     { *glval = AST::make(tyCtx, SymType::OpLE, *gloc); return Token::OpLE; }
+<INITIAL>">"      { *glval = AST::make(tyCtx, SymType::OpGT, *gloc); return Token::OpGT; }
+<INITIAL>">="     { *glval = AST::make(tyCtx, SymType::OpGE, *gloc); return Token::OpGE; }
+<INITIAL>"!="     { *glval = AST::make(tyCtx, SymType::OpNE, *gloc); return Token::OpNE; }
+<INITIAL>"=="     { *glval = AST::make(tyCtx, SymType::OpEQ, *gloc); return Token::OpEQ; }
     
-<INITIAL>"?"      { *glval = AST::make(tyCtxt, SymType::OpQMark, *gloc); return Token::OpQMark; }
-<INITIAL>":"      { *glval = AST::make(tyCtxt, SymType::OpColon, *gloc); return Token::OpColon; }
+<INITIAL>"?"      { *glval = AST::make(tyCtx, SymType::OpQMark, *gloc); return Token::OpQMark; }
+<INITIAL>":"      { *glval = AST::make(tyCtx, SymType::OpColon, *gloc); return Token::OpColon; }
 
     /* Arithmetics */
-<INITIAL>"<<"     { *glval = AST::make(tyCtxt, SymType::OpLShift, *gloc); return Token::OpLShift; }
-<INITIAL>">>"     { *glval = AST::make(tyCtxt, SymType::OpRShift, *gloc); return Token::OpRShift; }
-<INITIAL>"&"      { *glval = AST::make(tyCtxt, SymType::OpBAnd, *gloc); return Token::OpBAnd; }
-<INITIAL>"|"      { *glval = AST::make(tyCtxt, SymType::OpBOr, *gloc); return Token::OpBOr; }
-<INITIAL>"~"      { *glval = AST::make(tyCtxt, SymType::OpBNot, *gloc); return Token::OpBNot; }
-<INITIAL>"^"      { *glval = AST::make(tyCtxt, SymType::OpBXor, *gloc); return Token::OpBXor; }
+<INITIAL>"<<"     { *glval = AST::make(tyCtx, SymType::OpLShift, *gloc); return Token::OpLShift; }
+<INITIAL>">>"     { *glval = AST::make(tyCtx, SymType::OpRShift, *gloc); return Token::OpRShift; }
+<INITIAL>"&"      { *glval = AST::make(tyCtx, SymType::OpBAnd, *gloc); return Token::OpBAnd; }
+<INITIAL>"|"      { *glval = AST::make(tyCtx, SymType::OpBOr, *gloc); return Token::OpBOr; }
+<INITIAL>"~"      { *glval = AST::make(tyCtx, SymType::OpBNot, *gloc); return Token::OpBNot; }
+<INITIAL>"^"      { *glval = AST::make(tyCtx, SymType::OpBXor, *gloc); return Token::OpBXor; }
 
-<INITIAL>"++"     { *glval = AST::make(tyCtxt, SymType::OpDPlus, *gloc); return Token::OpDPlus; }
-<INITIAL>"--"     { *glval = AST::make(tyCtxt, SymType::OpDMinus, *gloc); return Token::OpDMinus; }
-<INITIAL>"+"      { *glval = AST::make(tyCtxt, SymType::OpPlus, *gloc); return Token::OpPlus; }
-<INITIAL>"-"      { *glval = AST::make(tyCtxt, SymType::OpMinus, *gloc); return Token::OpMinus; }
-<INITIAL>"*"      { *glval = AST::make(tyCtxt, SymType::OpAstrk, *gloc); return Token::OpAstrk; }
-<INITIAL>"/"      { *glval = AST::make(tyCtxt, SymType::OpDiv, *gloc); return Token::OpDiv; }
-<INITIAL>"%"      { *glval = AST::make(tyCtxt, SymType::OpMod, *gloc); return Token::OpMod; }
+<INITIAL>"++"     { *glval = AST::make(tyCtx, SymType::OpDPlus, *gloc); return Token::OpDPlus; }
+<INITIAL>"--"     { *glval = AST::make(tyCtx, SymType::OpDMinus, *gloc); return Token::OpDMinus; }
+<INITIAL>"+"      { *glval = AST::make(tyCtx, SymType::OpPlus, *gloc); return Token::OpPlus; }
+<INITIAL>"-"      { *glval = AST::make(tyCtx, SymType::OpMinus, *gloc); return Token::OpMinus; }
+<INITIAL>"*"      { *glval = AST::make(tyCtx, SymType::OpAstrk, *gloc); return Token::OpAstrk; }
+<INITIAL>"/"      { *glval = AST::make(tyCtx, SymType::OpDiv, *gloc); return Token::OpDiv; }
+<INITIAL>"%"      { *glval = AST::make(tyCtx, SymType::OpMod, *gloc); return Token::OpMod; }
 
     /* Builtin */
-<INITIAL>"."      { *glval = AST::make(tyCtxt, SymType::OpDot, *gloc); return Token::OpDot; }
-<INITIAL>"->"     { *glval = AST::make(tyCtxt, SymType::OpRArrow, *gloc); return Token::OpRArrow; }
+<INITIAL>"."      { *glval = AST::make(tyCtx, SymType::OpDot, *gloc); return Token::OpDot; }
+<INITIAL>"->"     { *glval = AST::make(tyCtx, SymType::OpRArrow, *gloc); return Token::OpRArrow; }
 
-<INITIAL>"["      { *glval = AST::make(tyCtxt, SymType::OpLSB, *gloc); return Token::OpLSB; }
-<INITIAL>"]"      { *glval = AST::make(tyCtxt, SymType::OpRSB, *gloc); return Token::OpRSB; }
+<INITIAL>"["      { *glval = AST::make(tyCtx, SymType::OpLSB, *gloc); return Token::OpLSB; }
+<INITIAL>"]"      { *glval = AST::make(tyCtx, SymType::OpRSB, *gloc); return Token::OpRSB; }
 
-<INITIAL>"sizeof" { *glval = AST::make(tyCtxt, SymType::OpSizeOf, *gloc); return Token::OpSizeOf; }
+<INITIAL>"sizeof" { *glval = AST::make(tyCtx, SymType::OpSizeOf, *gloc); return Token::OpSizeOf; }
 
     /* Misc */
-<INITIAL>","      { *glval = AST::make(tyCtxt, SymType::OpComma, *gloc); return Token::OpComma; }
-<INITIAL>"..."    { *glval = AST::make(tyCtxt, SymType::OpEllipsis, *gloc); return Token::OpEllipsis; }
+<INITIAL>","      { *glval = AST::make(tyCtx, SymType::OpComma, *gloc); return Token::OpComma; }
+<INITIAL>"..."    { *glval = AST::make(tyCtx, SymType::OpEllipsis, *gloc); return Token::OpEllipsis; }
 
     /*===------------------------------------------------------------------===//
     //                        Punctuator Declarations
     //===------------------------------------------------------------------===*/
-<INITIAL>";"      { *glval = AST::make(tyCtxt, SymType::PSemi, *gloc); return Token::PSemi; }
+<INITIAL>";"      { *glval = AST::make(tyCtx, SymType::PSemi, *gloc); return Token::PSemi; }
 
-<INITIAL>"{"      { *glval = AST::make(tyCtxt, SymType::PLC, *gloc); return Token::PLC; }
-<INITIAL>"}"      { *glval = AST::make(tyCtxt, SymType::PRC, *gloc); return Token::PRC; }
+<INITIAL>"{"      { *glval = AST::make(tyCtx, SymType::PLC, *gloc); return Token::PLC; }
+<INITIAL>"}"      { *glval = AST::make(tyCtx, SymType::PRC, *gloc); return Token::PRC; }
 
-<INITIAL>"("      { *glval = AST::make(tyCtxt, SymType::PLP, *gloc); return Token::PLP; }
-<INITIAL>")"      { *glval = AST::make(tyCtxt, SymType::PRP, *gloc); return Token::PRP; }
+<INITIAL>"("      { *glval = AST::make(tyCtx, SymType::PLP, *gloc); return Token::PLP; }
+<INITIAL>")"      { *glval = AST::make(tyCtx, SymType::PRP, *gloc); return Token::PRP; }
 
     /*===------------------------------------------------------------------===//
     //                           Identifier Definition
@@ -573,11 +573,11 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
         yy_push_state(INITIAL);
     }
     else if (transMgr.isSymDeclared(SymEntryType::Typedef, val)) {
-        *glval = AST::make(tyCtxt, SymType::TypedefID, *gloc, val);
+        *glval = AST::make(tyCtx, SymType::TypedefID, *gloc, val);
         return Token::TypedefID;
     }
     else {
-        *glval = AST::make(tyCtxt, SymType::ID, *gloc, val);
+        *glval = AST::make(tyCtx, SymType::ID, *gloc, val);
         return Token::ID;
     }
 }
@@ -585,7 +585,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 <INITIAL>[0-9][a-zA-Z0-9_]* {
     SPLC_LOG_ERROR(gloc, true) << "identifier name cannot start with digits";
     String val{yytext};
-    *glval = AST::make(tyCtxt, SymType::ID, *gloc, val);
+    *glval = AST::make(tyCtx, SymType::ID, *gloc, val);
     return Token::ID;
 }
 
@@ -603,7 +603,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 <INITIAL>. {
     SPLC_LOG_ERROR(gloc, true) << "unknown lexeme";
     String val{1, yytext[0]};
-    *glval = AST::make(tyCtxt, SymType::ID, *gloc, val);
+    *glval = AST::make(tyCtx, SymType::ID, *gloc, val);
     return Token::ID;
 }
 

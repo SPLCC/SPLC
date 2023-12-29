@@ -12,8 +12,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __SPLC_AST_TYPE_HH__
-#define __SPLC_AST_TYPE_HH__ 1
+#ifndef __SPLC_BASIC_TYPE_HH__
+#define __SPLC_BASIC_TYPE_HH__ 1
 
 #include "Core/Base.hh"
 #include "Core/Utils/Logging.hh"
@@ -314,4 +314,4 @@ inline std::string randomTypeName(std::string::size_type length)
 
 } // namespace splc
 
-#endif // __SPLC_AST_TYPE_HH__
+#endif // __SPLC_BASIC_TYPE_HH__

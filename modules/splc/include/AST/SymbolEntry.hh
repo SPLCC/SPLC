@@ -2,7 +2,7 @@
 #define __SPLC_AST_SYMBOLENTRY_HH__ 1
 
 #include "AST/ASTCommons.hh"
-#include "AST/Type.hh"
+#include "Basic/Type.hh"
 #include "AST/Value.hh"
 #include "Core/splc.hh"
 

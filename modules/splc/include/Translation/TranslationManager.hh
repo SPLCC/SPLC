@@ -42,24 +42,24 @@ class TranslationManager {
 
     const auto getTyContext() const { return tunit->getTypeContext(); }
 
-    auto getASTCtxtMgr() noexcept { return tunit->astCtxtMgr; }
+    auto getASTCtxMgr() noexcept { return tunit->astCtxMgr; }
 
-    auto getASTCtxtMgr() const noexcept { return tunit->astCtxtMgr; }
+    auto getASTCtxMgr() const noexcept { return tunit->astCtxMgr; }
 
-    void pushASTCtxt() noexcept { tunit->astCtxtMgr.pushContext(); }
+    void pushASTCtx() noexcept { tunit->astCtxMgr.pushContext(); }
 
-    void popASTCtxt() noexcept { tunit->astCtxtMgr.popContext(); }
+    void popASTCtx() noexcept { tunit->astCtxMgr.popContext(); }
 
     bool isSymDeclared(SymEntryType symEntTy,
                        std::string_view name_) const noexcept
     {
-        return tunit->astCtxtMgr.isSymDeclared(symEntTy, name_);
+        return tunit->astCtxMgr.isSymDeclared(symEntTy, name_);
     }
 
     bool isSymDefined(SymEntryType symEntTy,
                       std::string_view name_) const noexcept
     {
-        return tunit->astCtxtMgr.isSymDefined(symEntTy, name_);
+        return tunit->astCtxMgr.isSymDefined(symEntTy, name_);
     }
 
     SymbolEntry getSymbol(SymEntryType symEntTy, std::string_view name_);
@@ -72,34 +72,34 @@ class TranslationManager {
     /// \brief This is just experimental.
     void tryRegisterSymbol(PtrAST root);
 
-    Ptr<TranslationContext> getCurTransCtxt() noexcept
+    Ptr<TranslationContext> getCurTransCtx() noexcept
     {
-        return tunit->transCtxtMgr[0];
+        return tunit->transCtxMgr[0];
     }
 
-    const std::string &getCurTransCtxtName() const noexcept
+    const std::string &getCurTransCtxName() const noexcept
     {
-        return tunit->transCtxtMgr[0]->name;
+        return tunit->transCtxMgr[0]->name;
     }
 
-    const TranslationContextIDType getCurTransCtxtID() const noexcept
+    const TranslationContextIDType getCurTransCtxID() const noexcept
     {
-        return tunit->transCtxtMgr[0]->contextID;
+        return tunit->transCtxMgr[0]->contextID;
     }
 
-    TranslationContextKeyType getCurTransCtxtKey() const noexcept
+    TranslationContextKeyType getCurTransCtxKey() const noexcept
     {
-        return tunit->transCtxtMgr.getCurrentContextKey();
+        return tunit->transCtxMgr.getCurrentContextKey();
     }
 
-    bool transCtxtStackEmpty() const
+    bool transCtxStackEmpty() const
     {
-        return tunit->transCtxtMgr.contextStackEmpty();
+        return tunit->transCtxMgr.contextStackEmpty();
     }
 
-    size_t transCtxtStackSize() const
+    size_t transCtxStackSize() const
     {
-        return tunit->transCtxtMgr.contextStackSize();
+        return tunit->transCtxMgr.contextStackSize();
     }
 
     ///
@@ -127,7 +127,7 @@ class TranslationManager {
 
     Ptr<TranslationContext> popTransContext() noexcept
     {
-        Ptr<TranslationContext> context = tunit->transCtxtMgr.popContext();
+        Ptr<TranslationContext> context = tunit->transCtxMgr.popContext();
         // scanner->yypop_buffer_state();
         return context;
     }
@@ -137,7 +137,7 @@ class TranslationManager {
 
     bool isTransMacroVarPresent(std::string_view macroVarName_) const noexcept
     {
-        return tunit->transCtxtMgr.isTransMacroVarPresent(macroVarName_);
+        return tunit->transCtxMgr.isTransMacroVarPresent(macroVarName_);
     }
 
     /// \brief Get macro var context from the context manager.

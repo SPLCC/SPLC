@@ -11,8 +11,8 @@
 // stuff, look in DerivedTypes.h.
 //
 //===----------------------------------------------------------------------===//
-#ifndef __SPLC_AST_TYPE_CONTEXT_HH__
-#define __SPLC_AST_TYPE_CONTEXT_HH__ 1
+#ifndef __SPLC_BASIC_TYPE_CONTEXT_HH__
+#define __SPLC_BASIC_TYPE_CONTEXT_HH__ 1
 
 #include "Core/splc.hh"
 #include "Type.hh"
@@ -99,4 +99,4 @@ class TypeContext {
 
 } // namespace splc
 
-#endif // __SPLC_AST_TYPE_CONTEXT_HH__
+#endif // __SPLC_BASIC_TYPE_CONTEXT_HH__

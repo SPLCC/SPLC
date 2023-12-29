@@ -11,12 +11,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "AST/Type.hh"
-#include "AST/TypeContext.hh"
+#include "Basic/Type.hh"
+#include "Basic/TypeContext.hh"
 #include "Core/Base.hh"
 
 #include "AST/DerivedAST.hh"
-#include "AST/DerivedTypes.hh"
+#include "Basic/DerivedTypes.hh"
 #include "Core/Utils/Logging.hh"
 #include <algorithm>
 #include <utility>
@@ -30,7 +30,7 @@ namespace splc {
 const char *typeNames[] = {"void",
                            "32-bit floating-point",
                            "64-bit floating-point",
-                           "1-bit Int",
+                           "1-bit int",
                            "8-bit unsigned int",
                            "8-bit signed int",
                            "16-bit unsigned int",

@@ -11,7 +11,6 @@ add_library(splc_AST SHARED
     DerivedAST.cc
     Expr.cc
     SymbolEntry.cc
-    Type.cc
     TypeCheck.cc
 )
 target_include_directories(splc_AST PUBLIC ${SPLC_INCL_DIR})

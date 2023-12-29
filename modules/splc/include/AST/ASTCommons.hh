@@ -2,7 +2,7 @@
 #define __SPLC_AST_ASTCOMMONS_HH__ 1
 
 #include <AST/ASTSymbol.hh>
-#include <AST/TypeContext.hh>
+#include <Basic/TypeContext.hh>
 #include <Core/splc.hh>
 #include <iostream>
 #include <map>
