@@ -51,7 +51,7 @@ const yytname_[] =
 "ParamList", "ParamDecltr", "CompStmt", "GeneralStmtList", "Stmt",
 "ExprStmt", "SelStmt", "LabeledStmt", "JumpStmt", "IterStmt",
 "ForLoopBody", "ConstExpr", "Constant", "PrimaryExpr", "PostfixExpr",
-"MemberAcessOp", "UnaryExpr", "UnaryArithOp", "CastExpr", "MulExpr",
+"MemberAccessOp", "UnaryExpr", "UnaryArithOp", "CastExpr", "MulExpr",
 "MulOp", "DivOp", "AddExpr", "AddOp", "ShiftExpr", "ShiftOp", "RelExpr",
 "RelOp", "EqualityExpr", "EqualityOp", "OpBAndExpr", "OpBXorExpr",
 "OpBOrExpr", "LogicalOpAndExpr", "LogicalOpOrExpr", "CondExpr",
@@ -268,7 +268,7 @@ std::ostream &printSymbolConsoleTraits(std::ostream &os,
     case SPLSymType::Constant:
     case SPLSymType::PrimaryExpr:
     case SPLSymType::PostfixExpr:
-    case SPLSymType::MemberAcessOp:
+    case SPLSymType::MemberAccessOp:
     case SPLSymType::UnaryExpr:
     case SPLSymType::UnaryArithOp:
     case SPLSymType::CastExpr:

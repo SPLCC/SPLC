@@ -604,7 +604,7 @@ class AST : public std::enable_shared_from_this<AST> {
 
     bool isPostfixExpr() const noexcept { return getSymType() == ASTSymType::PostfixExpr; }
 
-    bool isMemberAcessOp() const noexcept { return getSymType() == ASTSymType::MemberAcessOp; }
+    bool isMemberAccessOp() const noexcept { return getSymType() == ASTSymType::MemberAccessOp; }
 
     bool isUnaryExpr() const noexcept { return getSymType() == ASTSymType::UnaryExpr; }
 

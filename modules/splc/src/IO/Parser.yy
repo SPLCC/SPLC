@@ -690,7 +690,7 @@ PostfixExpr:
     | PostfixExpr OpLSB Expr OpRSB { $$ = AST::make(tyCtxt, SymType::SubscriptExpr, @$, $1, $2, $3, $4); }
     | PostfixExpr PLP ArgList PRP { $$ = AST::make(tyCtxt, SymType::CallExpr, @$, $1, $3); }
     /* | postfix-expression PLP PRP {} */
-    | PostfixExpr MemberAcessOp IDWrapper { $$ = AST::make(tyCtxt, SymType::AccessExpr, @$, $1, $2, $3); }
+    | PostfixExpr MemberAccessOp IDWrapper { $$ = AST::make(tyCtxt, SymType::AccessExpr, @$, $1, $2, $3); }
     | PostfixExpr OpDPlus { $$ = AST::make(tyCtxt, SymType::Expr, @$, $1, $2); }
     | PostfixExpr OpDMinus { $$ = AST::make(tyCtxt, SymType::Expr, @$, $1, $2); }
     | PLP TypeName PRP PLC InitializerList PRC { $$ = AST::make(tyCtxt, SymType::ExplicitCastExpr, @$, $1, $2, $3, $5); }
@@ -698,12 +698,12 @@ PostfixExpr:
 
     | PostfixExpr OpLSB Expr error {}
     | PostfixExpr PLP ArgList error {}
-    | PostfixExpr MemberAcessOp {}
+    | PostfixExpr MemberAccessOp {}
     | OpRArrow IDWrapper {}
     | PLP TypeName PRP PLC InitializerList error {}
     ;
 
-MemberAcessOp:
+MemberAccessOp:
       OpDot
     | OpRArrow
     ;

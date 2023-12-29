@@ -182,7 +182,7 @@ enum class symbol_kind_type {
     Constant = 163,          // Constant
     PrimaryExpr = 164,       // PrimaryExpr
     PostfixExpr = 165,       // PostfixExpr
-    MemberAcessOp = 166,     // MemberAcessOp
+    MemberAccessOp = 166,    // MemberAccessOp
     UnaryExpr = 167,         // UnaryExpr
     UnaryArithOp = 168,      // UnaryArithOp
     CastExpr = 169,          // CastExpr
