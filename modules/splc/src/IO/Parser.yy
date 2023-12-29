@@ -42,6 +42,7 @@
     #include "Translation/TranslationManager.hh"
 
     using SymType = splc::ASTSymType;
+    using CS = splc::utils::logging::ControlSeq;
 
     #undef yylex
     #define yylex scanner.yylex
