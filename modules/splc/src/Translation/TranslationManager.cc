@@ -72,7 +72,7 @@ void TranslationManager::tryRegisterSymbol(PtrAST root)
                 body = *it;
             }
         }
-        else if (ty->isFirstClassymType()) {
+        else if (ty->isFirstClassType()) {
             symEntTy = SymEntryType::Variable;
         }
         else {

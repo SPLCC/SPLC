@@ -29,7 +29,6 @@ using AnonStructTypeKeyInfo = std::tuple<TypePtrArray>;
 using ArrayKeyInfo = std::tuple<Type *, uint64_t>;
 using PointerKeyInfo = Type *;
 
-// TODO: maybe switch to threaded context
 class TypeContext {
   public:
     TypeContext() noexcept
@@ -65,7 +64,7 @@ class TypeContext {
         anonStructTypes; ///< Anonymous structures
 
     std::map<const std::string, StructType *, std::less<>>
-        namedStructTypes; ///< Anonymous structures
+        namedStructTypes; ///< Named structures
 
     std::map<ArrayKeyInfo, ArrayType *> arrayTypes;
 
@@ -82,7 +81,7 @@ class TypeContext {
         return reinterpret_cast<T *>(p);
     }
 
-    /// Allocate for future use.
+    /// Deallocate
     template <class T>
     void tyDealloc(T *ptr, size_t n = 1)
     {

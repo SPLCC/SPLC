@@ -12,12 +12,20 @@ namespace splc {
 
 class SPLType {
   public:
+    SPLType(Type *const ty_, bool isConst_ = false, bool isRestrict_ = false,
+            bool isVolatile_ = false, bool isAtomic_ = false,
+            bool isInline_ = false)
+        : ty{ty_}, isConst{isConst_}, isRestrict{isRestrict_},
+          isVolatile{isVolatile_}, isAtomic{isAtomic_}, isInline(isInline_)
+    {
+    }
+
     const bool isConst;
     const bool isRestrict;
     const bool isVolatile;
     const bool isAtomic;
     const bool isInline;
-    Type *containedTy;
+    Type *const ty;
 };
 
 } // namespace splc
