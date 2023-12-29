@@ -86,8 +86,7 @@ class TypeContext {
     void tyDealloc(T *ptr, size_t n = 1)
     {
         auto it = tyAllocTraceMap.find(ptr);
-        splc_assert(it != tyAllocTraceMap.end()) << "invalid release";
-        splc_assert(it->second == n) << "incorrect release count";
+        splc_assert(it != tyAllocTraceMap.end() && it->second == n) << "invalid release";
         tyAllocator.deallocate(reinterpret_cast<char *>(ptr), n);
         tyAllocTraceMap.erase(it);
     }
