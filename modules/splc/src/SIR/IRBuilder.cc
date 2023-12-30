@@ -60,7 +60,7 @@ void IRBuilder::registerFunction(PtrAST funcRoot)
     // Insert to funcMap
     funcMap.insert({funcID, function});
     funcVarMap.insert(
-        {funcID, IRVar::createFuncionVar(funcID, &tyCtxt.SInt32Ty)});
+        {funcID, IRVar::createFunctionVar(funcID, &tyCtxt.SInt32Ty)});
 
     // Register the body stmts
     PtrAST body = funcRoot->getChildren()[2];
@@ -130,9 +130,9 @@ PtrIRVar IRBuilder::recRegisterExprs(IRVec<PtrIRStmt> &stmtList,
             stmtList.push_back(IRStmt::createAssignStmt(lhs, rhs));
             return lhs;
         }
-        else if (isASTSymbolTypeOneOf(
-                     opType, ASTSymType::OpPlus, ASTSymType::OpMinus,
-                     ASTSymType::OpAstrk, ASTSymType::OpDiv)) {
+        else if (isASTSymbolTypeOneOf(opType, ASTSymType::OpPlus,
+                                      ASTSymType::OpMinus, ASTSymType::OpAstrk,
+                                      ASTSymType::OpDiv)) {
             IRType arithmeticType;
             switch (opType) {
             case ASTSymType::OpPlus: {
@@ -162,9 +162,8 @@ PtrIRVar IRBuilder::recRegisterExprs(IRVec<PtrIRStmt> &stmtList,
         }
         else if (isASTSymbolTypeOneOf(
                      opType, ASTSymType::OpLT, ASTSymType::OpLE,
-                     ASTSymType::OpGT, ASTSymType::OpGE,
-                     ASTSymType::OpEQ, ASTSymType::OpNE,
-                     ASTSymType::OpAnd, ASTSymType::OpOr)) {
+                     ASTSymType::OpGT, ASTSymType::OpGE, ASTSymType::OpEQ,
+                     ASTSymType::OpNE, ASTSymType::OpAnd, ASTSymType::OpOr)) {
             PtrIRVar lb1 = getTmpLabel();
             PtrIRVar lb2 = getTmpLabel();
 
@@ -202,10 +201,9 @@ void IRBuilder::recRegisterCondExpr(IRVec<PtrIRStmt> &stmtList, PtrAST stmtRoot,
         PtrAST exprL = children[0];
         PtrAST exprR = children[2];
 
-        if (isASTSymbolTypeOneOf(opType, ASTSymType::OpLT,
-                                     ASTSymType::OpLE, ASTSymType::OpGT,
-                                     ASTSymType::OpGE, ASTSymType::OpEQ,
-                                     ASTSymType::OpNE)) {
+        if (isASTSymbolTypeOneOf(opType, ASTSymType::OpLT, ASTSymType::OpLE,
+                                 ASTSymType::OpGT, ASTSymType::OpGE,
+                                 ASTSymType::OpEQ, ASTSymType::OpNE)) {
             IRBranchType bType;
             switch (opType) {
             case ASTSymType::OpLT: {
@@ -307,8 +305,8 @@ void IRBuilder::recRegisterStmts(IRVec<PtrIRStmt> &stmtList, PtrAST stmtRoot)
 {
     SPLC_LOG_DEBUG(nullptr, false) << "dispatch: " << stmtRoot->getSymType();
     if (isASTSymbolTypeOneOf(stmtRoot->getSymType(),
-                                 ASTSymType::GeneralStmtList,
-                                 ASTSymType::CompStmt)) {
+                             ASTSymType::GeneralStmtList,
+                             ASTSymType::CompStmt)) {
         for (auto &child : stmtRoot->getChildren()) {
             recRegisterStmts(stmtList, child);
         }
@@ -317,7 +315,7 @@ void IRBuilder::recRegisterStmts(IRVec<PtrIRStmt> &stmtList, PtrAST stmtRoot)
         // ASSIGN INITIAL VALUES, IF NONCONSTEXPR
         recRegisterDeclVar(stmtList, stmtRoot);
     }
-    else if (stmtRoot->getSymType() == ASTSymType::Stmt) {
+    else if (stmtRoot->isStmt()) {
         PtrAST realStmt = stmtRoot->getChildren()[0];
         switch (realStmt->getSymType()) {
         case ASTSymType::CompStmt: {
@@ -354,7 +352,7 @@ void IRBuilder::recRegisterStmts(IRVec<PtrIRStmt> &stmtList, PtrAST stmtRoot)
 void IRBuilder::recRegisterIterStmt(IRVec<PtrIRStmt> &stmtList, PtrAST stmtRoot)
 {
     // CHECK: WHILE
-    // KwdWhild Expr Stmt
+    // KwdWhile Expr Stmt
     IRVec<PtrAST> children = stmtRoot->getChildren();
     splc_dbgassert(children[0]->getSymType() == ASTSymType::KwdWhile);
 
@@ -425,8 +423,7 @@ void IRBuilder::recRegisterJumpStmt(IRVec<PtrIRStmt> &stmtList, PtrAST stmtRoot)
 void IRBuilder::recRegisterDeclVar(IRVec<PtrIRStmt> &stmtList, PtrAST declRoot)
 {
     // TODO
-    if (isASTSymbolTypeOneOf(declRoot->getSymType(),
-                                 ASTSymType::Decl)) {
+    if (isASTSymbolTypeOneOf(declRoot->getSymType(), ASTSymType::Decl)) {
         recRegisterDeclVar(stmtList, declRoot->getChildren()[0]);
     }
     else if (declRoot->getSymType() == ASTSymType::DirDecl) {

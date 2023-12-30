@@ -82,7 +82,7 @@ class IRVar {
   public:
     static PtrIRVar createLabelVar(IRIDType name);
 
-    static PtrIRVar createFuncionVar(IRIDType name, Type *type);
+    static PtrIRVar createFunctionVar(IRIDType name, Type *type);
 
     static PtrIRVar createVariableVar(IRIDType name, Type *type);
 

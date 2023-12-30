@@ -9,7 +9,7 @@ PtrIRVar IRVar::createLabelVar(IRIDType name)
     return makeSharedPtr<IRVar>(name, IRVarType::Label);
 }
 
-PtrIRVar IRVar::createFuncionVar(IRIDType name, Type *type)
+PtrIRVar IRVar::createFunctionVar(IRIDType name, Type *type)
 {
     return makeSharedPtr<IRVar>(name, IRVarType::Function, type);
 }
