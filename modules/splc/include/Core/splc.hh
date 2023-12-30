@@ -10,13 +10,6 @@
 
 // Include submodules
 
-// Generated files
-#ifndef yyFlexLexer // avoid cancelling existing definitions
-#undef yyFlexLexer
-#define yyFlexLexer SplcFlexLexer
-#include <FlexLexer.h>
-#endif
-
 // Include core utilities
 
 #include "Base.hh"

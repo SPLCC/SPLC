@@ -11,12 +11,11 @@
 // stuff, look in DerivedTypes.h.
 //
 //===----------------------------------------------------------------------===//
-#ifndef __SPLC_AST_DERIVED_TYPES_HH__
-#define __SPLC_AST_DERIVED_TYPES_HH__ 1
+#ifndef __SPLC_BASIC_DERIVEDTYPES_HH__
+#define __SPLC_BASIC_DERIVEDTYPES_HH__ 1
 
-#include "AST/ASTCommons.hh"
 #include "Core/splc.hh"
-#include <AST/Type.hh>
+#include <Basic/Type.hh>
 #include <iterator>
 #include <vector>
 
@@ -253,4 +252,4 @@ class PointerType : public Type {
 
 } // namespace splc
 
-#endif // __SPLC_AST_DERIVED_TYPES_HH__
+#endif // __SPLC_BASIC_DERIVEDTYPES_HH__

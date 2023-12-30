@@ -3,8 +3,8 @@
 namespace splc {
 
 const char *sym_ent_name_[] = {
-    "unspecified", "all",      "empty",   "Function", "StructDecl",
-    "UnionDecl",   "EnumDecl", "Typedef", "Variable",
+    "Unspecified", "All",      "Empty",   "Function", "StructDecl",
+    "UnionDecl",   "EnumDecl", "Typedef", "Variable", "Parameter",
 };
 
 std::ostream &operator<<(std::ostream &os, SymEntryType symEntTy) noexcept
@@ -16,31 +16,16 @@ std::ostream &operator<<(std::ostream &os, const SymbolEntry &ent) noexcept
 {
     using utils::logging::ControlSeq;
 
-    os << "symEntType = " << ControlSeq::BrightCyan << ent.symEntTy
+    os << "entryTy = " << ControlSeq::BrightCyan << ent.symEntTy
        << ControlSeq::Reset << ", ";
 
-    os << "type = " << ControlSeq::BrightMagenta << *ent.type
-       << ControlSeq::Reset << ", ";
-
-    os << ControlSeq::Yellow;
-    os << "[Value = ";
-    if (ent.hasValue()) {
-        ent.visitValue(overloaded{[&](const auto arg) {},
-                                  [&](ASTCharType arg) { os << arg; },
-                                  [&](ASTSIntType arg) { os << arg; },
-                                  [&](ASTUIntType arg) { os << arg; },
-                                  [&](ASTFloatType arg) { os << arg; },
-                                  [&](const ASTIDType &arg) { os << arg; }});
-    }
-    else {
-        os << "UNINITIALIZED";
-    }
-    os << "], " << ControlSeq::Reset;
+    os << "ty = " << ControlSeq::BrightMagenta << *ent.type << ControlSeq::Reset
+       << ", ";
 
     os << "defined = " << ControlSeq::Green << ent.defined << ControlSeq::Reset
        << ", ";
 
-    os << "location = " << ent.location << ";";
+    os << "loc = " << ent.location << ";";
 
     return os;
 }

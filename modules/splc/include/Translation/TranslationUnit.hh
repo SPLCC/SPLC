@@ -4,7 +4,7 @@
 
 #include "AST/ASTCommons.hh"
 #include "AST/ASTContextManager.hh"
-#include "AST/TypeContext.hh"
+#include "Basic/TypeContext.hh"
 #include "Core/splc.hh"
 #include "Translation/TranslationBase.hh"
 #include "Translation/TranslationContextManager.hh"
@@ -27,7 +27,7 @@ concept AllApplicableOnTranslationUnit =
 class TranslationUnit {
   public:
     TranslationUnit()
-        : astCtxtMgr{}, transCtxtMgr{}, rootNode{}, warningCount{0},
+        : astCtxMgr{}, transCtxMgr{}, rootNode{}, warningCount{0},
           errorCount{0}
     {
         typeContext = makeSharedPtr<TypeContext>();
@@ -39,13 +39,13 @@ class TranslationUnit {
 
     const auto getTypeContext() const { return typeContext; }
 
-    auto &getASTContextManager() { return astCtxtMgr; }
+    auto &getASTContextManager() { return astCtxMgr; }
 
-    const auto &getASTContextManager() const { return astCtxtMgr; }
+    const auto &getASTContextManager() const { return astCtxMgr; }
 
-    auto &getTranslationContextManager() { return transCtxtMgr; }
+    auto &getTranslationContextManager() { return transCtxMgr; }
 
-    const auto &getTranslationContextManager() const { return transCtxtMgr; }
+    const auto &getTranslationContextManager() const { return transCtxMgr; }
 
     void setRootNode(PtrAST root) { rootNode = root; }
 
@@ -56,11 +56,11 @@ class TranslationUnit {
   protected:
     Ptr<TypeContext> typeContext; ///< Maintains all internal type contexts.
 
-    ASTContextManager astCtxtMgr; ///< Manages AST contexts, i.e., scopes
+    ASTContextManager astCtxMgr; ///< Manages AST contexts, i.e., scopes
                                   ///< and variable definitions.
 
     TranslationContextManager
-        transCtxtMgr; ///< Manages translation contexts, i.e., file
+        transCtxMgr; ///< Manages translation contexts, i.e., file
                       ///< inclusion and macro expansion.
 
     PtrAST rootNode; ///< Stores the root node of this translation unit.

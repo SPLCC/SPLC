@@ -2,13 +2,15 @@
 #define __SPLC_AST_ASTCOMMONS_HH__ 1
 
 #include <AST/ASTSymbol.hh>
-#include <AST/TypeContext.hh>
+#include <Basic/DerivedTypes.hh>
+#include <Basic/TypeContext.hh>
 #include <Core/splc.hh>
 #include <iostream>
 #include <map>
 #include <memory>
 #include <set>
 #include <type_traits>
+#include <typeinfo>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -24,7 +26,7 @@ typedef std::string ASTIDType;
 using ASTValueType = std::variant<std::monostate, ASTCharType, ASTSIntType,
                                   ASTUIntType, ASTFloatType, ASTIDType>;
 
-using ASTDeclEntityType = std::tuple<ASTIDType, Location, ASTValueType>;
+using ASTDeclEntityType = std::tuple<ASTIDType, Location>;
 
 template <class T>
 concept IsValidASTValue =
@@ -32,7 +34,8 @@ concept IsValidASTValue =
      std::is_same_v<ASTSIntType, std::remove_cvref_t<T>> ||
      std::is_same_v<ASTUIntType, std::remove_cvref_t<T>> ||
      std::is_same_v<ASTFloatType, std::remove_cvref_t<T>> ||
-     std::is_same_v<ASTIDType, std::remove_cvref_t<T>>);
+     std::is_same_v<ASTIDType, std::remove_cvref_t<T>> ||
+     std::is_same_v<ASTValueType, std::remove_cvref_t<T>>);
 
 class AST;
 
@@ -63,7 +66,7 @@ using ASTPrintMap = std::set<utils::Location::ContextIDType>;
 extern thread_local ASTPrintMap
     astPrintMap; // TODO: try another way. Internal method.
 
-void resetASTPrintMapContext();
+void resetASTPrintMapContext() noexcept;
 
 class ASTHelper;
 
@@ -80,9 +83,10 @@ class ASTProcessor;
 //      std::is_invocable_v<Functor, const double> ||
 //      std::is_invocable_v<Functor, const std::string>);
 
-// Value forward decl
 class Value;
 
+/// When modify this, also modify corresponding name in SymbolEntry.cc
+/// for debugging purposes.
 enum class SymEntryType {
     Unspecified = 0,
     All = 1,
@@ -93,6 +97,7 @@ enum class SymEntryType {
     EnumDecl = 6,
     Typedef = 7,
     Variable = 8,
+    Paramater = 9,
 };
 
 std::ostream &operator<<(std::ostream &os, SymEntryType ty) noexcept;

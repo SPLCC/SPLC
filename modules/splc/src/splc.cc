@@ -1,5 +1,5 @@
 #include "Core/splc.hh"
-#include "AST/AST.hh"
+#include "AST/DerivedAST.hh"
 #include "AST/ASTContext.hh"
 #include "AST/ASTProcess.hh"
 #include "IO/Driver.hh"
@@ -33,10 +33,11 @@ int main(const int argc, const char **argv)
                    [](const char *str) { return std::string{str}; });
     auto tunit = driver.parse(filenameVector[0]);
 
-    auto astRoot = tunit->getRootNode();
-    if (astRoot) {
-        std::cout << splc::treePrintTransform(*astRoot);
-        std::cout << *astRoot->getASTContext();
+    auto node = tunit->getRootNode();
+    if (node) {
+        SPLC_LOG_DEBUG(nullptr, false) << "\n"
+                                       << splc::treePrintTransform(*node);
+        SPLC_LOG_DEBUG(nullptr, false) << "\n" << *node->getContext();
     }
 
     splc::IRBuilder irBuilder{*tunit->getTypeContext()};

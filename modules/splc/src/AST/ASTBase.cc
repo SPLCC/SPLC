@@ -1,17 +1,17 @@
 #include "AST/ASTBase.hh"
+#include "AST/ASTContextManager.hh"
 #include "Core/Base.hh"
 #include "Core/splc.hh"
-
 #include <algorithm>
 #include <iterator>
 
-using namespace splc;
+namespace splc {
 
-thread_local ASTPrintMap splc::astPrintMap;
+thread_local ASTPrintMap astPrintMap;
 
 void resetASTPrintMapContext() noexcept { astPrintMap.clear(); }
 
-PtrAST AST::findFirstChild(ASTSymbolType type) const noexcept
+PtrAST AST::findFirstChild(ASTSymType type) const noexcept
 {
     // TODO: find the first available child
     return makeSharedPtr<AST>();
@@ -21,62 +21,97 @@ PtrAST AST::copy(const std::function<bool(Ptr<const AST>)> &predicate,
                  const bool copyContext) const
 {
     PtrAST ret = makeSharedPtr<AST>();
-    ret->typeContext = this->typeContext;
-    ret->symbolType = this->symbolType;
+    ret->tyContext = this->tyContext;
+    ret->symType = this->symType;
     ret->parent = this->parent;
 
     // Copy child if and only if they satisfy the predicate.
     std::vector<PtrAST> newChildren;
-    newChildren.reserve(this->children.size());
-    std::copy_if(this->children.begin(), this->children.end(),
+    newChildren.reserve(this->children_.size());
+    std::copy_if(this->children_.begin(), this->children_.end(),
                  std::back_inserter(newChildren),
                  [&predicate](PtrAST child) { return predicate(child); });
 
     std::transform(newChildren.begin(), newChildren.end(),
-                   std::back_inserter(ret->children),
+                   std::back_inserter(ret->children_),
                    [&predicate, copyContext](PtrAST node) {
                        return node->copy(predicate, copyContext);
                    });
 
     ret->loc = this->loc;
     if (copyContext) {
-        ret->astContext = this->astContext; // TODO(verify): is this desirable?
-                                            // Copying the entire context may
-                                            // lead to filtered out contents
+        ret->context_ = this->context_; // TODO(verify): is this desirable?
+                                        // Copying the entire context may
+                                        // lead to filtered out contents
     }
     ret->value = this->value;
 
     return ret;
 }
 
-Value AST::evaluate()
+std::ostream &operator<<(std::ostream &os, const AST &node) noexcept
 {
-    // TODO: eval
-    return {nullptr};
-}
+    using utils::logging::ControlSeq;
 
-Ptr<AST> ASTHelper::getPtrDeclEndPoint(AST &root) noexcept
-{
-    splc_assert(root.symbolType == ASTSymbolType::PtrDecltr);
+    // print node type
+    os << ControlSeq::Bold << getASTSymbolColor(node.symType)
+       << getASTSymbolName(node.symType) << ControlSeq::Reset;
 
-    // Use a bit hack here to remove constness
-    AST *tmp = &root;
-    while (!tmp->children.empty()) {
-        if (tmp->children.back()->symbolType != ASTSymbolType::PtrDecltr) {
-            return tmp->shared_from_this();
+    // TODO: print node address (allocated)
+
+    // print node location
+    os << " <" << ControlSeq::BrightYellow;
+    if (auto cid = node.loc.begin.contextID;
+        cid != Location::invalidContextID) {
+        // TODO: revise this
+        if (!astPrintMap.contains(cid)) {
+            astPrintMap.insert(cid);
+            os << node.loc;
         }
-        tmp = tmp->children.back().get();
+        else {
+            os << node.loc.begin.line << "." << node.loc.begin.column << "-";
+            os << node.loc.end.line << "." << node.loc.end.column;
+        }
+    }
+    else {
+        os << "<invalid sloc>";
+    }
+    os << ControlSeq::Reset << ">";
+
+    // print node content
+    // TODO: print symbol table
+    if (node.getContext()) {
+        os << " with ";
+        const auto &ctx = *node.getContext();
+        printASTCtxSummary(os, ctx);
     }
 
-    splc_unreachable();
+    // print node value
+    if (node.hasConstVal()) {
+        // template magic
+        // TODO: add support for other types
+        os << " , val: ";
+        os << getASTSymbolColor(node.symType);
+        node.visitConstVal(overloaded{
+            [&](const auto arg) {}, [&](ASTCharType arg) { os << arg; },
+            [&](ASTSIntType arg) { os << arg; },
+            [&](ASTUIntType arg) { os << arg; },
+            [&](ASTFloatType arg) { os << arg; },
+            [&](const ASTIDType &arg) { os << arg; }});
+        os << ControlSeq::Reset;
+    }
+
+    return os;
 }
 
 PtrAST ASTHelper::makeDeclSpecifierTree(const Location &loc,
-                                        ASTSymbolType specSymbolType)
+                                        ASTSymType specSymbolType)
 {
 
-    auto intTyNode = makeAST<AST>(specSymbolType, loc);
-    auto typeSpec = makeAST<AST>(ASTSymbolType::TypeSpec, loc, intTyNode);
-    auto declSpec = makeAST<AST>(ASTSymbolType::DeclSpec, loc, typeSpec);
+    auto intTyNode = AST::make(specSymbolType, loc);
+    auto typeSpec = AST::make(ASTSymType::TypeSpec, loc, intTyNode);
+    auto declSpec = AST::make(ASTSymType::DeclSpec, loc, typeSpec);
     return declSpec;
 }
+
+} // namespace splc

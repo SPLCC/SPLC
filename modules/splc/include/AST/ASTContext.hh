@@ -18,6 +18,21 @@ class ASTContext {
   public:
     ASTContext(ASTContextDepthType depth_) : depth{depth_} {}
 
+    ASTContext(ASTContextDepthType depth_,
+               const std::vector<Ptr<ASTContext>> &parentContexts_)
+        : depth{depth_}
+    {
+        parentContexts.reserve(parentContexts_.size());
+        std::transform(
+            parentContexts_.begin(), parentContexts_.end(),
+            std::back_inserter(parentContexts),
+            [](const Ptr<ASTContext> &ctx) { return std::weak_ptr(ctx); });
+    }
+
+    auto getDepth() const noexcept { return depth; }
+
+    void setDepth(ASTContextDepthType depth_) noexcept { depth = depth_; }
+
     auto &getSymbolMap() { return symbolMap; }
 
     const auto &getSymbolMap() const { return symbolMap; }
@@ -26,11 +41,11 @@ class ASTContext {
 
     const auto &getSymbolList() const { return symbolList; }
 
-    bool isSymbolDeclared(SymEntryType symEntTy_,
-                          std::string_view name_) const noexcept;
+    bool isSymDeclared(SymEntryType symEntTy_,
+                       std::string_view name_) const noexcept;
 
-    bool isSymbolDefined(SymEntryType symEntTy_,
-                         std::string_view name_) const noexcept;
+    bool isSymDefined(SymEntryType symEntTy_,
+                      std::string_view name_) const noexcept;
 
     SymbolEntry getSymbol(SymEntryType symEntTy_, std::string_view name_);
 
@@ -40,20 +55,27 @@ class ASTContext {
     SymbolEntry registerSymbol(SymEntryType summary_, std::string_view name_,
                                Type *type_, bool defined_,
                                const Location *location_,
-                               ASTValueType value_ = ASTValueType{},
                                PtrAST body_ = nullptr);
 
     auto &getParentContexts() { return parentContexts; }
 
-    const auto &getParentContexts() const { return parentContexts; }
+    auto &getParentContexts() const { return parentContexts; }
 
-    friend std::ostream &operator<<(std::ostream &os, const ASTContext &ctxt);
+    auto &getDirectChildren() { return directChildren; }
+
+    auto &getDirectChildren() const { return directChildren; }
+
+    friend std::ostream &operator<<(std::ostream &os, const ASTContext &ctx) noexcept;
+
+    friend std::ostream &printASTCtxSummary(std::ostream &os, const ASTContext &ctx) noexcept;
 
   protected:
     ASTContextDepthType depth;
     ASTSymbolMap symbolMap;
-    std::vector<std::pair<ASTIDType, SymbolEntry>> symbolList; // TODO: just refactor
+    std::vector<std::pair<ASTIDType, SymbolEntry>>
+        symbolList; // TODO: just refactor
     std::vector<WeakPtr<ASTContext>> parentContexts;
+    std::vector<Ptr<ASTContext>> directChildren;
 
   public:
     friend class AST;

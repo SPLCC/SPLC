@@ -22,6 +22,3 @@ syntax.output
 # IR files
 ./*.ir
 *.log
-
-# bak
-*_bak*

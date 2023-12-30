@@ -21,14 +21,19 @@ namespace splc::utils::logging {
 
 namespace internal {
 
+template <class T>
+concept OStreamable = requires(std::ostream &os, T &&t) {
+    {
+        os << std::forward<T>(t)
+    } -> std::convertible_to<std::ostream &>;
+};
+
+using OStreamManip = std::ostream &(*)(std::ostream &);
+
 class LoggerTag;
 class Logger;
 class AssertionHelper;
 class ErrorHelper;
-
-template <class T>
-concept IOStreamable =
-    requires(std::ostream &os, T &&t) { os << std::forward<T>(t); };
 
 extern std::mutex logStreamMutex;
 
@@ -88,8 +93,15 @@ class Logger {
 
     virtual ~Logger() noexcept;
 
-    template <IOStreamable T>
+    template <class T>
+        requires OStreamable<T>
     Logger &operator<<(T &&val);
+
+    Logger &operator<<(OStreamManip &&manip)
+    {
+        localLogStream << manip;
+        return *this;
+    }
 
     bool isEnabled() const noexcept { return enable; }
 
@@ -117,7 +129,8 @@ class Logger {
     const Location *const locPtr;
 };
 
-template <IOStreamable T>
+template <class T>
+    requires OStreamable<T>
 inline Logger &Logger::operator<<(T &&val)
 {
     if (enable) {

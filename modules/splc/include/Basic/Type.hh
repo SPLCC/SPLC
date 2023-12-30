@@ -12,8 +12,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef __SPLC_AST_TYPE_HH__
-#define __SPLC_AST_TYPE_HH__ 1
+#ifndef __SPLC_BASIC_TYPE_HH__
+#define __SPLC_BASIC_TYPE_HH__ 1
 
 #include "Core/Base.hh"
 #include "Core/Utils/Logging.hh"
@@ -96,6 +96,7 @@ class Type {
     TypeContext &context;
     TypeID ID;
     unsigned subClassData;
+    // bool constTy;
 
   public:
     virtual ~Type() = default;
@@ -107,8 +108,10 @@ class Type {
         os << "" << type.getName();
         if (type.numContainedTys > 0) {
             os << " (";
-            for (Type *p : type.subtypes()) {
-                os << *p << ", ";
+            for (auto it = type.subtype_begin(); it != type.subtype_end(); ++it) {
+                os << **it;
+                if (it + 1 != type.subtype_end())
+                    os << ", ";
             }
             os << ")";
         }
@@ -168,6 +171,8 @@ class Type {
     {
         return isSInt8Ty() || isSInt16Ty() || isSInt32Ty() || isSInt64Ty();
     }
+
+    // bool isConstTy() const { return constTy; }
 
     bool isIntTy() const { return isUIntTy() || isSIntTy() || isInt1Ty(); }
 
@@ -277,8 +282,17 @@ class Type {
     static Type *getUInt64Ty(TypeContext &C);
     static Type *getSInt64Ty(TypeContext &C);
 
+    /// Return a signed type of the current type.
+    Type *getSigned() const;
+
+    /// Return an unsigned type of the current type.
+    Type *getUnsigned() const;
+
     /// Return a pointer to the current type.
     PointerType *getPointerTo() const;
+
+    /// Return a const version of the current type.
+    // Type *getConstTy() const;
 
   private:
     bool isSizedDerivedType() const;
@@ -314,4 +328,4 @@ inline std::string randomTypeName(std::string::size_type length)
 
 } // namespace splc
 
-#endif // __SPLC_AST_TYPE_HH__
+#endif // __SPLC_BASIC_TYPE_HH__

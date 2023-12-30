@@ -11,12 +11,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "AST/Type.hh"
-#include "AST/TypeContext.hh"
+#include "Basic/Type.hh"
+#include "Basic/TypeContext.hh"
 #include "Core/Base.hh"
 
-#include "AST/AST.hh"
-#include "AST/DerivedTypes.hh"
+#include "AST/DerivedAST.hh"
+#include "Basic/DerivedTypes.hh"
 #include "Core/Utils/Logging.hh"
 #include <algorithm>
 #include <utility>
@@ -27,22 +27,22 @@ namespace splc {
 //                       Type Class Implementation
 //===----------------------------------------------------------------------===//
 
-const char *typeNames[] = {"type with no size",
-                           "32-bit floating point type",
-                           "64-bit floating point type",
-                           "1-bit integer",
-                           "8-bit unsigned integer",
-                           "8-bit signed integer",
-                           "16-bit unsigned integer",
-                           "16-bit signed integer",
-                           "32-bit unsigned integer",
-                           "32-bit signed integer",
-                           "64-bit unsigned integer",
-                           "64-bit signed integer",
+const char *typeNames[] = {"void",
+                           "32-bit floating-point",
+                           "64-bit floating-point",
+                           "1-bit int",
+                           "8-bit unsigned int",
+                           "8-bit signed int",
+                           "16-bit unsigned int",
+                           "16-bit signed int",
+                           "32-bit unsigned int",
+                           "32-bit signed int",
+                           "64-bit unsigned int",
+                           "64-bit signed int",
                            "label",
                            "token",
-                           "",
-                           "",
+                           nullptr,
+                           nullptr,
                            "function",
                            "pointer",
                            "structure",
@@ -96,6 +96,48 @@ bool Type::isSizedDerivedType() const
         return sty->isSized();
     }
     return false;
+}
+
+Type *Type::getSigned() const
+{
+    if(!isIntTy())
+        return nullptr;
+    if (isSIntTy())
+        return const_cast<Type *>(this);
+
+    switch (ID) {
+    case TypeID::UInt8:
+        return getSInt8Ty(context);
+    case TypeID::UInt16:
+        return getSInt16Ty(context);
+    case TypeID::UInt32:
+        return getSInt32Ty(context);
+    case TypeID::UInt64:
+        return getSInt64Ty(context);
+    default:
+        return nullptr;
+    }
+}
+
+Type *Type::getUnsigned() const
+{
+    if(!isIntTy())
+        return nullptr;
+    if (isUIntTy())
+        return const_cast<Type *>(this);
+
+    switch (ID) {
+    case TypeID::SInt8:
+        return getUInt8Ty(context);
+    case TypeID::SInt16:
+        return getUInt16Ty(context);
+    case TypeID::SInt32:
+        return getUInt32Ty(context);
+    case TypeID::SInt64:
+        return getUInt64Ty(context);
+    default:
+        return nullptr;
+    }
 }
 
 //===----------------------------------------------------------------------===//
@@ -445,12 +487,19 @@ PointerType *PointerType::get(TypeContext &C)
 PointerType::PointerType(TypeContext &C, Type *elementType_)
     : Type{C, TypeID::Pointer}, elementType{elementType_}
 {
+    numContainedTys = 1;
+    containedTys = &elementType;
 }
 
 PointerType *Type::getPointerTo() const
 {
     return PointerType::get(const_cast<Type *>(this));
 }
+
+// Type *Type::getConstTy() const
+// {
+
+// }
 
 bool PointerType::isValidElementType(Type *elementType_)
 {

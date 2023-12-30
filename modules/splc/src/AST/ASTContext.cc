@@ -2,15 +2,15 @@
 
 namespace splc {
 
-bool ASTContext::isSymbolDeclared(SymEntryType symEntTy_,
-                                  std::string_view name_) const noexcept
+bool ASTContext::isSymDeclared(SymEntryType symEntTy_,
+                               std::string_view name_) const noexcept
 {
     auto it = symbolMap.find(name_);
     return (it != symbolMap.end() && it->second.symEntTy == symEntTy_);
 }
 
-bool ASTContext::isSymbolDefined(SymEntryType symEntTy_,
-                                 std::string_view name_) const noexcept
+bool ASTContext::isSymDefined(SymEntryType symEntTy_,
+                              std::string_view name_) const noexcept
 {
     auto it = symbolMap.find(name_);
     if (it == symbolMap.end())
@@ -28,43 +28,68 @@ SymbolEntry ASTContext::getSymbol(SymEntryType symEntTy_,
     return it->second;
 }
 
-SymbolEntry ASTContext::registerSymbol(SymEntryType summary_,
+SymbolEntry ASTContext::registerSymbol(SymEntryType symEntTy_,
                                        std::string_view name_, Type *type_,
                                        bool defined_, const Location *location_,
-                                       ASTValueType value_, PtrAST body_)
+                                       PtrAST body_)
 {
     auto it = symbolMap.find(name_);
     if (it != symbolMap.end()) {
-        if (it->second.defined) {
-            throw SemanticError{
-                &it->second.location,
-                "redefining identifier of same type in the same scope"};
+        if (it->second.symEntTy != symEntTy_ || it->second.defined) {
+            throw SemanticError{&it->second.location,
+                                "redefining same identifier in the same scope"};
         }
         symbolMap.erase(it);
     }
 
-    auto symEntry = SymbolEntry::createSymbolEntry(summary_, type_, defined_,
-                                                   location_, value_, body_);
+    auto symEntry = SymbolEntry::createSymbolEntry(symEntTy_, type_, defined_,
+                                                   location_, body_);
     auto p = std::make_pair(ASTIDType{name_}, symEntry);
     symbolMap.insert(p);
     symbolList.push_back(p);
     return symEntry;
 }
 
-std::ostream &operator<<(std::ostream &os, const ASTContext &ctxt)
+std::ostream &printLeadingSpace(std::ostream &os, ASTContextDepthType depth)
 {
-    using utils::logging::ControlSeq;
-    os << ControlSeq::BrightMagenta << "ASTContextTable [" << ctxt.depth
-       << "]\n"
-       << ControlSeq::Reset;
-    for (auto &ent : ctxt.symbolMap) {
-        os << "  " << ControlSeq::Yellow << ent.first << ControlSeq::Reset
-           << "\n";
-        os << ControlSeq::Blue << "  `-" << ControlSeq::Reset << ent.second
-           << "\n";
+    for (ASTContextDepthType i = 0; i < depth; ++i) {
+        os << "  ";
     }
-    if (ctxt.symbolMap.empty())
-        os << "\n";
+    return os;
+}
+
+std::ostream &operator<<(std::ostream &os, const ASTContext &ctx) noexcept
+{
+    using CS = utils::logging::ControlSeq;
+
+    printLeadingSpace(os, ctx.depth)
+        << CS::BrightMagenta << "ASTContextTable [" << ctx.depth << "]"
+        << CS::Reset << " at " << CS::Yellow << &ctx
+        << CS::Reset << ", size " << CS::Blue
+        << ctx.getSymbolMap().size() << CS::Reset << "\n";
+
+    for (auto &ent : ctx.getSymbolMap()) {
+        printLeadingSpace(os, ctx.depth + 1)
+            << CS::Yellow << ent.first << CS::Reset << "\n";
+        os << CS::Blue;
+        printLeadingSpace(os, ctx.depth + 1)
+            << "`-" << CS::Reset << ent.second << "\n";
+    }
+    for (auto &child : ctx.getDirectChildren()) {
+        os << *child;
+    }
+    return os;
+}
+
+std::ostream &printASTCtxSummary(std::ostream &os,
+                                 const ASTContext &ctx) noexcept
+{
+    using CS = utils::logging::ControlSeq;
+
+    os << CS::BrightMagenta << "ASTCtx [" << ctx.depth << "]"
+       << CS::Reset << " at " << CS::Yellow << &ctx
+       << CS::Reset << ", size " << CS::Blue
+       << ctx.getSymbolMap().size() << CS::Reset;
     return os;
 }
 

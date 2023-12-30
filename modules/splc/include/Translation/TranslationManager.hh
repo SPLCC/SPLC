@@ -9,8 +9,8 @@
 
 #include "Core/splc.hh"
 
-#include "AST/AST.hh"
 #include "AST/ASTContextManager.hh"
+#include "AST/DerivedAST.hh"
 
 #include "Translation/TranslationBase.hh"
 #include "Translation/TranslationOption.hh"
@@ -38,45 +38,28 @@ class TranslationManager {
 
     void setTransUnitRootAST(PtrAST rootNode_) { tunit->rootNode = rootNode_; }
 
-    ///
-    /// \brief Create a new node, and add all following children `PtrAST`
-    /// to the list of its children.
-    ///
-    template <IsBaseAST ASTType, AllArePtrAST... Children>
-    Ptr<ASTType> makeAST(ASTSymbolType type, const Location &loc,
-                         Children &&...children);
+    auto getTyContext() { return tunit->getTypeContext(); }
 
-    ///
-    /// \brief Create a new node, and add all following children `PtrAST`
-    /// to the list of its children.
-    ///
-    template <IsBaseAST ASTType, IsValidASTValue T, AllArePtrAST... Children>
-    Ptr<ASTType> makeAST(ASTSymbolType type, const Location &loc, T &&value,
-                         Children &&...children);
+    const auto getTyContext() const { return tunit->getTypeContext(); }
 
-    auto getTypeContext() { return tunit->typeContext; }
+    auto getASTCtxMgr() noexcept { return tunit->astCtxMgr; }
 
-    const auto getTypeContext() const { return tunit->typeContext; }
+    auto getASTCtxMgr() const noexcept { return tunit->astCtxMgr; }
 
-    Ptr<ASTContext> getCurrentASTContext() noexcept
+    void pushASTCtx() noexcept { tunit->astCtxMgr.pushContext(); }
+
+    void popASTCtx() noexcept { tunit->astCtxMgr.popContext(); }
+
+    bool isSymDeclared(SymEntryType symEntTy,
+                       std::string_view name_) const noexcept
     {
-        return tunit->astCtxtMgr[0];
+        return tunit->astCtxMgr.isSymDeclared(symEntTy, name_);
     }
 
-    void pushASTContext() noexcept { tunit->astCtxtMgr.pushContext(); }
-
-    void popASTContext() noexcept { tunit->astCtxtMgr.popContext(); }
-
-    bool isSymbolDeclared(SymEntryType symEntTy,
-                          std::string_view name_) const noexcept
+    bool isSymDefined(SymEntryType symEntTy,
+                      std::string_view name_) const noexcept
     {
-        return tunit->astCtxtMgr.isSymbolDeclared(symEntTy, name_);
-    }
-
-    bool isSymbolDefined(SymEntryType symEntTy,
-                         std::string_view name_) const noexcept
-    {
-        return tunit->astCtxtMgr.isSymbolDefined(symEntTy, name_);
+        return tunit->astCtxMgr.isSymDefined(symEntTy, name_);
     }
 
     SymbolEntry getSymbol(SymEntryType symEntTy, std::string_view name_);
@@ -84,40 +67,42 @@ class TranslationManager {
     SymbolEntry registerSymbol(SymEntryType symEntTy, std::string_view name_,
                                Type *type_, bool defined_,
                                const Location *location_,
-                               ASTValueType value_ = ASTValueType{},
                                PtrAST body_ = nullptr);
 
-    /// \brief This is just experimental.
-    void tryRegisterSymbol(PtrAST root);
+    /// \brief Try to register a symbol and process semantic error
+    ///        by TranslationManager.
+    void tryRegisterSymbol(SymEntryType symEntTy, std::string_view name_,
+                           Type *type_, bool defined_,
+                           const Location *location_, PtrAST body_ = nullptr);
 
-    Ptr<TranslationContext> getCurrentTransContext() noexcept
+    Ptr<TranslationContext> getCurTransCtx() noexcept
     {
-        return tunit->transCtxtMgr[0];
+        return tunit->transCtxMgr[0];
     }
 
-    const std::string &getCurrentTransContextName() const noexcept
+    const std::string &getCurTransCtxName() const noexcept
     {
-        return tunit->transCtxtMgr[0]->name;
+        return tunit->transCtxMgr[0]->name;
     }
 
-    const TranslationContextIDType getCurrentTransContextID() const noexcept
+    const TranslationContextIDType getCurTransCtxID() const noexcept
     {
-        return tunit->transCtxtMgr[0]->contextID;
+        return tunit->transCtxMgr[0]->contextID;
     }
 
-    TranslationContextKeyType getCurrentTransContextKey() const noexcept
+    TranslationContextKeyType getCurTransCtxKey() const noexcept
     {
-        return tunit->transCtxtMgr.getCurrentContextKey();
+        return tunit->transCtxMgr.getCurrentContextKey();
     }
 
-    bool transContextStackEmpty() const
+    bool transCtxStackEmpty() const
     {
-        return tunit->transCtxtMgr.contextStackEmpty();
+        return tunit->transCtxMgr.contextStackEmpty();
     }
 
-    size_t transContextStackSize() const
+    size_t transCtxStackSize() const
     {
-        return tunit->transCtxtMgr.contextStackSize();
+        return tunit->transCtxMgr.contextStackSize();
     }
 
     ///
@@ -145,7 +130,7 @@ class TranslationManager {
 
     Ptr<TranslationContext> popTransContext() noexcept
     {
-        Ptr<TranslationContext> context = tunit->transCtxtMgr.popContext();
+        Ptr<TranslationContext> context = tunit->transCtxMgr.popContext();
         // scanner->yypop_buffer_state();
         return context;
     }
@@ -155,7 +140,7 @@ class TranslationManager {
 
     bool isTransMacroVarPresent(std::string_view macroVarName_) const noexcept
     {
-        return tunit->transCtxtMgr.isTransMacroVarPresent(macroVarName_);
+        return tunit->transCtxMgr.isTransMacroVarPresent(macroVarName_);
     }
 
     /// \brief Get macro var context from the context manager.
@@ -179,35 +164,27 @@ class TranslationManager {
 
     Ptr<const AST> getRootNode() const { return tunit->getRootNode(); }
 
-    Ptr<TranslationUnit> getTransUnit();
+    Ptr<TranslationUnit> getTransUnit() const noexcept;
+
+    auto &getTypeVec() const noexcept { return typeVec; }
+
+    auto &getTypeVec() noexcept { return typeVec; }
+
+    auto &getNameVec() const noexcept { return nameVec; }
+
+    auto &getNameVec() noexcept { return nameVec; }
 
   protected:
     Ptr<TranslationUnit> tunit;
 
+    std::vector<std::pair<Type *, bool>>
+        typeVec; ///< type used in attribute synthesis in parser
+    std::vector<std::string>
+        nameVec; ///< type used in attribute synthesis in parser
+
     // TODO: add options
     // TODO: allow manager to retrieve include options and stuff
 };
-
-template <IsBaseAST ASTType, AllArePtrAST... Children>
-inline Ptr<ASTType> TranslationManager::makeAST(ASTSymbolType type,
-                                                const Location &loc,
-                                                Children &&...children)
-{
-    auto parentNode = splc::makeAST<ASTType>(
-        tunit->typeContext, type, loc, std::forward<Children>(children)...);
-    return parentNode;
-}
-
-template <IsBaseAST ASTType, IsValidASTValue T, AllArePtrAST... Children>
-inline Ptr<ASTType> TranslationManager::makeAST(ASTSymbolType type,
-                                                const Location &loc, T &&value,
-                                                Children &&...children)
-{
-    auto parentNode = splc::makeAST<ASTType>(
-        tunit->typeContext, type, loc, std::forward<T>(value),
-        std::forward<Children>(children)...);
-    return parentNode;
-}
 
 } // namespace splc
 

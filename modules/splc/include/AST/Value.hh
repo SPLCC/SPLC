@@ -6,7 +6,7 @@
 #include "Core/splc.hh"
 
 #include "AST/ASTCommons.hh"
-#include "AST/Type.hh"
+#include "Basic/Type.hh"
 
 namespace splc {
 

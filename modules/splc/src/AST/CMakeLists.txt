@@ -1,7 +1,7 @@
 # splc_AST shared library
 add_library(splc_AST SHARED
-    AST.cc
     ASTBase.cc
+    ASTBasePolymorphism.cc
     ASTBaseProcess.cc
     ASTBaseType.cc
     ASTBaseValue.cc
@@ -9,9 +9,9 @@ add_library(splc_AST SHARED
     ASTContextManager.cc
     ASTProcess.cc
     ASTSymbol.cc
+    DerivedAST.cc
     Expr.cc
     SymbolEntry.cc
-    Type.cc
     TypeCheck.cc
 )
 target_include_directories(splc_AST PUBLIC ${SPLC_INCL_DIR})

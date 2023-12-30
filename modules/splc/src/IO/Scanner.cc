@@ -12,11 +12,11 @@ namespace splc::IO {
 
 int Scanner::yywrap()
 {
-    if (!transMgr.transContextStackEmpty()) {
+    if (!transMgr.transCtxStackEmpty()) {
         Ptr<TranslationContext> context = transMgr.popTransContext();
     }
 
-    return transMgr.transContextStackEmpty();
+    return transMgr.transCtxStackEmpty();
 }
 
 bool Scanner::setInitialContext(Ptr<TranslationContext> initialContext)

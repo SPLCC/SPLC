@@ -1,6 +1,8 @@
 add_library(splc_Basic SHARED
+    Type.cc    
     TypeTraits.cc
 )
+
 target_include_directories(splc_Basic PUBLIC ${SPLC_INCL_DIR})
 set_target_properties(splc_Basic PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${GENERATED_LIB_DIR})

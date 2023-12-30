@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "AST/AST.hh"
+#include "AST/DerivedAST.hh"
 
 namespace splc::codegen {
 
