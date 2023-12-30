@@ -3,8 +3,8 @@
 #include "AST/ASTContext.hh"
 #include "AST/ASTProcess.hh"
 #include "IO/Driver.hh"
-#include "IR/IRBuilder.hh"
-// #include "IR/IROptimizer.hh"
+#include "SIR/IRBuilder.hh"
+// #include "SIR/IROptimizer.hh"
 #include <algorithm>
 #include <cassert>
 #include <cstdlib>
@@ -40,7 +40,7 @@ int main(const int argc, const char **argv)
         SPLC_LOG_DEBUG(nullptr, false) << "\n" << *node->getContext();
     }
 
-    splc::IRBuilder irBuilder{*tunit->getTypeContext()};
+    splc::SIR::IRBuilder irBuilder{*tunit->getTypeContext()};
 
     irBuilder.parseAST(node);
     // std::ofstream fout;
