@@ -426,13 +426,13 @@ void IRBuilder::recRegisterDeclVar(IRVec<PtrIRStmt> &stmtList, PtrAST declRoot)
     if (isASTSymbolTypeOneOf(declRoot->getSymType(), ASTSymType::Decl)) {
         recRegisterDeclVar(stmtList, declRoot->getChildren()[0]);
     }
-    else if (declRoot->getSymType() == ASTSymType::DirDecl) {
+    else if (declRoot->isDirDecl()) {
         splc_dbgassert(declRoot->getChildrenNum() == 2);
         for (auto &initDecltr : declRoot->getChildren()[1]->getChildren()) {
             PtrAST decltr = initDecltr->getChildren()[0];
 
-            if (decltr->getChildren()[0]->getSymType() ==
-                ASTSymType::DirDecltr) {
+            if (decltr->getChildren()[0]->isDirDecltr()) {
+                
                 IRIDType id = decltr->getChildren()[0]
                                   ->getChildren()[0]
                                   ->getConstVal<IRIDType>();

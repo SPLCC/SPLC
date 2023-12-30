@@ -257,7 +257,7 @@ bool isSymStruct(ASTSymType sym) noexcept;
 //===----------------------------------------------------------------------===//
 template <class... Types>
 concept AllAreASTSymbolType =
-    (std::is_same_v<ASTSymType, typename std::remove_reference<Types>::type> &&
+    (std::is_same_v<ASTSymType, typename std::remove_cvref_t<Types>> &&
      ...);
 
 template <AllAreASTSymbolType... SourceTypes>

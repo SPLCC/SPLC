@@ -13,8 +13,10 @@ void resetASTPrintMapContext() noexcept { astPrintMap.clear(); }
 
 PtrAST AST::findFirstChild(ASTSymType type) const noexcept
 {
-    // TODO: find the first available child
-    return makeSharedPtr<AST>();
+    auto it =
+        std::find_if(getChildren().begin(), getChildren().end(),
+                     [=](const auto &p) { return p->isSymTypeOneOf(type); });
+    return it == getChildren().end() ? nullptr : *it;
 }
 
 PtrAST AST::copy(const std::function<bool(Ptr<const AST>)> &predicate,

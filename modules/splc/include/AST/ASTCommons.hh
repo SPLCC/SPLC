@@ -43,7 +43,7 @@ using PtrAST = Ptr<AST>;
 using WeakPtrAST = WeakPtr<AST>;
 
 template <class T>
-concept IsBaseAST = (std::is_base_of_v<AST, std::remove_reference_t<T>>);
+concept IsBaseAST = (std::is_base_of_v<AST, std::remove_cvref_t<T>>);
 
 template <class T>
 concept IsPtrAST =
