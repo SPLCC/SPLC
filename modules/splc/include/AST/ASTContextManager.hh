@@ -24,6 +24,8 @@ class ASTContextManager {
     {
         auto context =
             makeSharedPtr<ASTContext>(contextStack.size(), contextStack);
+        if (!contextStackEmpty())
+            contextStack.back()->getDirectChildren().push_back(context);
         contextStack.push_back(context);
         return context;
     }

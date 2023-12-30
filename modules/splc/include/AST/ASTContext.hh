@@ -55,7 +55,11 @@ class ASTContext {
 
     auto &getParentContexts() { return parentContexts; }
 
-    const auto &getParentContexts() const { return parentContexts; }
+    auto &getParentContexts() const { return parentContexts; }
+
+    auto &getDirectChildren() { return directChildren; }
+
+    auto &getDirectChildren() const { return directChildren; }
 
     friend std::ostream &operator<<(std::ostream &os, const ASTContext &ctxt);
 
@@ -65,6 +69,7 @@ class ASTContext {
     std::vector<std::pair<ASTIDType, SymbolEntry>>
         symbolList; // TODO: just refactor
     std::vector<WeakPtr<ASTContext>> parentContexts;
+    std::vector<Ptr<ASTContext>> directChildren;
 
   public:
     friend class AST;

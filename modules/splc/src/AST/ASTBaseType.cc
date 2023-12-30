@@ -210,11 +210,11 @@ std::vector<Type *> ASTHelper::getTypeHelperDispatch(const AST &root)
     throw RuntimeError(233, "invalid type");
 }
 
-std::vector<Type *> AST::getContainedTys() const
-{
-    splc_dbgassert(isASTSymbolTypeOneOf(
-        this->symType, ASTSymType::Decl, ASTSymType::FuncDef,
-        ASTSymType::FuncDecl));
-    auto vec = ASTHelper::getTypeHelperDispatch(*this);
-    return vec;
-}
+// std::vector<Type *> AST::getContainedTys() const
+// {
+//     splc_dbgassert(isASTSymbolTypeOneOf(
+//         this->symType, ASTSymType::Decl, ASTSymType::FuncDef,
+//         ASTSymType::FuncDecl));
+//     auto vec = ASTHelper::getTypeHelperDispatch(*this);
+//     return vec;
+// }

@@ -30,7 +30,8 @@ SymbolEntry ASTContext::getSymbol(SymEntryType symEntTy_,
 
 SymbolEntry ASTContext::registerSymbol(SymEntryType symEntTy_,
                                        std::string_view name_, Type *type_,
-                                       bool defined_, const Location *location_, PtrAST body_)
+                                       bool defined_, const Location *location_,
+                                       PtrAST body_)
 {
     auto it = symbolMap.find(name_);
     if (it != symbolMap.end()) {
@@ -49,20 +50,33 @@ SymbolEntry ASTContext::registerSymbol(SymEntryType symEntTy_,
     return symEntry;
 }
 
+std::ostream &printLeadingSpace(std::ostream &os, ASTContextDepthType depth)
+{
+    for (ASTContextDepthType i = 0; i < depth; ++i) {
+        os << "  ";
+    }
+    return os;
+}
+
 std::ostream &operator<<(std::ostream &os, const ASTContext &ctxt)
 {
     using utils::logging::ControlSeq;
-    os << ControlSeq::BrightMagenta << "ASTContextTable [" << ctxt.depth
-       << "]\n"
-       << ControlSeq::Reset;
-    for (auto &ent : ctxt.symbolMap) {
-        os << "  " << ControlSeq::Yellow << ent.first << ControlSeq::Reset
-           << "\n";
-        os << ControlSeq::Blue << "  `-" << ControlSeq::Reset << ent.second
-           << "\n";
+
+    printLeadingSpace(os, ctxt.depth)
+        << ControlSeq::BrightMagenta << "ASTContextTable [" << ctxt.depth << "]"
+        << ControlSeq::Reset << " at " << ControlSeq::Yellow << &ctxt
+        << ControlSeq::Reset << "\n";
+
+    for (auto &ent : ctxt.getSymbolMap()) {
+        printLeadingSpace(os, ctxt.depth + 1)
+            << ControlSeq::Yellow << ent.first << ControlSeq::Reset << "\n";
+        os << ControlSeq::Blue;
+        printLeadingSpace(os, ctxt.depth + 1)
+            << "`-" << ControlSeq::Reset << ent.second << "\n";
     }
-    if (ctxt.symbolMap.empty())
-        os << "\n";
+    for (auto &child : ctxt.getDirectChildren()) {
+        os << *child;
+    }
     return os;
 }
 

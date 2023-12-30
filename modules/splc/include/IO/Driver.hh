@@ -18,6 +18,8 @@
 namespace splc::IO {
 
 class Driver {
+    friend class Parser;
+
   public:
     Driver(bool traceParsing_ = false);
 
@@ -30,7 +32,8 @@ class Driver {
     Ptr<TranslationUnit> parse(std::string_view filename);
 
     // // TODO: remove experimental
-    // Ptr<TranslationUnit> parse(const std::vector<std::string> &filenameVector);
+    // Ptr<TranslationUnit> parse(const std::vector<std::string>
+    // &filenameVector);
 
     // /// Parse from a c++ input stream
     // /// \param is std::istream&, valid input stream

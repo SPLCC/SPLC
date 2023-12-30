@@ -1,6 +1,7 @@
 # splc_AST shared library
 add_library(splc_AST SHARED
     ASTBase.cc
+    ASTBasePolymorphism.cc
     ASTBaseProcess.cc
     ASTBaseType.cc
     ASTBaseValue.cc

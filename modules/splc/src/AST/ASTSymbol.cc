@@ -21,16 +21,16 @@ const yytname_[] =
 {
 "\"end of file\"", "error", "\"invalid token\"", "KwdAuto", "KwdExtern",
 "KwdRegister", "KwdStatic", "KwdTypedef", "KwdConst", "KwdRestrict",
-"KwdVolatile", "KwdInline", "VoidTy", "IntTy", "SignedTy", "UnsignedTy",
-"LongTy", "FloatTy", "DoubleTy", "CharTy", "KwdEnum", "KwdStruct",
-"KwdUnion", "KwdIf", "KwdElse", "KwdSwitch", "KwdWhile", "KwdFor",
-"KwdDo", "KwdDefault", "KwdCase", "KwdGoto", "KwdContinue", "KwdBreak",
-"KwdReturn", "ID", "TypedefID", "OpAssign", "OpMulAssign", "OpDivAssign",
-"OpModAssign", "OpPlusAssign", "OpMinusAssign", "OpLShiftAssign",
-"OpRShiftAssign", "OpBAndAssign", "OpBXorAssign", "OpBOrAssign", "OpAnd",
-"OpOr", "OpNot", "OpLT", "OpLE", "OpGT", "OpGE", "OpNE", "OpEQ",
-"OpQMark", "OpColon", "OpLShift", "OpRShift", "OpBAnd", "OpBOr",
-"OpBNot", "OpBXor", "OpDPlus", "OpDMinus", "OpPlus", "OpMinus",
+"KwdVolatile", "KwdInline", "VoidTy", "CharTy", "ShortTy", "IntTy",
+"SignedTy", "UnsignedTy", "LongTy", "FloatTy", "DoubleTy", "KwdEnum",
+"KwdStruct", "KwdUnion", "KwdIf", "KwdElse", "KwdSwitch", "KwdWhile",
+"KwdFor", "KwdDo", "KwdDefault", "KwdCase", "KwdGoto", "KwdContinue",
+"KwdBreak", "KwdReturn", "ID", "TypedefID", "OpAssign", "OpMulAssign",
+"OpDivAssign", "OpModAssign", "OpPlusAssign", "OpMinusAssign",
+"OpLShiftAssign", "OpRShiftAssign", "OpBAndAssign", "OpBXorAssign",
+"OpBOrAssign", "OpAnd", "OpOr", "OpNot", "OpLT", "OpLE", "OpGT", "OpGE",
+"OpNE", "OpEQ", "OpQMark", "OpColon", "OpLShift", "OpRShift", "OpBAnd",
+"OpBOr", "OpBNot", "OpBXor", "OpDPlus", "OpDMinus", "OpPlus", "OpMinus",
 "OpAstrk", "OpDiv", "OpMod", "OpDot", "OpRArrow", "OpSizeOf", "OpLSB",
 "OpRSB", "OpComma", "OpEllipsis", "PSemi", "PLC", "PRC", "PLP", "PRP",
 "UIntLiteral", "SIntLiteral", "FloatLiteral", "CharLiteral", "StrUnit",
@@ -44,19 +44,18 @@ const yytname_[] =
 "StructOrUnion", "StructDeclBody", "StructDeclList", "StructDecl",
 "StructDecltrList", "StructDecltr", "EnumSpec", "EnumBody",
 "EnumeratorList", "Enumerator", "EnumConst", "Decltr", "DirDecltr",
-"WrappedDirDecltr", "PtrDecltr", "TypeQualList", "Decl", "DirDecl",
-"InitDecltrList", "InitDecltr", "Initializer", "InitializerList",
-"Designation", "DesignatorList", "Designator", "FuncDef", "FuncDecl",
-"FuncDecltr", "DirFuncDecltr", "DirDecltrForFunc", "ParamTypeList",
-"ParamList", "ParamDecltr", "CompStmt", "GeneralStmtList", "Stmt",
-"ExprStmt", "SelStmt", "LabeledStmt", "JumpStmt", "IterStmt",
-"ForLoopBody", "ConstExpr", "Constant", "PrimaryExpr", "PostfixExpr",
-"MemberAccessOp", "UnaryExpr", "UnaryArithOp", "CastExpr", "MulExpr",
-"MulOp", "DivOp", "AddExpr", "AddOp", "ShiftExpr", "ShiftOp", "RelExpr",
-"RelOp", "EqualityExpr", "EqualityOp", "OpBAndExpr", "OpBXorExpr",
-"OpBOrExpr", "LogicalOpAndExpr", "LogicalOpOrExpr", "CondExpr",
-"AssignExpr", "AssignOp", "Expr", "InitExpr", "ArgList", "StringLiteral",
-"IDWrapper", YY_NULLPTR
+"WrappedDirDecltr", "TypeQualList", "Decl", "DirDecl", "InitDecltrList",
+"InitDecltr", "Initializer", "InitializerList", "Designation",
+"DesignatorList", "Designator", "FuncDef", "FuncDecl", "FuncDecltr",
+"DirFuncDecltr", "DirDecltrForFunc", "ParamTypeList", "ParamList",
+"ParamDecltr", "CompStmt", "GeneralStmtList", "Stmt", "ExprStmt",
+"SelStmt", "LabeledStmt", "JumpStmt", "IterStmt", "ForLoopBody",
+"ConstExpr", "Constant", "PrimaryExpr", "PostfixExpr", "MemberAccessOp",
+"UnaryExpr", "UnaryArithOp", "CastExpr", "MulExpr", "MulOp", "DivOp",
+"AddExpr", "AddOp", "ShiftExpr", "ShiftOp", "RelExpr", "RelOp",
+"EqualityExpr", "EqualityOp", "OpBAndExpr", "OpBXorExpr", "OpBOrExpr",
+"LogicalOpAndExpr", "LogicalOpOrExpr", "CondExpr", "AssignExpr",
+"AssignOp", "Expr", "InitExpr", "ArgList", "StringLiteral", "IDWrapper", YY_NULLPTR
 };
 // clang-format on
 
@@ -87,13 +86,14 @@ std::ostream &printSymbolConsoleTraits(std::ostream &os,
     case SPLSymType::KwdVolatile:
     case SPLSymType::KwdInline:
     case SPLSymType::VoidTy:
+    case SPLSymType::CharTy:
+    case SPLSymType::ShortTy:
     case SPLSymType::IntTy:
     case SPLSymType::SignedTy:
     case SPLSymType::UnsignedTy:
     case SPLSymType::LongTy:
     case SPLSymType::FloatTy:
-    case SPLSymType::DoubleTy:
-    case SPLSymType::CharTy: {
+    case SPLSymType::DoubleTy: {
         os << ControlSeq::Bold << ControlSeq::Blue;
         break;
     }

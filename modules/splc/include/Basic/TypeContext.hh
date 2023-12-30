@@ -15,7 +15,7 @@
 #define __SPLC_BASIC_TYPECONTEXT_HH__ 1
 
 #include "Core/splc.hh"
-#include "Type.hh"
+#include "Basic/Type.hh"
 #include <map>
 #include <memory>
 

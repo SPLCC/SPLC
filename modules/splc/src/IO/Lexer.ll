@@ -368,13 +368,14 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
 <INITIAL>"inline"   { *glval = AST::make(tyCtx, SymType::KwdInline, *gloc); return Token::KwdInline; }
 
 <INITIAL>"void"     { *glval = AST::make(tyCtx, SymType::VoidTy, *gloc); return Token::VoidTy; }
+<INITIAL>"char"     { *glval = AST::make(tyCtx, SymType::CharTy, *gloc); return Token::CharTy; }
+<INITIAL>"short"    { *glval = AST::make(tyCtx, SymType::ShortTy, *gloc); return Token::ShortTy; }
 <INITIAL>"int"      { *glval = AST::make(tyCtx, SymType::IntTy, *gloc); return Token::IntTy; }
 <INITIAL>"signed"   { *glval = AST::make(tyCtx, SymType::SignedTy, *gloc); return Token::SignedTy; }
 <INITIAL>"unsigned" { *glval = AST::make(tyCtx, SymType::UnsignedTy, *gloc); return Token::UnsignedTy; }
 <INITIAL>"long"     { *glval = AST::make(tyCtx, SymType::LongTy, *gloc); return Token::LongTy; }
 <INITIAL>"float"    { *glval = AST::make(tyCtx, SymType::FloatTy, *gloc); return Token::FloatTy; }
 <INITIAL>"double"   { *glval = AST::make(tyCtx, SymType::DoubleTy, *gloc); return Token::DoubleTy; }
-<INITIAL>"char"     { *glval = AST::make(tyCtx, SymType::CharTy, *gloc); return Token::CharTy; }
 <INITIAL>"enum"     { *glval = AST::make(tyCtx, SymType::KwdEnum, *gloc); return Token::KwdEnum; }
 
 <INITIAL>"struct"   { *glval = AST::make(tyCtx, SymType::KwdStruct, *gloc); return Token::KwdStruct; }

@@ -1,7 +1,7 @@
 #include "Translation/TranslationManager.hh"
 #include "AST/ASTCommons.hh"
-#include "Basic/DerivedTypes.hh"
 #include "AST/SymbolEntry.hh"
+#include "Basic/DerivedTypes.hh"
 
 using namespace splc;
 
@@ -27,68 +27,27 @@ SymbolEntry TranslationManager::registerSymbol(SymEntryType symEntTy,
                                                const Location *location_,
                                                PtrAST body_)
 {
-    auto ent = tunit->astCtxMgr.registerSymbol(symEntTy, name_, type_,
-                                                defined_, location_, body_);
+    auto ent = tunit->astCtxMgr.registerSymbol(symEntTy, name_, type_, defined_,
+                                               location_, body_);
     return ent;
 }
 
-void TranslationManager::tryRegisterSymbol(PtrAST root)
+void TranslationManager::tryRegisterSymbol(SymEntryType symEntTy,
+                                           std::string_view name_, Type *type_,
+                                           bool defined_,
+                                           const Location *location_,
+                                           PtrAST body_)
 {
-    // TODO:
-    std::vector<Type *> rootTysFetched = root->getContainedTys();
-    std::vector<ASTDeclEntityType> ids = root->getNamedDeclEntities();
-    std::vector<Type *> rootTys;
-
-    for (Type *ty : rootTysFetched) {
-        rootTys.push_back(ty);
-        if (ty->isFunctionTy()) {
-            std::copy(ty->subtype_begin() + 1, ty->subtype_end(),
-                      std::back_inserter(rootTys));
-        }
+    try {
+        // TODO: revise
+        auto ent =
+            registerSymbol(symEntTy, name_, type_, defined_, location_, body_);
+        SPLC_LOG_DEBUG(location_, false)
+            << "registered identifier " << name_ << ", type: " << *type_;
     }
-
-    splc_dbgassert(rootTys.size() == ids.size());
-
-    size_t numChild = ids.size();
-
-    for (size_t i = 0; i < numChild; ++i) {
-        Type *ty = rootTys[i];
-        ASTDeclEntityType &idLoc = ids[i];
-        auto [declID, declLoc] = idLoc;
-
-        SymEntryType symEntTy;
-        bool defined = false;
-        PtrAST body;
-
-        if (ty->isFunctionTy()) {
-            symEntTy = SymEntryType::Function;
-            if (auto it = std::find_if(
-                    root->children().begin(), root->children().end(),
-                    [](const PtrAST &node) {
-                        return node->getSymType() == ASTSymType::CompStmt;
-                    });
-                it != root->children().end()) {
-                defined = true;
-                body = *it;
-            }
-        }
-        else if (ty->isFirstClassymType()) {
-            symEntTy = SymEntryType::Variable;
-        }
-        else {
-            splc_error() << "unknown type to be registered: " << *ty;
-        }
-        try {
-            // TODO: revise
-            auto ent =
-                registerSymbol(symEntTy, declID, ty, defined, &declLoc, body);
-            SPLC_LOG_DEBUG(&declLoc, false)
-                << "registered identifier " << declID << ", type: " << *ty;
-        }
-        catch (SemanticError e) {
-            SPLC_LOG_ERROR(&declLoc, true) << e.what();
-            SPLC_LOG_NOTE(&e.loc, false) << "previously defined here";
-        }
+    catch (SemanticError e) {
+        SPLC_LOG_ERROR(location_, true) << e.what();
+        SPLC_LOG_NOTE(&e.loc, false) << "previously defined here";
     }
 }
 
@@ -145,4 +104,7 @@ Ptr<TranslationContext> TranslationManager::unregisterTransMacroVarContext(
     return context;
 }
 
-Ptr<TranslationUnit> TranslationManager::getTransUnit() { return tunit; }
+Ptr<TranslationUnit> TranslationManager::getTransUnit() const noexcept
+{
+    return tunit;
+}

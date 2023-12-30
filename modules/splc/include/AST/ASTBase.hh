@@ -2,7 +2,6 @@
 #define __SPLC_AST_ASTBASE_HH__ 1
 
 #include <AST/ASTCommons.hh>
-#include <Basic/TypeContext.hh>
 #include <AST/Value.hh>
 #include <Core/splc.hh>
 #include <functional>
@@ -13,6 +12,12 @@
 #include <vector>
 
 namespace splc {
+
+// forward declarations
+
+class DeclSpecAST;
+class ParamListAST;
+
 ///
 /// \brief Class AST describes a single node in the Abstract Syntax Tree
 /// (AST), and acts as the foundation of the parse tree.
@@ -34,12 +39,18 @@ namespace splc {
 /// development without the actual IO library.
 ///
 class AST : public std::enable_shared_from_this<AST> {
+    //===----------------------------------------------------------------------===//
+    // Helper classes
     friend class ASTHelper;
     friend class ASTProcessor;
     friend class ASTContext;
     friend class ASTContextManager;
     friend class Type;
     friend class Value;
+
+    //===----------------------------------------------------------------------===//
+    // Polymorphism
+    friend class DeclSpecAST;
 
     //===----------------------------------------------------------------------===//
     // Constructors and Accessors
@@ -53,16 +64,16 @@ class AST : public std::enable_shared_from_this<AST> {
     }
 
     template <IsValidASTValue T = ASTValueType>
-    AST(const ASTSymType symType, const Location &loc_,
+    AST(const ASTSymType symType_, const Location &loc_,
         T &&value_ = {}) noexcept
-        : symType{symType}, loc{loc_}, value{value_}
+        : symType{symType_}, loc{loc_}, value{value_}
     {
     }
 
     template <IsValidASTValue T = ASTValueType>
-    AST(Ptr<TypeContext> typeContext, const ASTSymType symType,
+    AST(Ptr<TypeContext> typeContext, const ASTSymType symType_,
         const Location &loc_, T &&value_ = {}) noexcept
-        : tyContext{typeContext}, symType{symType}, loc{loc_}, value{value_}
+        : tyContext{typeContext}, symType{symType_}, loc{loc_}, value{value_}
     {
     }
 
@@ -71,58 +82,63 @@ class AST : public std::enable_shared_from_this<AST> {
     virtual AST &operator=(const AST &other) = default;
 
     virtual AST &operator=(AST &&other) = default;
-    
-    ///
-    /// \brief Create a new node, and add all following children `PtrAST`
-    /// to the list of its children.
-    ///
-    template <IsBaseAST ASTType, AllArePtrAST... Children>
-    friend Ptr<ASTType> makeAST(ASTSymType type, const Location &loc,
-                                Children &&...children);
-
-    template <IsBaseAST ASTType, AllArePtrAST... Children>
-    friend Ptr<ASTType> makeAST(Ptr<TypeContext> typeContext, ASTSymType type,
-                                const Location &loc, Children &&...children);
-
-    ///
-    /// \brief Create a new node, and add all following children `PtrAST`
-    /// to the list of its children.
-    ///
-    template <IsBaseAST ASTType, IsValidASTValue T, AllArePtrAST... Children>
-    friend Ptr<ASTType> makeAST(ASTSymType type, const Location &loc, T &&value,
-                                Children &&...children);
-
-    template <IsBaseAST ASTType, IsValidASTValue T, AllArePtrAST... Children>
-    friend Ptr<ASTType> makeAST(Ptr<TypeContext> typeContext, ASTSymType type,
-                                const Location &loc, T &&value,
-                                Children &&...children);
 
     template <AllArePtrAST... Children>
     static PtrAST make(ASTSymType type, const Location &loc,
                        Children &&...children)
     {
-        return makeAST<AST>(type, loc, children...);
+        PtrAST parentNode = makeSharedPtr<AST>(type, loc);
+        parentNode->addChildren(std::forward<Children>(children)...);
+        return parentNode;
     }
 
     template <IsValidASTValue T, AllArePtrAST... Children>
     static PtrAST make(ASTSymType type, const Location &loc, T &&value,
                        Children &&...children)
     {
-        return makeAST<AST>(type, loc, value, children...);
+        PtrAST parentNode =
+            makeSharedPtr<AST>(type, loc, std::forward<T>(value));
+        parentNode->addChildren(std::forward<Children>(children)...);
+        return parentNode;
     }
 
     template <AllArePtrAST... Children>
     static PtrAST make(Ptr<TypeContext> typeContext, ASTSymType type,
                        const Location &loc, Children &&...children)
     {
-        return makeAST<AST>(typeContext, type, loc, children...);
+        PtrAST parentNode = makeSharedPtr<AST>(typeContext, type, loc);
+        parentNode->addChildren(std::forward<Children>(children)...);
+        return parentNode;
     }
 
     template <IsValidASTValue T, AllArePtrAST... Children>
     static PtrAST make(Ptr<TypeContext> typeContext, ASTSymType type,
                        const Location &loc, T &&value, Children &&...children)
     {
-        return makeAST<AST>(typeContext, type, loc, value, children...);
+        PtrAST parentNode =
+            makeSharedPtr<AST>(typeContext, type, loc, std::forward<T>(value));
+        parentNode->addChildren(std::forward<Children>(children)...);
+        return parentNode;
+    }
+
+    template <IsBaseAST ASTTypeLike, AllArePtrAST... Children>
+    static Ptr<ASTTypeLike> makeDerived(const Location &loc,
+                                        Children &&...children)
+    {
+        Ptr<ASTTypeLike> parentNode = makeSharedPtr<ASTTypeLike>(loc);
+        parentNode->addChildren(std::forward<Children>(children)...);
+        return parentNode;
+    }
+
+    template <IsBaseAST ASTTypeLike, AllArePtrAST... Children>
+    static Ptr<ASTTypeLike> makeDerived(Ptr<TypeContext> typeContext,
+                                        const Location &loc,
+                                        Children &&...children)
+    {
+        Ptr<ASTTypeLike> parentNode =
+            makeSharedPtr<ASTTypeLike>(typeContext, loc);
+        parentNode->addChildren(std::forward<Children>(children)...);
+        return parentNode;
     }
 
     ///
@@ -135,18 +151,21 @@ class AST : public std::enable_shared_from_this<AST> {
             [](Ptr<const AST>) { return true; },
         const bool copyContext = true) const;
 
-    ///
-    /// \brief [Experimental] You should call this only on FuntionDef/Decl
-    /// nodes.
-    /// \deprecated
-    ///
-    virtual std::vector<Type *> getContainedTys() const;
-
     virtual std::vector<ASTDeclEntityType> getNamedDeclEntities() const;
 
-    /// \brief [Experimental] You should call this only on FuntionDef/Decl
-    /// nodes.
-    auto getRelType() const { return relType; }
+    virtual void setLangType(Type *langType_) noexcept { langType = langType_; }
+
+    virtual void computeLangType() noexcept
+    {
+        splc_error() << "computing type on primitive AST nodes is not allowed. "
+        "Check whether this is a programming mistake.";
+    }
+
+    virtual Type *getLangType() const noexcept { return langType; }
+
+    virtual bool isTypedef() const noexcept { return false; }
+
+    virtual void setTypedef(bool isTypedef_) noexcept {}
 
     static inline bool isASTAppendable(const AST &node) noexcept
     {
@@ -229,6 +248,19 @@ class AST : public std::enable_shared_from_this<AST> {
                                     std::forward<OtherTypes>(othertypes)...);
     }
 
+    ///
+    /// \brief [Experimental] You should call this only on FuntionDef/Decl
+    /// nodes.
+    /// \deprecated
+    ///
+    auto &getContainedTys() { return containedTys; }
+
+    ///
+    /// \brief [Experimental] You should call this only on FuntionDef/Decl
+    /// nodes.
+    ///
+    auto &getContainedTys() const { return containedTys; }
+
     auto getParent() noexcept { return parent; }
 
     auto getParent() const noexcept { return parent; }
@@ -237,13 +269,13 @@ class AST : public std::enable_shared_from_this<AST> {
 
     auto isChildrenEmpty() const noexcept { return children_.empty(); }
 
-    auto &children() noexcept { return children_; }
+    auto &getChildren() noexcept { return children_; }
 
-    auto &children() const noexcept { return children_; }
+    auto &getChildren() const noexcept { return children_; }
 
-    auto &location() noexcept { return loc; }
+    auto &getLocation() noexcept { return loc; }
 
-    auto &location() const noexcept { return loc; }
+    auto &getLocation() const noexcept { return loc; }
 
     void setContext(Ptr<ASTContext> astContext_) noexcept
     {
@@ -259,7 +291,9 @@ class AST : public std::enable_shared_from_this<AST> {
   protected:
     Ptr<TypeContext> tyContext;
     ASTSymType symType;
-    Type *relType = nullptr; ///< type related to this AST, e.g., type for specifiers.
+    Type *langType =
+        nullptr; ///< type related to this AST, e.g., type for specifiers.
+    std::vector<Type *> containedTys;
     WeakPtrAST parent;
     std::vector<PtrAST> children_;
     Location loc;
@@ -270,6 +304,7 @@ class AST : public std::enable_shared_from_this<AST> {
     // Runtime Polymorphism
   public:
     // clang-format off
+
     bool isYYNTOKENS() const noexcept { return getSymType() == ASTSymType::YYNTOKENS; }
 
     bool isYYEMPTY() const noexcept { return getSymType() == ASTSymType::YYEMPTY; }
@@ -300,6 +335,10 @@ class AST : public std::enable_shared_from_this<AST> {
 
     bool isVoidTy() const noexcept { return getSymType() == ASTSymType::VoidTy; }
 
+    bool isCharTy() const noexcept { return getSymType() == ASTSymType::CharTy; }
+
+    bool isShortTy() const noexcept { return getSymType() == ASTSymType::ShortTy; }
+
     bool isIntTy() const noexcept { return getSymType() == ASTSymType::IntTy; }
 
     bool isSignedTy() const noexcept { return getSymType() == ASTSymType::SignedTy; }
@@ -311,8 +350,6 @@ class AST : public std::enable_shared_from_this<AST> {
     bool isFloatTy() const noexcept { return getSymType() == ASTSymType::FloatTy; }
 
     bool isDoubleTy() const noexcept { return getSymType() == ASTSymType::DoubleTy; }
-
-    bool isCharTy() const noexcept { return getSymType() == ASTSymType::CharTy; }
 
     bool isKwdEnum() const noexcept { return getSymType() == ASTSymType::KwdEnum; }
 
@@ -661,10 +698,23 @@ class AST : public std::enable_shared_from_this<AST> {
     bool isIDWrapper() const noexcept { return getSymType() == ASTSymType::IDWrapper; }
     // clang-format on
 
+    bool isPrimitiveType() const noexcept
+    {
+        return isVoidTy() || isCharTy() || isShortTy() || isIntTy() ||
+               isUnsignedTy() || isSignedTy() || isLongTy() || isFloatTy() ||
+               isDoubleTy();
+    }
+
+    //===----------------------------------------------------------------------===//
+    // Casts. These methods are implemented in DerivedAST.cc
+
+    Ptr<DeclSpecAST> toDeclSpecAST() noexcept;
+
+    Ptr<ParamListAST> toParamListAST() noexcept;
+
     //===----------------------------------------------------------------------===//
     // Helper Methods
   public:
-
     ///
     /// Allow stream-like operation on ASTs for processing.
     ///
@@ -706,45 +756,6 @@ class AST : public std::enable_shared_from_this<AST> {
     operator<<(std::ostream &os,
                const AST::ASTRecursivePrintManipulator &m) noexcept;
 }; // class: AST
-
-template <IsBaseAST ASTType, AllArePtrAST... Children>
-inline Ptr<ASTType> makeAST(ASTSymType type, const Location &loc,
-                            Children &&...children)
-{
-    Ptr<ASTType> parentNode = makeSharedPtr<ASTType>(type, loc);
-    parentNode->addChildren(std::forward<Children>(children)...);
-    return parentNode;
-}
-
-template <IsBaseAST ASTType, AllArePtrAST... Children>
-inline Ptr<ASTType> makeAST(Ptr<TypeContext> typeContext, ASTSymType type,
-                            const Location &loc, Children &&...children)
-{
-    Ptr<ASTType> parentNode = makeSharedPtr<ASTType>(typeContext, type, loc);
-    parentNode->addChildren(std::forward<Children>(children)...);
-    return parentNode;
-}
-
-template <IsBaseAST ASTType, IsValidASTValue T, AllArePtrAST... Children>
-inline Ptr<ASTType> makeAST(ASTSymType type, const Location &loc, T &&value,
-                            Children &&...children)
-{
-    Ptr<ASTType> parentNode =
-        makeSharedPtr<ASTType>(type, loc, std::forward<T>(value));
-    parentNode->addChildren(std::forward<Children>(children)...);
-    return parentNode;
-}
-
-template <IsBaseAST ASTType, IsValidASTValue T, AllArePtrAST... Children>
-inline Ptr<ASTType> makeAST(Ptr<TypeContext> typeContext, ASTSymType type,
-                            const Location &loc, T &&value,
-                            Children &&...children)
-{
-    Ptr<ASTType> parentNode =
-        makeSharedPtr<ASTType>(typeContext, type, loc, std::forward<T>(value));
-    parentNode->addChildren(std::forward<Children>(children)...);
-    return parentNode;
-}
 
 template <IsBaseAST T, class Functor>
     requires AllApplicableOnAST<T, Functor>

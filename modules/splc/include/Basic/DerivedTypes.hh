@@ -14,7 +14,6 @@
 #ifndef __SPLC_BASIC_DERIVEDTYPES_HH__
 #define __SPLC_BASIC_DERIVEDTYPES_HH__ 1
 
-#include "AST/ASTCommons.hh"
 #include "Core/splc.hh"
 #include <Basic/Type.hh>
 #include <iterator>

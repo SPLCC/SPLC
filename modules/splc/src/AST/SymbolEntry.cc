@@ -3,8 +3,8 @@
 namespace splc {
 
 const char *sym_ent_name_[] = {
-    "unspecified", "all",      "empty",   "Function", "StructDecl",
-    "UnionDecl",   "EnumDecl", "Typedef", "Variable",
+    "Unspecified", "All",      "Empty",   "Function", "StructDecl",
+    "UnionDecl",   "EnumDecl", "Typedef", "Variable", "Parameter",
 };
 
 std::ostream &operator<<(std::ostream &os, SymEntryType symEntTy) noexcept

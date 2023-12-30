@@ -2,6 +2,7 @@
 #define __SPLC_AST_ASTCOMMONS_HH__ 1
 
 #include <AST/ASTSymbol.hh>
+#include <Basic/DerivedTypes.hh>
 #include <Basic/TypeContext.hh>
 #include <Core/splc.hh>
 #include <iostream>
@@ -84,6 +85,8 @@ class ASTProcessor;
 
 class Value;
 
+/// When modify this, also modify corresponding name in SymbolEntry.cc
+/// for debugging purposes.
 enum class SymEntryType {
     Unspecified = 0,
     All = 1,
@@ -94,6 +97,7 @@ enum class SymEntryType {
     EnumDecl = 6,
     Typedef = 7,
     Variable = 8,
+    Paramater = 9,
 };
 
 std::ostream &operator<<(std::ostream &os, SymEntryType ty) noexcept;

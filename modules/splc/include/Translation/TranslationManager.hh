@@ -69,8 +69,11 @@ class TranslationManager {
                                const Location *location_,
                                PtrAST body_ = nullptr);
 
-    /// \brief This is just experimental.
-    void tryRegisterSymbol(PtrAST root);
+    /// \brief Try to register a symbol and process semantic error
+    ///        by TranslationManager.
+    void tryRegisterSymbol(SymEntryType symEntTy, std::string_view name_,
+                           Type *type_, bool defined_,
+                           const Location *location_, PtrAST body_ = nullptr);
 
     Ptr<TranslationContext> getCurTransCtx() noexcept
     {
@@ -161,10 +164,23 @@ class TranslationManager {
 
     Ptr<const AST> getRootNode() const { return tunit->getRootNode(); }
 
-    Ptr<TranslationUnit> getTransUnit();
+    Ptr<TranslationUnit> getTransUnit() const noexcept;
+
+    auto &getTypeVec() const noexcept { return typeVec; }
+
+    auto &getTypeVec() noexcept { return typeVec; }
+
+    auto &getNameVec() const noexcept { return nameVec; }
+
+    auto &getNameVec() noexcept { return nameVec; }
 
   protected:
     Ptr<TranslationUnit> tunit;
+
+    std::vector<std::pair<Type *, bool>>
+        typeVec; ///< type used in attribute synthesis in parser
+    std::vector<std::string>
+        nameVec; ///< type used in attribute synthesis in parser
 
     // TODO: add options
     // TODO: allow manager to retrieve include options and stuff

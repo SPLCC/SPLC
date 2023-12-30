@@ -98,6 +98,48 @@ bool Type::isSizedDerivedType() const
     return false;
 }
 
+Type *Type::getSigned() const
+{
+    if(!isIntTy())
+        return nullptr;
+    if (isSIntTy())
+        return const_cast<Type *>(this);
+
+    switch (ID) {
+    case TypeID::UInt8:
+        return getSInt8Ty(context);
+    case TypeID::UInt16:
+        return getSInt16Ty(context);
+    case TypeID::UInt32:
+        return getSInt32Ty(context);
+    case TypeID::UInt64:
+        return getSInt64Ty(context);
+    default:
+        return nullptr;
+    }
+}
+
+Type *Type::getUnsigned() const
+{
+    if(!isIntTy())
+        return nullptr;
+    if (isUIntTy())
+        return const_cast<Type *>(this);
+
+    switch (ID) {
+    case TypeID::SInt8:
+        return getUInt8Ty(context);
+    case TypeID::SInt16:
+        return getUInt16Ty(context);
+    case TypeID::SInt32:
+        return getUInt32Ty(context);
+    case TypeID::SInt64:
+        return getUInt64Ty(context);
+    default:
+        return nullptr;
+    }
+}
+
 //===----------------------------------------------------------------------===//
 //                       Primitive Type Data
 //===----------------------------------------------------------------------===//
@@ -445,6 +487,8 @@ PointerType *PointerType::get(TypeContext &C)
 PointerType::PointerType(TypeContext &C, Type *elementType_)
     : Type{C, TypeID::Pointer}, elementType{elementType_}
 {
+    numContainedTys = 1;
+    containedTys = &elementType;
 }
 
 PointerType *Type::getPointerTo() const

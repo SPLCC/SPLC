@@ -15,6 +15,9 @@ namespace splc {
 
 //// YYUNDEF-AST declaration slot
 
+//===----------------------------------------------------------------------===//
+//                              Storage Qualifiers
+//===----------------------------------------------------------------------===//
 /// KwdAuto-AST declaration slot
 
 /// KwdExtern-AST declaration slot
@@ -25,6 +28,9 @@ namespace splc {
 
 /// KwdTypedef-AST declaration slot
 
+//===----------------------------------------------------------------------===//
+//                              Type Qualifiers
+//===----------------------------------------------------------------------===//
 /// KwdConst-AST declaration slot
 
 /// KwdRestrict-AST declaration slot
@@ -33,28 +39,31 @@ namespace splc {
 
 /// KwdInline-AST declaration slot
 
-/// VoidTy-AST declaration slot
+//===----------------------------------------------------------------------===//
+//                              Type Specifiers
+//===----------------------------------------------------------------------===//
+// VoidTy
+// CharTy
+// ShortTy
+// IntTy
+// SignedTy
+// UnsignedTy
+// LongTy
+// FloatTy
+// DoubleTy
 
-/// IntTy-AST declaration slot
-
-/// SignedTy-AST declaration slot
-
-/// UnsignedTy-AST declaration slot
-
-/// LongTy-AST declaration slot
-
-/// FloatTy-AST declaration slot
-
-/// DoubleTy-AST declaration slot
-
-/// CharTy-AST declaration slot
-
+//===----------------------------------------------------------------------===//
+//                           Aggregate Type Keywords
+//===----------------------------------------------------------------------===//
 /// KwdEnum-AST declaration slot
 
 /// KwdStruct-AST declaration slot
 
 /// KwdUnion-AST declaration slot
 
+//===----------------------------------------------------------------------===//
+//                            Control-Flow Keywords
+//===----------------------------------------------------------------------===//
 /// KwdIf-AST declaration slot
 
 /// KwdElse-AST declaration slot
@@ -79,10 +88,16 @@ namespace splc {
 
 /// KwdReturn-AST declaration slot
 
+//===----------------------------------------------------------------------===//
+//                                     IDs
+//===----------------------------------------------------------------------===//
 /// ID-AST declaration slot
 
 /// TypedefID-AST declaration slot
 
+//===----------------------------------------------------------------------===//
+//                                   Operators
+//===----------------------------------------------------------------------===//
 /// OpAssign-AST declaration slot
 
 /// OpMulAssign-AST declaration slot
@@ -167,6 +182,9 @@ namespace splc {
 
 /// OpEllipsis-AST declaration slot
 
+//===----------------------------------------------------------------------===//
+//                                  Punctuators
+//===----------------------------------------------------------------------===//
 /// PSemi-AST declaration slot
 
 /// PLC-AST declaration slot
@@ -177,6 +195,9 @@ namespace splc {
 
 /// PRP-AST declaration slot
 
+//===----------------------------------------------------------------------===//
+//                                   Literals
+//===----------------------------------------------------------------------===//
 /// UIntLiteral-AST declaration slot
 
 /// SIntLiteral-AST declaration slot
@@ -187,6 +208,9 @@ namespace splc {
 
 /// StrUnit-AST declaration slot
 
+//===----------------------------------------------------------------------===//
+//                                 Expressions
+//===----------------------------------------------------------------------===//
 /// SubscriptExpr-AST declaration slot
 
 /// CallExpr-AST declaration slot
@@ -201,24 +225,9 @@ namespace splc {
 
 /// SizeOfExpr-AST declaration slot
 
-/// KwdThen-AST declaration slot
-
-/// DecltrPrec-AST declaration slot
-
-/// FuncDeclPrec-AST declaration slot
-
-/// OpUnaryPrec-AST declaration slot
-
-/// PLParen-AST declaration slot
-
-/// PRParen-AST declaration slot
-
-/// PLSBracket-AST declaration slot
-
-/// PRSBracket-AST declaration slot
-
-//// YYACCEPT-AST declaration slot
-
+//===----------------------------------------------------------------------===//
+//                                 Productions
+//===----------------------------------------------------------------------===//
 /// ParseRoot-AST declaration slot
 
 /// TransUnit-AST declaration slot
@@ -228,6 +237,35 @@ namespace splc {
 /// ExternDecl-AST declaration slot
 
 /// DeclSpec-AST declaration slot
+class DeclSpecAST : public AST {
+    Type *builtInComputeLangType() noexcept;
+
+    bool isTypedef_ = false;
+
+  public:
+    DeclSpecAST(const Location &loc_) noexcept : AST{ASTSymType::DeclSpec, loc_}
+    {
+    }
+
+    DeclSpecAST(Ptr<TypeContext> typeContext_, const Location &loc_) noexcept
+        : AST{typeContext_, ASTSymType::DeclSpec, loc_}
+    {
+    }
+
+    /// Compute the base type of this declaration specifier, and return the
+    /// computed type entry.
+    virtual void computeLangType() noexcept override
+    {
+        setLangType(builtInComputeLangType());
+    }
+
+    virtual bool isTypedef() const noexcept override { return isTypedef_; }
+
+    virtual void setTypedef(bool isTyDef) noexcept override
+    {
+        isTypedef_ = isTyDef;
+    }
+};
 
 /// StorageSpec-AST declaration slot
 
@@ -273,9 +311,91 @@ namespace splc {
 
 /// Decltr-AST declaration slot
 
+class DecltrAST : public AST {
+    Type *builtInComputeLangType() noexcept;
+
+  public:
+    DecltrAST(const Location &loc_) noexcept : AST{ASTSymType::Decltr, loc_} {}
+
+    DecltrAST(Ptr<TypeContext> typeContext_, const Location &loc_) noexcept
+        : AST{typeContext_, ASTSymType::Decltr, loc_}
+    {
+    }
+
+    virtual void computeLangType() noexcept override
+    {
+        setLangType(builtInComputeLangType());
+    }
+};
+
 /// DirDecltr-AST declaration slot
 
+class DirDecltrAST : public AST {
+    Type *builtInComputeLangType() noexcept;
+
+    Type *baseType{nullptr};
+
+  public:
+    DirDecltrAST(const Location &loc_) noexcept
+        : AST{ASTSymType::DirDecltr, loc_}
+    {
+    }
+
+    DirDecltrAST(Ptr<TypeContext> typeContext_, const Location &loc_) noexcept
+        : AST{typeContext_, ASTSymType::DirDecltr, loc_}
+    {
+    }
+
+    template <IsPtrAST... Children>
+    static Ptr<DirDecltrAST> make(Ptr<TypeContext> tyContext_,
+                                  const Location &loc,
+                                  Children... children) noexcept
+    {
+        auto ptr = AST::makeDerived<DirDecltrAST>(
+            tyContext_, loc, std::forward<Children>(children)...);
+        ptr->computeLangType();
+        return ptr;
+    }
+
+    template <IsPtrAST... Children>
+    static Ptr<DirDecltrAST> make(Ptr<TypeContext> tyContext_, Type *baseTy,
+                                  const Location &loc,
+                                  Children... children) noexcept
+    {
+        auto ptr = make(tyContext_, loc, std::forward<Children>(children)...);
+        ptr->baseType = baseTy;
+        ptr->computeLangType();
+        return ptr;
+    }
+
+    virtual void computeLangType() noexcept override
+    {
+        setLangType(builtInComputeLangType());
+    }
+};
+
 /// WrappedDirDecltr-AST declaration slot
+
+class WrappedDirDecltrAST : public AST {
+    Type *builtInComputeLangType() noexcept;
+
+  public:
+    WrappedDirDecltrAST(const Location &loc_) noexcept
+        : AST{ASTSymType::WrappedDirDecltr, loc_}
+    {
+    }
+
+    WrappedDirDecltrAST(Ptr<TypeContext> typeContext_,
+                        const Location &loc_) noexcept
+        : AST{typeContext_, ASTSymType::WrappedDirDecltr, loc_}
+    {
+    }
+
+    virtual void computeLangType() noexcept override
+    {
+        setLangType(builtInComputeLangType());
+    }
+};
 
 /// TypeQualList-AST declaration slot
 
@@ -311,7 +431,44 @@ namespace splc {
 
 /// ParamList-AST declaration slot
 
+class ParamListAST : public AST {
+    void builtInComputeLangType() noexcept;
+
+  public:
+    ParamListAST(const Location &loc_) noexcept
+        : AST{ASTSymType::ParamList, loc_}
+    {
+    }
+
+    ParamListAST(Ptr<TypeContext> typeContext_, const Location &loc_) noexcept
+        : AST{typeContext_, ASTSymType::ParamList, loc_}
+    {
+    }
+
+    virtual void addChild(PtrAST child) noexcept override;
+};
+
 /// ParamDecltr-AST declaration slot
+
+class ParamDecltrAST : public AST {
+    Type *builtInComputeLangType() noexcept;
+
+  public:
+    ParamDecltrAST(const Location &loc_) noexcept
+        : AST{ASTSymType::ParamDecltr, loc_}
+    {
+    }
+
+    ParamDecltrAST(Ptr<TypeContext> typeContext_, const Location &loc_) noexcept
+        : AST{typeContext_, ASTSymType::ParamDecltr, loc_}
+    {
+    }
+
+    virtual void computeLangType() noexcept override
+    {
+        setLangType(builtInComputeLangType());
+    }
+};
 
 /// CompStmt-AST declaration slot
 

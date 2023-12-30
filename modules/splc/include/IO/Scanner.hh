@@ -1,7 +1,7 @@
 #ifndef __SPLC_IO_SCANNER_HH__
 #define __SPLC_IO_SCANNER_HH__ 1
 
-#include "Core/splc.hh"
+#include "IO/IOBase.hh"
 #include "IO/Parser.hh"
 #include "Translation/TranslationContext.hh"
 #include "Translation/TranslationManager.hh"

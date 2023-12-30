@@ -107,8 +107,10 @@ class Type {
         os << "" << type.getName();
         if (type.numContainedTys > 0) {
             os << " (";
-            for (Type *p : type.subtypes()) {
-                os << *p << ", ";
+            for (auto it = type.subtype_begin(); it != type.subtype_end(); ++it) {
+                os << **it;
+                if (it + 1 != type.subtype_end())
+                    os << ", ";
             }
             os << ")";
         }
@@ -276,6 +278,12 @@ class Type {
     static Type *getSInt32Ty(TypeContext &C);
     static Type *getUInt64Ty(TypeContext &C);
     static Type *getSInt64Ty(TypeContext &C);
+
+    /// Return a signed type of the current type.
+    Type *getSigned() const;
+
+    /// Return an unsigned type of the current type.
+    Type *getUnsigned() const;
 
     /// Return a pointer to the current type.
     PointerType *getPointerTo() const;
