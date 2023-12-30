@@ -5,20 +5,20 @@ using namespace splc;
 
 void IRBuilder::parseAST(PtrAST parseRoot)
 {
-    if (parseRoot->getSymbolType() == ASTSymbolType::FuncDef) {
+    if (parseRoot->isFuncDef()) {
         registerFunction(parseRoot);
     }
     else {
         for (auto &child : parseRoot->getChildren()) {
-            if (isASTSymbolTypeOneOfThem(
-                    child->getSymbolType(), ASTSymbolType::ParseRoot,
-                    ASTSymbolType::TransUnit, ASTSymbolType::ExternDeclList,
-                    ASTSymbolType::ExternDecl, ASTSymbolType::FuncDef)) {
+            if (child->isSymTypeOneOf(
+                    ASTSymType::ParseRoot, ASTSymType::TransUnit,
+                    ASTSymType::ExternDeclList, ASTSymType::ExternDecl,
+                    ASTSymType::FuncDef)) {
                 parseAST(child);
             }
             else {
                 // TODO
-                splc_error() << "unsupported type: " << child->getSymbolType()
+                splc_error() << "unsupported type: " << child->getSymType()
                              << "\nat " << child->getLocation();
                 splc_unreachable();
             }
@@ -32,7 +32,7 @@ void IRBuilder::registerFunction(PtrAST funcRoot)
     IRIDType funcID = funcRoot->getChildren()[1]
                           ->getChildren()[0]
                           ->getChildren()[0]
-                          ->getValue<IRIDType>();
+                          ->getConstVal<IRIDType>();
 
     // assume SInt32Ty
     Ptr<IRFunction> function = IRFunction::create(funcID, &tyCtxt.SInt32Ty);
@@ -78,24 +78,24 @@ void IRBuilder::registerFunction(PtrAST funcRoot)
 PtrIRVar IRBuilder::recRegisterExprs(IRVec<PtrIRStmt> &stmtList,
                                      PtrAST exprRoot)
 {
-    if (exprRoot->getSymbolType() == ASTSymbolType::CallExpr) {
+    if (exprRoot->isCallExpr()) {
         return recRegisterCallExpr(stmtList, exprRoot);
     }
 
     if (exprRoot->getChildrenNum() == 1) {
         PtrAST child = exprRoot->getChildren()[0];
-        switch (child->getSymbolType()) {
-        case ASTSymbolType::ExprStmt:
-        case ASTSymbolType::Expr:
-        case ASTSymbolType::CallExpr: {
+        switch (child->getSymType()) {
+        case ASTSymType::ExprStmt:
+        case ASTSymType::Expr:
+        case ASTSymType::CallExpr: {
             return recRegisterExprs(stmtList, child);
         }
-        case ASTSymbolType::Constant: {
+        case ASTSymType::Constant: {
             return IRVar::createConstantVar(
                 &tyCtxt.SInt32Ty, child->getChildren()[0]->getVariant());
         }
-        case ASTSymbolType::ID: {
-            auto it = varMap.find(child->getValue<IRIDType>());
+        case ASTSymType::ID: {
+            auto it = varMap.find(child->getConstVal<IRIDType>());
             splc_dbgassert(it != varMap.end());
             return it->second;
         }
@@ -106,7 +106,7 @@ PtrIRVar IRBuilder::recRegisterExprs(IRVec<PtrIRStmt> &stmtList,
     }
     else if (exprRoot->getChildrenNum() == 2) {
         IRVec<PtrAST> children = exprRoot->getChildren();
-        if (children[0]->getSymbolType() == ASTSymbolType::OpMinus) {
+        if (children[0]->isOpMinus()) {
             PtrIRVar var = recRegisterExprs(stmtList, children[1]);
             var->val = -static_cast<ASTSIntType>(var->getValue<ASTUIntType>());
             return var;
@@ -116,37 +116,37 @@ PtrIRVar IRBuilder::recRegisterExprs(IRVec<PtrIRStmt> &stmtList,
         }
     }
     else if (exprRoot->getChildrenNum() == 3) {
-        ASTSymbolType opType = exprRoot->getChildren()[1]->getSymbolType();
+        ASTSymType opType = exprRoot->getChildren()[1]->getSymType();
         PtrAST exprL = exprRoot->getChildren()[0];
         PtrAST exprR = exprRoot->getChildren()[2];
 
         PtrIRVar lhs = recRegisterExprs(stmtList, exprL);
         PtrIRVar rhs = recRegisterExprs(stmtList, exprR);
 
-        if (opType == ASTSymbolType::OpAssign) {
-            splc_dbgassert(exprL->getChildren()[0]->getSymbolType() ==
-                           ASTSymbolType::ID);
+        if (opType == ASTSymType::OpAssign) {
+            splc_dbgassert(exprL->getChildren()[0]->getSymType() ==
+                           ASTSymType::ID);
             stmtList.push_back(IRStmt::createAssignStmt(lhs, rhs));
             return lhs;
         }
-        else if (isASTSymbolTypeOneOfThem(
-                     opType, ASTSymbolType::OpPlus, ASTSymbolType::OpMinus,
-                     ASTSymbolType::OpAstrk, ASTSymbolType::OpDiv)) {
+        else if (isASTSymbolTypeOneOf(
+                     opType, ASTSymType::OpPlus, ASTSymType::OpMinus,
+                     ASTSymType::OpAstrk, ASTSymType::OpDiv)) {
             IRType arithmeticType;
             switch (opType) {
-            case ASTSymbolType::OpPlus: {
+            case ASTSymType::OpPlus: {
                 arithmeticType = IRType::Plus;
                 break;
             }
-            case ASTSymbolType::OpMinus: {
+            case ASTSymType::OpMinus: {
                 arithmeticType = IRType::Minus;
                 break;
             }
-            case ASTSymbolType::OpAstrk: {
+            case ASTSymType::OpAstrk: {
                 arithmeticType = IRType::Mul;
                 break;
             }
-            case ASTSymbolType::OpDiv: {
+            case ASTSymType::OpDiv: {
                 arithmeticType = IRType::Div;
                 break;
             }
@@ -159,11 +159,11 @@ PtrIRVar IRBuilder::recRegisterExprs(IRVec<PtrIRStmt> &stmtList,
                 IRStmt::createArithmeticStmt(arithmeticType, res, lhs, rhs));
             return res;
         }
-        else if (isASTSymbolTypeOneOfThem(
-                     opType, ASTSymbolType::OpLT, ASTSymbolType::OpLE,
-                     ASTSymbolType::OpGT, ASTSymbolType::OpGE,
-                     ASTSymbolType::OpEQ, ASTSymbolType::OpNE,
-                     ASTSymbolType::OpAnd, ASTSymbolType::OpOr)) {
+        else if (isASTSymbolTypeOneOf(
+                     opType, ASTSymType::OpLT, ASTSymType::OpLE,
+                     ASTSymType::OpGT, ASTSymType::OpGE,
+                     ASTSymType::OpEQ, ASTSymType::OpNE,
+                     ASTSymType::OpAnd, ASTSymType::OpOr)) {
             PtrIRVar lb1 = getTmpLabel();
             PtrIRVar lb2 = getTmpLabel();
 
@@ -193,41 +193,41 @@ void IRBuilder::recRegisterCondExpr(IRVec<PtrIRStmt> &stmtList, PtrAST stmtRoot,
 {
     IRVec<PtrAST> children = stmtRoot->getChildren();
     if (children.size() == 2 &&
-        children[0]->getSymbolType() == ASTSymbolType::OpNot) {
+        children[0]->getSymType() == ASTSymType::OpNot) {
         recRegisterCondExpr(stmtList, children[1], lbf, lbt);
     }
     else if (children.size() == 3) {
-        ASTSymbolType opType = children[1]->getSymbolType();
+        ASTSymType opType = children[1]->getSymType();
         PtrAST exprL = children[0];
         PtrAST exprR = children[2];
 
-        if (isASTSymbolTypeOneOfThem(opType, ASTSymbolType::OpLT,
-                                     ASTSymbolType::OpLE, ASTSymbolType::OpGT,
-                                     ASTSymbolType::OpGE, ASTSymbolType::OpEQ,
-                                     ASTSymbolType::OpNE)) {
+        if (isASTSymbolTypeOneOf(opType, ASTSymType::OpLT,
+                                     ASTSymType::OpLE, ASTSymType::OpGT,
+                                     ASTSymType::OpGE, ASTSymType::OpEQ,
+                                     ASTSymType::OpNE)) {
             IRBranchType bType;
             switch (opType) {
-            case ASTSymbolType::OpLT: {
+            case ASTSymType::OpLT: {
                 bType = IRBranchType::LT;
                 break;
             }
-            case ASTSymbolType::OpLE: {
+            case ASTSymType::OpLE: {
                 bType = IRBranchType::LE;
                 break;
             }
-            case ASTSymbolType::OpGT: {
+            case ASTSymType::OpGT: {
                 bType = IRBranchType::GT;
                 break;
             }
-            case ASTSymbolType::OpGE: {
+            case ASTSymType::OpGE: {
                 bType = IRBranchType::GE;
                 break;
             }
-            case ASTSymbolType::OpEQ: {
+            case ASTSymType::OpEQ: {
                 bType = IRBranchType::EQ;
                 break;
             }
-            case ASTSymbolType::OpNE: {
+            case ASTSymType::OpNE: {
                 bType = IRBranchType::NE;
                 break;
             }
@@ -242,13 +242,13 @@ void IRBuilder::recRegisterCondExpr(IRVec<PtrIRStmt> &stmtList, PtrAST stmtRoot,
                 IRStmt::createBranchIfStmt(bType, lhs, rhs, lbt));
             stmtList.push_back(IRStmt::createGotoStmt(lbf));
         }
-        else if (opType == ASTSymbolType::OpAnd) {
+        else if (opType == ASTSymType::OpAnd) {
             PtrIRVar lb = getTmpLabel();
             recRegisterCondExpr(stmtList, exprL, lb, lbf);
             stmtList.push_back(IRStmt::createLabelStmt(lb));
             recRegisterCondExpr(stmtList, exprR, lbt, lbf);
         }
-        else if (opType == ASTSymbolType::OpOr) {
+        else if (opType == ASTSymType::OpOr) {
             PtrIRVar lb = getTmpLabel();
             recRegisterCondExpr(stmtList, exprL, lbt, lb);
             stmtList.push_back(IRStmt::createLabelStmt(lb));
@@ -264,7 +264,7 @@ PtrIRVar IRBuilder::recRegisterCallExpr(IRVec<PtrIRStmt> &stmtList,
                                         PtrAST exprRoot)
 {
     IRIDType funcID =
-        exprRoot->getChildren()[0]->getChildren()[0]->getValue<IRIDType>();
+        exprRoot->getChildren()[0]->getChildren()[0]->getConstVal<IRIDType>();
 
     PtrAST argAST = exprRoot->getChildren()[1];
     SPLC_LOG_DEBUG(nullptr, false) << "evaluating CallExpr: " << funcID;
@@ -304,42 +304,42 @@ PtrIRVar IRBuilder::recRegisterCallExpr(IRVec<PtrIRStmt> &stmtList,
 
 void IRBuilder::recRegisterStmts(IRVec<PtrIRStmt> &stmtList, PtrAST stmtRoot)
 {
-    SPLC_LOG_DEBUG(nullptr, false) << "dispatch: " << stmtRoot->getSymbolType();
-    if (isASTSymbolTypeOneOfThem(stmtRoot->getSymbolType(),
-                                 ASTSymbolType::GeneralStmtList,
-                                 ASTSymbolType::CompStmt)) {
+    SPLC_LOG_DEBUG(nullptr, false) << "dispatch: " << stmtRoot->getSymType();
+    if (isASTSymbolTypeOneOf(stmtRoot->getSymType(),
+                                 ASTSymType::GeneralStmtList,
+                                 ASTSymType::CompStmt)) {
         for (auto &child : stmtRoot->getChildren()) {
             recRegisterStmts(stmtList, child);
         }
     }
-    else if (stmtRoot->getSymbolType() == ASTSymbolType::Decl) {
+    else if (stmtRoot->getSymType() == ASTSymType::Decl) {
         // ASSIGN INITIAL VALUES, IF NONCONSTEXPR
         recRegisterDeclVar(stmtList, stmtRoot);
     }
-    else if (stmtRoot->getSymbolType() == ASTSymbolType::Stmt) {
+    else if (stmtRoot->getSymType() == ASTSymType::Stmt) {
         PtrAST realStmt = stmtRoot->getChildren()[0];
-        switch (realStmt->getSymbolType()) {
-        case ASTSymbolType::CompStmt: {
+        switch (realStmt->getSymType()) {
+        case ASTSymType::CompStmt: {
             recRegisterStmts(stmtList, realStmt);
             break;
         }
-        case ASTSymbolType::ExprStmt: {
+        case ASTSymType::ExprStmt: {
             recRegisterExprs(stmtList, realStmt);
             break;
         }
-        case ASTSymbolType::IterStmt: {
+        case ASTSymType::IterStmt: {
             recRegisterIterStmt(stmtList, realStmt);
             break;
         }
-        case ASTSymbolType::SelStmt: {
+        case ASTSymType::SelStmt: {
             recRegisterSelStmt(stmtList, realStmt);
             break;
         }
-        case ASTSymbolType::LabeledStmt: {
+        case ASTSymType::LabeledStmt: {
             splc_error() << "Not implement.\n";
             break;
         }
-        case ASTSymbolType::JumpStmt: {
+        case ASTSymType::JumpStmt: {
             recRegisterJumpStmt(stmtList, realStmt);
             break;
         }
@@ -355,7 +355,7 @@ void IRBuilder::recRegisterIterStmt(IRVec<PtrIRStmt> &stmtList, PtrAST stmtRoot)
     // CHECK: WHILE
     // KwdWhild Expr Stmt
     IRVec<PtrAST> children = stmtRoot->getChildren();
-    splc_dbgassert(children[0]->getSymbolType() == ASTSymbolType::KwdWhile);
+    splc_dbgassert(children[0]->getSymType() == ASTSymType::KwdWhile);
 
     // TODO: reverse op to optimize
     PtrIRVar lb1 = getTmpLabel();
@@ -381,7 +381,7 @@ void IRBuilder::recRegisterIterStmt(IRVec<PtrIRStmt> &stmtList, PtrAST stmtRoot)
 void IRBuilder::recRegisterSelStmt(IRVec<PtrIRStmt> &stmtList, PtrAST stmtRoot)
 {
     IRVec<PtrAST> children = stmtRoot->getChildren();
-    splc_dbgassert(children[0]->getSymbolType() == ASTSymbolType::KwdIf);
+    splc_dbgassert(children[0]->getSymType() == ASTSymType::KwdIf);
 
     // TODO: reverse op to optimize
     PtrIRVar lb1 = getTmpLabel();
@@ -415,7 +415,7 @@ void IRBuilder::recRegisterSelStmt(IRVec<PtrIRStmt> &stmtList, PtrAST stmtRoot)
 void IRBuilder::recRegisterJumpStmt(IRVec<PtrIRStmt> &stmtList, PtrAST stmtRoot)
 {
     IRVec<PtrAST> children = stmtRoot->getChildren();
-    splc_dbgassert(children[0]->getSymbolType() == ASTSymbolType::KwdReturn &&
+    splc_dbgassert(children[0]->getSymType() == ASTSymType::KwdReturn &&
                    children.size() == 2);
     PtrIRVar var = recRegisterExprs(stmtList, children[1]);
     stmtList.push_back(IRStmt::createReturnStmt(var));
@@ -424,29 +424,29 @@ void IRBuilder::recRegisterJumpStmt(IRVec<PtrIRStmt> &stmtList, PtrAST stmtRoot)
 void IRBuilder::recRegisterDeclVar(IRVec<PtrIRStmt> &stmtList, PtrAST declRoot)
 {
     // TODO
-    if (isASTSymbolTypeOneOfThem(declRoot->getSymbolType(),
-                                 ASTSymbolType::Decl)) {
+    if (isASTSymbolTypeOneOf(declRoot->getSymType(),
+                                 ASTSymType::Decl)) {
         recRegisterDeclVar(stmtList, declRoot->getChildren()[0]);
     }
-    else if (declRoot->getSymbolType() == ASTSymbolType::DirDecl) {
+    else if (declRoot->getSymType() == ASTSymType::DirDecl) {
         splc_dbgassert(declRoot->getChildrenNum() == 2);
         for (auto &initDecltr : declRoot->getChildren()[1]->getChildren()) {
             PtrAST decltr = initDecltr->getChildren()[0];
 
-            if (decltr->getChildren()[0]->getSymbolType() ==
-                ASTSymbolType::DirDecltr) {
+            if (decltr->getChildren()[0]->getSymType() ==
+                ASTSymType::DirDecltr) {
                 IRIDType id = decltr->getChildren()[0]
                                   ->getChildren()[0]
-                                  ->getValue<IRIDType>();
+                                  ->getConstVal<IRIDType>();
                 auto it = varMap.find(id);
                 splc_dbgassert(it == varMap.end())
-                    << " redefinition id in varMap: " << id;
+                    << "redefinition of id in varMap: " << id;
                 PtrIRVar var = IRVar::createVariableVar(id, &tyCtxt.SInt32Ty);
 
                 varList.push_back(var);
                 varMap.insert({id, var});
                 SPLC_LOG_DEBUG(nullptr, false)
-                    << " defined id in varMap: " << id;
+                    << "defined id in varMap: " << id;
 
                 // Process initializer, if any
                 if (initDecltr->getChildrenNum() == 3) {
@@ -454,10 +454,6 @@ void IRBuilder::recRegisterDeclVar(IRVec<PtrIRStmt> &stmtList, PtrAST declRoot)
                         stmtList, initDecltr->getChildren()[2]);
                     stmtList.push_back(IRStmt::createAssignStmt(var, init));
                 }
-            }
-            else if (declRoot->getChildren()[0]->getSymbolType() ==
-                     ASTSymbolType::PtrDecltr) {
-                splc_error() << "Not support pointer decltr\n";
             }
             else {
                 splc_error();

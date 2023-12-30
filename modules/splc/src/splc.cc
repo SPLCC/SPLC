@@ -42,7 +42,7 @@ int main(const int argc, const char **argv)
 
     splc::IRBuilder irBuilder{*tunit->getTypeContext()};
 
-    irBuilder.parseAST(astRoot);
+    irBuilder.parseAST(node);
     // std::ofstream fout;
     // fout.open("a.ir");
 

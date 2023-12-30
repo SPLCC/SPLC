@@ -15,7 +15,8 @@ class IRBuilder {
   public:
     IRBuilder(TypeContext &C) : tyCtxt(C) {}
 
-    void writeAllIRStmt(std::ostream &os) {
+    void writeAllIRStmt(std::ostream &os)
+    {
         for (const auto &func : funcMap) {
             os << *func.second << "\n";
         }
@@ -71,24 +72,24 @@ class IRBuilderHelper {
   protected:
     static void _recfindFuncParam(IRVec<IRIDType> &vec, PtrAST funcRoot)
     {
-        ASTSymbolType type = funcRoot->getSymbolType();
-        if (type == ASTSymbolType::FuncDef && funcRoot->getChildrenNum() == 3) {
+        ASTSymType type = funcRoot->getSymType();
+        if (type == ASTSymType::FuncDef && funcRoot->getChildrenNum() == 3) {
             _recfindFuncParam(vec, funcRoot->getChildren()[1]);
         }
-        else if (type == ASTSymbolType::DirFuncDecltr) {
+        else if (type == ASTSymType::DirFuncDecltr) {
             _recfindFuncParam(vec, funcRoot->getChildren()[1]);
         }
-        else if (isASTSymbolTypeOneOfThem(type, ASTSymbolType::FuncDecltr,
-                                          ASTSymbolType::ParamTypeList)) {
+        else if (isASTSymbolTypeOneOf(type, ASTSymType::FuncDecltr,
+                                      ASTSymType::ParamTypeList)) {
             _recfindFuncParam(vec, funcRoot->getChildren()[0]);
         }
-        else if (type == ASTSymbolType::ParamList) {
+        else if (type == ASTSymType::ParamList) {
             for (auto &param : funcRoot->getChildren()) {
                 // ParamDecltr
                 vec.push_back(param->getChildren()[1]
                                   ->getChildren()[0]
                                   ->getChildren()[0]
-                                  ->getValue<IRIDType>());
+                                  ->getConstVal<IRIDType>());
             }
         }
     }

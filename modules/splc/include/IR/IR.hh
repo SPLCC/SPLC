@@ -1,8 +1,8 @@
 #ifndef __SPLC_IR_IR_HH__
 #define __SPLC_IR_IR_HH__ 1
 
-#include <AST/AST.hh>
-#include <AST/Type.hh>
+#include <AST/DerivedAST.hh>
+#include <Basic/Type.hh>
 #include <Core/splc.hh>
 
 #include <ranges>
