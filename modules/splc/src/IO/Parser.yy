@@ -577,7 +577,7 @@ FuncDecltr:
 
 DirFuncDecltr:
       DirDecltrForFunc DirFuncDecltrBegin PLP
-      ParamTypeList PRP { $$ = AST::make(tyCtx, SymType::DirFuncDecltr, @$, $1, $3); }
+      ParamTypeList PRP { $$ = AST::make(tyCtx, SymType::DirFuncDecltr, @$, $DirDecltrForFunc, $ParamTypeList); }
     /* | direct-declarator-for-function PLP PRP {} */
 
     /* | direct-declarator-for-function PLP error {} */
@@ -640,7 +640,7 @@ ParamDecltr:
 CompStmt:
       /* PLC general-statement-list PRC */
       PLC ComptStmtBegin GeneralStmtList PRC {
-          $$ = AST::make(tyCtx, SymType::CompStmt, @$, $2);
+          $$ = AST::make(tyCtx, SymType::CompStmt, @$, $GeneralStmtList);
           $$->setContext(transMgr.getASTCtxMgr()[0]);
           transMgr.popASTCtx();
       }
