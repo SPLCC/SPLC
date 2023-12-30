@@ -734,7 +734,7 @@ class AST : public std::enable_shared_from_this<AST> {
     ///
     /// Print information of this single node.
     ///
-    friend std::ostream &operator<<(std::ostream &os, const AST &node);
+    friend std::ostream &operator<<(std::ostream &os, const AST &node) noexcept;
 
     class ASTRecursivePrintManipulator {
       public:
@@ -769,56 +769,6 @@ template <IsBaseAST T, class... Functors>
 inline T &&applyASTTransform(T &&node, Functors &&...functors)
 {
     return (functors(std::forward<T>(node)), ...);
-}
-
-inline std::ostream &operator<<(std::ostream &os, const AST &node)
-{
-    using utils::logging::ControlSeq;
-
-    // print node type
-    os << ControlSeq::Bold << getASTSymbolColor(node.symType)
-       << getASTSymbolName(node.symType) << ControlSeq::Reset;
-
-    // TODO: print node address (allocated)
-
-    // print node location
-    os << " <" << ControlSeq::BrightYellow;
-    if (auto cid = node.loc.begin.contextID;
-        cid != Location::invalidContextID) {
-        // TODO: revise this
-        if (!astPrintMap.contains(cid)) {
-            astPrintMap.insert(cid);
-            os << node.loc;
-        }
-        else {
-            os << node.loc.begin.line << "." << node.loc.begin.column << "-";
-            os << node.loc.end.line << "." << node.loc.end.column;
-        }
-    }
-    else {
-        os << "<invalid sloc>";
-    }
-    os << ControlSeq::Reset << ">";
-
-    // print node content
-    // TODO: print symbol table
-
-    // print node value
-    if (node.hasConstVal()) {
-        // template magic
-        // TODO: add support for other types
-        os << " ";
-        os << getASTSymbolColor(node.symType);
-        node.visitConstVal(overloaded{
-            [&](const auto arg) {}, [&](ASTCharType arg) { os << arg; },
-            [&](ASTSIntType arg) { os << arg; },
-            [&](ASTUIntType arg) { os << arg; },
-            [&](ASTFloatType arg) { os << arg; },
-            [&](const ASTIDType &arg) { os << arg; }});
-        os << ControlSeq::Reset;
-    }
-
-    return os;
 }
 
 inline AST::ASTRecursivePrintManipulator

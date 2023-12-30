@@ -96,6 +96,7 @@ class Type {
     TypeContext &context;
     TypeID ID;
     unsigned subClassData;
+    // bool constTy;
 
   public:
     virtual ~Type() = default;
@@ -171,6 +172,8 @@ class Type {
         return isSInt8Ty() || isSInt16Ty() || isSInt32Ty() || isSInt64Ty();
     }
 
+    // bool isConstTy() const { return constTy; }
+
     bool isIntTy() const { return isUIntTy() || isSIntTy() || isInt1Ty(); }
 
     bool isFunctionTy() const { return getTypeID() == TypeID::Function; }
@@ -187,7 +190,7 @@ class Type {
 
     /// Return true if the type is "first class", meaning it is a valid type for
     /// a Value.
-    bool isFirstClassymType() const { return !isFunctionTy() && !isVoidTy(); }
+    bool isFirstClassType() const { return !isFunctionTy() && !isVoidTy(); }
 
     /// Return true if the type is a valid type for a register in codegen. This
     /// includes all first-class types except struct and array types.
@@ -287,6 +290,9 @@ class Type {
 
     /// Return a pointer to the current type.
     PointerType *getPointerTo() const;
+
+    /// Return a const version of the current type.
+    // Type *getConstTy() const;
 
   private:
     bool isSizedDerivedType() const;

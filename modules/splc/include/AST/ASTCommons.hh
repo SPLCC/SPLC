@@ -66,7 +66,7 @@ using ASTPrintMap = std::set<utils::Location::ContextIDType>;
 extern thread_local ASTPrintMap
     astPrintMap; // TODO: try another way. Internal method.
 
-void resetASTPrintMapContext();
+void resetASTPrintMapContext() noexcept;
 
 class ASTHelper;
 

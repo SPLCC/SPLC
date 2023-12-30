@@ -1,13 +1,13 @@
 #include "AST/ASTBase.hh"
+#include "AST/ASTContextManager.hh"
 #include "Core/Base.hh"
 #include "Core/splc.hh"
-
 #include <algorithm>
 #include <iterator>
 
-using namespace splc;
+namespace splc {
 
-thread_local ASTPrintMap splc::astPrintMap;
+thread_local ASTPrintMap astPrintMap;
 
 void resetASTPrintMapContext() noexcept { astPrintMap.clear(); }
 
@@ -49,6 +49,61 @@ PtrAST AST::copy(const std::function<bool(Ptr<const AST>)> &predicate,
     return ret;
 }
 
+std::ostream &operator<<(std::ostream &os, const AST &node) noexcept
+{
+    using utils::logging::ControlSeq;
+
+    // print node type
+    os << ControlSeq::Bold << getASTSymbolColor(node.symType)
+       << getASTSymbolName(node.symType) << ControlSeq::Reset;
+
+    // TODO: print node address (allocated)
+
+    // print node location
+    os << " <" << ControlSeq::BrightYellow;
+    if (auto cid = node.loc.begin.contextID;
+        cid != Location::invalidContextID) {
+        // TODO: revise this
+        if (!astPrintMap.contains(cid)) {
+            astPrintMap.insert(cid);
+            os << node.loc;
+        }
+        else {
+            os << node.loc.begin.line << "." << node.loc.begin.column << "-";
+            os << node.loc.end.line << "." << node.loc.end.column;
+        }
+    }
+    else {
+        os << "<invalid sloc>";
+    }
+    os << ControlSeq::Reset << ">";
+
+    // print node content
+    // TODO: print symbol table
+    if (node.getContext()) {
+        os << " with ";
+        const auto &ctx = *node.getContext();
+        printASTCtxSummary(os, ctx);
+    }
+
+    // print node value
+    if (node.hasConstVal()) {
+        // template magic
+        // TODO: add support for other types
+        os << " , val: ";
+        os << getASTSymbolColor(node.symType);
+        node.visitConstVal(overloaded{
+            [&](const auto arg) {}, [&](ASTCharType arg) { os << arg; },
+            [&](ASTSIntType arg) { os << arg; },
+            [&](ASTUIntType arg) { os << arg; },
+            [&](ASTFloatType arg) { os << arg; },
+            [&](const ASTIDType &arg) { os << arg; }});
+        os << ControlSeq::Reset;
+    }
+
+    return os;
+}
+
 PtrAST ASTHelper::makeDeclSpecifierTree(const Location &loc,
                                         ASTSymType specSymbolType)
 {
@@ -58,3 +113,5 @@ PtrAST ASTHelper::makeDeclSpecifierTree(const Location &loc,
     auto declSpec = AST::make(ASTSymType::DeclSpec, loc, typeSpec);
     return declSpec;
 }
+
+} // namespace splc

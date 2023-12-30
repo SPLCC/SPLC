@@ -246,7 +246,7 @@ bool FunctionType::isValidReturnType(Type *retTy)
 
 bool FunctionType::isValidArgumentType(Type *argTy)
 {
-    return argTy->isFirstClassymType();
+    return argTy->isFirstClassType();
 }
 
 //===----------------------------------------------------------------------===//
@@ -495,6 +495,11 @@ PointerType *Type::getPointerTo() const
 {
     return PointerType::get(const_cast<Type *>(this));
 }
+
+// Type *Type::getConstTy() const
+// {
+
+// }
 
 bool PointerType::isValidElementType(Type *elementType_)
 {

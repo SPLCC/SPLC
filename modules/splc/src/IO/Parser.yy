@@ -44,6 +44,7 @@
 
     using SymType = splc::ASTSymType;
     using Type = splc::Type;
+    using CS = splc::utils::logging::ControlSeq;
 
     #undef yylex
     #define yylex scanner.yylex
@@ -738,9 +739,19 @@ IterStmt:
     | KwdDo Stmt KwdWhile PLP Expr PRP PSemi { $$ = AST::make(tyCtx, SymType::IterStmt, @$, $KwdDo, $Stmt, $KwdWhile, $Expr); }
     | KwdDo Stmt KwdWhile PLP error PSemi {}
 
-    | KwdFor PLP ForLoopBody PRP Stmt { $$ = AST::make(tyCtx, SymType::IterStmt, @$, $KwdFor, $ForLoopBody, $Stmt); }
-    | KwdFor PLP ForLoopBody PRP error {}
-    | KwdFor PLP ForLoopBody error {}
+    | KwdFor ForLoopCtxBegin PLP ForLoopBody PRP Stmt {
+          $$ = AST::make(tyCtx, SymType::IterStmt, @$, $KwdFor, $ForLoopBody, $Stmt);
+          $$->setContext(transMgr.getASTCtxMgr()[0]);
+          transMgr.popASTCtx();
+      }
+    | KwdFor ForLoopCtxBegin PLP ForLoopBody PRP error {}
+    | KwdFor ForLoopCtxBegin PLP ForLoopBody error {}
+    ;
+
+ForLoopCtxBegin:
+      /* Empty */{
+          transMgr.pushASTCtx();
+      }
     ;
 
 ForLoopBody: // TODO: add constant expressions 

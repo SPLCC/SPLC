@@ -26,8 +26,12 @@ class ASTContext {
         std::transform(
             parentContexts_.begin(), parentContexts_.end(),
             std::back_inserter(parentContexts),
-            [](const Ptr<ASTContext> &ctxt) { return std::weak_ptr(ctxt); });
+            [](const Ptr<ASTContext> &ctx) { return std::weak_ptr(ctx); });
     }
+
+    auto getDepth() const noexcept { return depth; }
+
+    void setDepth(ASTContextDepthType depth_) noexcept { depth = depth_; }
 
     auto &getSymbolMap() { return symbolMap; }
 
@@ -61,7 +65,9 @@ class ASTContext {
 
     auto &getDirectChildren() const { return directChildren; }
 
-    friend std::ostream &operator<<(std::ostream &os, const ASTContext &ctxt);
+    friend std::ostream &operator<<(std::ostream &os, const ASTContext &ctx) noexcept;
+
+    friend std::ostream &printASTCtxSummary(std::ostream &os, const ASTContext &ctx) noexcept;
 
   protected:
     ASTContextDepthType depth;
