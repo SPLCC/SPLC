@@ -427,7 +427,10 @@ void IRBuilder::registerFunction(PtrAST funcRoot)
     // Push all parameters
     for (auto &p : params) {
         function->paramList.push_back(p.second);
-        function->body.push_back(IRStmt::createPopCallArgStmt(p.second));
+    }
+
+    for (auto &p : std::views::reverse(function->paramList)) {
+        function->body.push_back(IRStmt::createPopCallArgStmt(p));
     }
 
     function->varMap.insert(params.begin(), params.end());

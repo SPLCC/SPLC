@@ -295,7 +295,7 @@ class IRProgram {
     static void writeAllIRStmt(std::ostream &os, Ptr<IRProgram> program) noexcept
     {
         for (auto &func : program->funcMap) {
-            os << *func.second;
+            os << *func.second << "\n";
         }
     }
 
