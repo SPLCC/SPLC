@@ -91,9 +91,9 @@ void IROptimizer::examineStmt(DepKey &key, Ptr<IRFunction> func,
         break;
     }
     case IRType::PopCallArg: {
-        auto node = insertOrReplace(nodeMap, stmt->op1, stmt, Type::Input);
+        auto node = findOrMake(nodeMap, stmt->op1, stmt, Type::Output);
         allDepNodes.push_back(node);
-        inputs.push_back(node);
+        outputs.push_back(node);
         break;
     }
     case IRType::PushCallArg: {
