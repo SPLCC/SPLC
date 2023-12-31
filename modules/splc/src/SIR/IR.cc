@@ -27,6 +27,25 @@ PtrIRVar IRVar::createConstant(Type *type, ASTValueType val)
     return makeSharedPtr<IRVar>("", IRVarType::Constant, type, val, true);
 }
 
+std::string IRVar::getName() const noexcept
+{
+    if ((irVarType == IRVarType::Variable && isConst_) ||
+        irVarType == IRVarType::Constant) {
+        if (holdsValueType<ASTSIntType>()) {
+            return "#" + std::to_string(getValue<ASTSIntType>());
+        }
+        else if (holdsValueType<ASTUIntType>()) {
+
+            return "#" + std::to_string(getValue<ASTUIntType>());
+        }
+        else if (holdsValueType<ASTIDType>()) {
+
+            return getValue<ASTIDType>();
+        }
+    }
+    return name;
+}
+
 //===----------------------------------------------------------------------===//
 //                             IRStmt Implementation
 //===----------------------------------------------------------------------===//
@@ -34,83 +53,102 @@ PtrIRVar IRVar::createConstant(Type *type, ASTValueType val)
 
 PtrIRStmt IRStmt::createLabelStmt(PtrIRVar op)
 {
+    op->setUsed();
     return makeSharedPtr<IRStmt>(IRType::SetLabel, op);
 }
 
 PtrIRStmt IRStmt::createFuncDeclStmt(PtrIRVar op)
 {
+    op->setUsed();
     return makeSharedPtr<IRStmt>(IRType::FuncDecl, op);
 }
 
 PtrIRStmt IRStmt::createAssignStmt(PtrIRVar lhs, PtrIRVar rhs)
 {
+    rhs->setUsed();
     return makeSharedPtr<IRStmt>(IRType::Assign, lhs, rhs);
 }
 
 PtrIRStmt IRStmt::createArithmeticStmt(IRType irType, PtrIRVar op1,
                                        PtrIRVar op2, PtrIRVar op3)
 {
+    op2->setUsed();
+    op3->setUsed();
     return makeSharedPtr<IRStmt>(irType, op1, op2, op3);
 }
 
 PtrIRStmt IRStmt::createAddrOfStmt(PtrIRVar op1, PtrIRVar op2)
 {
+    op2->setUsed();
     return makeSharedPtr<IRStmt>(IRType::AddrOf, op1, op2);
 }
 
 PtrIRStmt IRStmt::createDerefStmt(PtrIRVar op1, PtrIRVar op2)
 {
+    op2->setUsed();
     return makeSharedPtr<IRStmt>(IRType::Deref, op1, op2);
 }
 
 PtrIRStmt IRStmt::createCopyToAddrStmt(PtrIRVar op1, PtrIRVar op2)
 {
+    op2->setUsed();
     return makeSharedPtr<IRStmt>(IRType::CopyToAddr, op1, op2);
 }
 
 PtrIRStmt IRStmt::createGotoStmt(PtrIRVar op)
 {
+    op->setUsed();
     return makeSharedPtr<IRStmt>(IRType::Goto, op);
 }
 
 PtrIRStmt IRStmt::createBranchIfStmt(IRBranchType branchType, PtrIRVar lhs,
                                      PtrIRVar rhs, PtrIRVar label)
 {
+    lhs->setUsed();
+    rhs->setUsed();
     return makeSharedPtr<IRStmt>(IRType::BranchIf, lhs, rhs, label, branchType);
 }
 
 PtrIRStmt IRStmt::createReturnStmt(PtrIRVar op)
 {
+    op->setUsed();
     return makeSharedPtr<IRStmt>(IRType::Return, op);
 }
 
 PtrIRStmt IRStmt::createAllocStmt(PtrIRVar op1, PtrIRVar op2)
 {
+    op1->setUsed();
+    op2->setUsed();
     return makeSharedPtr<IRStmt>(IRType::Alloc, op1, op2);
 }
 
 PtrIRStmt IRStmt::createPopCallArgStmt(PtrIRVar op)
 {
+    op->setUsed();
     return makeSharedPtr<IRStmt>(IRType::PopCallArg, op);
 }
 
 PtrIRStmt IRStmt::createPushCallArgStmt(PtrIRVar op)
 {
+    op->setUsed();
     return makeSharedPtr<IRStmt>(IRType::PushCallArg, op);
 }
 
 PtrIRStmt IRStmt::createInvokeFuncStmt(PtrIRVar lhs, PtrIRVar func)
 {
+    func->setUsed();
     return makeSharedPtr<IRStmt>(IRType::InvokeFunc, lhs, func);
 }
 
 PtrIRStmt IRStmt::createReadStmt(PtrIRVar op)
 {
+    op->setUsed();
     return makeSharedPtr<IRStmt>(IRType::Read, op);
 }
 
 PtrIRStmt IRStmt::createWriteStmt(PtrIRVar op)
 {
+    op->setUsed();
     return makeSharedPtr<IRStmt>(IRType::Write, op);
 }
 
@@ -252,10 +290,6 @@ std::ostream &operator<<(std::ostream &os, const IRStmt &stmt) noexcept
 std::ostream &operator<<(std::ostream &os, const IRFunction &func) noexcept
 {
     os << "FUNCTION " << func.name << " :\n";
-    for (auto &it : std::views::reverse(func.paramList)) {
-        os << *IRStmt::createPopCallArgStmt(it);
-    }
-
     for (auto stmt : func.body) {
         os << *stmt;
     }

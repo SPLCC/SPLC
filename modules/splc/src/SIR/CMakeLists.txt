@@ -2,6 +2,7 @@
 add_library(splc_SIR SHARED 
     IR.cc
     IRBuilder.cc
+    IROptimizer.cc
 )
 
 target_include_directories(splc_SIR PUBLIC ${SPLC_INCL_DIR} ${GENERATED_INCL_DIR_IO})

@@ -1,0 +1,15 @@
+// remove unused variables
+
+int main(int r1)
+{
+    int r2 = -23333;
+
+    int a = 2333, b;
+    while (a > 0)
+    {
+        a = a - 1;
+        b = a;
+    }
+
+    return 0;
+}

@@ -80,6 +80,14 @@ enum class IRLogicalOpType {
 
 class IRVar {
   public:
+    IRVar(IRIDType name_, IRVarType varType_ = IRVarType::Label,
+          Type *type_ = nullptr, ASTValueType val_ = {}, bool isConst__ = false,
+          bool isUsed__ = false)
+        : name{name_}, irVarType{varType_}, valType{type_}, val{val_},
+          isConst_{isConst__}, isUsed_{isUsed__}
+    {
+    }
+
     static PtrIRVar createLabel(IRIDType name);
 
     static PtrIRVar createFunction(IRIDType name, Type *type);
@@ -87,13 +95,6 @@ class IRVar {
     static PtrIRVar createVariable(IRIDType name, Type *type);
 
     static PtrIRVar createConstant(Type *type, ASTValueType val);
-
-    IRVar(IRIDType name_, IRVarType varType_ = IRVarType::Label,
-          Type *type_ = nullptr, ASTValueType val_ = {}, bool isConst_ = false)
-        : name{name_}, irVarType{varType_}, valType{type_}, val{val_},
-          isConst{isConst_}
-    {
-    }
 
     constexpr bool hasValue() const noexcept { return val.index() != 0; }
 
@@ -127,24 +128,15 @@ class IRVar {
         return std::holds_alternative<T>(val);
     }
 
-    std::string getName() const noexcept
-    {
-        if ((irVarType == IRVarType::Variable && isConst) ||
-            irVarType == IRVarType::Constant) {
-            if (holdsValueType<ASTSIntType>()) {
-                return "#" + std::to_string(getValue<ASTSIntType>());
-            }
-            else if (holdsValueType<ASTUIntType>()) {
+    void setConst() { isConst_ = true; }
 
-                return "#" + std::to_string(getValue<ASTUIntType>());
-            }
-            else if (holdsValueType<ASTIDType>()) {
+    bool isConst() const { return isConst_; }
 
-                return getValue<ASTIDType>();
-            }
-        }
-        return name;
-    }
+    void setUsed() { isUsed_ = true; }
+
+    bool isUsed() const { return isUsed_; }
+
+    std::string getName() const noexcept;
 
     // ASSUMPTION: NO SEMANTIC ERROR
     // ASSUMPTION: NO RVALUE ASSIGNMENT, THUS CONST PROPAGATION
@@ -152,13 +144,14 @@ class IRVar {
     IRVarType irVarType;
     Type *valType;
     ASTValueType val;
-    bool isConst;
+    bool isConst_;
+    mutable bool isUsed_ = false;
 };
 
 // TODO: modify everything
 class IRStmt {
   public:
-    IRStmt() = default;
+    IRStmt() = delete;
 
     IRStmt(IRType irType_, PtrIRVar op1_, PtrIRVar op2_ = nullptr,
            PtrIRVar op3_ = nullptr,
@@ -270,9 +263,9 @@ class IRSB : public IRStmt {};
 
 class IRFunction {
   public:
-    static Ptr<IRFunction> create(IRIDType name_, Type *retTy_);
-
     IRFunction(IRIDType name_, Type *retTy_) : name{name_}, retTy{retTy_} {}
+
+    static Ptr<IRFunction> create(IRIDType name_, Type *retTy_);
 
     friend std::ostream &operator<<(std::ostream &os,
                                     const IRFunction &func) noexcept;
@@ -283,6 +276,36 @@ class IRFunction {
     IRMap<IRIDType, PtrIRVar> varMap;
     IRVec<PtrIRVar> paramList;
     IRVec<PtrIRStmt> body;
+};
+
+class IRProgram {
+  public:
+    IRProgram(IRMap<IRIDType, Ptr<IRFunction>> funcMap_,
+              IRMap<IRIDType, PtrIRVar> funcVarMap_) noexcept
+        : funcMap{funcMap_}, funcVarMap{funcVarMap_}
+    {
+    }
+
+    static Ptr<IRProgram> make(IRMap<IRIDType, Ptr<IRFunction>> funcMap_,
+                               IRMap<IRIDType, PtrIRVar> funcVarMap_)
+    {
+        return makeSharedPtr<IRProgram>(funcMap_, funcVarMap_);
+    }
+
+    static void writeAllIRStmt(std::ostream &os, Ptr<IRProgram> program) noexcept
+    {
+        for (auto &func : program->funcMap) {
+            os << *func.second;
+        }
+    }
+
+    static void writeProgram(std::ostream &os, Ptr<IRProgram> program) noexcept
+    {
+        writeAllIRStmt(os, program);
+    }
+
+    IRMap<IRIDType, Ptr<IRFunction>> funcMap;
+    IRMap<IRIDType, PtrIRVar> funcVarMap;
 };
 
 std::ostream &operator<<(std::ostream &os, const IRStmt &stmt) noexcept;

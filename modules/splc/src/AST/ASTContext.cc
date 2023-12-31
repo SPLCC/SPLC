@@ -70,7 +70,7 @@ std::ostream &operator<<(std::ostream &os, const ASTContext &ctx) noexcept
 
     for (auto &ent : ctx.getSymbolMap()) {
         printLeadingSpace(os, ctx.depth + 1)
-            << CS::Yellow << ent.first << CS::Reset << "\n";
+            << CS::BrightGreen << ent.first << CS::Reset << "\n";
         os << CS::Blue;
         printLeadingSpace(os, ctx.depth + 1)
             << "`-" << CS::Reset << ent.second << "\n";

@@ -222,7 +222,7 @@ DeclSpecWrapper:
           $$ = $1;
           $1->computeLangType();
           transMgr.getTypeVec().push_back({$1->getLangType(), $1->isTypedef()});
-          SPLC_LOG_DEBUG(nullptr, false) << "pushed type " << *transMgr.getTypeVec().back().first;
+          // SPLC_LOG_DEBUG(nullptr, false) << "pushed type " << *transMgr.getTypeVec().back().first;
       }
     ;
 

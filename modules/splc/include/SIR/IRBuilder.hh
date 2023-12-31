@@ -10,10 +10,14 @@ namespace splc::SIR {
 
 class IRBuilder;
 class IRBuilderHelper;
+class IROptimizer;
 
 class IRBuilder {
+    friend IRBuilderHelper;
+    friend IROptimizer;
+
   public:
-    IRBuilder(SPLCContext &C) noexcept : tyCtxt(C) {}
+    IRBuilder(SPLCContext &C) noexcept : tyCtx(C) {}
 
     PtrIRVar getTmpLabel();
     PtrIRVar getTmpVar();
@@ -45,26 +49,25 @@ class IRBuilder {
 
     // ----------------------------------------------------------
 
-    void parseAST(PtrAST parseRoot);
+    void recParseAST(PtrAST parseRoot);
 
-    void writeAllIRStmt(std::ostream &os) const noexcept
+    Ptr<IRProgram> makeProgram(PtrAST parseRoot)
     {
-        for (auto &func : funcMap) {
-            os << *func.second;
-        }
+        recParseAST(parseRoot);
+        auto prorgam = IRProgram::make(funcMap, funcVarMap);
+        funcMap.clear();
+        funcVarMap.clear();
+        currentFunc.reset();
+        return prorgam;
     }
 
-    void writeProgram(std::ostream &os) const noexcept { writeAllIRStmt(os); }
-
-    size_t allocCnt = 0;
-    SPLCContext &tyCtxt;
-    Ptr<ASTContext> rootCtxt;
+    size_t allocCnt = 0; ///< Current number of allocated children
+    SPLCContext &tyCtx;
 
     IRMap<IRIDType, Ptr<IRFunction>> funcMap;
     IRMap<IRIDType, PtrIRVar> funcVarMap;
 
-    IRVec<PtrIRVar> varList;
-    IRMap<IRIDType, PtrIRVar> varMap;
+    Ptr<IRFunction> currentFunc;
 };
 
 class IRBuilderHelper {
