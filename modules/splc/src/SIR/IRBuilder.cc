@@ -4,76 +4,55 @@
 using namespace splc;
 using namespace splc::SIR;
 
-void IRBuilder::parseAST(PtrAST parseRoot)
+PtrIRVar IRBuilder::getTmpLabel()
 {
-    if (parseRoot->isFuncDef()) {
-        registerFunction(parseRoot);
+    return IRVar::createLabelVar("lb_" + std::to_string(allocCnt++));
+}
+
+PtrIRVar IRBuilder::getTmpVar()
+{
+    return IRVar::createVariableVar("tmp_" + std::to_string(allocCnt++),
+                                    &tyCtxt.SInt32Ty);
+}
+
+void IRBuilder::recRegisterDeclVar(IRVec<PtrIRStmt> &stmtList, PtrAST declRoot)
+{
+    // TODO
+    if (isASTSymbolTypeOneOf(declRoot->getSymType(), ASTSymType::Decl)) {
+        recRegisterDeclVar(stmtList, declRoot->getChildren()[0]);
     }
-    else {
-        for (auto &child : parseRoot->getChildren()) {
-            if (child->isSymTypeOneOf(
-                    ASTSymType::ParseRoot, ASTSymType::TransUnit,
-                    ASTSymType::ExternDeclList, ASTSymType::ExternDecl,
-                    ASTSymType::FuncDef)) {
-                parseAST(child);
+    else if (declRoot->isDirDecl()) {
+        splc_dbgassert(declRoot->getChildrenNum() == 2);
+        for (auto &initDecltr : declRoot->getChildren()[1]->getChildren()) {
+            PtrAST decltr = initDecltr->getChildren()[0];
+
+            if (decltr->getChildren()[0]->isDirDecltr()) {
+
+                IRIDType id = decltr->getChildren()[0]
+                                  ->getChildren()[0]
+                                  ->getConstVal<IRIDType>();
+                auto it = varMap.find(id);
+                splc_dbgassert(it == varMap.end())
+                    << "redefinition of id in varMap: " << id;
+                PtrIRVar var = IRVar::createVariableVar(id, &tyCtxt.SInt32Ty);
+
+                varList.push_back(var);
+                varMap.insert({id, var});
+                SPLC_LOG_DEBUG(nullptr, false)
+                    << "defined id in varMap: " << id;
+
+                // Process initializer, if any
+                if (initDecltr->getChildrenNum() == 3) {
+                    PtrIRVar init = recRegisterExprs(
+                        stmtList, initDecltr->getChildren()[2]);
+                    stmtList.push_back(IRStmt::createAssignStmt(var, init));
+                }
             }
             else {
-                // TODO
-                splc_error() << "unsupported type: " << child->getSymType()
-                             << "\nat " << child->getLocation();
-                splc_unreachable();
+                splc_error();
             }
         }
     }
-}
-
-void IRBuilder::registerFunction(PtrAST funcRoot)
-{
-    // Find function name (id)
-    IRIDType funcID = funcRoot->getChildren()[1]
-                          ->getChildren()[0]
-                          ->getChildren()[0]
-                          ->getConstVal<IRIDType>();
-
-    // assume SInt32Ty
-    Ptr<IRFunction> function = IRFunction::create(funcID, &tyCtxt.SInt32Ty);
-
-    // Find all params
-    IRVec<IRIDType> paramIDs = IRBuilderHelper::recfindFuncParam(funcRoot);
-
-    IRVec<IRPair<IRIDType, PtrIRVar>> params;
-    params.reserve(paramIDs.size());
-
-    // TODO (future): support more type
-    for (auto &pid : paramIDs) {
-        params.emplace_back(pid,
-                            IRVar::createVariableVar(pid, &tyCtxt.SInt32Ty));
-    }
-
-    for (auto &p : params) {
-        function->paramList.push_back(p.second);
-    }
-
-    function->varMap.insert(params.begin(), params.end());
-    varMap.insert(params.begin(), params.end());
-
-    // Insert to funcMap
-    funcMap.insert({funcID, function});
-    funcVarMap.insert(
-        {funcID, IRVar::createFunctionVar(funcID, &tyCtxt.SInt32Ty)});
-
-    // Register the body stmts
-    PtrAST body = funcRoot->getChildren()[2];
-    splc_dbgassert(body != nullptr);
-
-    SPLC_LOG_DEBUG(nullptr, false) << "trying to register statement";
-    recRegisterStmts(function->body, body);
-
-    // function->varList.insert(function->varList.end(), varList.begin(),
-    // varList.end()); varList.clear(); for (const auto& pair : funcMap) {
-    //     function->varMap.insert_or_assign(pair.first, pair.second);
-    // }
-    // varMap.clear();
 }
 
 PtrIRVar IRBuilder::recRegisterExprs(IRVec<PtrIRStmt> &stmtList,
@@ -184,14 +163,15 @@ PtrIRVar IRBuilder::recRegisterExprs(IRVec<PtrIRStmt> &stmtList,
         }
     }
     else {
-        splc_error() << "Not implement triple operators or other.\n";
+        splc_error() << "trinary operators are not supported";
     }
+    splc_unreachable();
 }
 
 void IRBuilder::recRegisterCondExpr(IRVec<PtrIRStmt> &stmtList, PtrAST stmtRoot,
                                     PtrIRVar lbt, PtrIRVar lbf)
 {
-    IRVec<PtrAST> children = stmtRoot->getChildren();
+    auto &children = stmtRoot->getChildren();
     if (children.size() == 2 &&
         children[0]->getSymType() == ASTSymType::OpNot) {
         recRegisterCondExpr(stmtList, children[1], lbf, lbt);
@@ -270,13 +250,13 @@ PtrIRVar IRBuilder::recRegisterCallExpr(IRVec<PtrIRStmt> &stmtList,
 
     // Read or Write function call
     if (funcID == "write") {
-        SPLC_LOG_DEBUG(nullptr, false) << "Write to terminal\n";
+        SPLC_LOG_DEBUG(nullptr, false) << "write to terminal";
         PtrIRVar arg = recRegisterExprs(stmtList, argAST->getChildren()[0]);
         stmtList.push_back(IRStmt::createWriteStmt(arg));
         return nullptr; // Nothing to return
     }
     else if (funcID == "read") {
-        SPLC_LOG_DEBUG(nullptr, false) << "Read from input\n";
+        SPLC_LOG_DEBUG(nullptr, false) << "read from input";
         PtrIRVar res = getTmpVar();
         stmtList.push_back(IRStmt::createReadStmt(res));
         return res;
@@ -299,54 +279,6 @@ PtrIRVar IRBuilder::recRegisterCallExpr(IRVec<PtrIRStmt> &stmtList,
     // CALL stmt
     stmtList.push_back(IRStmt::createInvokeFuncStmt(res, funcVar));
     return res;
-}
-
-void IRBuilder::recRegisterStmts(IRVec<PtrIRStmt> &stmtList, PtrAST stmtRoot)
-{
-    SPLC_LOG_DEBUG(nullptr, false) << "dispatch: " << stmtRoot->getSymType();
-    if (isASTSymbolTypeOneOf(stmtRoot->getSymType(),
-                             ASTSymType::GeneralStmtList,
-                             ASTSymType::CompStmt)) {
-        for (auto &child : stmtRoot->getChildren()) {
-            recRegisterStmts(stmtList, child);
-        }
-    }
-    else if (stmtRoot->getSymType() == ASTSymType::Decl) {
-        // ASSIGN INITIAL VALUES, IF NONCONSTEXPR
-        recRegisterDeclVar(stmtList, stmtRoot);
-    }
-    else if (stmtRoot->isStmt()) {
-        PtrAST realStmt = stmtRoot->getChildren()[0];
-        switch (realStmt->getSymType()) {
-        case ASTSymType::CompStmt: {
-            recRegisterStmts(stmtList, realStmt);
-            break;
-        }
-        case ASTSymType::ExprStmt: {
-            recRegisterExprs(stmtList, realStmt);
-            break;
-        }
-        case ASTSymType::IterStmt: {
-            recRegisterIterStmt(stmtList, realStmt);
-            break;
-        }
-        case ASTSymType::SelStmt: {
-            recRegisterSelStmt(stmtList, realStmt);
-            break;
-        }
-        case ASTSymType::LabeledStmt: {
-            splc_error() << "Not implement.\n";
-            break;
-        }
-        case ASTSymType::JumpStmt: {
-            recRegisterJumpStmt(stmtList, realStmt);
-            break;
-        }
-        default: {
-            splc_error();
-        }
-        }
-    }
 }
 
 void IRBuilder::recRegisterIterStmt(IRVec<PtrIRStmt> &stmtList, PtrAST stmtRoot)
@@ -420,53 +352,122 @@ void IRBuilder::recRegisterJumpStmt(IRVec<PtrIRStmt> &stmtList, PtrAST stmtRoot)
     stmtList.push_back(IRStmt::createReturnStmt(var));
 }
 
-void IRBuilder::recRegisterDeclVar(IRVec<PtrIRStmt> &stmtList, PtrAST declRoot)
+void IRBuilder::recRegisterStmts(IRVec<PtrIRStmt> &stmtList, PtrAST stmtRoot)
 {
-    // TODO
-    if (isASTSymbolTypeOneOf(declRoot->getSymType(), ASTSymType::Decl)) {
-        recRegisterDeclVar(stmtList, declRoot->getChildren()[0]);
+    SPLC_LOG_DEBUG(nullptr, false) << "dispatch: " << stmtRoot->getSymType();
+    if (isASTSymbolTypeOneOf(stmtRoot->getSymType(),
+                             ASTSymType::GeneralStmtList,
+                             ASTSymType::CompStmt)) {
+        for (auto &child : stmtRoot->getChildren()) {
+            recRegisterStmts(stmtList, child);
+        }
     }
-    else if (declRoot->isDirDecl()) {
-        splc_dbgassert(declRoot->getChildrenNum() == 2);
-        for (auto &initDecltr : declRoot->getChildren()[1]->getChildren()) {
-            PtrAST decltr = initDecltr->getChildren()[0];
-
-            if (decltr->getChildren()[0]->isDirDecltr()) {
-                
-                IRIDType id = decltr->getChildren()[0]
-                                  ->getChildren()[0]
-                                  ->getConstVal<IRIDType>();
-                auto it = varMap.find(id);
-                splc_dbgassert(it == varMap.end())
-                    << "redefinition of id in varMap: " << id;
-                PtrIRVar var = IRVar::createVariableVar(id, &tyCtxt.SInt32Ty);
-
-                varList.push_back(var);
-                varMap.insert({id, var});
-                SPLC_LOG_DEBUG(nullptr, false)
-                    << "defined id in varMap: " << id;
-
-                // Process initializer, if any
-                if (initDecltr->getChildrenNum() == 3) {
-                    PtrIRVar init = recRegisterExprs(
-                        stmtList, initDecltr->getChildren()[2]);
-                    stmtList.push_back(IRStmt::createAssignStmt(var, init));
-                }
-            }
-            else {
-                splc_error();
-            }
+    else if (stmtRoot->getSymType() == ASTSymType::Decl) {
+        // ASSIGN INITIAL VALUES, IF NONCONSTEXPR
+        recRegisterDeclVar(stmtList, stmtRoot);
+    }
+    else if (stmtRoot->isStmt()) {
+        PtrAST realStmt = stmtRoot->getChildren()[0];
+        switch (realStmt->getSymType()) {
+        case ASTSymType::CompStmt: {
+            recRegisterStmts(stmtList, realStmt);
+            break;
+        }
+        case ASTSymType::ExprStmt: {
+            recRegisterExprs(stmtList, realStmt);
+            break;
+        }
+        case ASTSymType::IterStmt: {
+            recRegisterIterStmt(stmtList, realStmt);
+            break;
+        }
+        case ASTSymType::SelStmt: {
+            recRegisterSelStmt(stmtList, realStmt);
+            break;
+        }
+        case ASTSymType::LabeledStmt: {
+            splc_error() << "not implemented";
+            break;
+        }
+        case ASTSymType::JumpStmt: {
+            recRegisterJumpStmt(stmtList, realStmt);
+            break;
+        }
+        default: {
+            splc_error();
+        }
         }
     }
 }
 
-PtrIRVar IRBuilder::getTmpLabel()
+void IRBuilder::registerFunction(PtrAST funcRoot)
 {
-    return IRVar::createLabelVar("lb_" + std::to_string(allocCnt++));
+    // Find function name (id)
+    IRIDType funcID = funcRoot->getChildren()[1]
+                          ->getChildren()[0]
+                          ->getChildren()[0]
+                          ->getConstVal<IRIDType>();
+
+    // assume SInt32Ty
+    Ptr<IRFunction> function = IRFunction::create(funcID, &tyCtxt.SInt32Ty);
+
+    // Find all params
+    IRVec<IRIDType> paramIDs = IRBuilderHelper::recfindFuncParam(funcRoot);
+
+    IRVec<IRPair<IRIDType, PtrIRVar>> params;
+    params.reserve(paramIDs.size());
+
+    // TODO (future): support more type
+    for (auto &pid : paramIDs) {
+        params.emplace_back(pid,
+                            IRVar::createVariableVar(pid, &tyCtxt.SInt32Ty));
+    }
+
+    for (auto &p : params) {
+        function->paramList.push_back(p.second);
+    }
+
+    function->varMap.insert(params.begin(), params.end());
+    varMap.insert(params.begin(), params.end());
+
+    // Insert to funcMap
+    funcMap.insert({funcID, function});
+    funcVarMap.insert(
+        {funcID, IRVar::createFunctionVar(funcID, &tyCtxt.SInt32Ty)});
+
+    // Register the body stmts
+    PtrAST body = funcRoot->getChildren()[2];
+    splc_dbgassert(body != nullptr);
+
+    SPLC_LOG_DEBUG(nullptr, false) << "trying to register statement";
+    recRegisterStmts(function->body, body);
+
+    // function->varList.insert(function->varList.end(), varList.begin(),
+    // varList.end()); varList.clear(); for (const auto& pair : funcMap) {
+    //     function->varMap.insert_or_assign(pair.first, pair.second);
+    // }
+    // varMap.clear();
 }
 
-PtrIRVar IRBuilder::getTmpVar()
+void IRBuilder::parseAST(PtrAST parseRoot)
 {
-    return IRVar::createVariableVar("tmp_" + std::to_string(allocCnt++),
-                                    &tyCtxt.SInt32Ty);
+    if (parseRoot->isFuncDef()) {
+        registerFunction(parseRoot);
+    }
+    else {
+        for (auto &child : parseRoot->getChildren()) {
+            if (child->isSymTypeOneOf(
+                    ASTSymType::ParseRoot, ASTSymType::TransUnit,
+                    ASTSymType::ExternDeclList, ASTSymType::ExternDecl,
+                    ASTSymType::FuncDef)) {
+                parseAST(child);
+            }
+            else {
+                // TODO
+                splc_error() << "unsupported type: " << child->getSymType()
+                             << "\nat " << child->getLocation();
+                splc_unreachable();
+            }
+        }
+    }
 }

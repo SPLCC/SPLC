@@ -65,15 +65,16 @@ class ASTContext {
 
     auto &getDirectChildren() const { return directChildren; }
 
-    friend std::ostream &operator<<(std::ostream &os, const ASTContext &ctx) noexcept;
+    friend std::ostream &operator<<(std::ostream &os,
+                                    const ASTContext &ctx) noexcept;
 
-    friend std::ostream &printASTCtxSummary(std::ostream &os, const ASTContext &ctx) noexcept;
+    friend std::ostream &printASTCtxSummary(std::ostream &os,
+                                            const ASTContext &ctx) noexcept;
 
   protected:
     ASTContextDepthType depth;
     ASTSymbolMap symbolMap;
-    std::vector<std::pair<ASTIDType, SymbolEntry>>
-        symbolList; // TODO: just refactor
+    std::vector<std::pair<ASTIDType, SymbolEntry>> symbolList;
     std::vector<WeakPtr<ASTContext>> parentContexts;
     std::vector<Ptr<ASTContext>> directChildren;
 

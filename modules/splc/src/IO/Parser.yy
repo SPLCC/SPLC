@@ -486,7 +486,6 @@ InitDecltrList:
 InitDecltr:
       Decltr {
           $$ = AST::make(tyCtx, SymType::InitDecltr, @$, $1);
-          // TODO: register declarator
           transMgr.tryRegisterSymbol(
               SymEntryType::Variable, transMgr.getNameVec().back(),
               $1->getLangType(), true, &@1);
@@ -494,7 +493,6 @@ InitDecltr:
       }
     | Decltr OpAssign Initializer {
           $$ = AST::make(tyCtx, SymType::InitDecltr, @$, $1, $2, $3);
-          // TODO: register declarator
           transMgr.tryRegisterSymbol(
               SymEntryType::Variable, transMgr.getNameVec().back(),
               $1->getLangType(), true, &@1);

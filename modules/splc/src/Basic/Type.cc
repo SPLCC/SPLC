@@ -12,7 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "Basic/Type.hh"
-#include "Basic/TypeContext.hh"
+#include "Basic/SPLCContext.hh"
 #include "Core/Base.hh"
 
 #include "AST/DerivedAST.hh"
@@ -53,7 +53,7 @@ std::string_view Type::getName() const noexcept
     return {typeNames[static_cast<int>(ID)]};
 }
 
-Type *Type::getPrimitiveType(TypeContext &C, TypeID ID)
+Type *Type::getPrimitiveType(SPLCContext &C, TypeID ID)
 {
     switch (ID) {
     case TypeID::Void:
@@ -176,20 +176,20 @@ size_t Type::getPrimitiveSizeInBits() const
     }
 }
 
-Type *Type::getVoidTy(TypeContext &C) { return &C.VoidTy; }
-Type *Type::getFloatTy(TypeContext &C) { return &C.FloatTy; }
-Type *Type::getDoubleTy(TypeContext &C) { return &C.DoubleTy; }
-Type *Type::getInt1Ty(TypeContext &C) { return &C.Int1Ty; }
-Type *Type::getUInt8Ty(TypeContext &C) { return &C.UInt8Ty; }
-Type *Type::getSInt8Ty(TypeContext &C) { return &C.SInt8Ty; }
-Type *Type::getUInt16Ty(TypeContext &C) { return &C.UInt16Ty; }
-Type *Type::getSInt16Ty(TypeContext &C) { return &C.SInt16Ty; }
-Type *Type::getUInt32Ty(TypeContext &C) { return &C.UInt32Ty; }
-Type *Type::getSInt32Ty(TypeContext &C) { return &C.SInt32Ty; }
-Type *Type::getUInt64Ty(TypeContext &C) { return &C.UInt64Ty; }
-Type *Type::getSInt64Ty(TypeContext &C) { return &C.SInt64Ty; }
-Type *Type::getLabelTy(TypeContext &C) { return &C.LabelTy; }
-Type *Type::getTokenTy(TypeContext &C) { return &C.TokenTy; }
+Type *Type::getVoidTy(SPLCContext &C) { return &C.VoidTy; }
+Type *Type::getFloatTy(SPLCContext &C) { return &C.FloatTy; }
+Type *Type::getDoubleTy(SPLCContext &C) { return &C.DoubleTy; }
+Type *Type::getInt1Ty(SPLCContext &C) { return &C.Int1Ty; }
+Type *Type::getUInt8Ty(SPLCContext &C) { return &C.UInt8Ty; }
+Type *Type::getSInt8Ty(SPLCContext &C) { return &C.SInt8Ty; }
+Type *Type::getUInt16Ty(SPLCContext &C) { return &C.UInt16Ty; }
+Type *Type::getSInt16Ty(SPLCContext &C) { return &C.SInt16Ty; }
+Type *Type::getUInt32Ty(SPLCContext &C) { return &C.UInt32Ty; }
+Type *Type::getSInt32Ty(SPLCContext &C) { return &C.SInt32Ty; }
+Type *Type::getUInt64Ty(SPLCContext &C) { return &C.UInt64Ty; }
+Type *Type::getSInt64Ty(SPLCContext &C) { return &C.SInt64Ty; }
+Type *Type::getLabelTy(SPLCContext &C) { return &C.LabelTy; }
+Type *Type::getTokenTy(SPLCContext &C) { return &C.TokenTy; }
 
 //===----------------------------------------------------------------------===//
 //                       FunctionType Implementation
@@ -253,7 +253,7 @@ bool FunctionType::isValidArgumentType(Type *argTy)
 //                          StructType Implementation
 //===----------------------------------------------------------------------===//
 
-StructType *StructType::get(TypeContext &context, TypePtrArray elements)
+StructType *StructType::get(SPLCContext &context, TypePtrArray elements)
 {
     const AnonStructTypeKeyInfo key{elements};
     StructType *st;
@@ -328,7 +328,7 @@ std::string_view StructType::getName() const noexcept
 //===----------------------------------------------------------------------===//
 //                         StructType helper functions
 
-StructType *StructType::create(TypeContext &context, std::string_view name)
+StructType *StructType::create(SPLCContext &context, std::string_view name)
 {
     StructType *st = new (context.tyAlloc<StructType>()) StructType(context);
     if (!name.empty())
@@ -336,7 +336,7 @@ StructType *StructType::create(TypeContext &context, std::string_view name)
     return st;
 }
 
-StructType *StructType::create(TypeContext &context)
+StructType *StructType::create(SPLCContext &context)
 {
     return create(context, "");
 }
@@ -352,7 +352,7 @@ StructType *StructType::create(const TypePtrArray &elements)
     return create(elements[0]->getContext(), elements);
 }
 
-StructType *StructType::create(TypeContext &context,
+StructType *StructType::create(SPLCContext &context,
                                const TypePtrArray &elements,
                                std::string_view name)
 {
@@ -361,14 +361,14 @@ StructType *StructType::create(TypeContext &context,
     return st;
 }
 
-StructType *StructType::create(TypeContext &context,
+StructType *StructType::create(SPLCContext &context,
                                const TypePtrArray &elements)
 {
     return create(context, elements, "");
 }
 
 /// Create an empty structure type.
-StructType *StructType::get(TypeContext &context) { return get(context, {}); }
+StructType *StructType::get(SPLCContext &context) { return get(context, {}); }
 
 bool StructType::isSized() const
 {
@@ -416,7 +416,7 @@ ArrayType *ArrayType::get(Type *elementType_, uint64_t numElements_)
 
     ArrayType *at = nullptr;
 
-    TypeContext &context = elementType_->getContext();
+    SPLCContext &context = elementType_->getContext();
     auto &arraySet = context.arrayTypes;
     ArrayKeyInfo key{elementType_, numElements_};
 
@@ -466,7 +466,7 @@ PointerType *PointerType::get(Type *elementType)
     return pt;
 }
 
-PointerType *PointerType::get(TypeContext &C)
+PointerType *PointerType::get(SPLCContext &C)
 {
     PointerType *pt = nullptr;
     PointerKeyInfo key{&C.VoidTy};
@@ -484,7 +484,7 @@ PointerType *PointerType::get(TypeContext &C)
     return pt;
 }
 
-PointerType::PointerType(TypeContext &C, Type *elementType_)
+PointerType::PointerType(SPLCContext &C, Type *elementType_)
     : Type{C, TypeID::Pointer}, elementType{elementType_}
 {
     numContainedTys = 1;

@@ -143,7 +143,7 @@ std::vector<Type *> ASTHelper::processInitDeclList(const AST &root,
 std::vector<Type *> ASTHelper::getDeclTy(const AST &root) noexcept
 {
     // TODO: maybe just add more support, whatsoever
-    TypeContext &context = *root.tyContext;
+    SPLCContext &context = *root.tyContext;
     const AST &dirDecl = *root.children_[0];
 
     // Get base type
@@ -158,7 +158,7 @@ std::vector<Type *> ASTHelper::getDeclTy(const AST &root) noexcept
 
 Type *ASTHelper::getFuncTy(const AST &root) noexcept
 {
-    TypeContext &context = *root.tyContext;
+    SPLCContext &context = *root.tyContext;
 
     // Get base type. There is always
     // a base type specifier, provided by the parser.

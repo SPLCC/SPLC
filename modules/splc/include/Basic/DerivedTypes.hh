@@ -22,7 +22,7 @@
 namespace splc {
 
 class PointerType;
-class TypeContext;
+class SPLCContext;
 
 class FunctionType : public Type {
     FunctionType(Type *retTy, const TypePtrArray &params, bool isVarArg);
@@ -82,9 +82,9 @@ inline unsigned Type::getFunctionNumParams() const
 }
 
 class StructType : public Type {
-    friend class TypeContext;
+    friend class SPLCContext;
 
-    StructType(TypeContext &C) : Type{C, TypeID::Struct} {}
+    StructType(SPLCContext &C) : Type{C, TypeID::Struct} {}
 
     enum {
         SCDB_HasBody = 1,   ///< If this type has body
@@ -99,15 +99,15 @@ class StructType : public Type {
     StructType(const StructType &) = delete;
     StructType &operator=(const StructType &) = delete;
 
-    static StructType *create(TypeContext &context, std::string_view name);
-    static StructType *create(TypeContext &context);
+    static StructType *create(SPLCContext &context, std::string_view name);
+    static StructType *create(SPLCContext &context);
     static StructType *create(const TypePtrArray &elements,
                               std::string_view name);
     static StructType *create(const TypePtrArray &elements);
-    static StructType *create(TypeContext &context,
+    static StructType *create(SPLCContext &context,
                               const TypePtrArray &elements,
                               std::string_view name);
-    static StructType *create(TypeContext &context,
+    static StructType *create(SPLCContext &context,
                               const TypePtrArray &elements);
 
     template <AreBaseOfType... Tys>
@@ -119,10 +119,10 @@ class StructType : public Type {
     }
 
     /// This static method is the primary way to create a literal StructType.
-    static StructType *get(TypeContext &context, TypePtrArray elements);
+    static StructType *get(SPLCContext &context, TypePtrArray elements);
 
     /// Create an empty structure type.
-    static StructType *get(TypeContext &context);
+    static StructType *get(SPLCContext &context);
 
     /// This static method is a convenience method for creating structure types
     /// by specifying the elements as arguments. Note that this method always
@@ -136,7 +136,7 @@ class StructType : public Type {
         return StructType::get(ctx, TypePtrArray{{elt1, elts...}});
     }
 
-    static StructType *getTypeByName(TypeContext &C, std::string_view name);
+    static StructType *getTypeByName(SPLCContext &C, std::string_view name);
 
     /// Return true if this type is uniqued by structural equivalence, false if
     /// it is a struct definition.
@@ -231,7 +231,7 @@ inline uint64_t Type::getArrayNumElements() const
 class PointerType : public Type {
     Type *elementType;
 
-    explicit PointerType(TypeContext &C, Type *elementType_);
+    explicit PointerType(SPLCContext &C, Type *elementType_);
 
   public:
     PointerType(const PointerType &) = delete;
@@ -241,7 +241,7 @@ class PointerType : public Type {
     static PointerType *get(Type *elementType);
 
     /// This constructs a void pointer to an object.
-    static PointerType *get(TypeContext &C);
+    static PointerType *get(SPLCContext &C);
 
     /// Return true if the specified type is valid as a element type.
     static bool isValidElementType(Type *elementType_);

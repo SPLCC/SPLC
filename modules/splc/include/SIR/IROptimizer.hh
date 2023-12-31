@@ -1,12 +1,13 @@
-#ifndef __SPLC_IR_IROPTIMIZER_HH__
-#define __SPLC_IR_IROPTIMIZER_HH__ 1
+#ifndef __SPLC_SIR_IROPTIMIZER_HH__
+#define __SPLC_SIR_IROPTIMIZER_HH__ 1
 
-namespace splc {
+namespace splc::SIR {
 
 class IROptimizer {
+  public:
     
 };
 
-} // namespace splc
+} // namespace splc::SIR
 
-#endif // __SPLC_IR_IROPTIMIZER_HH__
+#endif // __SPLC_SIR_IROPTIMIZER_HH__

@@ -71,7 +71,7 @@ class AST : public std::enable_shared_from_this<AST> {
     }
 
     template <IsValidASTValue T = ASTValueType>
-    AST(Ptr<TypeContext> typeContext, const ASTSymType symType_,
+    AST(Ptr<SPLCContext> typeContext, const ASTSymType symType_,
         const Location &loc_, T &&value_ = {}) noexcept
         : tyContext{typeContext}, symType{symType_}, loc{loc_}, value{value_}
     {
@@ -103,7 +103,7 @@ class AST : public std::enable_shared_from_this<AST> {
     }
 
     template <AllArePtrAST... Children>
-    static PtrAST make(Ptr<TypeContext> typeContext, ASTSymType type,
+    static PtrAST make(Ptr<SPLCContext> typeContext, ASTSymType type,
                        const Location &loc, Children &&...children)
     {
         PtrAST parentNode = makeSharedPtr<AST>(typeContext, type, loc);
@@ -112,7 +112,7 @@ class AST : public std::enable_shared_from_this<AST> {
     }
 
     template <IsValidASTValue T, AllArePtrAST... Children>
-    static PtrAST make(Ptr<TypeContext> typeContext, ASTSymType type,
+    static PtrAST make(Ptr<SPLCContext> typeContext, ASTSymType type,
                        const Location &loc, T &&value, Children &&...children)
     {
         PtrAST parentNode =
@@ -131,7 +131,7 @@ class AST : public std::enable_shared_from_this<AST> {
     }
 
     template <IsBaseAST ASTTypeLike, AllArePtrAST... Children>
-    static Ptr<ASTTypeLike> makeDerived(Ptr<TypeContext> typeContext,
+    static Ptr<ASTTypeLike> makeDerived(Ptr<SPLCContext> typeContext,
                                         const Location &loc,
                                         Children &&...children)
     {
@@ -230,7 +230,7 @@ class AST : public std::enable_shared_from_this<AST> {
         return std::holds_alternative<T>(value);
     }
 
-    void setTyContext(Ptr<TypeContext> typeContext_)
+    void setTyContext(Ptr<SPLCContext> typeContext_)
     {
         tyContext = typeContext_;
     }
@@ -289,7 +289,7 @@ class AST : public std::enable_shared_from_this<AST> {
     auto &getVariant() noexcept { return value; }
 
   protected:
-    Ptr<TypeContext> tyContext;
+    Ptr<SPLCContext> tyContext;
     ASTSymType symType;
     Type *langType =
         nullptr; ///< type related to this AST, e.g., type for specifiers.

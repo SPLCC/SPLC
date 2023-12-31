@@ -53,19 +53,16 @@ PtrAST AST::copy(const std::function<bool(Ptr<const AST>)> &predicate,
 
 std::ostream &operator<<(std::ostream &os, const AST &node) noexcept
 {
-    using utils::logging::ControlSeq;
+    using CS = utils::logging::ControlSeq;
 
     // print node type
-    os << ControlSeq::Bold << getASTSymbolColor(node.symType)
-       << getASTSymbolName(node.symType) << ControlSeq::Reset;
-
-    // TODO: print node address (allocated)
+    os << CS::Bold << getASTSymbolColor(node.symType)
+       << getASTSymbolName(node.symType) << CS::Reset;
 
     // print node location
-    os << " <" << ControlSeq::BrightYellow;
+    os << " <" << CS::BrightYellow;
     if (auto cid = node.loc.begin.contextID;
         cid != Location::invalidContextID) {
-        // TODO: revise this
         if (!astPrintMap.contains(cid)) {
             astPrintMap.insert(cid);
             os << node.loc;
@@ -78,10 +75,9 @@ std::ostream &operator<<(std::ostream &os, const AST &node) noexcept
     else {
         os << "<invalid sloc>";
     }
-    os << ControlSeq::Reset << ">";
+    os << CS::Reset << ">";
 
     // print node content
-    // TODO: print symbol table
     if (node.getContext()) {
         os << " with ";
         const auto &ctx = *node.getContext();
@@ -91,7 +87,6 @@ std::ostream &operator<<(std::ostream &os, const AST &node) noexcept
     // print node value
     if (node.hasConstVal()) {
         // template magic
-        // TODO: add support for other types
         os << " , val: ";
         os << getASTSymbolColor(node.symType);
         node.visitConstVal(overloaded{
@@ -100,7 +95,7 @@ std::ostream &operator<<(std::ostream &os, const AST &node) noexcept
             [&](ASTUIntType arg) { os << arg; },
             [&](ASTFloatType arg) { os << arg; },
             [&](const ASTIDType &arg) { os << arg; }});
-        os << ControlSeq::Reset;
+        os << CS::Reset;
     }
 
     return os;

@@ -25,7 +25,7 @@
 
 namespace splc {
 
-class TypeContext;
+class SPLCContext;
 
 class Type;
 class PointerType;
@@ -78,8 +78,8 @@ class Type {
     };
 
   protected:
-    friend class TypeContext;
-    explicit Type(TypeContext &C, TypeID tid) : context(C), ID{tid} {}
+    friend class SPLCContext;
+    explicit Type(SPLCContext &C, TypeID tid) : context(C), ID{tid} {}
 
     unsigned getSubclassData() const { return subClassData; }
 
@@ -93,7 +93,7 @@ class Type {
     Type *const *containedTys = nullptr;
 
   private:
-    TypeContext &context;
+    SPLCContext &context;
     TypeID ID;
     unsigned subClassData;
     // bool constTy;
@@ -120,7 +120,7 @@ class Type {
 
     //===----------------------------------------------------------------------===//
     // Accessors
-    TypeContext &getContext() const { return context; }
+    SPLCContext &getContext() const { return context; }
 
     TypeID getTypeID() const { return ID; }
 
@@ -265,22 +265,22 @@ class Type {
         return containedTys[0];
     }
 
-    static Type *getPrimitiveType(TypeContext &C, TypeID ID);
+    static Type *getPrimitiveType(SPLCContext &C, TypeID ID);
 
-    static Type *getFloatTy(TypeContext &C);
-    static Type *getDoubleTy(TypeContext &C);
-    static Type *getVoidTy(TypeContext &C);
-    static Type *getLabelTy(TypeContext &C);
-    static Type *getTokenTy(TypeContext &C);
-    static Type *getInt1Ty(TypeContext &C);
-    static Type *getUInt8Ty(TypeContext &C);
-    static Type *getSInt8Ty(TypeContext &C);
-    static Type *getUInt16Ty(TypeContext &C);
-    static Type *getSInt16Ty(TypeContext &C);
-    static Type *getUInt32Ty(TypeContext &C);
-    static Type *getSInt32Ty(TypeContext &C);
-    static Type *getUInt64Ty(TypeContext &C);
-    static Type *getSInt64Ty(TypeContext &C);
+    static Type *getFloatTy(SPLCContext &C);
+    static Type *getDoubleTy(SPLCContext &C);
+    static Type *getVoidTy(SPLCContext &C);
+    static Type *getLabelTy(SPLCContext &C);
+    static Type *getTokenTy(SPLCContext &C);
+    static Type *getInt1Ty(SPLCContext &C);
+    static Type *getUInt8Ty(SPLCContext &C);
+    static Type *getSInt8Ty(SPLCContext &C);
+    static Type *getUInt16Ty(SPLCContext &C);
+    static Type *getSInt16Ty(SPLCContext &C);
+    static Type *getUInt32Ty(SPLCContext &C);
+    static Type *getSInt32Ty(SPLCContext &C);
+    static Type *getUInt64Ty(SPLCContext &C);
+    static Type *getSInt64Ty(SPLCContext &C);
 
     /// Return a signed type of the current type.
     Type *getSigned() const;

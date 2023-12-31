@@ -3,7 +3,7 @@
 
 #include <AST/ASTSymbol.hh>
 #include <Basic/DerivedTypes.hh>
-#include <Basic/TypeContext.hh>
+#include <Basic/SPLCContext.hh>
 #include <Core/splc.hh>
 #include <iostream>
 #include <map>

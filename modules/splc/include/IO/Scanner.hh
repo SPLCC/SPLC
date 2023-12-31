@@ -66,7 +66,7 @@ class Scanner : public SplcFlexLexer {
     Location concatTmpLocVec();
 
     TranslationManager &transMgr;
-    Ptr<TypeContext> tyCtx;
+    Ptr<SPLCContext> tyCtx;
 
     splc::IO::Parser::value_type *glval; ///< yylval
     splc::utils::Location *gloc;         ///< yyloc

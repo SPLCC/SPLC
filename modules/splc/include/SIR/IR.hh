@@ -1,5 +1,5 @@
-#ifndef __SPLC_IR_IR_HH__
-#define __SPLC_IR_IR_HH__ 1
+#ifndef __SPLC_SIR_IR_HH__
+#define __SPLC_SIR_IR_HH__ 1
 
 #include <AST/DerivedAST.hh>
 #include <Basic/Type.hh>
@@ -98,19 +98,25 @@ class IRVar {
     constexpr bool hasValue() const noexcept { return val.index() != 0; }
 
     template <IsValidASTValue T>
-    auto getValue()
+    auto getValue() noexcept
+    {
+        return std::get<T>(val);
+    }
+
+    template <IsValidASTValue T>
+    auto getValue() const noexcept
     {
         return std::get<T>(val);
     }
 
     template <class Visitor>
-    auto visitValue(Visitor &&vis) const
+    auto visitValue(Visitor &&vis) const noexcept
     {
         return std::visit(vis, val);
     }
 
     template <IsValidASTValue T>
-    void emplaceValue(T &&val_)
+    void emplaceValue(T &&val_) noexcept
     {
         val.emplace<T>(std::forward<T>(val_));
     }
@@ -121,7 +127,7 @@ class IRVar {
         return std::holds_alternative<T>(val);
     }
 
-    inline std::string getName()
+    std::string getName() const noexcept
     {
         if ((irVarType == IRVarType::Variable && isConst) ||
             irVarType == IRVarType::Constant) {
@@ -152,6 +158,21 @@ class IRVar {
 // TODO: modify everything
 class IRStmt {
   public:
+    IRStmt() = default;
+
+    IRStmt(IRType irType_, PtrIRVar op1_, PtrIRVar op2_ = nullptr,
+           PtrIRVar op3_ = nullptr,
+           IRBranchType branchType_ = IRBranchType::None)
+        : irType{irType_}, op1{op1_}, op2{op2_}, op3{op3_},
+          branchType{branchType_}
+    {
+    }
+
+    // IRStmt(IRType irType_, Ptr<IRFunction> func, PtrIRVar lhs_)
+    //     : irType{irType_}, target{func.get()}, op1{lhs_}
+    // {
+    // }
+
     static PtrIRStmt createLabelStmt(PtrIRVar op);
 
     static PtrIRStmt createFuncDeclStmt(PtrIRVar op);
@@ -186,7 +207,52 @@ class IRStmt {
 
     static PtrIRStmt createWriteStmt(PtrIRVar op);
 
-    friend std::ostream &operator<<(std::ostream &os, const IRStmt &stmt);
+    IRType getIRType() const noexcept { return irType; }
+
+    // clang-format off
+
+    bool isSetLabel() const noexcept { return getIRType() == IRType::SetLabel; }
+
+    bool isFuncDecl() const noexcept { return getIRType() == IRType::FuncDecl; }
+
+    bool isAssign() const noexcept { return getIRType() == IRType::Assign; }
+
+    bool isPlus() const noexcept { return getIRType() == IRType::Plus; }
+
+    bool isMinus() const noexcept { return getIRType() == IRType::Minus; }
+
+    bool isMul() const noexcept { return getIRType() == IRType::Mul; }
+
+    bool isDiv() const noexcept { return getIRType() == IRType::Div; }
+
+    bool isAddrOf() const noexcept { return getIRType() == IRType::AddrOf; }
+
+    bool isDeref() const noexcept { return getIRType() == IRType::Deref; }
+
+    bool isCopyToAddr() const noexcept { return getIRType() == IRType::CopyToAddr; }
+
+    bool isGoto() const noexcept { return getIRType() == IRType::Goto; }
+
+    bool isBranchIf() const noexcept { return getIRType() == IRType::BranchIf; }
+
+    bool isReturn() const noexcept { return getIRType() == IRType::Return; }
+
+    bool isAlloc() const noexcept { return getIRType() == IRType::Alloc; }
+
+    bool isPopCallArg() const noexcept { return getIRType() == IRType::PopCallArg; }
+
+    bool isPushCallArg() const noexcept { return getIRType() == IRType::PushCallArg; }
+
+    bool isInvokeFunc() const noexcept { return getIRType() == IRType::InvokeFunc; }
+
+    bool isRead() const noexcept { return getIRType() == IRType::Read; }
+
+    bool isWrite() const noexcept { return getIRType() == IRType::Write; }
+
+    // clang-format on
+
+    friend std::ostream &operator<<(std::ostream &os,
+                                    const IRStmt &stmt) noexcept;
 
     IRType irType;
     IRBranchType branchType = IRBranchType::None;
@@ -194,26 +260,10 @@ class IRStmt {
                             ///< Param, Arg, lvalue of all OP
     PtrIRVar op2 = nullptr; ///< Stores: RHS of assign, 1st OP of Expr
     PtrIRVar op3 = nullptr; ///< Stores:
-    IRFunction *target = nullptr;
+    // IRFunction *target = nullptr;
 
     IRStmt *prev = nullptr;
     IRStmt *next = nullptr;
-
-    //   protected:
-    IRStmt() = default;
-
-    IRStmt(IRType irType_, PtrIRVar op1_, PtrIRVar op2_ = nullptr,
-           PtrIRVar op3_ = nullptr,
-           IRBranchType branchType_ = IRBranchType::None)
-        : irType{irType_}, op1{op1_}, op2{op2_}, op3{op3_},
-          branchType{branchType_}
-    {
-    }
-
-    IRStmt(IRType irType_, Ptr<IRFunction> func, PtrIRVar lhs_)
-        : irType{irType_}, target{func.get()}, op1{lhs_}
-    {
-    }
 };
 
 class IRSB : public IRStmt {};
@@ -224,7 +274,8 @@ class IRFunction {
 
     IRFunction(IRIDType name_, Type *retTy_) : name{name_}, retTy{retTy_} {}
 
-    friend std::ostream &operator<<(std::ostream &os, const IRFunction &func);
+    friend std::ostream &operator<<(std::ostream &os,
+                                    const IRFunction &func) noexcept;
 
     IRIDType name;
     Type *retTy;
@@ -234,144 +285,9 @@ class IRFunction {
     IRVec<PtrIRStmt> body;
 };
 
-inline std::ostream &operator<<(std::ostream &os, const IRStmt &stmt)
-{
-    switch (stmt.irType) {
-    case IRType::SetLabel: {
-        os << "LABEL " << stmt.op1->getName() << " :\n";
-        break;
-    }
-    case IRType::Assign: {
-        os << stmt.op1->getName() << " := " << stmt.op2->getName() << "\n";
-        break;
-    }
-    case IRType::Plus: {
-        os << stmt.op1->getName() << " := " << stmt.op2->getName() << " + "
-           << stmt.op3->getName() << "\n";
-        break;
-    }
-    case IRType::Minus: {
-        os << stmt.op1->getName() << " := " << stmt.op2->getName() << " - "
-           << stmt.op3->getName() << "\n";
-        break;
-    }
-    case IRType::Mul: {
-        os << stmt.op1->getName() << " := " << stmt.op2->getName() << " * "
-           << stmt.op3->getName() << "\n";
-        break;
-    }
-    case IRType::Div: {
-        os << stmt.op1->getName() << " := " << stmt.op2->getName() << " / "
-           << stmt.op3->getName() << "\n";
-        break;
-    }
-    case IRType::AddrOf: {
-        os << stmt.op1->getName() << " := &" << stmt.op2->getName() << "\n";
-        break;
-    }
-    case IRType::Deref: {
-        os << stmt.op1->getName() << " := *" << stmt.op2->getName() << "\n";
-        break;
-    }
-    case IRType::CopyToAddr: {
-        os << "*" << stmt.op1->getName() << " := " << stmt.op2->getName()
-           << "\n";
-        break;
-    }
-    case IRType::Goto: {
-        os << "GOTO " << stmt.op1->getName() << "\n";
-        break;
-    }
-    case IRType::BranchIf: {
-        os << "IF " << stmt.op1->getName() << " ";
-        switch (stmt.branchType) {
-        case IRBranchType::None: {
-            splc_error();
-            break;
-        }
-        case IRBranchType::LT: {
-            os << "<";
-            break;
-        }
-        case IRBranchType::LE: {
-            os << "<=";
-            break;
-        }
-        case IRBranchType::GT: {
-            os << ">";
-            break;
-        }
-        case IRBranchType::GE: {
-            os << ">=";
-            break;
-        }
-        case IRBranchType::EQ: {
-            os << "==";
-            break;
-        }
-        case IRBranchType::NE: {
-            os << "!=";
-            break;
-        }
-        }
-        os << " " << stmt.op2->getName() << " GOTO " << stmt.op3->getName()
-           << "\n";
-        break;
-    }
-    case IRType::Return: {
-        os << "RETURN " << stmt.op1->getName() << "\n";
-        break;
-    }
-    case IRType::Alloc: {
-        os << "DEC " << stmt.op1->getName() << " " << stmt.op2->getName()
-           << "\n";
-        break;
-    }
-    case IRType::PopCallArg: {
-        os << "PARAM " << stmt.op1->getName() << "\n";
-        break;
-    }
-    case IRType::PushCallArg: {
-        os << "ARG " << stmt.op1->getName() << "\n";
-        break;
-    }
-    case IRType::InvokeFunc: {
-        os << stmt.op1->getName() << " := CALL " << stmt.op2->getName() << "\n";
-        break;
-    }
-    case IRType::Read: {
-        os << "READ " << stmt.op1->getName() << "\n";
-        break;
-    }
-    case IRType::Write: {
-        os << "WRITE " << stmt.op1->getName() << "\n";
-        break;
-    }
-    case IRType::FuncDecl: {
-        splc_error();
-        break;
-    }
-    default: {
-        splc_error();
-        break;
-    }
-    }
-    return os;
-}
+std::ostream &operator<<(std::ostream &os, const IRStmt &stmt) noexcept;
 
-inline std::ostream &operator<<(std::ostream &os, const IRFunction &func)
-{
-    os << "FUNCTION " << func.name << " :\n";
-    for (auto &it : std::views::reverse(func.paramList)) {
-        os << *IRStmt::createPopCallArgStmt(it);
-    }
-
-    for (auto stmt : func.body) {
-        os << *stmt;
-    }
-    return os;
-}
-
+std::ostream &operator<<(std::ostream &os, const IRFunction &func) noexcept;
 } // namespace splc::SIR
 
-#endif // __SPLC_IR_IR_HH__
+#endif // __SPLC_SIR_IR_HH__

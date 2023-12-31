@@ -3,7 +3,7 @@
 
 #include "AST/ASTCommons.hh"
 #include "Core/splc.hh"
-#include "Basic/TypeContext.hh"
+#include "Basic/SPLCContext.hh"
 #include <iostream>
 #include <map>
 #include <vector>

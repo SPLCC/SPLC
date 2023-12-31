@@ -2,7 +2,7 @@
 #define __SPLC_AST_SPLTYPECONTEXT_HH__ 1
 
 #include "AST/ASTCommons.hh"
-#include "Basic/TypeContext.hh"
+#include "Basic/SPLCContext.hh"
 #include "Core/splc.hh"
 #include <iostream>
 #include <map>

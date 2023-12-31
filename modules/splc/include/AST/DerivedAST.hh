@@ -247,7 +247,7 @@ class DeclSpecAST : public AST {
     {
     }
 
-    DeclSpecAST(Ptr<TypeContext> typeContext_, const Location &loc_) noexcept
+    DeclSpecAST(Ptr<SPLCContext> typeContext_, const Location &loc_) noexcept
         : AST{typeContext_, ASTSymType::DeclSpec, loc_}
     {
     }
@@ -317,7 +317,7 @@ class DecltrAST : public AST {
   public:
     DecltrAST(const Location &loc_) noexcept : AST{ASTSymType::Decltr, loc_} {}
 
-    DecltrAST(Ptr<TypeContext> typeContext_, const Location &loc_) noexcept
+    DecltrAST(Ptr<SPLCContext> typeContext_, const Location &loc_) noexcept
         : AST{typeContext_, ASTSymType::Decltr, loc_}
     {
     }
@@ -341,13 +341,13 @@ class DirDecltrAST : public AST {
     {
     }
 
-    DirDecltrAST(Ptr<TypeContext> typeContext_, const Location &loc_) noexcept
+    DirDecltrAST(Ptr<SPLCContext> typeContext_, const Location &loc_) noexcept
         : AST{typeContext_, ASTSymType::DirDecltr, loc_}
     {
     }
 
     template <IsPtrAST... Children>
-    static Ptr<DirDecltrAST> make(Ptr<TypeContext> tyContext_,
+    static Ptr<DirDecltrAST> make(Ptr<SPLCContext> tyContext_,
                                   const Location &loc,
                                   Children... children) noexcept
     {
@@ -358,7 +358,7 @@ class DirDecltrAST : public AST {
     }
 
     template <IsPtrAST... Children>
-    static Ptr<DirDecltrAST> make(Ptr<TypeContext> tyContext_, Type *baseTy,
+    static Ptr<DirDecltrAST> make(Ptr<SPLCContext> tyContext_, Type *baseTy,
                                   const Location &loc,
                                   Children... children) noexcept
     {
@@ -385,7 +385,7 @@ class WrappedDirDecltrAST : public AST {
     {
     }
 
-    WrappedDirDecltrAST(Ptr<TypeContext> typeContext_,
+    WrappedDirDecltrAST(Ptr<SPLCContext> typeContext_,
                         const Location &loc_) noexcept
         : AST{typeContext_, ASTSymType::WrappedDirDecltr, loc_}
     {
@@ -440,7 +440,7 @@ class ParamListAST : public AST {
     {
     }
 
-    ParamListAST(Ptr<TypeContext> typeContext_, const Location &loc_) noexcept
+    ParamListAST(Ptr<SPLCContext> typeContext_, const Location &loc_) noexcept
         : AST{typeContext_, ASTSymType::ParamList, loc_}
     {
     }
@@ -459,7 +459,7 @@ class ParamDecltrAST : public AST {
     {
     }
 
-    ParamDecltrAST(Ptr<TypeContext> typeContext_, const Location &loc_) noexcept
+    ParamDecltrAST(Ptr<SPLCContext> typeContext_, const Location &loc_) noexcept
         : AST{typeContext_, ASTSymType::ParamDecltr, loc_}
     {
     }
