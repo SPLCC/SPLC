@@ -98,7 +98,7 @@ class IROptimizer {
   protected:
     static void examineStmt(DepKey &key, Ptr<IRFunction> func,
                             Ptr<IRStmt> &stmt);
-                            
+
     static void examineStmt(DepKey &key, Ptr<IRFunction> func,
                             decltype(func->body.begin()) it);
 
@@ -110,7 +110,7 @@ class IROptimizer {
   public:
     static void removeUnusedStmts(Ptr<IRFunction> func);
 
-    static void constPropagation(Ptr<IRFunction> func);
+    static void constPropagate(Ptr<IRFunction> func);
 
     static void optimizeArithmetic(Ptr<IRFunction> func);
 

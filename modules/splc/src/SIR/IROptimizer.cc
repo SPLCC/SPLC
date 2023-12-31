@@ -109,7 +109,7 @@ void IROptimizer::examineStmt(DepKey &key, Ptr<IRFunction> func,
     case IRType::Read: {
         auto lhs = findOrMake(nodeMap, stmt->op1, stmt, Type::Input);
         allDepNodes.insert(allDepNodes.end(), {lhs});
-        inputs.insert(outputs.end(), {lhs});
+        inputs.insert(inputs.end(), {lhs});
         break;
     }
     case IRType::Write: {
@@ -271,14 +271,74 @@ void IROptimizer::removeUnusedStmts(Ptr<IRFunction> func)
     func->body = newBody;
 }
 
-void IROptimizer::constPropagation(Ptr<IRFunction> func)
+void getInitialConstants(IRVec<DepNode *> &initials, DepNode *node)
+{
+    if (node->var != nullptr && node->var->irVarType == IRVarType::Constant) {
+        initials.push_back(node);
+    }
+    for (auto child : node->children) {
+        getInitialConstants(initials, child);
+    }
+}
+
+void constPropagate(DepNode *node)
+{
+    // TODO
+    for (auto child : node->children) {
+        if (child->stmt == nullptr)
+            continue;
+        switch (child->stmt->getIRType()) {
+        case IRType::SetLabel:
+        case IRType::FuncDecl: {
+            break;
+        }
+        case IRType::Assign: {
+            break;
+        }
+        case IRType::Plus:
+        case IRType::Minus:
+        case IRType::Mul:
+        case IRType::Div:
+        case IRType::AddrOf:
+        case IRType::Deref:
+        case IRType::CopyToAddr: {
+            break;
+        }
+        case IRType::Goto:
+        case IRType::BranchIf:
+        case IRType::Return:
+        case IRType::Alloc:
+        case IRType::PopCallArg:
+        case IRType::PushCallArg:
+        case IRType::InvokeFunc:
+        case IRType::Read:
+        case IRType::Write: {
+            break;
+        } break;
+        }
+    }
+    for (auto child : node->children) {
+        constPropagate(child);
+    }
+}
+
+void IROptimizer::constPropagate(Ptr<IRFunction> func)
 {
     // TODO: basic const propagation
     using Type = DepNode::Type;
 
     auto [depNodes, nodeMap, inputs, outputs] = buildDependency(func);
 
-    // traverse dependency graph and for each constant variable, assign to its result
+    // traverse dependency graph for each constant variable
+    IRVec<DepNode *> initials;
+
+    for (auto &node : outputs) {
+        getInitialConstants(initials, node.get());
+    }
+
+    for (auto initial : initials) {
+        SIR::constPropagate(initial);
+    }
 }
 
 void IROptimizer::optimizeArithmetic(Ptr<IRFunction> func)
@@ -289,7 +349,7 @@ void IROptimizer::optimizeArithmetic(Ptr<IRFunction> func)
 void IROptimizer::optimizeFunction(Ptr<IRFunction> func)
 {
     // TODO:
-    constPropagation(func);
+    constPropagate(func);
     optimizeArithmetic(func);
     removeUnusedStmts(func);
 }
