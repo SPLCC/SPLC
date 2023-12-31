@@ -22,15 +22,25 @@ Ptr<DepNode> insertOrReplace(DepNodeMap &map, Ptr<IRVar> var, Ptr<IRStmt> stmt,
     return node;
 }
 
+void searchBranchIf(DepKey &key, Ptr<IRFunction> func,
+                    decltype(func->body.begin()) it)
+{
+    auto &[allDepNodes, nodeMap, inputs, outputs] = key;
+    
+    for (; it != func->body.end(); ++it)
+    {
+        // TODO
+    }
+}
+
 DepKey IROptimizer::buildDependency(Ptr<IRFunction> func)
 {
-    DepNodeList allDepNodes;
-    DepNodeMap nodeMap;
-    DepNodeList inputs;
-    DepNodeList outputs;
+    DepKey key;
+    auto &[allDepNodes, nodeMap, inputs, outputs] = key;
     using Type = DepNode::Type;
 
-    for (auto &stmt : func->body) {
+    for (auto it = func->body.begin(); it != func->body.end(); ++it) {
+        auto &stmt = *it;
         switch (stmt->getIRType()) {
         case IRType::SetLabel:
         case IRType::FuncDecl: {
@@ -114,7 +124,7 @@ DepKey IROptimizer::buildDependency(Ptr<IRFunction> func)
         }
     }
 
-    return {allDepNodes, nodeMap, inputs, outputs};
+    return key;
 }
 
 void recursiveColor(DepNode *node)

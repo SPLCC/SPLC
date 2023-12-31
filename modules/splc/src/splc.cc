@@ -51,8 +51,8 @@ int main(const int argc, const char **argv)
 
     Ptr<IRProgram> program = builder.makeProgram(node);
 
-    // optimizer
-    // IROptimizer::optimizeProgram(program);
+    // Optimizer
+    IROptimizer::optimizeProgram(program);
 
     IRProgram::writeProgram(std::cout, program);
 
