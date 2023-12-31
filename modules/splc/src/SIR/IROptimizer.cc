@@ -37,8 +37,8 @@ void IROptimizer::examineStmt(DepKey &key, Ptr<IRFunction> func,
     case IRType::AddrOf:
     case IRType::Deref:
     case IRType::CopyToAddr: {
-        auto lhs = insertOrReplace(nodeMap, stmt->op1, stmt, Type::Mid);
         auto rhs = findOrMake(nodeMap, stmt->op2, stmt, Type::Mid);
+        auto lhs = insertOrReplace(nodeMap, stmt->op1, stmt, Type::Mid);
         DepNode::connect(rhs, lhs);
         allDepNodes.insert(allDepNodes.end(), {lhs, rhs});
         break;
@@ -47,9 +47,9 @@ void IROptimizer::examineStmt(DepKey &key, Ptr<IRFunction> func,
     case IRType::Minus:
     case IRType::Mul:
     case IRType::Div: {
-        auto lhs = insertOrReplace(nodeMap, stmt->op1, stmt, Type::Mid);
         auto rhs1 = findOrMake(nodeMap, stmt->op2, stmt, Type::Mid);
         auto rhs2 = findOrMake(nodeMap, stmt->op3, stmt, Type::Mid);
+        auto lhs = insertOrReplace(nodeMap, stmt->op1, stmt, Type::Mid);
         DepNode::connect(rhs1, lhs);
         DepNode::connect(rhs2, lhs);
         allDepNodes.insert(allDepNodes.end(), {lhs, rhs1, rhs2});
@@ -60,14 +60,14 @@ void IROptimizer::examineStmt(DepKey &key, Ptr<IRFunction> func,
         break;
     }
     case IRType::BranchIf: {
-        auto lhsPrev = findOrMake(nodeMap, stmt->op1, stmt, Type::Mid);
         auto rhsPrev = findOrMake(nodeMap, stmt->op2, stmt, Type::Mid);
+        auto lhsPrev = findOrMake(nodeMap, stmt->op1, stmt, Type::Mid);
 
         // change this
-        auto lhsBranch =
-            insertOrReplace(nodeMap, stmt->op1, stmt, Type::Output);
         auto rhsBranch =
             insertOrReplace(nodeMap, stmt->op2, stmt, Type::Output);
+        auto lhsBranch =
+            insertOrReplace(nodeMap, stmt->op1, stmt, Type::Output);
 
         DepNode::connect(lhsPrev, lhsBranch);
         DepNode::connect(rhsPrev, rhsBranch);
@@ -195,9 +195,9 @@ void recursiveColorParent(DepNode *node, bool colorChildren)
     // TODO: output
     node->setMarked();
     for (auto parent : node->parents) {
-        if (parent->isUnmarked()) {
-            recursiveColorParent(parent, colorChildren);
-        }
+        // if (parent->isUnmarked()) {
+        recursiveColorParent(parent, colorChildren);
+        // }
     }
     if (node->stmt != nullptr && node->stmt->isBranchIf() && colorChildren) {
         recursiveColorChildren(node);
