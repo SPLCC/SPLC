@@ -96,7 +96,16 @@ using DepKey = std::tuple<DepNodeList, DepNodeMap, DepNodeList, DepNodeList>;
 class IROptimizer {
   public:
   protected:
+    static void examineStmt(DepKey &key, Ptr<IRFunction> func,
+                            Ptr<IRStmt> &stmt);
+                            
+    static void examineStmt(DepKey &key, Ptr<IRFunction> func,
+                            decltype(func->body.begin()) it);
+
     static DepKey buildDependency(Ptr<IRFunction> func);
+
+    static void searchBranchIf(DepKey &key, Ptr<IRFunction> func,
+                               decltype(func->body.begin()) it);
 
   public:
     static void removeUnusedStmts(Ptr<IRFunction> func);

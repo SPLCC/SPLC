@@ -22,117 +22,182 @@ Ptr<DepNode> insertOrReplace(DepNodeMap &map, Ptr<IRVar> var, Ptr<IRStmt> stmt,
     return node;
 }
 
-void searchBranchIf(DepKey &key, Ptr<IRFunction> func,
-                    decltype(func->body.begin()) it)
+void IROptimizer::examineStmt(DepKey &key, Ptr<IRFunction> func,
+                              Ptr<IRStmt> &stmt)
+{
+    using Type = DepNode::Type;
+    auto &[allDepNodes, nodeMap, inputs, outputs] = key;
+    switch (stmt->getIRType()) {
+    case IRType::SetLabel:
+    case IRType::FuncDecl: {
+        // Don't care
+        break;
+    }
+    case IRType::Assign:
+    case IRType::AddrOf:
+    case IRType::Deref:
+    case IRType::CopyToAddr: {
+        auto lhs = insertOrReplace(nodeMap, stmt->op1, stmt, Type::Mid);
+        auto rhs = findOrMake(nodeMap, stmt->op2, stmt, Type::Mid);
+        DepNode::connect(rhs, lhs);
+        allDepNodes.insert(allDepNodes.end(), {lhs, rhs});
+        break;
+    }
+    case IRType::Plus:
+    case IRType::Minus:
+    case IRType::Mul:
+    case IRType::Div: {
+        auto lhs = insertOrReplace(nodeMap, stmt->op1, stmt, Type::Mid);
+        auto rhs1 = findOrMake(nodeMap, stmt->op2, stmt, Type::Mid);
+        auto rhs2 = findOrMake(nodeMap, stmt->op3, stmt, Type::Mid);
+        DepNode::connect(rhs1, lhs);
+        DepNode::connect(rhs2, lhs);
+        allDepNodes.insert(allDepNodes.end(), {lhs, rhs1, rhs2});
+        break;
+    }
+    case IRType::Goto: {
+        // Don't care
+        break;
+    }
+    case IRType::BranchIf: {
+        auto lhsPrev = findOrMake(nodeMap, stmt->op1, stmt, Type::Mid);
+        auto rhsPrev = findOrMake(nodeMap, stmt->op2, stmt, Type::Mid);
+
+        // change this
+        auto lhsBranch =
+            insertOrReplace(nodeMap, stmt->op1, stmt, Type::Output);
+        auto rhsBranch =
+            insertOrReplace(nodeMap, stmt->op2, stmt, Type::Output);
+
+        DepNode::connect(lhsPrev, lhsBranch);
+        DepNode::connect(rhsPrev, rhsBranch);
+
+        outputs.insert(outputs.end(), {lhsBranch, rhsBranch});
+        allDepNodes.insert(allDepNodes.end(),
+                           {lhsPrev, rhsPrev, lhsBranch, rhsBranch});
+        break;
+    }
+    case IRType::Return: {
+        auto lhs = findOrMake(nodeMap, stmt->op1, stmt, Type::Output);
+        allDepNodes.insert(allDepNodes.end(), {lhs});
+        outputs.insert(outputs.end(), {lhs});
+        break;
+    }
+    case IRType::Alloc: {
+        auto lhs1 = insertOrReplace(nodeMap, stmt->op1, stmt, Type::Output);
+        auto lhs2 = findOrMake(nodeMap, stmt->op2, stmt, Type::Output);
+        allDepNodes.insert(allDepNodes.end(), {lhs1, lhs2});
+        outputs.insert(outputs.end(), {lhs1, lhs2});
+        break;
+    }
+    case IRType::PopCallArg: {
+        auto node = insertOrReplace(nodeMap, stmt->op1, stmt, Type::Input);
+        allDepNodes.push_back(node);
+        inputs.push_back(node);
+        break;
+    }
+    case IRType::PushCallArg: {
+        auto lhs = findOrMake(nodeMap, stmt->op1, stmt, Type::Output);
+        allDepNodes.insert(allDepNodes.end(), {lhs});
+        outputs.insert(outputs.end(), {lhs});
+        break;
+    }
+    case IRType::InvokeFunc: {
+        // Don't care
+        break;
+    }
+    case IRType::Read: {
+        auto lhs = findOrMake(nodeMap, stmt->op1, stmt, Type::Input);
+        allDepNodes.insert(allDepNodes.end(), {lhs});
+        inputs.insert(outputs.end(), {lhs});
+        break;
+    }
+    case IRType::Write: {
+        auto lhs = findOrMake(nodeMap, stmt->op1, stmt, Type::Output);
+        allDepNodes.insert(allDepNodes.end(), {lhs});
+        outputs.insert(outputs.end(), {lhs});
+        break;
+    }
+    }
+}
+
+void IROptimizer::examineStmt(DepKey &key, Ptr<IRFunction> func,
+                              decltype(func->body.begin()) it)
+{
+    examineStmt(key, func, *it);
+}
+
+void IROptimizer::searchBranchIf(DepKey &key, Ptr<IRFunction> func,
+                                 decltype(func->body.begin()) it)
 {
     auto &[allDepNodes, nodeMap, inputs, outputs] = key;
-    
-    for (; it != func->body.end(); ++it)
-    {
-        // TODO
-    }
 }
 
 DepKey IROptimizer::buildDependency(Ptr<IRFunction> func)
 {
     DepKey key;
     auto &[allDepNodes, nodeMap, inputs, outputs] = key;
-    using Type = DepNode::Type;
 
     for (auto it = func->body.begin(); it != func->body.end(); ++it) {
-        auto &stmt = *it;
-        switch (stmt->getIRType()) {
-        case IRType::SetLabel:
-        case IRType::FuncDecl: {
-            // Don't care
-            break;
-        }
-        case IRType::Assign:
-        case IRType::AddrOf:
-        case IRType::Deref:
-        case IRType::CopyToAddr: {
-            auto lhs = insertOrReplace(nodeMap, stmt->op1, stmt, Type::Mid);
-            auto rhs = findOrMake(nodeMap, stmt->op2, stmt, Type::Mid);
-            DepNode::connect(rhs, lhs);
-            allDepNodes.insert(allDepNodes.end(), {lhs, rhs});
-            break;
-        }
-        case IRType::Plus:
-        case IRType::Minus:
-        case IRType::Mul:
-        case IRType::Div: {
-            auto lhs = insertOrReplace(nodeMap, stmt->op1, stmt, Type::Mid);
-            auto rhs1 = findOrMake(nodeMap, stmt->op2, stmt, Type::Mid);
-            auto rhs2 = findOrMake(nodeMap, stmt->op3, stmt, Type::Mid);
-            DepNode::connect(rhs1, lhs);
-            DepNode::connect(rhs2, lhs);
-            allDepNodes.insert(allDepNodes.end(), {lhs, rhs1, rhs2});
-            break;
-        }
-        case IRType::Goto: {
-            // Don't care
-            break;
-        }
-        case IRType::BranchIf: {
-            auto lhs = insertOrReplace(nodeMap, stmt->op1, stmt, Type::Mid);
-            auto rhs = findOrMake(nodeMap, stmt->op2, stmt, Type::Mid);
-            DepNode::connect(rhs, lhs);
-            allDepNodes.insert(allDepNodes.end(), {lhs, rhs});
-            break;
-        }
-        case IRType::Return: {
-            auto lhs = findOrMake(nodeMap, stmt->op1, stmt, Type::Output);
-            allDepNodes.insert(allDepNodes.end(), {lhs});
-            outputs.insert(outputs.end(), {lhs});
-            break;
-        }
-        case IRType::Alloc: {
-            auto lhs1 = findOrMake(nodeMap, stmt->op1, stmt, Type::Output);
-            auto lhs2 = findOrMake(nodeMap, stmt->op2, stmt, Type::Output);
-            allDepNodes.insert(allDepNodes.end(), {lhs1, lhs2});
-            outputs.insert(outputs.end(), {lhs1, lhs2});
-            break;
-        }
-        case IRType::PopCallArg: {
-            auto node = insertOrReplace(nodeMap, stmt->op1, stmt, Type::Input);
-            allDepNodes.push_back(node);
-            inputs.push_back(node);
-            break;
-        }
-        case IRType::PushCallArg: {
-            auto lhs = findOrMake(nodeMap, stmt->op1, stmt, Type::Output);
-            allDepNodes.insert(allDepNodes.end(), {lhs});
-            outputs.insert(outputs.end(), {lhs});
-            break;
-        }
-        case IRType::InvokeFunc: {
-            // Don't care
-            break;
-        }
-        case IRType::Read: {
-            auto lhs = findOrMake(nodeMap, stmt->op1, stmt, Type::Input);
-            allDepNodes.insert(allDepNodes.end(), {lhs});
-            inputs.insert(outputs.end(), {lhs});
-            break;
-        }
-        case IRType::Write: {
-            auto lhs = findOrMake(nodeMap, stmt->op1, stmt, Type::Output);
-            allDepNodes.insert(allDepNodes.end(), {lhs});
-            outputs.insert(outputs.end(), {lhs});
-            break;
-        }
-        }
+        examineStmt(key, func, it);
     }
 
     return key;
 }
 
-void recursiveColor(DepNode *node)
+void recursiveColorParent(DepNode *node, bool colorChildren);
+
+void recursiveColorChildren(DepNode *node)
+{
+    // using Type = DepNode::Type;
+
+    // IRVec<DepNode *> stack;
+    // IRSet<DepNode *> accessed;
+    // stack.push_back(node);
+    // while (!stack.empty()) {
+    //     auto &top = stack.back();
+    //     bool allFinished = true;
+
+    //     if (top->children.empty()) {
+    //         // end point
+    //         if (top->type == Type::Output) {
+    //             recursiveColorParent(top, false);
+    //             top->setMarked();
+    //         }
+    //         accessed.insert(top);
+    //         stack.pop_back();
+    //         continue;
+    //     }
+
+    //     for (auto child : top->children) {
+    //         if (accessed.contains(child))
+    //             continue;
+    //         allFinished = false;
+    //         stack.push_back(child);
+    //     }
+
+    //     if (allFinished) {
+    //         accessed.insert(top);
+    //         stack.pop_back();
+    //         continue;
+    //     }
+    // }
+    node->setMarked();
+    for (auto &n : node->children) {
+        recursiveColorChildren(n);
+    }
+}
+
+void recursiveColorParent(DepNode *node, bool colorChildren)
 {
     // TODO: output
     node->setMarked();
     for (auto parent : node->parents) {
-        recursiveColor(parent);
+        if (parent->isUnmarked())
+            recursiveColorParent(parent, colorChildren);
+    }
+    if (node->stmt != nullptr && node->stmt->isBranchIf() && colorChildren) {
+        recursiveColorChildren(node);
     }
 }
 
@@ -143,7 +208,7 @@ void color(DepNodeList &inputs, DepNodeList &outputs)
     }
 
     for (auto &output : outputs) {
-        recursiveColor(output.get());
+        recursiveColorParent(output.get(), true);
     }
 }
 
