@@ -79,8 +79,8 @@ void IROptimizer::examineStmt(DepKey &key, Ptr<IRFunction> func,
     }
     case IRType::Return: {
         auto lhs = findOrMake(nodeMap, stmt->op1, stmt, Type::Output);
-        allDepNodes.insert(allDepNodes.end(), {lhs});
-        outputs.insert(outputs.end(), {lhs});
+        allDepNodes.push_back(lhs);
+        outputs.push_back(lhs);
         break;
     }
     case IRType::Alloc: {
@@ -182,6 +182,8 @@ void recursiveColorChildren(DepNode *node)
     //         continue;
     //     }
     // }
+
+    // TODO(future): refactor all
     node->setMarked();
     for (auto &n : node->children) {
         recursiveColorChildren(n);
@@ -250,46 +252,14 @@ void IROptimizer::removeUnusedStmts(Ptr<IRFunction> func)
             }
             break;
         }
-        case IRType::Goto: {
-            // Don't care
-            newBody.push_back(stmt);
-            break;
-        }
-        case IRType::BranchIf: {
-            // Don't care
-            newBody.push_back(stmt);
-            break;
-        }
-        case IRType::Return: {
-            // Don't care
-            newBody.push_back(stmt);
-            break;
-        }
-        case IRType::Alloc: {
-            // Don't care
-            newBody.push_back(stmt);
-            break;
-        }
-        case IRType::PopCallArg: {
-            // Don't care
-            newBody.push_back(stmt);
-            break;
-        }
-        case IRType::PushCallArg: {
-            // Don't care
-            newBody.push_back(stmt);
-            break;
-        }
-        case IRType::InvokeFunc: {
-            // Don't care
-            newBody.push_back(stmt);
-            break;
-        }
-        case IRType::Read: {
-            // Don't care
-            newBody.push_back(stmt);
-            break;
-        }
+        case IRType::Goto:
+        case IRType::BranchIf:
+        case IRType::Return:
+        case IRType::Alloc:
+        case IRType::PopCallArg:
+        case IRType::PushCallArg:
+        case IRType::InvokeFunc:
+        case IRType::Read:
         case IRType::Write: {
             // Don't care
             newBody.push_back(stmt);
@@ -303,7 +273,12 @@ void IROptimizer::removeUnusedStmts(Ptr<IRFunction> func)
 
 void IROptimizer::constPropagation(Ptr<IRFunction> func)
 {
-    // TODO
+    // TODO: basic const propagation
+    using Type = DepNode::Type;
+
+    auto [depNodes, nodeMap, inputs, outputs] = buildDependency(func);
+
+    // traverse dependency graph and for each constant variable, assign to its result
 }
 
 void IROptimizer::optimizeArithmetic(Ptr<IRFunction> func)
@@ -314,9 +289,9 @@ void IROptimizer::optimizeArithmetic(Ptr<IRFunction> func)
 void IROptimizer::optimizeFunction(Ptr<IRFunction> func)
 {
     // TODO:
-    removeUnusedStmts(func);
     constPropagation(func);
     optimizeArithmetic(func);
+    removeUnusedStmts(func);
 }
 
 void IROptimizer::optimizeProgram(Ptr<IRProgram> prog)
