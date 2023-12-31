@@ -6,35 +6,34 @@ using namespace splc::SIR;
 
 PtrIRVar IRBuilder::getTmpLabel()
 {
-    return IRVar::createLabelVar("lb_" + std::to_string(allocCnt++));
+    return IRVar::createLabel("lb_" + std::to_string(allocCnt++));
 }
 
 PtrIRVar IRBuilder::getTmpVar()
 {
-    return IRVar::createVariableVar("tmp_" + std::to_string(allocCnt++),
+    return IRVar::createVariable("tmp_" + std::to_string(allocCnt++),
                                     &tyCtxt.SInt32Ty);
 }
 
 void IRBuilder::recRegisterDeclVar(IRVec<PtrIRStmt> &stmtList, PtrAST declRoot)
 {
-    // TODO
-    if (isASTSymbolTypeOneOf(declRoot->getSymType(), ASTSymType::Decl)) {
+    if (declRoot->isDecl()) {
         recRegisterDeclVar(stmtList, declRoot->getChildren()[0]);
     }
     else if (declRoot->isDirDecl()) {
         splc_dbgassert(declRoot->getChildrenNum() == 2);
         for (auto &initDecltr : declRoot->getChildren()[1]->getChildren()) {
             PtrAST decltr = initDecltr->getChildren()[0];
-
             if (decltr->getChildren()[0]->isDirDecltr()) {
 
                 IRIDType id = decltr->getChildren()[0]
                                   ->getChildren()[0]
                                   ->getConstVal<IRIDType>();
+                
                 auto it = varMap.find(id);
                 splc_dbgassert(it == varMap.end())
                     << "redefinition of id in varMap: " << id;
-                PtrIRVar var = IRVar::createVariableVar(id, &tyCtxt.SInt32Ty);
+                PtrIRVar var = IRVar::createVariable(id, &tyCtxt.SInt32Ty);
 
                 varList.push_back(var);
                 varMap.insert({id, var});
@@ -71,7 +70,7 @@ PtrIRVar IRBuilder::recRegisterExprs(IRVec<PtrIRStmt> &stmtList,
             return recRegisterExprs(stmtList, child);
         }
         case ASTSymType::Constant: {
-            return IRVar::createConstantVar(
+            return IRVar::createConstant(
                 &tyCtxt.SInt32Ty, child->getChildren()[0]->getVariant());
         }
         case ASTSymType::ID: {
@@ -150,11 +149,11 @@ PtrIRVar IRBuilder::recRegisterExprs(IRVec<PtrIRStmt> &stmtList,
             // Treat True as 1 and False as 0
             PtrIRVar condResVar = getTmpVar();
             stmtList.push_back(IRStmt::createAssignStmt(
-                condResVar, IRVar::createConstantVar(&tyCtxt.SInt32Ty, 0)));
+                condResVar, IRVar::createConstant(&tyCtxt.SInt32Ty, 0)));
             recRegisterCondExpr(stmtList, exprRoot, lb1, lb2);
             stmtList.push_back(IRStmt::createLabelStmt(lb1));
             stmtList.push_back(IRStmt::createAssignStmt(
-                condResVar, IRVar::createConstantVar(&tyCtxt.SInt32Ty, 1)));
+                condResVar, IRVar::createConstant(&tyCtxt.SInt32Ty, 1)));
             stmtList.push_back(IRStmt::createLabelStmt(lb2));
             return condResVar;
         }
@@ -420,7 +419,7 @@ void IRBuilder::registerFunction(PtrAST funcRoot)
     // TODO (future): support more type
     for (auto &pid : paramIDs) {
         params.emplace_back(pid,
-                            IRVar::createVariableVar(pid, &tyCtxt.SInt32Ty));
+                            IRVar::createVariable(pid, &tyCtxt.SInt32Ty));
     }
 
     for (auto &p : params) {
@@ -433,7 +432,7 @@ void IRBuilder::registerFunction(PtrAST funcRoot)
     // Insert to funcMap
     funcMap.insert({funcID, function});
     funcVarMap.insert(
-        {funcID, IRVar::createFunctionVar(funcID, &tyCtxt.SInt32Ty)});
+        {funcID, IRVar::createFunction(funcID, &tyCtxt.SInt32Ty)});
 
     // Register the body stmts
     PtrAST body = funcRoot->getChildren()[2];

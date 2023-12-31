@@ -7,22 +7,22 @@ namespace splc::SIR {
 //===----------------------------------------------------------------------===//
 // Create IRVar
 
-PtrIRVar IRVar::createLabelVar(IRIDType name)
+PtrIRVar IRVar::createLabel(IRIDType name)
 {
     return makeSharedPtr<IRVar>(name, IRVarType::Label);
 }
 
-PtrIRVar IRVar::createFunctionVar(IRIDType name, Type *type)
+PtrIRVar IRVar::createFunction(IRIDType name, Type *type)
 {
     return makeSharedPtr<IRVar>(name, IRVarType::Function, type);
 }
 
-PtrIRVar IRVar::createVariableVar(IRIDType name, Type *type)
+PtrIRVar IRVar::createVariable(IRIDType name, Type *type)
 {
     return makeSharedPtr<IRVar>(name, IRVarType::Variable, type);
 }
 
-PtrIRVar IRVar::createConstantVar(Type *type, ASTValueType val)
+PtrIRVar IRVar::createConstant(Type *type, ASTValueType val)
 {
     return makeSharedPtr<IRVar>("", IRVarType::Constant, type, val, true);
 }

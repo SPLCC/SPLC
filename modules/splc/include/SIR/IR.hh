@@ -80,13 +80,13 @@ enum class IRLogicalOpType {
 
 class IRVar {
   public:
-    static PtrIRVar createLabelVar(IRIDType name);
+    static PtrIRVar createLabel(IRIDType name);
 
-    static PtrIRVar createFunctionVar(IRIDType name, Type *type);
+    static PtrIRVar createFunction(IRIDType name, Type *type);
 
-    static PtrIRVar createVariableVar(IRIDType name, Type *type);
+    static PtrIRVar createVariable(IRIDType name, Type *type);
 
-    static PtrIRVar createConstantVar(Type *type, ASTValueType val);
+    static PtrIRVar createConstant(Type *type, ASTValueType val);
 
     IRVar(IRIDType name_, IRVarType varType_ = IRVarType::Label,
           Type *type_ = nullptr, ASTValueType val_ = {}, bool isConst_ = false)

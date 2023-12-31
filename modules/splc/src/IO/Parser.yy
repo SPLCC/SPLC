@@ -11,7 +11,7 @@
     
     class AST;
     using PtrAST = Ptr<AST>;
-    class TypeContext;
+    class SPLCContext;
     class TranslationManager;
     class Type;
 
@@ -27,7 +27,7 @@
 }
 
 %parse-param { TranslationManager  &transMgr }
-%parse-param { Ptr<TypeContext>     tyCtx   }
+%parse-param { Ptr<SPLCContext>     tyCtx    }
 %parse-param { Driver              &driver   }
 %parse-param { Scanner             &scanner  }
 
