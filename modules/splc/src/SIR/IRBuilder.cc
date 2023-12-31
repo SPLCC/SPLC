@@ -6,12 +6,12 @@ using namespace splc::SIR;
 
 PtrIRVar IRBuilder::getTmpLabel()
 {
-    return IRVar::createLabel("_lb_" + std::to_string(allocCnt++));
+    return IRVar::createLabel("lb_" + std::to_string(allocCnt++));
 }
 
 PtrIRVar IRBuilder::getTmpVar()
 {
-    return IRVar::createVariable("_tmp_" + std::to_string(allocCnt++),
+    return IRVar::createVariable("tmp_" + std::to_string(allocCnt++),
                                  &tyCtx.SInt32Ty);
 }
 

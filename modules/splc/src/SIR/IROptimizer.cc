@@ -195,8 +195,9 @@ void recursiveColorParent(DepNode *node, bool colorChildren)
     // TODO: output
     node->setMarked();
     for (auto parent : node->parents) {
-        if (parent->isUnmarked())
+        if (parent->isUnmarked()) {
             recursiveColorParent(parent, colorChildren);
+        }
     }
     if (node->stmt != nullptr && node->stmt->isBranchIf() && colorChildren) {
         recursiveColorChildren(node);
@@ -349,7 +350,7 @@ void IROptimizer::optimizeArithmetic(Ptr<IRFunction> func)
 void IROptimizer::optimizeFunction(Ptr<IRFunction> func)
 {
     // TODO:
-    constPropagate(func);
+    // constPropagate(func);
     optimizeArithmetic(func);
     removeUnusedStmts(func);
 }
