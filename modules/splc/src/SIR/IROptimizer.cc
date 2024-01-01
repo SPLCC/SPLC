@@ -149,40 +149,6 @@ void recursiveColorParent(DepNode *node, bool colorChildren);
 
 void recursiveColorChildren(DepNode *node)
 {
-    // using Type = DepNode::Type;
-
-    // IRVec<DepNode *> stack;
-    // IRSet<DepNode *> accessed;
-    // stack.push_back(node);
-    // while (!stack.empty()) {
-    //     auto &top = stack.back();
-    //     bool allFinished = true;
-
-    //     if (top->children.empty()) {
-    //         // end point
-    //         if (top->type == Type::Output) {
-    //             recursiveColorParent(top, false);
-    //             top->setMarked();
-    //         }
-    //         accessed.insert(top);
-    //         stack.pop_back();
-    //         continue;
-    //     }
-
-    //     for (auto child : top->children) {
-    //         if (accessed.contains(child))
-    //             continue;
-    //         allFinished = false;
-    //         stack.push_back(child);
-    //     }
-
-    //     if (allFinished) {
-    //         accessed.insert(top);
-    //         stack.pop_back();
-    //         continue;
-    //     }
-    // }
-
     // TODO(future): refactor all
     node->setMarked();
     for (auto &n : node->children) {
@@ -195,9 +161,9 @@ void recursiveColorParent(DepNode *node, bool colorChildren)
     // TODO: output
     node->setMarked();
     for (auto parent : node->parents) {
-        // if (parent->isUnmarked()) {
-        recursiveColorParent(parent, colorChildren);
-        // }
+        if (parent->isUnmarked()) {
+            recursiveColorParent(parent, colorChildren);
+        }
     }
     if (node->stmt != nullptr && node->stmt->isBranchIf() && colorChildren) {
         recursiveColorChildren(node);
