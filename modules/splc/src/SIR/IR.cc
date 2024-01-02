@@ -24,12 +24,15 @@ PtrIRVar IRVar::createVariable(IRIDType name, Type *type)
 
 PtrIRVar IRVar::createConstant(Type *type, ASTValueType val)
 {
+    if (std::holds_alternative<ASTUIntType>(val)) {
+        val = static_cast<ASTSIntType>(std::get<ASTUIntType>(val));
+    }
     return makeSharedPtr<IRVar>("", IRVarType::Constant, type, val, true);
 }
 
 std::string IRVar::getName() const noexcept
 {
-    if ((irVarType == IRVarType::Variable && isConst_) ||
+    if ((irVarType == IRVarType::Variable && isConstant) ||
         irVarType == IRVarType::Constant) {
         if (holdsValueType<ASTSIntType>()) {
             return "#" + std::to_string(getValue<ASTSIntType>());
@@ -152,6 +155,59 @@ PtrIRStmt IRStmt::createWriteStmt(PtrIRVar op)
     return makeSharedPtr<IRStmt>(IRType::Write, op);
 }
 
+void IRStmt::assignmentToArithmetic(IRStmt *stmtAssign,
+                                    IRStmt *stmtArith) noexcept
+{
+    // TODO
+    auto resVar = stmtAssign->op1;
+    *stmtAssign = *stmtArith;
+    stmtAssign->op1 = resVar;
+}
+
+void IRStmt::concatAssign(IRStmt *stmtTail, IRStmt *stmtHead) noexcept
+{
+    // TODO
+    auto resVar = stmtTail->op1;
+    *stmtTail = *stmtHead;
+    stmtTail->op1 = resVar;
+}
+
+void IRStmt::arithmeticToConstAssign(IRStmt *stmtArith, IRVar *cVar1,
+                                     IRVar *cVar2) noexcept
+{
+    // TODO
+    if (cVar1->isConst() && cVar2->isConst()) {
+        ASTSIntType val = 0;
+
+        switch (stmtArith->irType) {
+        case IRType::Plus: {
+            val =
+                cVar1->getValue<ASTSIntType>() + cVar2->getValue<ASTSIntType>();
+            break;
+        }
+        case IRType::Minus: {
+            val =
+                cVar1->getValue<ASTSIntType>() - cVar2->getValue<ASTSIntType>();
+            break;
+        }
+        case IRType::Mul: {
+            val =
+                cVar1->getValue<ASTSIntType>() * cVar2->getValue<ASTSIntType>();
+            break;
+        }
+        case IRType::Div: {
+            val =
+                cVar1->getValue<ASTSIntType>() / cVar2->getValue<ASTSIntType>();
+            break;
+        }
+        default:
+            return;
+        }
+        auto tmpRes = IRVar::createConstant(stmtArith->op1->valType, val);
+        *stmtArith = *createAssignStmt(stmtArith->op1, tmpRes);
+    }
+}
+
 //===----------------------------------------------------------------------===//
 //                         IRFunction Implementation
 //===----------------------------------------------------------------------===//
@@ -166,48 +222,47 @@ std::ostream &operator<<(std::ostream &os, const IRStmt &stmt) noexcept
 {
     switch (stmt.irType) {
     case IRType::SetLabel: {
-        os << "LABEL " << stmt.op1->getName() << " :\n";
+        os << "LABEL " << stmt.op1->getName() << " :";
         break;
     }
     case IRType::Assign: {
-        os << stmt.op1->getName() << " := " << stmt.op2->getName() << "\n";
+        os << stmt.op1->getName() << " := " << stmt.op2->getName();
         break;
     }
     case IRType::Plus: {
         os << stmt.op1->getName() << " := " << stmt.op2->getName() << " + "
-           << stmt.op3->getName() << "\n";
+           << stmt.op3->getName();
         break;
     }
     case IRType::Minus: {
         os << stmt.op1->getName() << " := " << stmt.op2->getName() << " - "
-           << stmt.op3->getName() << "\n";
+           << stmt.op3->getName();
         break;
     }
     case IRType::Mul: {
         os << stmt.op1->getName() << " := " << stmt.op2->getName() << " * "
-           << stmt.op3->getName() << "\n";
+           << stmt.op3->getName();
         break;
     }
     case IRType::Div: {
         os << stmt.op1->getName() << " := " << stmt.op2->getName() << " / "
-           << stmt.op3->getName() << "\n";
+           << stmt.op3->getName();
         break;
     }
     case IRType::AddrOf: {
-        os << stmt.op1->getName() << " := &" << stmt.op2->getName() << "\n";
+        os << stmt.op1->getName() << " := &" << stmt.op2->getName() << "";
         break;
     }
     case IRType::Deref: {
-        os << stmt.op1->getName() << " := *" << stmt.op2->getName() << "\n";
+        os << stmt.op1->getName() << " := *" << stmt.op2->getName();
         break;
     }
     case IRType::CopyToAddr: {
-        os << "*" << stmt.op1->getName() << " := " << stmt.op2->getName()
-           << "\n";
+        os << "*" << stmt.op1->getName() << " := " << stmt.op2->getName();
         break;
     }
     case IRType::Goto: {
-        os << "GOTO " << stmt.op1->getName() << "\n";
+        os << "GOTO " << stmt.op1->getName();
         break;
     }
     case IRType::BranchIf: {
@@ -242,37 +297,35 @@ std::ostream &operator<<(std::ostream &os, const IRStmt &stmt) noexcept
             break;
         }
         }
-        os << " " << stmt.op2->getName() << " GOTO " << stmt.op3->getName()
-           << "\n";
+        os << " " << stmt.op2->getName() << " GOTO " << stmt.op3->getName();
         break;
     }
     case IRType::Return: {
-        os << "RETURN " << stmt.op1->getName() << "\n";
+        os << "RETURN " << stmt.op1->getName();
         break;
     }
     case IRType::Alloc: {
-        os << "DEC " << stmt.op1->getName() << " " << stmt.op2->getName()
-           << "\n";
+        os << "DEC " << stmt.op1->getName() << " " << stmt.op2->getName();
         break;
     }
     case IRType::PopCallArg: {
-        os << "PARAM " << stmt.op1->getName() << "\n";
+        os << "PARAM " << stmt.op1->getName();
         break;
     }
     case IRType::PushCallArg: {
-        os << "ARG " << stmt.op1->getName() << "\n";
+        os << "ARG " << stmt.op1->getName();
         break;
     }
     case IRType::InvokeFunc: {
-        os << stmt.op1->getName() << " := CALL " << stmt.op2->getName() << "\n";
+        os << stmt.op1->getName() << " := CALL " << stmt.op2->getName();
         break;
     }
     case IRType::Read: {
-        os << "READ " << stmt.op1->getName() << "\n";
+        os << "READ " << stmt.op1->getName();
         break;
     }
     case IRType::Write: {
-        os << "WRITE " << stmt.op1->getName() << "\n";
+        os << "WRITE " << stmt.op1->getName();
         break;
     }
     case IRType::FuncDecl: {
@@ -291,7 +344,7 @@ std::ostream &operator<<(std::ostream &os, const IRFunction &func) noexcept
 {
     os << "FUNCTION " << func.name << " :\n";
     for (auto stmt : func.body) {
-        os << *stmt;
+        os << *stmt << "\n";
     }
     return os;
 }

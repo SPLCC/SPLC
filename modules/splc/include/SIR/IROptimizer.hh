@@ -110,7 +110,7 @@ class IROptimizer {
   public:
     static void removeUnusedStmts(Ptr<IRFunction> func);
 
-    static void constPropagate(Ptr<IRFunction> func);
+    static void constantPropagate(Ptr<IRFunction> func);
 
     static void optimizeArithmetic(Ptr<IRFunction> func);
 

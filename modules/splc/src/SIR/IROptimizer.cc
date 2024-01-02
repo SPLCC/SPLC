@@ -37,22 +37,29 @@ void IROptimizer::examineStmt(DepKey &key, Ptr<IRFunction> func,
     case IRType::AddrOf:
     case IRType::Deref:
     case IRType::CopyToAddr: {
-        auto rhs = findOrMake(nodeMap, stmt->op2, stmt, Type::Mid);
+        auto rhs = findOrMake(nodeMap, stmt->op2, nullptr, Type::Mid);
         auto lhs = insertOrReplace(nodeMap, stmt->op1, stmt, Type::Mid);
         DepNode::connect(rhs, lhs);
-        allDepNodes.insert(allDepNodes.end(), {lhs, rhs});
+        allDepNodes.insert(allDepNodes.end(), {rhs, lhs});
+        // SPLC_LOG_DEBUG(nullptr, false)
+        //     << "inserted assignment"
+        //     << ", lhs: " << lhs->var->name << ", rhs: " << rhs->var->name;
         break;
     }
     case IRType::Plus:
     case IRType::Minus:
     case IRType::Mul:
     case IRType::Div: {
-        auto rhs1 = findOrMake(nodeMap, stmt->op2, stmt, Type::Mid);
-        auto rhs2 = findOrMake(nodeMap, stmt->op3, stmt, Type::Mid);
+        auto rhs1 = findOrMake(nodeMap, stmt->op2, nullptr, Type::Mid);
+        auto rhs2 = findOrMake(nodeMap, stmt->op3, nullptr, Type::Mid);
         auto lhs = insertOrReplace(nodeMap, stmt->op1, stmt, Type::Mid);
         DepNode::connect(rhs1, lhs);
         DepNode::connect(rhs2, lhs);
-        allDepNodes.insert(allDepNodes.end(), {lhs, rhs1, rhs2});
+        allDepNodes.insert(allDepNodes.end(), {rhs1, rhs2, lhs});
+        // SPLC_LOG_DEBUG(nullptr, false)
+        //     << "inserted"
+        //     << ", lhs: " << lhs->var->name << ", rhs1: " << rhs1->var->name
+        //     << ", rhs2: " << rhs2->var->name;
         break;
     }
     case IRType::Goto: {
@@ -60,8 +67,8 @@ void IROptimizer::examineStmt(DepKey &key, Ptr<IRFunction> func,
         break;
     }
     case IRType::BranchIf: {
-        auto rhsPrev = findOrMake(nodeMap, stmt->op2, stmt, Type::Mid);
-        auto lhsPrev = findOrMake(nodeMap, stmt->op1, stmt, Type::Mid);
+        auto rhsPrev = findOrMake(nodeMap, stmt->op2, nullptr, Type::Mid);
+        auto lhsPrev = findOrMake(nodeMap, stmt->op1, nullptr, Type::Mid);
 
         // change this
         auto rhsBranch =
@@ -85,7 +92,7 @@ void IROptimizer::examineStmt(DepKey &key, Ptr<IRFunction> func,
     }
     case IRType::Alloc: {
         auto lhs1 = insertOrReplace(nodeMap, stmt->op1, stmt, Type::Output);
-        auto lhs2 = findOrMake(nodeMap, stmt->op2, stmt, Type::Output);
+        auto lhs2 = findOrMake(nodeMap, stmt->op2, nullptr, Type::Output);
         allDepNodes.insert(allDepNodes.end(), {lhs1, lhs2});
         outputs.insert(outputs.end(), {lhs1, lhs2});
         break;
@@ -107,7 +114,7 @@ void IROptimizer::examineStmt(DepKey &key, Ptr<IRFunction> func,
         break;
     }
     case IRType::Read: {
-        auto lhs = findOrMake(nodeMap, stmt->op1, stmt, Type::Input);
+        auto lhs = insertOrReplace(nodeMap, stmt->op1, stmt, Type::Input);
         allDepNodes.insert(allDepNodes.end(), {lhs});
         inputs.insert(inputs.end(), {lhs});
         break;
@@ -136,7 +143,6 @@ void IROptimizer::searchBranchIf(DepKey &key, Ptr<IRFunction> func,
 DepKey IROptimizer::buildDependency(Ptr<IRFunction> func)
 {
     DepKey key;
-    auto &[allDepNodes, nodeMap, inputs, outputs] = key;
 
     for (auto it = func->body.begin(); it != func->body.end(); ++it) {
         examineStmt(key, func, it);
@@ -145,39 +151,56 @@ DepKey IROptimizer::buildDependency(Ptr<IRFunction> func)
     return key;
 }
 
-void recursiveColorParent(DepNode *node, bool colorChildren);
-
 void recursiveColorChildren(DepNode *node)
 {
     // TODO(future): refactor all
+    // SPLC_LOG_WARN(nullptr, false)
+    //     << "processing node children: " << node->var->name;
+    // for (auto child : node->children) {
+    //     SPLC_LOG_DEBUG(nullptr, false)
+    //         << "`-" << child->var->name << ", " << child->isMarked();
+    // }
     node->setMarked();
-    for (auto &n : node->children) {
+    for (auto n : node->children) {
         recursiveColorChildren(n);
     }
 }
 
-void recursiveColorParent(DepNode *node, bool colorChildren)
+void recursiveColorParent(IRVec<DepNode *> &childrenToColor, DepNode *node)
 {
+    // SPLC_LOG_WARN(nullptr, false)
+    //     << "processing node parents: " << node->var->getName();
+    // for (auto parent : node->parents) {
+    //     SPLC_LOG_DEBUG(nullptr, false)
+    //         << "`-" << parent->var->getName() << ", " << parent->isMarked();
+    // }
     // TODO: output
     node->setMarked();
     for (auto parent : node->parents) {
         if (parent->isUnmarked()) {
-            recursiveColorParent(parent, colorChildren);
+            recursiveColorParent(childrenToColor, parent);
         }
     }
-    if (node->stmt != nullptr && node->stmt->isBranchIf() && colorChildren) {
-        recursiveColorChildren(node);
+    if (node->stmt != nullptr && node->stmt->isBranchIf()) {
+        // SPLC_LOG_NOTE(nullptr, false)
+        //     << "pushed children: " << node->var->getName();
+        childrenToColor.push_back(node);
     }
 }
 
 void color(DepNodeList &inputs, DepNodeList &outputs)
 {
-    for (auto &input : inputs) {
-        input->setMarked(); // retain expected behavior
+    IRVec<DepNode *> childrenToColor;
+    for (auto &output : outputs) {
+        recursiveColorParent(childrenToColor, output.get());
     }
 
-    for (auto &output : outputs) {
-        recursiveColorParent(output.get(), true);
+    for (auto child : childrenToColor) {
+        recursiveColorChildren(child);
+    }
+
+    for (auto &input : inputs) {
+        input->setMarked(); // retain expected behavior
     }
 }
 
@@ -186,13 +209,13 @@ void IROptimizer::removeUnusedStmts(Ptr<IRFunction> func)
     using Type = DepNode::Type;
 
     auto [depNodes, nodeMap, inputs, outputs] = buildDependency(func);
-    IRSet<IRStmt *> unusedStmts;
+    IRSet<IRStmt *> usedStmts;
 
     // mark from output to input
     color(inputs, outputs);
     for (const auto &node : depNodes) {
-        if (node->isUnmarked()) {
-            unusedStmts.insert(node->getStmt());
+        if (node->isMarked()) {
+            usedStmts.insert(node->getStmt());
         }
     }
 
@@ -214,7 +237,7 @@ void IROptimizer::removeUnusedStmts(Ptr<IRFunction> func)
         case IRType::Minus:
         case IRType::Mul:
         case IRType::Div: {
-            if (!unusedStmts.contains(stmt.get())) {
+            if (usedStmts.contains(stmt.get())) {
                 newBody.push_back(stmt);
             }
             break;
@@ -240,71 +263,102 @@ void IROptimizer::removeUnusedStmts(Ptr<IRFunction> func)
 
 void getInitialConstants(IRVec<DepNode *> &initials, DepNode *node)
 {
-    if (node->var != nullptr && node->var->irVarType == IRVarType::Constant) {
+    if (node->children.empty()) {
         initials.push_back(node);
     }
-    for (auto child : node->children) {
-        getInitialConstants(initials, child);
+    for (auto parent : node->parents) {
+        getInitialConstants(initials, parent);
     }
 }
 
-void constPropagate(DepNode *node)
+void constantPropagate(DepNode *node)
 {
     // TODO
-    for (auto child : node->children) {
-        if (child->stmt == nullptr)
-            continue;
-        switch (child->stmt->getIRType()) {
-        case IRType::SetLabel:
-        case IRType::FuncDecl: {
-            break;
-        }
-        case IRType::Assign: {
-            break;
-        }
-        case IRType::Plus:
-        case IRType::Minus:
-        case IRType::Mul:
-        case IRType::Div:
-        case IRType::AddrOf:
-        case IRType::Deref:
-        case IRType::CopyToAddr: {
-            break;
-        }
-        case IRType::Goto:
-        case IRType::BranchIf:
-        case IRType::Return:
-        case IRType::Alloc:
-        case IRType::PopCallArg:
-        case IRType::PushCallArg:
-        case IRType::InvokeFunc:
-        case IRType::Read:
-        case IRType::Write: {
-            break;
-        } break;
-        }
+    if (node->stmt == nullptr)
+        return;
+    switch (node->stmt->getIRType()) {
+    case IRType::SetLabel:
+    case IRType::FuncDecl: {
+        break;
     }
-    for (auto child : node->children) {
-        constPropagate(child);
+    case IRType::Assign: {
+        splc_dbgassert(node->parents.size() == 1);
+        for (auto parent : node->parents) {
+            if (parent->stmt == nullptr)
+                continue;
+            if (parent->stmt->isArithmetic()) {
+                SPLC_LOG_WARN(nullptr, false)
+                    << "converting to arithmetic: " << node->var->getName();
+                IRStmt::assignmentToArithmetic(node->stmt, parent->stmt);
+            }
+            else if (parent->stmt->isAssign()) {
+                SPLC_LOG_WARN(nullptr, false)
+                    << "concatenating assignments: " << node->var->getName();
+                IRStmt::concatAssign(node->stmt, parent->stmt);
+            }
+        }
+        break;
+    }
+    case IRType::Plus:
+    case IRType::Minus:
+    case IRType::Mul:
+    case IRType::Div: {
+        // const propagation
+        splc_dbgassert(node->parents.size() == 2);
+        SPLC_LOG_WARN(nullptr, false)
+            << "propagating: " << node->var->getName();
+        IRVar *v1 = node->stmt->op2.get();
+        IRVar *v2 = node->stmt->op3.get();
+        if (!(v1->isConst() && v2->isConst()))
+            break;
+        IRStmt::arithmeticToConstAssign(node->stmt, v1, v2);
+        break;
+    }
+    case IRType::AddrOf:
+    case IRType::Deref:
+    case IRType::CopyToAddr: {
+        // TODO
+        break;
+    }
+    case IRType::Goto:
+    case IRType::BranchIf:
+    case IRType::Return:
+    case IRType::Alloc:
+    case IRType::PopCallArg:
+    case IRType::PushCallArg:
+    case IRType::InvokeFunc:
+    case IRType::Read:
+    case IRType::Write: {
+        break;
+    } break;
     }
 }
 
-void IROptimizer::constPropagate(Ptr<IRFunction> func)
+void IROptimizer::constantPropagate(Ptr<IRFunction> func)
 {
     // TODO: basic const propagation
     using Type = DepNode::Type;
 
     auto [depNodes, nodeMap, inputs, outputs] = buildDependency(func);
 
-    // traverse dependency graph for each constant variable
-    IRVec<DepNode *> initials;
+    // // traverse dependency graph for each constant variable
+    // IRVec<DepNode *> initials;
 
-    for (auto &node : outputs) {
-        getInitialConstants(initials, node.get());
-    }
+    // for (auto &node : outputs) {
+    //     getInitialConstants(initials, node.get());
+    // }
 
-    for (auto initial : initials) {
-        SIR::constPropagate(initial);
+    // for (auto node : initials) {
+    //     SPLC_LOG_WARN(nullptr, false) << "initials: " <<
+    //     node->var->getName();
+    // }
+    IRSet<DepNode *> visited;
+    for (auto &initial : depNodes) {
+        if (!visited.contains(initial.get())) {
+            SPLC_LOG_DEBUG(nullptr, false) << "depnode at " << initial.get();
+            SIR::constantPropagate(initial.get());
+            visited.insert(initial.get());
+        }
     }
 }
 
@@ -316,8 +370,8 @@ void IROptimizer::optimizeArithmetic(Ptr<IRFunction> func)
 void IROptimizer::optimizeFunction(Ptr<IRFunction> func)
 {
     // TODO:
-    // constPropagate(func);
-    optimizeArithmetic(func);
+    constantPropagate(func);
+    // optimizeArithmetic(func);
     removeUnusedStmts(func);
 }
 

@@ -84,7 +84,7 @@ class IRVar {
           Type *type_ = nullptr, ASTValueType val_ = {}, bool isConst__ = false,
           bool isUsed__ = false)
         : name{name_}, irVarType{varType_}, valType{type_}, val{val_},
-          isConst_{isConst__}, isUsed_{isUsed__}
+          isConstant{isConst__}, isUsed_{isUsed__}
     {
     }
 
@@ -128,9 +128,12 @@ class IRVar {
         return std::holds_alternative<T>(val);
     }
 
-    void setConst() { isConst_ = true; }
+    void setConst() { isConstant = true; }
 
-    bool isConst() const { return isConst_; }
+    bool isConst() const
+    {
+        return isConstant || irVarType == IRVarType::Constant;
+    }
 
     void setUsed() { isUsed_ = true; }
 
@@ -144,7 +147,7 @@ class IRVar {
     IRVarType irVarType;
     Type *valType;
     ASTValueType val;
-    bool isConst_;
+    bool isConstant;
     mutable bool isUsed_ = false;
 };
 
@@ -202,6 +205,14 @@ class IRStmt {
 
     IRType getIRType() const noexcept { return irType; }
 
+    static void assignmentToArithmetic(IRStmt *stmtAssign,
+                                   IRStmt *stmtArith) noexcept;
+
+    static void concatAssign(IRStmt *stmtTail, IRStmt *stmtHead) noexcept;
+
+    static void arithmeticToConstAssign(IRStmt *stmtArith, IRVar *cVar1,
+                                        IRVar *cVar2) noexcept;
+
     // clang-format off
 
     bool isSetLabel() const noexcept { return getIRType() == IRType::SetLabel; }
@@ -218,11 +229,15 @@ class IRStmt {
 
     bool isDiv() const noexcept { return getIRType() == IRType::Div; }
 
+    bool isArithmetic() const noexcept { return isPlus() || isMinus() || isMul() || isDiv(); }
+
     bool isAddrOf() const noexcept { return getIRType() == IRType::AddrOf; }
 
     bool isDeref() const noexcept { return getIRType() == IRType::Deref; }
 
     bool isCopyToAddr() const noexcept { return getIRType() == IRType::CopyToAddr; }
+
+    bool isNamedVarAssign() const noexcept { return isAssign() || isCopyToAddr(); }
 
     bool isGoto() const noexcept { return getIRType() == IRType::Goto; }
 
@@ -292,7 +307,8 @@ class IRProgram {
         return makeSharedPtr<IRProgram>(funcMap_, funcVarMap_);
     }
 
-    static void writeAllIRStmt(std::ostream &os, Ptr<IRProgram> program) noexcept
+    static void writeAllIRStmt(std::ostream &os,
+                               Ptr<IRProgram> program) noexcept
     {
         for (auto &func : program->funcMap) {
             os << *func.second << "\n";

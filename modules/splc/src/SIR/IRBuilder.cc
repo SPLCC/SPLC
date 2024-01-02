@@ -368,6 +368,9 @@ void IRBuilder::recRegisterStmts(IRVec<PtrIRStmt> &stmtList, PtrAST stmtRoot)
         recRegisterDeclVar(stmtList, stmtRoot);
     }
     else if (stmtRoot->isStmt()) {
+        if (stmtRoot->getChildrenNum() == 0) {
+            return;
+        }
         PtrAST realStmt = stmtRoot->getChildren()[0];
         switch (realStmt->getSymType()) {
         case ASTSymType::CompStmt: {
