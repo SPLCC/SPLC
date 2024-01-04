@@ -5,8 +5,10 @@ using namespace splc;
 
 using CS = splc::utils::logging::ControlSeq;
 
-Type *AST::computeSimpleTypeSpec() const noexcept 
+Type *AST::computeSimpleTypeSpec() const noexcept
 {
+    splc_assert(isSpecQualList() || isDeclSpec());
+
     if (tyContext == nullptr) {
         splc_error() << "no type context has been provided";
     }
@@ -43,7 +45,7 @@ Type *AST::computeSimpleTypeSpec() const noexcept
         }
         case ASTSymType::CharTy:
             if (nChar > 0 || nShort > 0 || nInt > 0 || nLong > 0 ||
-                nFloat > 0 || nDouble > 0) {
+                nFloat > 0 || nDouble > 0 || ret != nullptr) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
                     << "multiple base type specifier";
                 return &getTyContext()->SInt32Ty;
@@ -52,7 +54,7 @@ Type *AST::computeSimpleTypeSpec() const noexcept
             break;
         case ASTSymType::ShortTy:
             if (nChar > 0 || nShort > 0 || nInt > 0 || nLong > 0 ||
-                nFloat > 0 || nDouble > 0) {
+                nFloat > 0 || nDouble > 0 || ret != nullptr) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
                     << "multiple base type specifier";
                 return &getTyContext()->SInt32Ty;
@@ -61,7 +63,7 @@ Type *AST::computeSimpleTypeSpec() const noexcept
             break;
         case ASTSymType::IntTy:
             if (nChar > 0 || nShort > 0 || nInt > 0 || nLong > 0 ||
-                nFloat > 0 || nDouble > 0) {
+                nFloat > 0 || nDouble > 0 || ret != nullptr) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
                     << "multiple base type specifier";
                 return &getTyContext()->SInt32Ty;
@@ -80,6 +82,11 @@ Type *AST::computeSimpleTypeSpec() const noexcept
                        "type";
                 return &getTyContext()->SInt32Ty;
             }
+            else if (ret != nullptr) {
+                SPLC_LOG_ERROR(&realSpec->getLocation(), false)
+                    << "specifier cannot be applied to struct/union types";
+                return &getTyContext()->SInt32Ty;
+            }
             ++nSigned;
             break;
         case ASTSymType::UnsignedTy:
@@ -94,11 +101,16 @@ Type *AST::computeSimpleTypeSpec() const noexcept
                        "type";
                 return &getTyContext()->SInt32Ty;
             }
+            else if (ret != nullptr) {
+                SPLC_LOG_ERROR(&realSpec->getLocation(), false)
+                    << "specifier cannot be applied to struct/union types";
+                return &getTyContext()->SInt32Ty;
+            }
             ++nUnsigned;
             break;
         case ASTSymType::LongTy:
             if (nChar > 0 || nShort > 0 || nInt > 0 || nFloat > 0 ||
-                nDouble > 0) {
+                nDouble > 0 || ret != nullptr) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
                     << "multiple base type specifier";
                 return &getTyContext()->SInt32Ty;
@@ -113,7 +125,7 @@ Type *AST::computeSimpleTypeSpec() const noexcept
             break;
         case ASTSymType::FloatTy:
             if (nChar > 0 || nShort > 0 || nInt > 0 || nLong > 0 ||
-                nFloat > 0 || nDouble > 0) {
+                nFloat > 0 || nDouble > 0 || ret != nullptr) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
                     << "multiple base type specifier";
                 return &getTyContext()->SInt32Ty;
@@ -127,7 +139,7 @@ Type *AST::computeSimpleTypeSpec() const noexcept
             break;
         case ASTSymType::DoubleTy:
             if (nChar > 0 || nShort > 0 || nInt > 0 || nLong > 0 ||
-                nFloat > 0 || nDouble > 0) {
+                nFloat > 0 || nDouble > 0 || ret != nullptr) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
                     << "multiple base type specifier";
                 return &getTyContext()->SInt32Ty;
@@ -142,11 +154,11 @@ Type *AST::computeSimpleTypeSpec() const noexcept
         case ASTSymType::StructOrUnionSpec: {
             // TODO: handle struct/union
             if (ret == nullptr) {
-                splc_error()
-                    << "using struct/union as type specifier is unsupported";
+                ret = realSpec->getLangType();
             }
             else if (nChar > 0 || nShort > 0 || nInt > 0 || nSigned > 0 ||
-                     nUnsigned > 0 || nLong > 0 || nFloat > 0 || nDouble > 0) {
+                     nUnsigned > 0 || nLong > 0 || nFloat > 0 || nDouble > 0 ||
+                     ret != nullptr) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
                     << "invalid extra type specifier";
             }
@@ -162,7 +174,8 @@ Type *AST::computeSimpleTypeSpec() const noexcept
                 splc_error() << "using enum as type specifier is unsupported";
             }
             else if (nChar > 0 || nShort > 0 || nInt > 0 || nSigned > 0 ||
-                     nUnsigned > 0 || nLong > 0 || nFloat > 0 || nDouble > 0) {
+                     nUnsigned > 0 || nLong > 0 || nFloat > 0 || nDouble > 0 ||
+                     ret != nullptr) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
                     << "invalid extra type specifier";
             }
@@ -215,6 +228,12 @@ Type *AST::computeSimpleTypeSpec() const noexcept
     }
     setLangType(ret);
     return ret;
+}
+
+Type *AST::computeSimpleDecltrList() const noexcept
+{
+    // TODO
+    return nullptr;
 }
 
 Ptr<AST> AST::getRootIDNode() noexcept

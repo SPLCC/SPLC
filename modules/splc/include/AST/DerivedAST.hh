@@ -237,6 +237,7 @@ namespace splc {
 /// ExternDecl-AST declaration slot
 
 /// DeclSpec-AST declaration slot
+
 class DeclSpecAST : public AST {
   public:
     DeclSpecAST(const Location &loc_) noexcept : AST{ASTSymType::DeclSpec, loc_}
@@ -257,6 +258,24 @@ class DeclSpecAST : public AST {
 
 /// SpecQualList-AST declaration slot
 
+class SpecQualListAST : public AST {
+  public:
+    SpecQualListAST(const Location &loc_) noexcept
+        : AST{ASTSymType::DeclSpec, loc_}
+    {
+    }
+
+    SpecQualListAST(Ptr<SPLCContext> typeContext_,
+                    const Location &loc_) noexcept
+        : AST{typeContext_, ASTSymType::DeclSpec, loc_}
+    {
+    }
+
+    /// Compute the base type of this declaration specifier, and return the
+    /// computed type entry.
+    virtual Type *computeAndSetLangType(Type *baseType) const noexcept override;
+};
+
 /// TypeSpec-AST declaration slot
 
 /// FuncSpec-AST declaration slot
@@ -273,6 +292,22 @@ class DeclSpecAST : public AST {
 
 /// StructOrUnionSpec-AST declaration slot
 
+class StructOrUnionSpecAST : public AST {
+  public:
+    StructOrUnionSpecAST(const Location &loc_) noexcept
+        : AST{ASTSymType::StructOrUnionSpec, loc_}
+    {
+    }
+
+    StructOrUnionSpecAST(Ptr<SPLCContext> typeContext_,
+                         const Location &loc_) noexcept
+        : AST{typeContext_, ASTSymType::StructOrUnionSpec, loc_}
+    {
+    }
+    
+    virtual Type *computeAndSetLangType(Type *baseType) const noexcept override;
+};
+
 /// StructOrUnion-AST declaration slot
 
 /// StructDeclBody-AST declaration slot
@@ -284,6 +319,21 @@ class DeclSpecAST : public AST {
 /// StructDecltrList-AST declaration slot
 
 /// StructDecltr-AST declaration slot
+class StructDecltrAST : public AST {
+  public:
+    StructDecltrAST(const Location &loc_) noexcept
+        : AST{ASTSymType::InitDecltr, loc_}
+    {
+    }
+
+    StructDecltrAST(Ptr<SPLCContext> typeContext_,
+                    const Location &loc_) noexcept
+        : AST{typeContext_, ASTSymType::InitDecltr, loc_}
+    {
+    }
+
+    virtual Type *computeAndSetLangType(Type *baseType) const noexcept override;
+};
 
 /// EnumSpec-AST declaration slot
 

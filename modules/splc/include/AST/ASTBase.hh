@@ -161,7 +161,9 @@ class AST : public std::enable_shared_from_this<AST> {
 
     virtual std::vector<ASTDeclEntityType> getNamedDeclEntities() const;
 
-    Type * computeSimpleTypeSpec() const noexcept;
+    Type *computeSimpleTypeSpec() const noexcept;
+
+    Type *computeSimpleDecltrList() const noexcept;
 
     virtual void setLangType(Type *langType_) const noexcept
     {
@@ -780,7 +782,7 @@ class AST : public std::enable_shared_from_this<AST> {
         if (it0 != getChildren().end()) {
             return (*it0);
         }
-        for (auto &child: getChildren()) {
+        for (auto &child : getChildren()) {
             auto p = child->findFirstChildDFS(otherTypes...);
             if (p != nullptr) {
                 return p;
@@ -798,7 +800,7 @@ class AST : public std::enable_shared_from_this<AST> {
         if (it0 != getChildren().end()) {
             return (*it0);
         }
-        for (auto &child: getChildren()) {
+        for (auto &child : getChildren()) {
             auto p = child->findFirstChildDFS(otherTypes...);
             if (p != nullptr) {
                 return p;

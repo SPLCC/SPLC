@@ -35,6 +35,7 @@
     #include <iostream>
     #include <cstdlib>
     #include <fstream>
+    #include <algorithm>
     #include <ranges>
     
     // include for all driver functions
@@ -242,8 +243,8 @@ StorageSpec:
     ;
 
 SpecQualList:
-      TypeSpec { $$ = AST::make(tyCtx, SymType::SpecQualList, @$, $1); }
-    | TypeQual { $$ = AST::make(tyCtx, SymType::SpecQualList, @$, $1); }
+      TypeSpec { $$ = AST::makeDerived<SpecQualListAST>(tyCtx, @$, $1); }
+    | TypeQual { $$ = AST::makeDerived<SpecQualListAST>(tyCtx, @$, $1); }
     | SpecQualList TypeSpec { $1->addChild($2); $$ = $1; }
     | SpecQualList TypeQual { $1->addChild($2); $$ = $1; }
     ;
@@ -304,16 +305,36 @@ DirAbsDecltr:
 /* Specify a structure */
 StructOrUnionSpec:
       StructOrUnion IDWrapper {
-          $$ = AST::make(tyCtx, SymType::StructOrUnionSpec, @$, $1, $2);
+          $$ = AST::makeDerived<StructOrUnionSpecAST>(tyCtx, @$, $1, $2);
           // TODO: register struct
       }
     | StructOrUnion StructDeclBody {
-          $$ = AST::make(tyCtx, SymType::StructOrUnionSpec, @$, $1, $2);
-          // TODO: register struct
+          $$ = AST::makeDerived<StructOrUnionSpecAST>(tyCtx, @$, $1, $2);
+          $$->setContext(transMgr.getASTCtxMgr()[0]);
+          transMgr.popASTCtx();
+
+          Type *structTy = $$->computeAndSetLangType();
+
+          transMgr.tryRegisterSymbol(
+              $1->isKwdStruct() ? SymEntryType::StructDecl :
+                                  SymEntryType::UnionDecl,
+              "",
+              structTy,
+              true, &$$->getLocation());
       }
     | StructOrUnion IDWrapper StructDeclBody {
-          $$ = AST::make(tyCtx, SymType::StructOrUnionSpec, @$, $1, $2, $3);
-          // TODO: register struct
+          $$ = AST::makeDerived<StructOrUnionSpecAST>(tyCtx, @$, $1, $2, $3);
+          $$->setContext(transMgr.getASTCtxMgr()[0]);
+          transMgr.popASTCtx();
+
+          Type *structTy = $$->computeAndSetLangType();
+
+          transMgr.tryRegisterSymbol(
+              $1->isKwdStruct() ? SymEntryType::StructDecl :
+                                  SymEntryType::UnionDecl,
+              $2->getRootID(),
+              structTy,
+              true, &$$->getLocation());
       }
     ;
 
@@ -323,15 +344,19 @@ StructOrUnion:
     ;
 
 StructDeclBody:
-      PLC PRC {
-          $$ = AST::make(tyCtx, SymType::StructDeclBody, @$);
-          // TODO: register struct
-      }
-    | PLC StructDeclList PRC { $$ = AST::make(tyCtx, SymType::StructDeclBody, @$, $1); }
+      StructDeclBodyBegin PLC PRC { $$ = AST::make(tyCtx, SymType::StructDeclBody, @$); }
+    | StructDeclBodyBegin PLC StructDeclList PRC { $$ = AST::make(tyCtx, SymType::StructDeclBody, @$, $1); }
 
-    | PLC error { SPLC_LOG_ERROR(&@1, true) << "expect token '}'"; $$ = AST::make(tyCtx, SymType::StructDeclBody, @$); yyerrok; }
-    | PLC StructDeclList error { SPLC_LOG_ERROR(&@3, true) << "expect token '}'"; $$ = AST::make(tyCtx, SymType::StructDeclBody, @$, $2); yyerrok; }
+    | StructDeclBodyBegin PLC error { SPLC_LOG_ERROR(&@1, true) << "expect token '}'"; $$ = AST::make(tyCtx, SymType::StructDeclBody, @$); yyerrok; }
+    | StructDeclBodyBegin PLC StructDeclList error { SPLC_LOG_ERROR(&@3, true) << "expect token '}'"; $$ = AST::make(tyCtx, SymType::StructDeclBody, @$, $2); yyerrok; }
     ;
+
+StructDeclBodyBegin: 
+      /* Empty */ {
+          transMgr.pushASTCtx();
+      }
+    ;
+
 
 StructDeclList:
       StructDecl { $$ = AST::make(tyCtx, SymType::StructDeclBody, @$, $1); }
@@ -341,11 +366,23 @@ StructDeclList:
 StructDecl:
       SpecQualList PSemi {
           $$ = AST::make(tyCtx, SymType::StructDecl, @$, $1);
-          // TODO(future): register declarator
+          $1->computeAndSetLangType();
       }
     | SpecQualList StructDecltrList PSemi {
           $$ = AST::make(tyCtx, SymType::StructDecl, @$, $1, $2);
-          // TODO: register declarator
+          $1->computeAndSetLangType();
+
+          for (auto &child : std::views::reverse($2->getChildren())) {
+              child->computeAndSetLangType($1->getLangType());
+
+              auto IDNode = child->getRootIDNode();
+
+              transMgr.tryRegisterSymbol(
+                  SymEntryType::Variable,
+                  IDNode->getRootID(),
+                  IDNode->getRootIDLangType(),
+                  true, &child->getLocation());
+          }
       }
 
     | SpecQualList error {}
@@ -360,18 +397,27 @@ StructDecltrList:
     ;
 
 StructDecltr:
-      Decltr { $$ = AST::make(tyCtx, SymType::StructDecltr, @$, $1); }
-    | OpColon ConstExpr { $$ = AST::make(tyCtx, SymType::StructDecltr, @$, $1, $2); }
-    | Decltr OpColon ConstExpr { $$ = AST::make(tyCtx, SymType::StructDecltr, @$, $1, $2, $3); }
+      Decltr { $$ = AST::makeDerived<StructDecltrAST>(tyCtx, @$, $1); }
+    | OpColon ConstExpr { $$ = AST::makeDerived<StructDecltrAST>(tyCtx, @$, $1, $2); }
+    | Decltr OpColon ConstExpr { $$ = AST::makeDerived<StructDecltrAST>(tyCtx, @$, $1, $2, $3); }
 
     | OpColon error {}
     | Decltr OpColon error {}
     ;
 
 EnumSpec:
-      KwdEnum IDWrapper { $$ = AST::make(tyCtx, SymType::EnumSpec, @$, $1, $2); }
-    | KwdEnum EnumBody { $$ = AST::make(tyCtx, SymType::EnumSpec, @$, $1, $2); }
-    | KwdEnum IDWrapper EnumBody { $$ = AST::make(tyCtx, SymType::EnumSpec, @$, $1, $2, $3); }
+      KwdEnum IDWrapper {
+          $$ = AST::make(tyCtx, SymType::EnumSpec, @$, $1, $2);
+          // TODO(future): register enum
+      }
+    | KwdEnum EnumBody {
+          $$ = AST::make(tyCtx, SymType::EnumSpec, @$, $1, $2);
+          // TODO(future): register enum
+      }
+    | KwdEnum IDWrapper EnumBody {
+          $$ = AST::make(tyCtx, SymType::EnumSpec, @$, $1, $2, $3);
+          // TODO(future): register enum
+      }
     
     | KwdEnum error {}
     ;
@@ -463,13 +509,12 @@ Decl:
 DirDecl:
       DeclSpecWrapper {
           $$ = AST::make(tyCtx, SymType::DirDecl, @$, $1);
+          // $1->computeAndSetLangType();
       }
     | DeclSpecWrapper InitDecltrList {
           $$ = AST::make(tyCtx, SymType::DirDecl, @$, $1, $2);
-          auto &nameVec = transMgr.getNameVec();
           $1->computeAndSetLangType();
 
-          // TODO: make declarations
           for (auto &child : std::views::reverse($2->getChildren())) {
               child->computeAndSetLangType($1->getLangType());
 

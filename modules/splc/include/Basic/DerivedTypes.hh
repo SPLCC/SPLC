@@ -86,7 +86,7 @@ class StructType : public Type {
 
     StructType(SPLCContext &C) : Type{C, TypeID::Struct} {}
 
-    enum {
+    enum : unsigned {
         SCDB_HasBody = 1,   ///< If this type has body
         SCDB_IsLiteral = 2, ///< If this type is uniqued
                             ///< by structural equivalence,
@@ -144,7 +144,7 @@ class StructType : public Type {
 
     /// Return true if this is a type with an identity that has no body
     /// specified yet.
-    bool isOpaque() const { return (getSubclassData() & SCDB_HasBody) != 0; }
+    bool isOpaque() const { return (getSubclassData() & SCDB_HasBody) == 0; }
 
     /// isSized - Return true if this is a sized type.
     bool isSized() const;

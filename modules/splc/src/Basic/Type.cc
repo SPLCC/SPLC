@@ -78,6 +78,13 @@ std::ostream &operator<<(std::ostream &os, const Type &type)
         os << " to " << **type.containedTys;
     }
     else if (type.isStructTy()) {
+        const StructType *st = dynamic_cast<const StructType *>(&type);
+        if (!st->isLiteral()) {
+            os << " " << st->getName();
+        }
+        else {
+            os << " unnamed";
+        }
         os << " {";
         for (auto it = type.subtype_begin(); it != type.subtype_end(); ++it) {
             os << **it;
@@ -349,15 +356,18 @@ void StructType::setName(std::string_view name)
     }
 
     // No name collision is allowed!
-    splc_assert((it = map.find(name)) != map.end())
-        << "duplicated structure name is not allowed in type system";
-    map.insert(std::make_pair(std::string{name}, this));
+    auto [insertIt, inserted] = map.insert({std::string{name}, this});
+    splc_assert(inserted)
+        << " duplicated structure name is not allowed in type system";
+
+    // FIXME: temporary fix
+    setSubclassData(getSubclassData() & (~SCDB_IsLiteral));
+    this->name = insertIt->first;
 }
 
 std::string_view StructType::getName() const noexcept
 {
-    if (!isLiteral())
-        return "unnamed struct";
+    splc_assert(!isLiteral()) << "literal struct has no names";
     return name;
 }
 

@@ -1,4 +1,5 @@
 #include "AST/DerivedAST.hh"
+#include "AST/ASTContext.hh"
 
 using namespace splc;
 
@@ -246,6 +247,11 @@ Type *DeclSpecAST::computeAndSetLangType(Type *baseType) const noexcept
 
 // SpecQualList-AST declaration slot
 
+Type *SpecQualListAST::computeAndSetLangType(Type *baseType) const noexcept
+{
+    return computeSimpleTypeSpec();
+}
+
 // TypeSpec-AST declaration slot
 
 // FuncSpec-AST declaration slot
@@ -262,6 +268,34 @@ Type *DeclSpecAST::computeAndSetLangType(Type *baseType) const noexcept
 
 // StructOrUnionSpec-AST declaration slot
 
+Type *StructOrUnionSpecAST::computeAndSetLangType(Type *baseType) const noexcept
+{
+    splc_assert(getContext());
+    auto &symList = getContext()->getSymbolList();
+    auto &containedTys = getContainedTys();
+    std::transform(symList.begin(), symList.end(),
+                   std::back_inserter(containedTys),
+                   [&](const auto &ent) -> Type * {
+                       if (ent.second.symEntTy == SymEntryType::Paramater ||
+                           ent.second.symEntTy == SymEntryType::Variable)
+                           return ent.second.type;
+                       else
+                           return nullptr;
+                   });
+
+    std::erase_if(containedTys, [](auto p) { return p == nullptr; });
+
+    StructType *structTy = StructType::create(*getTyContext(), containedTys);
+
+    auto IDNode = findFirstChild(ASTSymType::ID);
+
+    if (IDNode) {
+        structTy->setName(IDNode->getRootID());
+    }
+    setLangType(structTy);
+    return getLangType();
+}
+
 // StructOrUnion-AST declaration slot
 
 // StructDeclBody-AST declaration slot
@@ -273,6 +307,18 @@ Type *DeclSpecAST::computeAndSetLangType(Type *baseType) const noexcept
 // StructDecltrList-AST declaration slot
 
 // StructDecltr-AST declaration slot
+
+Type *StructDecltrAST::computeAndSetLangType(Type *baseType) const noexcept
+{
+    setLangType(baseType);
+    if (getChildren().empty())
+        return getLangType();
+    auto &decltrNode = getChildren()[0];
+    splc_assert(decltrNode->isDecltr())
+        << "unnamed bitfield specification is not supported";
+    decltrNode->computeAndSetLangType(baseType);
+    return getLangType();
+}
 
 // EnumSpec-AST declaration slot
 
@@ -394,7 +440,6 @@ Type *InitDecltrAST::computeAndSetLangType(Type *baseType) const noexcept
     getChildren()[0]->computeAndSetLangType(baseType);
     return getLangType();
 }
-
 
 // Initializer-AST declaration slot
 

@@ -77,14 +77,17 @@ class Type {
 
   protected:
     friend class SPLCContext;
-    explicit Type(SPLCContext &C, TypeID tid) : context(C), ID{tid} {}
+    explicit Type(SPLCContext &C, TypeID tid)
+        : context(C), ID{tid}, subclassData{0}
+    {
+    }
 
-    unsigned getSubclassData() const { return subClassData; }
+    unsigned getSubclassData() const { return subclassData; }
 
     void setSubclassData(unsigned val)
     {
-        subClassData = val;
-        splc_assert(subClassData == val) << "subclass data too large for field";
+        subclassData = val;
+        splc_assert(subclassData == val) << "subclass data too large for field";
     }
 
     unsigned numContainedTys = 0;
@@ -93,7 +96,7 @@ class Type {
   private:
     SPLCContext &context;
     TypeID ID;
-    unsigned subClassData;
+    unsigned subclassData;
     // bool constTy;
 
   public:

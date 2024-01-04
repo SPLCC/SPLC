@@ -27,8 +27,7 @@ concept AllApplicableOnTranslationUnit =
 class TranslationUnit {
   public:
     TranslationUnit()
-        : astCtxMgr{}, transCtxMgr{}, rootNode{}, warningCount{0},
-          errorCount{0}
+        : astCtxMgr{}, transCtxMgr{}, rootNode{}, warningCount{0}, errorCount{0}
     {
         typeContext = makeSharedPtr<SPLCContext>();
     }
@@ -57,11 +56,11 @@ class TranslationUnit {
     Ptr<SPLCContext> typeContext; ///< Maintains all internal type contexts.
 
     ASTContextManager astCtxMgr; ///< Manages AST contexts, i.e., scopes
-                                  ///< and variable definitions.
+                                 ///< and variable definitions.
 
     TranslationContextManager
         transCtxMgr; ///< Manages translation contexts, i.e., file
-                      ///< inclusion and macro expansion.
+                     ///< inclusion and macro expansion.
 
     PtrAST rootNode; ///< Stores the root node of this translation unit.
 
