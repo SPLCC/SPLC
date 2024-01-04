@@ -45,7 +45,7 @@ const char *typeNames[] = {"void",
                            nullptr,
                            "function",
                            "pointer",
-                           "structure",
+                           "struct",
                            "array"};
 
 std::string_view Type::getName() const noexcept
@@ -77,7 +77,7 @@ std::ostream &operator<<(std::ostream &os, const Type &type)
     else if (type.isPointerTy()) {
         os << " to " << **type.containedTys;
     }
-    else if (type.numContainedTys > 0) {
+    else if (type.isStructTy()) {
         os << " {";
         for (auto it = type.subtype_begin(); it != type.subtype_end(); ++it) {
             os << **it;

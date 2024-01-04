@@ -219,12 +219,7 @@ ExternDecl:
 
 /* Wrapper for registering types */
 DeclSpecWrapper:
-      DeclSpec {
-          $$ = $1;
-          // $1->computeAndSetLangType(nullptr);
-          // transMgr.getTypeVec().push_back({$1->getLangType(), $1->isTypedef()});
-          // SPLC_LOG_DEBUG(nullptr, false) << "pushed type " << *transMgr.getTypeVec().back().first;
-      }
+      DeclSpec { $$ = $1; }
     ;
 
 DeclSpec:
@@ -417,7 +412,6 @@ Decltr:
 
 DirDecltr:
       IDWrapper {
-          transMgr.getNameVec().push_back($1->getConstVal<ASTIDType>());
           $$ = AST::makeDerived<DirDecltrAST>(tyCtx, @$, $1);
       }
     | WrappedDirDecltr {
@@ -469,7 +463,6 @@ Decl:
 DirDecl:
       DeclSpecWrapper {
           $$ = AST::make(tyCtx, SymType::DirDecl, @$, $1);
-          transMgr.getTypeVec().pop_back();
       }
     | DeclSpecWrapper InitDecltrList {
           $$ = AST::make(tyCtx, SymType::DirDecl, @$, $1, $2);
@@ -625,7 +618,6 @@ DirFuncDecltrBegin:
 
 DirDecltrForFunc:
       IDWrapper {
-          transMgr.getNameVec().push_back($1->getConstVal<ASTIDType>());
           $$ = $1;
       }
     ;
