@@ -68,7 +68,7 @@ std::ostream &operator<<(std::ostream &os, const ASTContext &ctx) noexcept
         << CS::Reset << ", size " << CS::Blue
         << ctx.getSymbolMap().size() << CS::Reset << "\n";
 
-    for (auto &ent : ctx.getSymbolMap()) {
+    for (auto &ent : ctx.getSymbolList()) {
         printLeadingSpace(os, ctx.depth + 1)
             << CS::BrightGreen << ent.first << CS::Reset << "\n";
         os << CS::Blue;

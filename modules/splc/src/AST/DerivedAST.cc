@@ -237,216 +237,9 @@ using CS = splc::utils::logging::ControlSeq;
 
 // DeclSpec-AST declaration slot
 
-Type *DeclSpecAST::builtInComputeLangType() noexcept
+Type *DeclSpecAST::computeAndSetLangType(Type *baseType) const noexcept
 {
-    if (tyContext == nullptr) {
-        splc_error() << "no type context has been provided";
-    }
-
-    Type *ret{nullptr};
-
-    int nTypedef{0};
-    int nChar{0};
-    int nShort{0};
-    int nInt{0};
-    int nSigned{0};
-    int nUnsigned{0};
-    int nLong{0};
-    int nFloat{0};
-    int nDouble{0};
-
-    int nAggr{0};
-
-    for (auto &ent : getChildren()) {
-        if (!ent->isTypeSpec())
-            continue;
-
-        auto realSpec = ent->getChildren()[0];
-
-        switch (realSpec->getSymType()) {
-        case ASTSymType::TypedefID: {
-            if (nTypedef > 0) {
-                SPLC_LOG_ERROR(&realSpec->getLocation(), false)
-                    << "multiple typedef";
-                return &getTyContext()->SInt32Ty;
-            }
-            ++nTypedef;
-            break;
-        }
-        case ASTSymType::CharTy:
-            if (nChar > 0 || nShort > 0 || nInt > 0 || nLong > 0 ||
-                nFloat > 0 || nDouble > 0) {
-                SPLC_LOG_ERROR(&realSpec->getLocation(), false)
-                    << "multiple base type specifier";
-                return &getTyContext()->SInt32Ty;
-            }
-            ++nChar;
-            break;
-        case ASTSymType::ShortTy:
-            if (nChar > 0 || nShort > 0 || nInt > 0 || nLong > 0 ||
-                nFloat > 0 || nDouble > 0) {
-                SPLC_LOG_ERROR(&realSpec->getLocation(), false)
-                    << "multiple base type specifier";
-                return &getTyContext()->SInt32Ty;
-            }
-            ++nShort;
-            break;
-        case ASTSymType::IntTy:
-            if (nChar > 0 || nShort > 0 || nInt > 0 || nLong > 0 ||
-                nFloat > 0 || nDouble > 0) {
-                SPLC_LOG_ERROR(&realSpec->getLocation(), false)
-                    << "multiple base type specifier";
-                return &getTyContext()->SInt32Ty;
-            }
-            ++nInt;
-            break;
-        case ASTSymType::SignedTy:
-            if (nUnsigned > 0) {
-                SPLC_LOG_ERROR(&realSpec->getLocation(), false)
-                    << "contradictory type specifier";
-                return &getTyContext()->SInt32Ty;
-            }
-            else if (nFloat > 0 || nDouble > 0) {
-                SPLC_LOG_ERROR(&realSpec->getLocation(), false)
-                    << "type specifier cannot be applied to floating-point "
-                       "type";
-                return &getTyContext()->SInt32Ty;
-            }
-            ++nSigned;
-            break;
-        case ASTSymType::UnsignedTy:
-            if (nSigned > 0) {
-                SPLC_LOG_ERROR(&realSpec->getLocation(), false)
-                    << "contradictory type specifier";
-                return &getTyContext()->SInt32Ty;
-            }
-            else if (nFloat > 0 || nDouble > 0) {
-                SPLC_LOG_ERROR(&realSpec->getLocation(), false)
-                    << "type specifier cannot be applied to floating-point "
-                       "type";
-                return &getTyContext()->SInt32Ty;
-            }
-            ++nUnsigned;
-            break;
-        case ASTSymType::LongTy:
-            if (nChar > 0 || nShort > 0 || nInt > 0 || nFloat > 0 ||
-                nDouble > 0) {
-                SPLC_LOG_ERROR(&realSpec->getLocation(), false)
-                    << "multiple base type specifier";
-                return &getTyContext()->SInt32Ty;
-            }
-            else if (nLong == 2) {
-                SPLC_LOG_ERROR(&realSpec->getLocation(), false)
-                    << "too many `" << CS::Bold << "long" << CS::Reset
-                    << "' as type specifier";
-                return &getTyContext()->SInt32Ty;
-            }
-            ++nLong;
-            break;
-        case ASTSymType::FloatTy:
-            if (nChar > 0 || nShort > 0 || nInt > 0 || nLong > 0 ||
-                nFloat > 0 || nDouble > 0) {
-                SPLC_LOG_ERROR(&realSpec->getLocation(), false)
-                    << "multiple base type specifier";
-                return &getTyContext()->SInt32Ty;
-            }
-            else if (nSigned > 0 || nUnsigned > 0) {
-                SPLC_LOG_ERROR(&realSpec->getLocation(), false)
-                    << "cannot apply to floating-point type";
-                return &getTyContext()->SInt32Ty;
-            }
-            ++nFloat;
-            break;
-        case ASTSymType::DoubleTy:
-            if (nChar > 0 || nShort > 0 || nInt > 0 || nLong > 0 ||
-                nFloat > 0 || nDouble > 0) {
-                SPLC_LOG_ERROR(&realSpec->getLocation(), false)
-                    << "multiple base type specifier";
-                return &getTyContext()->SInt32Ty;
-            }
-            else if (nSigned > 0 || nUnsigned > 0) {
-                SPLC_LOG_ERROR(&realSpec->getLocation(), false)
-                    << "cannot apply to floating-point type";
-                return &getTyContext()->SInt32Ty;
-            }
-            ++nDouble;
-            break;
-        case ASTSymType::StructOrUnionSpec: {
-            // TODO: handle struct/union
-            if (ret == nullptr) {
-                splc_error()
-                    << "using struct/union as type specifier is unsupported";
-            }
-            else if (nChar > 0 || nShort > 0 || nInt > 0 || nSigned > 0 ||
-                     nUnsigned > 0 || nLong > 0 || nFloat > 0 || nDouble > 0) {
-                SPLC_LOG_ERROR(&realSpec->getLocation(), false)
-                    << "invalid extra type specifier";
-            }
-            else {
-                splc_error()
-                    << "multiple struct/union specifier is not allowed";
-            }
-            break;
-        }
-        case ASTSymType::EnumSpec: {
-            // TODO: handle enum
-            if (ret == nullptr) {
-                splc_error() << "using enum as type specifier is unsupported";
-            }
-            else if (nChar > 0 || nShort > 0 || nInt > 0 || nSigned > 0 ||
-                     nUnsigned > 0 || nLong > 0 || nFloat > 0 || nDouble > 0) {
-                SPLC_LOG_ERROR(&realSpec->getLocation(), false)
-                    << "invalid extra type specifier";
-            }
-            else {
-                splc_error() << "multiple enum specifier is not allowed";
-            }
-            break;
-        }
-        default:
-            SPLC_LOG_ERROR(&realSpec->getLocation(), false)
-                << "invalid specifier: " << realSpec->getSymType();
-        }
-    }
-
-    // Process primitive type declarations
-    if (nChar > 0 || nShort > 0 || nInt > 0 || nSigned > 0 || nUnsigned > 0 ||
-        nLong > 0 || nFloat > 0 || nDouble > 0) {
-
-        if (nChar > 0)
-            ret = &getTyContext()->SInt8Ty;
-        if (nShort > 0)
-            ret = &getTyContext()->SInt16Ty;
-        if (nInt > 0)
-            ret = &getTyContext()->SInt32Ty;
-        if (nLong == 1)
-            ret = &getTyContext()->SInt32Ty;
-        if (nLong == 2)
-            ret = &getTyContext()->SInt64Ty;
-        if (nFloat == 2)
-            ret = &getTyContext()->FloatTy;
-        if (nDouble == 2)
-            ret = &getTyContext()->DoubleTy;
-
-        if (nSigned > 0) {
-            if (ret == nullptr)
-                ret = &getTyContext()->SInt32Ty;
-            else
-                ret = ret->getSigned();
-        }
-        if (nUnsigned > 0) {
-            if (ret == nullptr)
-                ret = &getTyContext()->UInt32Ty;
-            else
-                ret = ret->getUnsigned();
-        }
-    }
-
-    if (nTypedef > 0) {
-        setTypedef(true);
-    }
-
-    return ret;
+    return computeSimpleTypeSpec();
 }
 
 // StorageSpec-AST declaration slot
@@ -492,44 +285,60 @@ Type *DeclSpecAST::builtInComputeLangType() noexcept
 // EnumConst-AST declaration slot
 
 // Decltr-AST declaration slot
-Type *DecltrAST::builtInComputeLangType() noexcept
+
+Type *DecltrAST::computeAndSetLangType(Type *baseType) const noexcept
 {
+    setLangType(baseType);
+    if (getChildren().empty())
+        return nullptr;
+
     auto &children = getChildren();
 
     if (children[0]->isDirDecltr()) {
-        return children[0]->getLangType();
+        children[0]->computeAndSetLangType(baseType);
     }
     else if (children[0]->isOpAstrk()) {
-        auto t = children[1]->getLangType()->getPointerTo();
-        return static_cast<Type *>(t);
+
+        auto t = findFirstChild(ASTSymType::Decltr, ASTSymType::DirDecltr)
+                     ->computeAndSetLangType(getLangType()->getPointerTo());
     }
-    return nullptr;
+    return getLangType();
 }
 
 // DirDecltr-AST declaration slot
-Type *DirDecltrAST::builtInComputeLangType() noexcept
+
+Type *DirDecltrAST::computeAndSetLangType(Type *baseType) const noexcept
 {
-    if (baseType == nullptr)
-        return nullptr;
+    setLangType(baseType);
+
+    if (baseType == nullptr || getChildren().empty())
+        return getLangType();
 
     auto &children = getChildren();
 
     if (children.size() == 1) {
         if (children[0]->isID()) {
-            return baseType;
+            children[0]->setLangType(baseType);
         }
-        else if (children[0]->isWrappedDirDecltr()) {
-            auto wrapped = children[0];
-            return wrapped->getLangType();
+        else {
+            children[0]->computeAndSetLangType(baseType);
         }
-        return nullptr;
+    }
+
+    if (children.size() == 2) {
+        if (children[1]->isParamList()) {
+            // function
+            children[1]->computeAndSetLangType();
+            std::vector<Type *> &paramTys = children[1]->getContainedTys();
+            children[0]->computeAndSetLangType(
+                FunctionType::get(getLangType(), paramTys, false));
+        }
     }
 
     if (children.size() == 3) {
         // TODO(future): VLA
         SPLC_LOG_ERROR(&getLocation(), true)
             << "must specify the size of array.";
-        return nullptr;
     }
 
     if (children.size() == 4) {
@@ -546,25 +355,24 @@ Type *DirDecltrAST::builtInComputeLangType() noexcept
             auto arraySize =
                 constNode->getChildren()[0]->getConstVal<ASTUIntType>();
 
-            return ArrayType::get(children[0]->getLangType(), arraySize);
+            children[0]->computeAndSetLangType(
+                ArrayType::get(getLangType(), arraySize));
         }
-        else if (children[1]->isParamList()) {
-            // function
-            std::vector<Type *> &paramTys = children[1]->getContainedTys();
-            return FunctionType::get(children[0]->getLangType(), paramTys,
-                                     false);
-        }
-        return nullptr;
     }
 
-    return nullptr;
+    return getLangType();
 }
 
 // WrappedDirDecltr-AST declaration slot
 
-Type *WrappedDirDecltrAST::builtInComputeLangType() noexcept
+Type *WrappedDirDecltrAST::computeAndSetLangType(Type *baseType) const noexcept
 {
-    return getChildren()[0]->getLangType();
+    setLangType(baseType);
+    if (getChildren().empty())
+        return getLangType();
+
+    getChildren()[0]->computeAndSetLangType(baseType);
+    return getLangType();
 }
 
 // TypeQualList-AST declaration slot
@@ -576,6 +384,17 @@ Type *WrappedDirDecltrAST::builtInComputeLangType() noexcept
 // InitDecltrList-AST declaration slot
 
 // InitDecltr-AST declaration slot
+
+Type *InitDecltrAST::computeAndSetLangType(Type *baseType) const noexcept
+{
+    setLangType(baseType);
+    if (getChildren().empty())
+        return getLangType();
+
+    getChildren()[0]->computeAndSetLangType(baseType);
+    return getLangType();
+}
+
 
 // Initializer-AST declaration slot
 
@@ -593,7 +412,50 @@ Type *WrappedDirDecltrAST::builtInComputeLangType() noexcept
 
 // FuncDecltr-AST declaration slot
 
+Type *FuncDecltrAST::computeAndSetLangType(Type *baseType) const noexcept
+{
+    setLangType(baseType);
+    if (getChildren().empty())
+        return getLangType();
+
+    auto &children = getChildren();
+
+    if (children[0]->isDirFuncDecltr()) {
+        children[0]->computeAndSetLangType(baseType);
+    }
+    else if (children[0]->isOpAstrk()) {
+        findFirstChild(ASTSymType::FuncDecltr, ASTSymType::DirFuncDecltr)
+            ->computeAndSetLangType(baseType->getPointerTo());
+    }
+
+    return getLangType();
+}
+
 // DirFuncDecltr-AST declaration slot
+
+Type *DirFuncDecltrAST::computeAndSetLangType(Type *baseType) const noexcept
+{
+
+    setLangType(baseType);
+    if (getChildren().empty())
+        return getLangType();
+
+    auto &children = getChildren();
+
+    if (children.size() == 2 && children[1]->isParamTypeList()) {
+        // function
+        auto &paramTypeNode = children[1];
+        auto &paramListNode = paramTypeNode->getChildren()[0];
+
+        paramListNode->computeAndSetLangType(nullptr);
+        std::vector<Type *> &paramTys = paramListNode->getContainedTys();
+
+        children[0]->setLangType(
+            FunctionType::get(getLangType(), paramTys, false));
+    }
+
+    return getLangType();
+}
 
 // DirDecltrForFunc-AST declaration slot
 
@@ -601,23 +463,35 @@ Type *WrappedDirDecltrAST::builtInComputeLangType() noexcept
 
 // ParamList-AST declaration slot
 
-void ParamListAST::addChild(PtrAST child) noexcept 
+Type *ParamListAST::computeAndSetLangType(Type *baseType) const noexcept
 {
-    AST::addChild(child);
-    getContainedTys().push_back(child->getLangType());
+    auto &containedTys = getContainedTys();
+    for (auto &child : getChildren()) {
+        splc_assert(child->isLangTypeSet());
+        Type *langTy = child->getRootIDLangType();
+        if (langTy == nullptr) {
+            langTy = child->getLangType();
+        }
+        splc_assert(langTy != nullptr);
+        containedTys.push_back(langTy);
+    }
+    return nullptr;
 }
 
 // ParamDecltr-AST declaration slot
 
-Type *ParamDecltrAST::builtInComputeLangType() noexcept
+Type *ParamDecltrAST::computeAndSetLangType(Type *baseType) const noexcept
 {
-    if (getChildrenNum() == 1) {
-        return getChildren()[0]->getLangType();
+    splc_assert(getChildrenNum() > 0);
+
+    baseType = getChildren()[0]->computeAndSetLangType();
+    setLangType(baseType);
+
+    if (getChildrenNum() == 2) {
+        getChildren()[1]->computeAndSetLangType(baseType);
     }
-    else if (getChildrenNum() == 2) {
-        return getChildren()[1]->getLangType();
-    }
-    return nullptr;
+
+    return getLangType();
 }
 
 // CompStmt-AST declaration slot

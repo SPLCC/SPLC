@@ -15,8 +15,6 @@
 #ifndef __SPLC_BASIC_TYPE_HH__
 #define __SPLC_BASIC_TYPE_HH__ 1
 
-#include "Core/Base.hh"
-#include "Core/Utils/Logging.hh"
 #include "Core/splc.hh"
 #include <iterator>
 #include <random>
@@ -103,20 +101,7 @@ class Type {
 
     std::string_view getName() const noexcept;
 
-    friend std::ostream &operator<<(std::ostream &os, const Type &type)
-    {
-        os << "" << type.getName();
-        if (type.numContainedTys > 0) {
-            os << " (";
-            for (auto it = type.subtype_begin(); it != type.subtype_end(); ++it) {
-                os << **it;
-                if (it + 1 != type.subtype_end())
-                    os << ", ";
-            }
-            os << ")";
-        }
-        return os;
-    }
+    friend std::ostream &operator<<(std::ostream &os, const Type &type);
 
     //===----------------------------------------------------------------------===//
     // Accessors

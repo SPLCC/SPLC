@@ -14,9 +14,17 @@
 namespace splc {
 
 // forward declarations
+// Must sync with classes in DerivedAST.hh
 
 class DeclSpecAST;
+class DecltrAST;
+class DirDecltrAST;
+class WrappedDirDecltrAST;
+class InitDecltrAST;
+class FuncDecltrAST;
+class DirFuncDecltrAST;
 class ParamListAST;
+class ParamDecltrAST;
 
 ///
 /// \brief Class AST describes a single node in the Abstract Syntax Tree
@@ -153,19 +161,39 @@ class AST : public std::enable_shared_from_this<AST> {
 
     virtual std::vector<ASTDeclEntityType> getNamedDeclEntities() const;
 
-    virtual void setLangType(Type *langType_) noexcept { langType = langType_; }
+    Type * computeSimpleTypeSpec() const noexcept;
 
-    virtual void computeLangType() noexcept
+    virtual void setLangType(Type *langType_) const noexcept
     {
-        splc_error() << "computing type on primitive AST nodes is not allowed. "
-        "Check whether this is a programming mistake.";
+        langType = langType_;
+        isLangTypeSet_ = true;
     }
 
-    virtual Type *getLangType() const noexcept { return langType; }
+    bool isLangTypeSet() const noexcept { return isLangTypeSet_; }
 
-    virtual bool isTypedef() const noexcept { return false; }
+    void setLangTypeSet(bool isLangTypeSet__) const noexcept
+    {
+        isLangTypeSet_ = isLangTypeSet__;
+    }
 
-    virtual void setTypedef(bool isTypedef_) noexcept {}
+    virtual Type *computeAndSetLangType(Type *baseType = nullptr) const noexcept
+    {
+        if (typeid(*this) == typeid(AST)) {
+            splc_error()
+                << ": computing type on primitive AST nodes is not allowed. "
+                   "Check whether this is a programming mistake.";
+        }
+        return nullptr;
+    }
+
+    Type *getLangType() const noexcept { return langType; }
+
+    bool isTypedef() const noexcept { return false; }
+
+    void setTypedef(bool isTypedef__) const noexcept
+    {
+        isTypedef_ = isTypedef__;
+    }
 
     static inline bool isASTAppendable(const AST &node) noexcept
     {
@@ -179,6 +207,9 @@ class AST : public std::enable_shared_from_this<AST> {
         child->tyContext = this->tyContext;
         child->parent = shared_from_this();
         this->loc += child->loc; // TODO: check if required
+
+        // Update type information
+        setLangTypeSet(false);
     }
 
     template <AllArePtrAST... Children>
@@ -190,18 +221,16 @@ class AST : public std::enable_shared_from_this<AST> {
          ...);
     }
 
-    PtrAST findFirstChild(ASTSymType type) const noexcept;
-
     constexpr bool hasConstVal() const noexcept { return value.index() != 0; }
 
     template <IsValidASTValue T>
-    auto getConstVal() noexcept
+    auto &getConstVal() noexcept
     {
         return std::get<T>(value);
     }
 
     template <IsValidASTValue T>
-    auto getConstVal() const noexcept
+    auto &getConstVal() const noexcept
     {
         return std::get<T>(value);
     }
@@ -248,17 +277,8 @@ class AST : public std::enable_shared_from_this<AST> {
                                     std::forward<OtherTypes>(othertypes)...);
     }
 
-    ///
-    /// \brief [Experimental] You should call this only on FuntionDef/Decl
-    /// nodes.
-    /// \deprecated
-    ///
     auto &getContainedTys() { return containedTys; }
 
-    ///
-    /// \brief [Experimental] You should call this only on FuntionDef/Decl
-    /// nodes.
-    ///
     auto &getContainedTys() const { return containedTys; }
 
     auto getParent() noexcept { return parent; }
@@ -291,9 +311,11 @@ class AST : public std::enable_shared_from_this<AST> {
   protected:
     Ptr<SPLCContext> tyContext;
     ASTSymType symType;
-    Type *langType =
+    mutable Type *langType =
         nullptr; ///< type related to this AST, e.g., type for specifiers.
-    std::vector<Type *> containedTys;
+    mutable bool isLangTypeSet_ = false;
+    mutable bool isTypedef_ = false;
+    mutable std::vector<Type *> containedTys;
     WeakPtrAST parent;
     std::vector<PtrAST> children_;
     Location loc;
@@ -730,6 +752,142 @@ class AST : public std::enable_shared_from_this<AST> {
     template <IsBaseAST T, class... Functors>
         requires AllApplicableOnAST<T, Functors...>
     friend T &&applyASTTransform(T &&node, Functors &&...functors);
+
+    template <AllAreASTSymbolType... OtherTypes>
+    Ptr<AST> findFirstChild(OtherTypes &&...otherTypes) noexcept
+    {
+        auto it = std::find_if(
+            getChildren().begin(), getChildren().end(),
+            [&](const auto &p) { return p->isSymTypeOneOf(otherTypes...); });
+        return it == getChildren().end() ? nullptr : *it;
+    }
+
+    template <AllAreASTSymbolType... OtherTypes>
+    Ptr<const AST> findFirstChild(OtherTypes &&...otherTypes) const noexcept
+    {
+        auto it = std::find_if(
+            getChildren().begin(), getChildren().end(),
+            [&](const auto &p) { return p->isSymTypeOneOf(otherTypes...); });
+        return it == getChildren().end() ? nullptr : *it;
+    }
+
+    template <AllAreASTSymbolType... OtherTypes>
+    Ptr<AST> findFirstChildDFS(OtherTypes &&...otherTypes) noexcept
+    {
+        auto it0 = std::find_if(
+            getChildren().begin(), getChildren().end(),
+            [&](const auto p) { return p->isSymTypeOneOf(otherTypes...); });
+        if (it0 != getChildren().end()) {
+            return (*it0);
+        }
+        for (auto &child: getChildren()) {
+            auto p = child->findFirstChildDFS(otherTypes...);
+            if (p != nullptr) {
+                return p;
+            }
+        }
+        return nullptr;
+    }
+
+    template <AllAreASTSymbolType... OtherTypes>
+    Ptr<const AST> findFirstChildDFS(OtherTypes &&...otherTypes) const noexcept
+    {
+        auto it0 = std::find_if(
+            getChildren().begin(), getChildren().end(),
+            [&](const auto p) { return p->isSymTypeOneOf(otherTypes...); });
+        if (it0 != getChildren().end()) {
+            return (*it0);
+        }
+        for (auto &child: getChildren()) {
+            auto p = child->findFirstChildDFS(otherTypes...);
+            if (p != nullptr) {
+                return p;
+            }
+        }
+        return nullptr;
+    }
+
+    template <AllAreASTSymbolType... OtherTypes>
+    Ptr<AST> findFirstChildBFS(OtherTypes &&...otherTypes) noexcept
+    {
+        std::vector<AST *> nodes = {this};
+
+        // Simulate BFS
+        while (!nodes.empty()) {
+            std::vector<AST *> childNodes;
+            for (auto node : nodes) {
+                for (auto node : nodes) {
+                    childNodes.reserve(childNodes.size() +
+                                       node->getChildrenNum());
+                    std::transform(node->getChildren().begin(),
+                                   node->getChildren().end(),
+                                   std::back_inserter(childNodes),
+                                   [&](auto &ptr) { return ptr.get(); });
+                }
+            }
+            nodes = childNodes;
+
+            auto it0 =
+                std::find_if(nodes.begin(), nodes.end(), [&](const auto p) {
+                    return p->isSymTypeOneOf(
+                        std::forward<OtherTypes>(otherTypes)...);
+                });
+            if (it0 != nodes.end()) {
+                return (*it0)->shared_from_this();
+            }
+        }
+
+        return nullptr;
+    }
+
+    template <AllAreASTSymbolType... OtherTypes>
+    Ptr<const AST> findFirstChildBFS(OtherTypes &&...otherTypes) const noexcept
+    {
+        std::vector<const AST *> nodes = {this};
+
+        // Simulate BFS
+        while (!nodes.empty()) {
+            std::vector<const AST *> childNodes;
+            for (auto node : nodes) {
+                for (auto node : nodes) {
+                    childNodes.reserve(childNodes.size() +
+                                       node->getChildrenNum());
+                    std::transform(node->getChildren().begin(),
+                                   node->getChildren().end(),
+                                   std::back_inserter(childNodes),
+                                   [&](auto &ptr) { return ptr.get(); });
+                }
+            }
+            nodes = childNodes;
+
+            auto it0 =
+                std::find_if(nodes.begin(), nodes.end(), [&](const auto p) {
+                    return p->isSymTypeOneOf(
+                        std::forward<OtherTypes>(otherTypes)...);
+                });
+            if (it0 != nodes.end()) {
+                return (*it0)->shared_from_this();
+            }
+        }
+
+        return nullptr;
+    }
+
+    /// Call this function on function declarators or declarators to get the
+    /// the deepest ID node.
+    Ptr<AST> getRootIDNode() noexcept;
+
+    /// Call this function on function declarators or declarators to get the
+    /// the deepest ID node.
+    Ptr<const AST> getRootIDNode() const noexcept;
+
+    /// Call this function on function declarators or declarators to get the
+    /// type of the deepest ID node.
+    Type *getRootIDLangType() const noexcept;
+
+    /// Call this function on function declarators or declarators to get the
+    /// ID of the deepest ID node.
+    std::string_view getRootID() const noexcept;
 
     ///
     /// Print information of this single node.

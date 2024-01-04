@@ -96,10 +96,7 @@ class IRBuilderHelper {
         else if (type == ASTSymType::ParamList) {
             for (auto &param : funcRoot->getChildren()) {
                 // ParamDecltr
-                vec.push_back(param->getChildren()[1]
-                                  ->getChildren()[0]
-                                  ->getChildren()[0]
-                                  ->getConstVal<IRIDType>());
+                vec.push_back(ASTIDType{param->getRootID()});
             }
         }
     }

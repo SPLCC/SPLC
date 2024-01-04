@@ -53,6 +53,42 @@ std::string_view Type::getName() const noexcept
     return {typeNames[static_cast<int>(ID)]};
 }
 
+std::ostream &operator<<(std::ostream &os, const Type &type)
+{
+    os << type.getName();
+
+    if (type.isArrayTy()) {
+        os << " " << type.getArrayNumElements() << " of type ";
+        os << **type.containedTys;
+    }
+    else if (type.isFunctionTy()) {
+        if (type.getFunctionNumParams() > 0) {
+            os << " (";
+            for (auto it = type.subtype_begin() + 1; it != type.subtype_end();
+                 ++it) {
+                os << **it;
+                if (it + 1 != type.subtype_end())
+                    os << ", ";
+            }
+            os << ")";
+        }
+        os << " returning " << **type.containedTys;
+    }
+    else if (type.isPointerTy()) {
+        os << " to " << **type.containedTys;
+    }
+    else if (type.numContainedTys > 0) {
+        os << " {";
+        for (auto it = type.subtype_begin(); it != type.subtype_end(); ++it) {
+            os << **it;
+            if (it + 1 != type.subtype_end())
+                os << ", ";
+        }
+        os << "}";
+    }
+    return os;
+}
+
 Type *Type::getPrimitiveType(SPLCContext &C, TypeID ID)
 {
     switch (ID) {
@@ -100,7 +136,7 @@ bool Type::isSizedDerivedType() const
 
 Type *Type::getSigned() const
 {
-    if(!isIntTy())
+    if (!isIntTy())
         return nullptr;
     if (isSIntTy())
         return const_cast<Type *>(this);
@@ -121,7 +157,7 @@ Type *Type::getSigned() const
 
 Type *Type::getUnsigned() const
 {
-    if(!isIntTy())
+    if (!isIntTy())
         return nullptr;
     if (isUIntTy())
         return const_cast<Type *>(this);
