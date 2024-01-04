@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <fstream>
 #include <iterator>
 
 using namespace splc;
@@ -54,7 +55,18 @@ int main(const int argc, const char **argv)
     // Optimizer
     IROptimizer::optimizeProgram(program);
 
-    IRProgram::writeProgram(std::cout, program);
+    // Open the output file
+    std::ofstream outputFile("output.ir");
+    if (!outputFile.is_open()) {
+        std::cout << "Failed to open output file\n";
+        return (EXIT_FAILURE);
+    }
+
+    // Write the program to the output file
+    IRProgram::writeProgram(outputFile, program);
+
+    // Close the output file
+    outputFile.close();
 
     return (EXIT_SUCCESS);
 }
