@@ -1,13 +1,13 @@
-add_library(splc_Basic SHARED
+add_library(SPLCBasic SHARED
     Type.cc    
     TypeTraits.cc
 )
 
-target_include_directories(splc_Basic PUBLIC ${SPLC_INCL_DIR})
-set_target_properties(splc_Basic PROPERTIES
+target_include_directories(SPLCBasic PUBLIC ${SPLC_INCL_DIR})
+set_target_properties(SPLCBasic PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${GENERATED_LIB_DIR})
-file(GLOB splc_Basic_HEADER_FILES "${SPLC_INCL_DIR}/Basic/*.hh")
-set_target_properties(splc_Basic PROPERTIES
-    PUBLIC_HEADER "${splc_Basic_HEADER_FILES}")
+file(GLOB SPLCBasic_HEADER_FILES "${SPLC_INCL_DIR}/Basic/*.hh")
+set_target_properties(SPLCBasic PROPERTIES
+    PUBLIC_HEADER "${SPLCBasic_HEADER_FILES}")
 
-target_link_libraries(splc_Basic splc_Core)
+target_link_libraries(SPLCBasic SPLCCore)

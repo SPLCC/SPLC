@@ -1,11 +1,12 @@
-add_library(splc_CodeGen SHARED
-    SimInstGen.cc
+add_library(SPLCCodeGen SHARED
+    ASTDispatch.cc
+    LLVMIRGen.cc
 )
-target_include_directories(splc_CodeGen PUBLIC ${SPLC_INCL_DIR})
-set_target_properties(splc_CodeGen PROPERTIES 
+target_include_directories(SPLCCodeGen PUBLIC ${SPLC_INCL_DIR})
+set_target_properties(SPLCCodeGen PROPERTIES 
     LIBRARY_OUTPUT_DIRECTORY ${GENERATED_LIB_DIR})
-file(GLOB splc_CodeGen_HEADER_FILES "${SPLC_INCL_DIR}/CodeGen/*.hh")
-set_target_properties(splc_CodeGen PROPERTIES 
-    PUBLIC_HEADER "${splc_CodeGen_HEADER_FILES}")
+file(GLOB SPLCCodeGen_HEADER_FILES "${SPLC_INCL_DIR}/CodeGen/*.hh")
+set_target_properties(SPLCCodeGen PROPERTIES 
+    PUBLIC_HEADER "${SPLCCodeGen_HEADER_FILES}")
 
-target_link_libraries(splc_CodeGen splc_Core splc_Basic splc_AST)
+target_link_libraries(SPLCCodeGen SPLCCore SPLCBasic SPLCAST ${llvm_libs})

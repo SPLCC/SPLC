@@ -1,4 +1,3 @@
-#include "Core/Base.hh"
 #ifndef __SPLC_TRANSLATION_TRANSLATIONUNIT_HH__
 #define __SPLC_TRANSLATION_TRANSLATIONUNIT_HH__ 1
 
