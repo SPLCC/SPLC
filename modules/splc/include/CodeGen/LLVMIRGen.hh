@@ -1,10 +1,7 @@
 #ifndef __SPLC_CODEGEN_LLVMIRGEN_HH__
 #define __SPLC_CODEGEN_LLVMIRGEN_HH__ 1
 
-#include <string>
-
 #include "AST/DerivedAST.hh"
-
 #include "CodeGen/ASTDispatch.hh"
 
 namespace splc {

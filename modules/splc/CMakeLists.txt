@@ -21,7 +21,7 @@ add_definitions(${LLVM_DEFINITIONS_LIST})
 llvm_map_components_to_libnames(llvm_libs support core irreader)
 
 # ===================================================================
-#                    Setup Generation Directories
+#                    Setup generation directories
 # ===================================================================
 set(GENERATED_LIB_DIR ${CMAKE_BINARY_DIR}/lib)
 set(GENERATED_EXEC_DIR ${CMAKE_BINARY_DIR}/bin)
@@ -40,6 +40,9 @@ set(SRC_DIR src)
 
 include_directories(include ${GENERATED_INCL_DIR})
 
+# ===================================================================
+#                Build FLEX/BISON-based lexer/parser
+# ===================================================================
 # Lexer (based on FLEX) and Parser (based on BISON)
 flex_target(SPLCLexer src/IO/Lexer.ll ${CMAKE_CURRENT_BINARY_DIR}/src/IO/Lexer.cc)
 bison_target(SPLCParser src/IO/Parser.yy ${CMAKE_CURRENT_BINARY_DIR}/src/IO/Parser.cc COMPILE_FLAGS "-Wcex -Wmidrule-value" DEFINES_FILE ${GENERATED_INCL_DIR_IO}/Parser.hh)
@@ -48,6 +51,9 @@ add_flex_bison_dependency(SPLCLexer SPLCParser)
 # add custom target for other libraries to depend on
 add_custom_target(SPLCIO_Lexer_Parser DEPENDS ${FLEX_SPLCLexer_OUTPUTS} ${BISON_SPLCParser_OUTPUTS} COMMENT "Consolidate Flex/Bison generated dependencies of target SPLCIO_Lexer_Parser")
 
+# ===================================================================
+#                       Include submodules
+# ===================================================================
 add_subdirectory(src/IO)
 add_subdirectory(src/Core)
 add_subdirectory(src/Basic)
@@ -57,6 +63,9 @@ add_subdirectory(src/CodeGen)
 add_subdirectory(src/SIR)
 add_subdirectory(src/Translation)
 
+# ===================================================================
+#                     Setup the SPLC executable
+# ===================================================================
 # splc executable
 add_executable(splc ${SRC_FILES})
 target_link_libraries(splc SPLCIO SPLCCore SPLCAST SPLCTranslation SPLCAnalysis SPLCCodeGen SPLCSIR)
