@@ -1,0 +1,24 @@
+FUNCTION factorial :
+PARAM n
+IF n == #0 GOTO lb_0
+GOTO lb_1
+LABEL lb_0 :
+RETURN #1
+GOTO lb_2
+LABEL lb_1 :
+tmp_4 := n - #1
+ARG tmp_4
+tmp_3 := CALL factorial
+tmp_5 := n * tmp_3
+RETURN tmp_5
+LABEL lb_2 :
+
+FUNCTION main :
+READ tmp_6
+num := tmp_6
+ARG num
+tmp_7 := CALL factorial
+result := tmp_7
+WRITE result
+RETURN #0
+

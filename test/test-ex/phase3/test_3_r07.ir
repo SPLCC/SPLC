@@ -1,0 +1,78 @@
+FUNCTION gcd1 :
+PARAM b
+PARAM a
+tmp_0 := a / b
+tmp_1 := tmp_0 * b
+tmp_2 := a - tmp_1
+temp := tmp_2
+LABEL lb_3 :
+IF temp != #0 GOTO lb_4
+GOTO lb_5
+LABEL lb_4 :
+a := b
+b := temp
+tmp_6 := a / b
+tmp_7 := tmp_6 * b
+tmp_8 := a - tmp_7
+temp := tmp_8
+GOTO lb_3
+LABEL lb_5 :
+result := b
+RETURN result
+
+FUNCTION gcd2 :
+PARAM y
+PARAM x
+remainder := #0
+IF x > y GOTO lb_9
+GOTO lb_10
+LABEL lb_9 :
+tmp_11 := x / y
+tmp_12 := tmp_11 * y
+tmp_13 := x - tmp_12
+remainder := tmp_13
+IF remainder == #0 GOTO lb_14
+GOTO lb_15
+LABEL lb_14 :
+RETURN y
+GOTO lb_16
+LABEL lb_15 :
+ARG y
+ARG remainder
+tmp_17 := CALL gcd2
+RETURN tmp_17
+LABEL lb_16 :
+GOTO lb_18
+LABEL lb_10 :
+tmp_19 := y / x
+tmp_20 := tmp_19 * x
+tmp_21 := y - tmp_20
+remainder := tmp_21
+IF remainder == #0 GOTO lb_22
+GOTO lb_23
+LABEL lb_22 :
+RETURN x
+GOTO lb_24
+LABEL lb_23 :
+ARG x
+ARG remainder
+tmp_25 := CALL gcd2
+RETURN tmp_25
+LABEL lb_24 :
+LABEL lb_18 :
+
+FUNCTION main :
+READ tmp_26
+m := tmp_26
+READ tmp_27
+n := tmp_27
+ARG m
+ARG n
+tmp_28 := CALL gcd1
+WRITE tmp_28
+ARG m
+ARG n
+tmp_29 := CALL gcd2
+WRITE tmp_29
+RETURN #0
+
