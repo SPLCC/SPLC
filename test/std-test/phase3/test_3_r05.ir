@@ -1,7 +1,4 @@
 FUNCTION main :
-a := #1
-b := #2
-c := #3
 tu1 := #1
 tu2 := #1
 READ tmp_0
@@ -29,12 +26,9 @@ LABEL lb_10 :
 IF i <= m GOTO lb_11
 GOTO lb_12
 LABEL lb_11 :
-tmp_13 := tu1 + tu2
-tu3 := tmp_13
-tu1 := tu2
-tu2 := tu3
+tu3 := tu1 + tu2
 tmp_14 := i + #1
-i := tmp_14
+i := i + #1
 GOTO lb_10
 LABEL lb_12 :
 WRITE tu3
