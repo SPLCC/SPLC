@@ -2,7 +2,7 @@
 #define __SPLC_CODEGEN_ASTDISPATCH_HH__ 1
 
 #include <string>
-#include "CodeGen/SPLCWrapper.hh"
+#include "CodeGen/LLVMWrapper.hh"
 
 namespace splc {
 

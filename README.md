@@ -8,6 +8,7 @@ The code skeleton is from [jonathan-bear/simple_wc_example](https://github.com/j
 
 The following packages are required:
 - `libzstd-dev`
+- `zlib1g-dev`
 - `llvm-18`
 
 ## Reports
