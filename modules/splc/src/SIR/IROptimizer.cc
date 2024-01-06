@@ -209,12 +209,17 @@ void IROptimizer::removeUnusedStmts(Ptr<IRFunction> func)
     using Type = DepNode::Type;
 
     auto [depNodes, nodeMap, inputs, outputs] = buildDependency(func);
+    IRSet<IRVar *> usedVars;
+    for (auto &depNode : outputs) {
+        usedVars.insert(depNode->var);
+    }
+
     IRSet<IRStmt *> usedStmts;
 
     // mark from output to input
     color(inputs, outputs);
     for (const auto &node : depNodes) {
-        if (node->isMarked()) {
+        if (node->isMarked() || usedVars.contains(node->var)) {
             usedStmts.insert(node->getStmt());
         }
     }

@@ -47,14 +47,14 @@ int main(const int argc, const char **argv)
         SPLC_LOG_DEBUG(nullptr, false) << "\n" << *node->getContext();
     }
 
-    // IRBuilder builder{*tunit->getTypeContext()};
+    IRBuilder builder{*tunit->getTypeContext()};
 
-    // Ptr<IRProgram> program = builder.makeProgram(node);
+    Ptr<IRProgram> program = builder.makeProgram(node);
 
     // // Optimizer
-    // IROptimizer::optimizeProgram(program);
+    IROptimizer::optimizeProgram(program);
 
-    // IRProgram::writeProgram(std::cout, program);
+    IRProgram::writeProgram(std::cout, program);
 
     return (EXIT_SUCCESS);
 }
