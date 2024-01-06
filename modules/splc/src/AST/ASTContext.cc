@@ -64,16 +64,13 @@ std::ostream &operator<<(std::ostream &os, const ASTContext &ctx) noexcept
 
     printLeadingSpace(os, ctx.depth)
         << CS::BrightMagenta << "ASTContextTable [" << ctx.depth << "]"
-        << CS::Reset << " at " << CS::Yellow << &ctx
-        << CS::Reset << ", size " << CS::Blue
-        << ctx.getSymbolMap().size() << CS::Reset << "\n";
+        << CS::Reset << " at " << CS::Yellow << &ctx << CS::Reset << ", size "
+        << CS::Blue << ctx.getSymbolMap().size() << CS::Reset << "\n";
 
     for (auto &ent : ctx.getSymbolList()) {
         printLeadingSpace(os, ctx.depth + 1)
-            << CS::BrightGreen << ent.first << CS::Reset << "\n";
-        os << CS::Blue;
-        printLeadingSpace(os, ctx.depth + 1)
-            << "`-" << CS::Reset << ent.second << "\n";
+            << "\"" << CS::BrightGreen << ent.first << CS::Reset << "\", " << ent.second
+            << "\n";
     }
     for (auto &child : ctx.getDirectChildren()) {
         os << *child;
@@ -86,9 +83,8 @@ std::ostream &printASTCtxSummary(std::ostream &os,
 {
     using CS = utils::logging::ControlSeq;
 
-    os << CS::BrightMagenta << "ASTCtx [" << ctx.depth << "]"
-       << CS::Reset << " at " << CS::Yellow << &ctx
-       << CS::Reset << ", size " << CS::Blue
+    os << CS::BrightMagenta << "ASTCtx [" << ctx.depth << "]" << CS::Reset
+       << " at " << CS::Yellow << &ctx << CS::Reset << ", size " << CS::Blue
        << ctx.getSymbolMap().size() << CS::Reset;
     return os;
 }

@@ -16,9 +16,8 @@ std::ostream &operator<<(std::ostream &os, const SymbolEntry &ent) noexcept
 {
     using CS = utils::logging::ControlSeq;
 
-    os << "entryTy = " << CS::BrightCyan << ent.symEntTy << CS::Reset << ", ";
+    os << CS::BrightCyan << ent.symEntTy << CS::Reset << ", ";
 
-    os << "ty = ";
     if (ent.type != nullptr) {
         os << CS::BrightMagenta << *ent.type;
     }
@@ -27,9 +26,14 @@ std::ostream &operator<<(std::ostream &os, const SymbolEntry &ent) noexcept
     }
     os << CS::Reset << ", ";
 
-    os << "defined = " << CS::Green << ent.defined << CS::Reset << ", ";
+    if (ent.defined) {
+        os << CS::Green << "defined" << CS::Reset << ", ";
+    }
+    else {
+        os << CS::Blue << "declared" << CS::Reset << ", ";
+    }
 
-    os << "loc = " << ent.location << ";";
+    os << "at " << ent.location;
 
     return os;
 }

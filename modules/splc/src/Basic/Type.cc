@@ -58,7 +58,7 @@ std::ostream &operator<<(std::ostream &os, const Type &type)
     os << type.getName();
 
     if (type.isArrayTy()) {
-        os << " " << type.getArrayNumElements() << " of type ";
+        os << " " << type.getArrayNumElements() << " of ";
         os << **type.containedTys;
     }
     else if (type.isFunctionTy()) {
