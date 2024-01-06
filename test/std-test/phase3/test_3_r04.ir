@@ -14,10 +14,10 @@ IF tmp_9 == #0 GOTO lb_7
 GOTO lb_8
 LABEL lb_7 :
 tmp_10 := sum + j
-sum := tmp_10
+sum := sum + j
 LABEL lb_8 :
 tmp_11 := j + #1
-j := tmp_11
+j := j + #1
 GOTO lb_3
 LABEL lb_5 :
 IF sum == number GOTO lb_12
@@ -30,7 +30,6 @@ RETURN #0
 LABEL lb_14 :
 
 FUNCTION main :
-count := #0
 i := #1
 LABEL lb_15 :
 IF i <= #100 GOTO lb_16
@@ -44,7 +43,7 @@ LABEL lb_18 :
 WRITE i
 LABEL lb_19 :
 tmp_21 := i + #1
-i := tmp_21
+i := i + #1
 GOTO lb_15
 LABEL lb_17 :
 RETURN #0
