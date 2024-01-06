@@ -1,5 +1,5 @@
-#ifndef __SPLC_CODEGEN_SPLCWRAPPER_HH__
-#define __SPLC_CODEGEN_SPLCWRAPPER_HH__ 1
+#ifndef __SPLC_CODEGEN_LLVMWRAPPER_HH__
+#define __SPLC_CODEGEN_LLVMWRAPPER_HH__ 1
 
 #include "AST/DerivedAST.hh"
 
@@ -29,8 +29,20 @@
 
 namespace splc {
 
+namespace LLVMWrapper {
 
+llvm::Type *cvtIRPrimitiveType(llvm::LLVMContext &C, splc::Type *primTy);
+
+llvm::FunctionType *cvtIRFunctionType(llvm::LLVMContext &C, splc::Type *fTy);
+
+llvm::StructType *cvtIRStructType(llvm::LLVMContext &C, splc::Type *sTy);
+
+llvm::ArrayType *cvtIRArrayType(llvm::LLVMContext &C, splc::Type *arrTy);
+
+llvm::PointerType *cvtIRPointerType(llvm::LLVMContext &C, splc::Type *ptrTy);
+
+} // namespace LLVMWrapper
 
 } // namespace splc
 
-#endif // __SPLC_CODEGEN_SPLCWRAPPER_HH__
+#endif // __SPLC_CODEGEN_LLVMWRAPPER_HH__

@@ -3,12 +3,16 @@
 
 #include "AST/DerivedAST.hh"
 #include "CodeGen/ASTDispatch.hh"
+#include "CodeGen/LLVMWrapper.hh"
+#include "Translation/TranslationUnit.hh"
 
 namespace splc {
 
 class LLVMIRBuilder {
   public:
     LLVMIRBuilder() = default;
+
+    void codegen(Ptr<TranslationUnit> tunit);
 
   private:
 };
