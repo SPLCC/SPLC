@@ -81,6 +81,14 @@ inline unsigned Type::getFunctionNumParams() const
     return dynamic_cast<const FunctionType *>(this)->getNumParams();
 }
 
+/// A handy container for a FunctionType+Callee-pointer pair, which can be
+/// passed around as a single entity. This assists in replacing the use of
+/// PointerType::getElementType() to access the function's type, since that's
+/// slated for removal as part of the [opaque pointer types] project.
+class FunctionCallee {
+// TODO
+};
+
 class StructType : public Type {
     friend class SPLCContext;
 

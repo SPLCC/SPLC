@@ -1,8 +1,6 @@
 # SPLCSIR shared library
 add_library(SPLCSIR SHARED 
-    IR.cc
-    IRBuilder.cc
-    IROptimizer.cc
+    Value.cc
 )
 
 target_include_directories(SPLCSIR PUBLIC ${SPLC_INCL_DIR} ${GENERATED_INCL_DIR_IO})

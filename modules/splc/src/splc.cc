@@ -47,7 +47,6 @@ int main(const int argc, const char **argv)
                                        << splc::treePrintTransform(*node);
         SPLC_LOG_DEBUG(nullptr, false) << "\n" << *node->getContext();
     }
-
     IRBuilder builder{*tunit->getTypeContext()};
 
     Ptr<IRProgram> program = builder.makeProgram(node);

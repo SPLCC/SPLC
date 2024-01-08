@@ -10,6 +10,9 @@ namespace splc {
 namespace SIR {
 
 class Instruction : public User {
+  public:
+    enum class BinaryOps {};
+    enum class UnaryOps {};
 
   private:
     PtrBB parent;
@@ -24,6 +27,18 @@ class Instruction : public User {
     InstListType::iterator insertInto(PtrBB parentBB,
                                       InstListType::iterator it);
 };
+
+class CallInst : public Instruction {};
+class ReturnInst : public Instruction {};
+class BranchInst : public Instruction {};
+class SwitchInst : public Instruction {};
+class CmpInst : public Instruction {
+  public:
+    enum class Predicate {};
+};
+
+
+
 } // namespace SIR
 
 } // namespace splc
