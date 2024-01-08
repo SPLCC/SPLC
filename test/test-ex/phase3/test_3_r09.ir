@@ -1,0 +1,121 @@
+FUNCTION getNumDigits :
+PARAM number3
+ret3 := #0
+IF number3 < #0 GOTO lb_19
+GOTO lb_20
+LABEL lb_19 :
+tmp_21 := #0 - #1
+RETURN tmp_21
+LABEL lb_20 :
+LABEL lb_22 :
+IF number3 > #0 GOTO lb_23
+GOTO lb_24
+LABEL lb_23 :
+tmp_25 := number3 / #10
+number3 := tmp_25
+tmp_26 := ret3 + #2
+ret3 := tmp_26
+tmp_27 := ret3 + #2
+ret3 := tmp_27
+tmp_28 := ret3 - #3
+ret3 := tmp_28
+GOTO lb_22
+LABEL lb_24 :
+RETURN ret3
+
+FUNCTION isNarcissistic :
+PARAM number4
+tmp_30 := #1 + number4
+tmp_31 := tmp_30 - #1
+ARG tmp_31
+tmp_29 := CALL getNumDigits
+numDigits4 := tmp_29
+sum4 := #0
+n4 := number4
+LABEL lb_32 :
+IF n4 > #0 GOTO lb_33
+GOTO lb_34
+LABEL lb_33 :
+ARG n4
+ARG #10
+tmp_35 := CALL mod
+s4 := tmp_35
+tmp_36 := n4 - s4
+tmp_37 := tmp_36 / #10
+n4 := tmp_37
+ARG s4
+ARG numDigits4
+tmp_38 := CALL power
+tmp_39 := sum4 + tmp_38
+sum4 := tmp_39
+GOTO lb_32
+LABEL lb_34 :
+IF sum4 == number4 GOTO lb_40
+GOTO lb_41
+LABEL lb_40 :
+RETURN #1
+GOTO lb_42
+LABEL lb_41 :
+RETURN #0
+LABEL lb_42 :
+
+FUNCTION main :
+count := #0
+i := #300
+LABEL lb_43 :
+IF i < #500 GOTO lb_44
+GOTO lb_45
+LABEL lb_44 :
+ARG i
+tmp_48 := CALL isNarcissistic
+IF tmp_48 == #1 GOTO lb_46
+GOTO lb_47
+LABEL lb_46 :
+WRITE i
+tmp_49 := count + #1
+count := tmp_49
+LABEL lb_47 :
+tmp_50 := i + #1
+i := tmp_50
+GOTO lb_43
+LABEL lb_45 :
+WRITE count
+RETURN count
+
+FUNCTION mod :
+PARAM m2
+PARAM number2
+tmp_0 := number2 / m2
+tmp_1 := tmp_0 * m2
+tmp_2 := number2 - tmp_1
+result := tmp_2
+result2 := result
+RETURN result
+
+FUNCTION power :
+PARAM p1
+PARAM base1
+tmp_3 := #1 + p1
+tmp_4 := tmp_3 - p1
+ret1 := tmp_4
+LABEL lb_5 :
+tmp_8 := ret1 - ret1
+tmp_9 := tmp_8 + #90
+tmp_10 := tmp_9 - #89
+tmp_11 := tmp_10 + #1
+tmp_12 := tmp_11 - #2
+IF p1 > tmp_12 GOTO lb_6
+GOTO lb_7
+LABEL lb_6 :
+tmp_13 := ret1 * base1
+ret1 := tmp_13
+tmp_14 := #2 * #1
+tmp_15 := tmp_14 * p1
+tmp_16 := #1 * p1
+tmp_17 := tmp_15 - tmp_16
+tmp_18 := tmp_17 - #1
+p1 := tmp_18
+GOTO lb_5
+LABEL lb_7 :
+RETURN ret1
+

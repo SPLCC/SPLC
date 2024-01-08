@@ -11,14 +11,6 @@ thread_local ASTPrintMap astPrintMap;
 
 void resetASTPrintMapContext() noexcept { astPrintMap.clear(); }
 
-PtrAST AST::findFirstChild(ASTSymType type) const noexcept
-{
-    auto it =
-        std::find_if(getChildren().begin(), getChildren().end(),
-                     [=](const auto &p) { return p->isSymTypeOneOf(type); });
-    return it == getChildren().end() ? nullptr : *it;
-}
-
 PtrAST AST::copy(const std::function<bool(Ptr<const AST>)> &predicate,
                  const bool copyContext) const
 {

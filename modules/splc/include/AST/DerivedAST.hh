@@ -237,11 +237,8 @@ namespace splc {
 /// ExternDecl-AST declaration slot
 
 /// DeclSpec-AST declaration slot
+
 class DeclSpecAST : public AST {
-    Type *builtInComputeLangType() noexcept;
-
-    bool isTypedef_ = false;
-
   public:
     DeclSpecAST(const Location &loc_) noexcept : AST{ASTSymType::DeclSpec, loc_}
     {
@@ -254,22 +251,30 @@ class DeclSpecAST : public AST {
 
     /// Compute the base type of this declaration specifier, and return the
     /// computed type entry.
-    virtual void computeLangType() noexcept override
-    {
-        setLangType(builtInComputeLangType());
-    }
-
-    virtual bool isTypedef() const noexcept override { return isTypedef_; }
-
-    virtual void setTypedef(bool isTyDef) noexcept override
-    {
-        isTypedef_ = isTyDef;
-    }
+    virtual Type *computeAndSetLangType(Type *baseType) const noexcept override;
 };
 
 /// StorageSpec-AST declaration slot
 
 /// SpecQualList-AST declaration slot
+
+class SpecQualListAST : public AST {
+  public:
+    SpecQualListAST(const Location &loc_) noexcept
+        : AST{ASTSymType::DeclSpec, loc_}
+    {
+    }
+
+    SpecQualListAST(Ptr<SPLCContext> typeContext_,
+                    const Location &loc_) noexcept
+        : AST{typeContext_, ASTSymType::DeclSpec, loc_}
+    {
+    }
+
+    /// Compute the base type of this declaration specifier, and return the
+    /// computed type entry.
+    virtual Type *computeAndSetLangType(Type *baseType) const noexcept override;
+};
 
 /// TypeSpec-AST declaration slot
 
@@ -287,6 +292,22 @@ class DeclSpecAST : public AST {
 
 /// StructOrUnionSpec-AST declaration slot
 
+class StructOrUnionSpecAST : public AST {
+  public:
+    StructOrUnionSpecAST(const Location &loc_) noexcept
+        : AST{ASTSymType::StructOrUnionSpec, loc_}
+    {
+    }
+
+    StructOrUnionSpecAST(Ptr<SPLCContext> typeContext_,
+                         const Location &loc_) noexcept
+        : AST{typeContext_, ASTSymType::StructOrUnionSpec, loc_}
+    {
+    }
+    
+    virtual Type *computeAndSetLangType(Type *baseType) const noexcept override;
+};
+
 /// StructOrUnion-AST declaration slot
 
 /// StructDeclBody-AST declaration slot
@@ -298,6 +319,21 @@ class DeclSpecAST : public AST {
 /// StructDecltrList-AST declaration slot
 
 /// StructDecltr-AST declaration slot
+class StructDecltrAST : public AST {
+  public:
+    StructDecltrAST(const Location &loc_) noexcept
+        : AST{ASTSymType::InitDecltr, loc_}
+    {
+    }
+
+    StructDecltrAST(Ptr<SPLCContext> typeContext_,
+                    const Location &loc_) noexcept
+        : AST{typeContext_, ASTSymType::InitDecltr, loc_}
+    {
+    }
+
+    virtual Type *computeAndSetLangType(Type *baseType) const noexcept override;
+};
 
 /// EnumSpec-AST declaration slot
 
@@ -312,8 +348,6 @@ class DeclSpecAST : public AST {
 /// Decltr-AST declaration slot
 
 class DecltrAST : public AST {
-    Type *builtInComputeLangType() noexcept;
-
   public:
     DecltrAST(const Location &loc_) noexcept : AST{ASTSymType::Decltr, loc_} {}
 
@@ -322,19 +356,12 @@ class DecltrAST : public AST {
     {
     }
 
-    virtual void computeLangType() noexcept override
-    {
-        setLangType(builtInComputeLangType());
-    }
+    virtual Type *computeAndSetLangType(Type *baseType) const noexcept override;
 };
 
 /// DirDecltr-AST declaration slot
 
 class DirDecltrAST : public AST {
-    Type *builtInComputeLangType() noexcept;
-
-    Type *baseType{nullptr};
-
   public:
     DirDecltrAST(const Location &loc_) noexcept
         : AST{ASTSymType::DirDecltr, loc_}
@@ -346,39 +373,12 @@ class DirDecltrAST : public AST {
     {
     }
 
-    template <IsPtrAST... Children>
-    static Ptr<DirDecltrAST> make(Ptr<SPLCContext> tyContext_,
-                                  const Location &loc,
-                                  Children... children) noexcept
-    {
-        auto ptr = AST::makeDerived<DirDecltrAST>(
-            tyContext_, loc, std::forward<Children>(children)...);
-        ptr->computeLangType();
-        return ptr;
-    }
-
-    template <IsPtrAST... Children>
-    static Ptr<DirDecltrAST> make(Ptr<SPLCContext> tyContext_, Type *baseTy,
-                                  const Location &loc,
-                                  Children... children) noexcept
-    {
-        auto ptr = make(tyContext_, loc, std::forward<Children>(children)...);
-        ptr->baseType = baseTy;
-        ptr->computeLangType();
-        return ptr;
-    }
-
-    virtual void computeLangType() noexcept override
-    {
-        setLangType(builtInComputeLangType());
-    }
+    virtual Type *computeAndSetLangType(Type *baseType) const noexcept override;
 };
 
 /// WrappedDirDecltr-AST declaration slot
 
 class WrappedDirDecltrAST : public AST {
-    Type *builtInComputeLangType() noexcept;
-
   public:
     WrappedDirDecltrAST(const Location &loc_) noexcept
         : AST{ASTSymType::WrappedDirDecltr, loc_}
@@ -391,10 +391,7 @@ class WrappedDirDecltrAST : public AST {
     {
     }
 
-    virtual void computeLangType() noexcept override
-    {
-        setLangType(builtInComputeLangType());
-    }
+    virtual Type *computeAndSetLangType(Type *baseType) const noexcept override;
 };
 
 /// TypeQualList-AST declaration slot
@@ -406,6 +403,20 @@ class WrappedDirDecltrAST : public AST {
 /// InitDecltrList-AST declaration slot
 
 /// InitDecltr-AST declaration slot
+class InitDecltrAST : public AST {
+  public:
+    InitDecltrAST(const Location &loc_) noexcept
+        : AST{ASTSymType::InitDecltr, loc_}
+    {
+    }
+
+    InitDecltrAST(Ptr<SPLCContext> typeContext_, const Location &loc_) noexcept
+        : AST{typeContext_, ASTSymType::InitDecltr, loc_}
+    {
+    }
+
+    virtual Type *computeAndSetLangType(Type *baseType) const noexcept override;
+};
 
 /// Initializer-AST declaration slot
 
@@ -422,8 +433,37 @@ class WrappedDirDecltrAST : public AST {
 /// FuncDecl-AST declaration slot
 
 /// FuncDecltr-AST declaration slot
+class FuncDecltrAST : public AST {
+  public:
+    FuncDecltrAST(const Location &loc_) noexcept
+        : AST{ASTSymType::FuncDecltr, loc_}
+    {
+    }
+
+    FuncDecltrAST(Ptr<SPLCContext> typeContext_, const Location &loc_) noexcept
+        : AST{typeContext_, ASTSymType::FuncDecltr, loc_}
+    {
+    }
+
+    virtual Type *computeAndSetLangType(Type *baseType) const noexcept override;
+};
 
 /// DirFuncDecltr-AST declaration slot
+class DirFuncDecltrAST : public AST {
+  public:
+    DirFuncDecltrAST(const Location &loc_) noexcept
+        : AST{ASTSymType::DirFuncDecltr, loc_}
+    {
+    }
+
+    DirFuncDecltrAST(Ptr<SPLCContext> typeContext_,
+                     const Location &loc_) noexcept
+        : AST{typeContext_, ASTSymType::DirFuncDecltr, loc_}
+    {
+    }
+
+    virtual Type *computeAndSetLangType(Type *baseType) const noexcept override;
+};
 
 /// DirDecltrForFunc-AST declaration slot
 
@@ -445,14 +485,12 @@ class ParamListAST : public AST {
     {
     }
 
-    virtual void addChild(PtrAST child) noexcept override;
+    virtual Type *computeAndSetLangType(Type *baseType) const noexcept override;
 };
 
 /// ParamDecltr-AST declaration slot
 
 class ParamDecltrAST : public AST {
-    Type *builtInComputeLangType() noexcept;
-
   public:
     ParamDecltrAST(const Location &loc_) noexcept
         : AST{ASTSymType::ParamDecltr, loc_}
@@ -464,10 +502,7 @@ class ParamDecltrAST : public AST {
     {
     }
 
-    virtual void computeLangType() noexcept override
-    {
-        setLangType(builtInComputeLangType());
-    }
+    virtual Type *computeAndSetLangType(Type *baseType) const noexcept override;
 };
 
 /// CompStmt-AST declaration slot

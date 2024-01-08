@@ -35,6 +35,8 @@
     #include <iostream>
     #include <cstdlib>
     #include <fstream>
+    #include <algorithm>
+    #include <ranges>
     
     // include for all driver functions
     #include "Core/splc.hh"
@@ -218,12 +220,7 @@ ExternDecl:
 
 /* Wrapper for registering types */
 DeclSpecWrapper:
-      DeclSpec {
-          $$ = $1;
-          $1->computeLangType();
-          transMgr.getTypeVec().push_back({$1->getLangType(), $1->isTypedef()});
-          // SPLC_LOG_DEBUG(nullptr, false) << "pushed type " << *transMgr.getTypeVec().back().first;
-      }
+      DeclSpec { $$ = $1; }
     ;
 
 DeclSpec:
@@ -246,8 +243,8 @@ StorageSpec:
     ;
 
 SpecQualList:
-      TypeSpec { $$ = AST::make(tyCtx, SymType::SpecQualList, @$, $1); }
-    | TypeQual { $$ = AST::make(tyCtx, SymType::SpecQualList, @$, $1); }
+      TypeSpec { $$ = AST::makeDerived<SpecQualListAST>(tyCtx, @$, $1); }
+    | TypeQual { $$ = AST::makeDerived<SpecQualListAST>(tyCtx, @$, $1); }
     | SpecQualList TypeSpec { $1->addChild($2); $$ = $1; }
     | SpecQualList TypeQual { $1->addChild($2); $$ = $1; }
     ;
@@ -307,9 +304,38 @@ DirAbsDecltr:
 
 /* Specify a structure */
 StructOrUnionSpec:
-      StructOrUnion IDWrapper { $$ = AST::make(tyCtx, SymType::StructOrUnionSpec, @$, $1, $2); }
-    | StructOrUnion StructDeclBody { $$ = AST::make(tyCtx, SymType::StructOrUnionSpec, @$, $1, $2); }
-    | StructOrUnion IDWrapper StructDeclBody { $$ = AST::make(tyCtx, SymType::StructOrUnionSpec, @$, $1, $2, $3); }
+      StructOrUnion IDWrapper {
+          $$ = AST::makeDerived<StructOrUnionSpecAST>(tyCtx, @$, $1, $2);
+          // TODO: register struct
+      }
+    | StructOrUnion StructDeclBody {
+          $$ = AST::makeDerived<StructOrUnionSpecAST>(tyCtx, @$, $1, $2);
+          $$->setContext(transMgr.getASTCtxMgr()[0]);
+          transMgr.popASTCtx();
+
+          Type *structTy = $$->computeAndSetLangType();
+
+          transMgr.tryRegisterSymbol(
+              $1->isKwdStruct() ? SymEntryType::StructDecl :
+                                  SymEntryType::UnionDecl,
+              "",
+              structTy,
+              true, &$$->getLocation());
+      }
+    | StructOrUnion IDWrapper StructDeclBody {
+          $$ = AST::makeDerived<StructOrUnionSpecAST>(tyCtx, @$, $1, $2, $3);
+          $$->setContext(transMgr.getASTCtxMgr()[0]);
+          transMgr.popASTCtx();
+
+          Type *structTy = $$->computeAndSetLangType();
+
+          transMgr.tryRegisterSymbol(
+              $1->isKwdStruct() ? SymEntryType::StructDecl :
+                                  SymEntryType::UnionDecl,
+              $2->getRootID(),
+              structTy,
+              true, &$$->getLocation());
+      }
     ;
 
 StructOrUnion:
@@ -318,12 +344,19 @@ StructOrUnion:
     ;
 
 StructDeclBody:
-      PLC PRC { $$ = AST::make(tyCtx, SymType::StructDeclBody, @$); }
-    | PLC StructDeclList PRC { $$ = AST::make(tyCtx, SymType::StructDeclBody, @$, $1); }
+      StructDeclBodyBegin PLC PRC { $$ = AST::make(tyCtx, SymType::StructDeclBody, @$); }
+    | StructDeclBodyBegin PLC StructDeclList PRC { $$ = AST::make(tyCtx, SymType::StructDeclBody, @$, $1); }
 
-    | PLC error { SPLC_LOG_ERROR(&@1, true) << "expect token '}'"; $$ = AST::make(tyCtx, SymType::StructDeclBody, @$); yyerrok; }
-    | PLC StructDeclList error { SPLC_LOG_ERROR(&@3, true) << "expect token '}'"; $$ = AST::make(tyCtx, SymType::StructDeclBody, @$, $2); yyerrok; }
+    | StructDeclBodyBegin PLC error { SPLC_LOG_ERROR(&@1, true) << "expect token '}'"; $$ = AST::make(tyCtx, SymType::StructDeclBody, @$); yyerrok; }
+    | StructDeclBodyBegin PLC StructDeclList error { SPLC_LOG_ERROR(&@3, true) << "expect token '}'"; $$ = AST::make(tyCtx, SymType::StructDeclBody, @$, $2); yyerrok; }
     ;
+
+StructDeclBodyBegin: 
+      /* Empty */ {
+          transMgr.pushASTCtx();
+      }
+    ;
+
 
 StructDeclList:
       StructDecl { $$ = AST::make(tyCtx, SymType::StructDeclBody, @$, $1); }
@@ -331,8 +364,26 @@ StructDeclList:
     ;
 
 StructDecl:
-      SpecQualList PSemi { $$ = AST::make(tyCtx, SymType::StructDecl, @$, $1); }
-    | SpecQualList StructDecltrList PSemi { $$ = AST::make(tyCtx, SymType::StructDecl, @$, $1, $2); }
+      SpecQualList PSemi {
+          $$ = AST::make(tyCtx, SymType::StructDecl, @$, $1);
+          $1->computeAndSetLangType();
+      }
+    | SpecQualList StructDecltrList PSemi {
+          $$ = AST::make(tyCtx, SymType::StructDecl, @$, $1, $2);
+          $1->computeAndSetLangType();
+
+          for (auto &child : std::views::reverse($2->getChildren())) {
+              child->computeAndSetLangType($1->getLangType());
+
+              auto IDNode = child->getRootIDNode();
+
+              transMgr.tryRegisterSymbol(
+                  SymEntryType::Variable,
+                  IDNode->getRootID(),
+                  IDNode->getRootIDLangType(),
+                  true, &child->getLocation());
+          }
+      }
 
     | SpecQualList error {}
     | SpecQualList StructDecltrList error {}
@@ -346,26 +397,27 @@ StructDecltrList:
     ;
 
 StructDecltr:
-      Decltr {
-          $$ = AST::make(tyCtx, SymType::StructDecltr, @$, $1);
-          // TODO: register declarator
-          transMgr.getNameVec().pop_back();
-      }
-    | OpColon ConstExpr { $$ = AST::make(tyCtx, SymType::StructDecltr, @$, $1, $2); }
-    | Decltr OpColon ConstExpr {
-        $$ = AST::make(tyCtx, SymType::StructDecltr, @$, $1, $2, $3);
-          // TODO: register declarator
-          transMgr.getNameVec().pop_back();
-      }
+      Decltr { $$ = AST::makeDerived<StructDecltrAST>(tyCtx, @$, $1); }
+    | OpColon ConstExpr { $$ = AST::makeDerived<StructDecltrAST>(tyCtx, @$, $1, $2); }
+    | Decltr OpColon ConstExpr { $$ = AST::makeDerived<StructDecltrAST>(tyCtx, @$, $1, $2, $3); }
 
     | OpColon error {}
     | Decltr OpColon error {}
     ;
 
 EnumSpec:
-      KwdEnum IDWrapper { $$ = AST::make(tyCtx, SymType::EnumSpec, @$, $1, $2); }
-    | KwdEnum EnumBody { $$ = AST::make(tyCtx, SymType::EnumSpec, @$, $1, $2); }
-    | KwdEnum IDWrapper EnumBody { $$ = AST::make(tyCtx, SymType::EnumSpec, @$, $1, $2, $3); }
+      KwdEnum IDWrapper {
+          $$ = AST::make(tyCtx, SymType::EnumSpec, @$, $1, $2);
+          // TODO(future): register enum
+      }
+    | KwdEnum EnumBody {
+          $$ = AST::make(tyCtx, SymType::EnumSpec, @$, $1, $2);
+          // TODO(future): register enum
+      }
+    | KwdEnum IDWrapper EnumBody {
+          $$ = AST::make(tyCtx, SymType::EnumSpec, @$, $1, $2, $3);
+          // TODO(future): register enum
+      }
     
     | KwdEnum error {}
     ;
@@ -399,36 +451,26 @@ EnumConst:
 
 /* Single variable declaration */
 Decltr:
-      DirDecltr {
-          $$ = AST::makeDerived<DecltrAST>(tyCtx, @$, $1);
-          $$->computeLangType();
-      }
-    | OpAstrk Decltr {
-          $$ = AST::makeDerived<DecltrAST>(tyCtx, @$, $1, $2);
-          $$->computeLangType();
-      }
-    | OpAstrk TypeQualList Decltr {
-          $$ = AST::makeDerived<DecltrAST>(tyCtx, @$, $1, $2, $3);
-          $$->computeLangType();
-      }
+      DirDecltr { $$ = AST::makeDerived<DecltrAST>(tyCtx, @$, $1); }
+    | OpAstrk Decltr { $$ = AST::makeDerived<DecltrAST>(tyCtx, @$, $1, $2); }
+    | OpAstrk TypeQualList Decltr { $$ = AST::makeDerived<DecltrAST>(tyCtx, @$, $1, $2, $3); }
     ;
 
 DirDecltr:
       IDWrapper {
-          $$ = DirDecltrAST::make(tyCtx, transMgr.getTypeVec().back().first, @$, $1);
-          transMgr.getNameVec().push_back($1->getConstVal<ASTIDType>());
+          $$ = AST::makeDerived<DirDecltrAST>(tyCtx, @$, $1);
       }
     | WrappedDirDecltr {
-          $$ = DirDecltrAST::make(tyCtx, @$, $1);
+          $$ = AST::makeDerived<DirDecltrAST>(tyCtx, @$, $1);
       }
     | DirDecltr OpLSB AssignExpr OpRSB {
-          $$ = DirDecltrAST::make(tyCtx, @$, $1, $2, $3, $4);
+          $$ = AST::makeDerived<DirDecltrAST>(tyCtx, @$, $1, $2, $3, $4);
       }
     | DirDecltr OpLSB OpRSB {
-          $$ = DirDecltrAST::make(tyCtx, @$, $1, $2, $3);
+          $$ = AST::makeDerived<DirDecltrAST>(tyCtx, @$, $1, $2, $3);
       }
     | WrappedDirDecltr PLP ParamList PRP {
-          $$ = DirDecltrAST::make(tyCtx, @$, $1, $3); 
+          $$ = AST::makeDerived<DirDecltrAST>(tyCtx, @$, $1, $3); 
       }
     | DirDecltr OpLSB AssignExpr error {}
     /* | direct-declarator error {}  */
@@ -436,10 +478,7 @@ DirDecltr:
     ;
 
 WrappedDirDecltr:
-      PLP Decltr PRP {
-          $$ = AST::makeDerived<WrappedDirDecltrAST>(tyCtx, @$, $2); 
-          $$->computeLangType();
-      }
+      PLP Decltr PRP { $$ = AST::makeDerived<WrappedDirDecltrAST>(tyCtx, @$, $2); }
     ;
 
 /* PtrDecltr:
@@ -468,8 +507,27 @@ Decl:
     ;
 
 DirDecl:
-      DeclSpecWrapper { $$ = AST::make(tyCtx, SymType::DirDecl, @$, $1); transMgr.getTypeVec().pop_back(); }
-    | DeclSpecWrapper InitDecltrList { $$ = AST::make(tyCtx, SymType::DirDecl, @$, $1, $2); transMgr.getTypeVec().pop_back(); }
+      DeclSpecWrapper {
+          $$ = AST::make(tyCtx, SymType::DirDecl, @$, $1);
+          // $1->computeAndSetLangType();
+      }
+    | DeclSpecWrapper InitDecltrList {
+          $$ = AST::make(tyCtx, SymType::DirDecl, @$, $1, $2);
+          $1->computeAndSetLangType();
+
+          for (auto &child : std::views::reverse($2->getChildren())) {
+              child->computeAndSetLangType($1->getLangType());
+
+              auto IDNode = child->getRootIDNode();
+
+              transMgr.tryRegisterSymbol(
+                  $1->isTypedef() ? SymEntryType::Typedef :
+                                    SymEntryType::Variable,
+                  IDNode->getRootID(),
+                  IDNode->getRootIDLangType(),
+                  true, &child->getLocation());
+          }
+      }
     ;
 
 /* Definition: Declaration of multiple variable.  */ 
@@ -484,20 +542,8 @@ InitDecltrList:
 
 /* Definition: Single declaration unit. */
 InitDecltr:
-      Decltr {
-          $$ = AST::make(tyCtx, SymType::InitDecltr, @$, $1);
-          transMgr.tryRegisterSymbol(
-              SymEntryType::Variable, transMgr.getNameVec().back(),
-              $1->getLangType(), true, &@1);
-          transMgr.getNameVec().pop_back();
-      }
-    | Decltr OpAssign Initializer {
-          $$ = AST::make(tyCtx, SymType::InitDecltr, @$, $1, $2, $3);
-          transMgr.tryRegisterSymbol(
-              SymEntryType::Variable, transMgr.getNameVec().back(),
-              $1->getLangType(), true, &@1);
-          transMgr.getNameVec().pop_back();
-      }
+      Decltr { $$ = AST::makeDerived<InitDecltrAST>(tyCtx, @$, $1); }
+    | Decltr OpAssign Initializer { $$ = AST::makeDerived<InitDecltrAST>(tyCtx, @$, $1, $2, $3); }
     | Decltr OpAssign error {}
     ;
 
@@ -539,9 +585,28 @@ Designator:
 FuncDef:
       DeclSpecWrapper FuncDecltr CompStmt {
           $$ = AST::make(tyCtx, SymType::FuncDef, @$, $1, $2, $3);
-          transMgr.getTypeVec().pop_back();
+          // push all parameters
+          auto paramTypeNode = $2->findFirstChildBFS(SymType::ParamTypeList);
+
+          for (auto &child : paramTypeNode->getChildren()[0]->getChildren()) {
+            auto IDNode = child->getRootIDNode();
+            transMgr.tryRegisterSymbol(
+                SymEntryType::Paramater, IDNode->getRootID(),
+                IDNode->getRootIDLangType(),
+                true, &child->getLocation());
+          }
+
           $$->setContext(transMgr.getASTCtxMgr()[0]);
           transMgr.popASTCtx();
+
+          // register function
+          $2->computeAndSetLangType($1->computeAndSetLangType());
+          auto node = $2->getRootIDNode();
+
+          transMgr.tryRegisterSymbol(
+              SymEntryType::Function, node->getRootID(),
+              node->getRootIDLangType(),
+              true, &@2, $3);
       }
     /* | FuncDecltr CompStmt {
           SPLC_LOG_WARN(&@1, true) << "function is missing a specifier and will default to 'int'";
@@ -559,7 +624,6 @@ FuncDecl:
       }  */
       DeclSpecWrapper FuncDecltr PSemi {
           $$ = AST::make(tyCtx, SymType::FuncDecl, @$, $1, $2);
-          transMgr.getTypeVec().pop_back();
           $$->setContext(transMgr.getASTCtxMgr()[0]);
           transMgr.popASTCtx();
       }
@@ -568,14 +632,19 @@ FuncDecl:
 
 /* Function: Function name and body. */
 FuncDecltr:
-      DirFuncDecltr { $$ = AST::make(tyCtx, SymType::FuncDecltr, @$, $1); }
-    | OpAstrk DirFuncDecltr { $$ = AST::make(tyCtx, SymType::FuncDecltr, @$, $1, $2); }
-    | OpAstrk TypeQualList DirFuncDecltr { $$ = AST::make(tyCtx, SymType::FuncDecltr, @$, $1, $2, $3); }
+      DirFuncDecltr { $$ = AST::makeDerived<FuncDecltrAST>(tyCtx, @$, $1); }
+    | OpAstrk FuncDecltr {
+          $$ = AST::makeDerived<FuncDecltrAST>(tyCtx, @$, $1, $2);
+      }
+    | OpAstrk TypeQualList FuncDecltr {
+          $$ = AST::makeDerived<FuncDecltrAST>(tyCtx, @$, $1, $2, $3);
+      }
     ;
 
 DirFuncDecltr:
-      DirDecltrForFunc DirFuncDecltrBegin PLP
-      ParamTypeList PRP { $$ = AST::make(tyCtx, SymType::DirFuncDecltr, @$, $DirDecltrForFunc, $ParamTypeList); }
+      DirDecltrForFunc DirFuncDecltrBegin PLP ParamTypeList PRP { 
+          $$ = AST::makeDerived<DirFuncDecltrAST>(tyCtx, @$, $DirDecltrForFunc, $ParamTypeList); 
+      }
     /* | direct-declarator-for-function PLP PRP {} */
 
     /* | direct-declarator-for-function PLP error {} */
@@ -593,7 +662,9 @@ DirFuncDecltrBegin:
     ;
 
 DirDecltrForFunc:
-      IDWrapper 
+      IDWrapper {
+          $$ = $1;
+      }
     ;
 
 /* List of variables names */
@@ -614,21 +685,15 @@ ParamList:
 ParamDecltr:
       DeclSpecWrapper Decltr {
           $$ = AST::makeDerived<ParamDecltrAST>(tyCtx, @$, $1, $2);
-          transMgr.tryRegisterSymbol(
-              SymEntryType::Paramater, transMgr.getNameVec().back(),
-              $2->getLangType(), true, &@2);
-          transMgr.getNameVec().pop_back();
-          transMgr.getTypeVec().pop_back();
+          $$->computeAndSetLangType();
       }
     | DeclSpecWrapper AbsDecltr {
           $$ = AST::makeDerived<ParamDecltrAST>(tyCtx, @$, $1, $2);
-          // TODO: register declarator
-          transMgr.getTypeVec().pop_back();
+          $$->computeAndSetLangType();
       }
     | DeclSpecWrapper {
           $$ = AST::makeDerived<ParamDecltrAST>(tyCtx, @$, $1);
-          // TODO: register declarator
-          transMgr.getTypeVec().pop_back();
+          $$->computeAndSetLangType();
       }
 
     /* | error {} */

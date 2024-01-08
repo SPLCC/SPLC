@@ -1,5 +1,5 @@
-# splc_AST shared library
-add_library(splc_AST SHARED
+# SPLCAST shared library
+add_library(SPLCAST SHARED
     ASTBase.cc
     ASTBasePolymorphism.cc
     ASTBaseProcess.cc
@@ -14,11 +14,11 @@ add_library(splc_AST SHARED
     SymbolEntry.cc
     TypeCheck.cc
 )
-target_include_directories(splc_AST PUBLIC ${SPLC_INCL_DIR})
-set_target_properties(splc_AST PROPERTIES 
+target_include_directories(SPLCAST PUBLIC ${SPLC_INCL_DIR})
+set_target_properties(SPLCAST PROPERTIES 
     LIBRARY_OUTPUT_DIRECTORY ${GENERATED_LIB_DIR})
-file(GLOB splc_AST_HEADER_FILES "${SPLC_INCL_DIR}/AST/*.hh")
-set_target_properties(splc_AST PROPERTIES 
-    PUBLIC_HEADER "${splc_AST_HEADER_FILES}")
+file(GLOB SPLCAST_HEADER_FILES "${SPLC_INCL_DIR}/AST/*.hh")
+set_target_properties(SPLCAST PROPERTIES 
+    PUBLIC_HEADER "${SPLCAST_HEADER_FILES}")
 
-target_link_libraries(splc_AST splc_Core splc_Basic)
+target_link_libraries(SPLCAST SPLCCore SPLCBasic)

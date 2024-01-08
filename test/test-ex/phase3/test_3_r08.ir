@@ -1,0 +1,46 @@
+FUNCTION calculateTax :
+PARAM income
+tax := #0
+IF income <= #5000 GOTO lb_0
+GOTO lb_1
+LABEL lb_0 :
+RETURN #0
+GOTO lb_2
+LABEL lb_1 :
+IF income <= #10000 GOTO lb_3
+GOTO lb_4
+LABEL lb_3 :
+tmp_5 := income - #5000
+tmp_6 := tmp_5 / #20
+tax := tmp_6
+GOTO lb_7
+LABEL lb_4 :
+IF income <= #50000 GOTO lb_8
+GOTO lb_9
+LABEL lb_8 :
+tmp_10 := income - #10000
+tmp_11 := tmp_10 / #10
+tmp_12 := #250 + tmp_11
+tax := tmp_12
+GOTO lb_13
+LABEL lb_9 :
+tmp_14 := #250 + #4000
+tmp_15 := income - #50000
+tmp_16 := tmp_15 / #5
+tmp_17 := tmp_14 + tmp_16
+tax := tmp_17
+LABEL lb_13 :
+LABEL lb_7 :
+LABEL lb_2 :
+RETURN tax
+
+FUNCTION main :
+READ tmp_18
+inc := tmp_18
+ARG inc
+tmp_19 := CALL calculateTax
+tmp_20 := inc - tmp_19
+real_income := tmp_20
+WRITE real_income
+RETURN #0
+

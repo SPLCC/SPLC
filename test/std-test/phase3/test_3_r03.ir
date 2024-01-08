@@ -16,11 +16,10 @@ tmp_9 := tmp_8 * i
 IF k == tmp_9 GOTO lb_6
 GOTO lb_7
 LABEL lb_6 :
-tmp_10 := num + #1
-num := tmp_10
+num := num + #1
 LABEL lb_7 :
 tmp_11 := i + #1
-i := tmp_11
+i := i + #1
 GOTO lb_3
 LABEL lb_5 :
 IF num == #2 GOTO lb_12
@@ -31,7 +30,7 @@ LABEL lb_13 :
 i := #1
 num := #0
 tmp_14 := k + #1
-k := tmp_14
+k := k + #1
 GOTO lb_0
 LABEL lb_2 :
 RETURN #0

@@ -52,8 +52,8 @@ int main(const int argc, const char **argv)
 
     Ptr<IRProgram> program = builder.makeProgram(node);
 
-    // Optimizer
-    IROptimizer::optimizeProgram(program);
+    // Disable
+    // IROptimizer::optimizeProgram(program);
 
     // Open the output file
     std::ofstream outputFile("output.ir");

@@ -4,6 +4,13 @@
 
 The code skeleton is from [jonathan-bear/simple_wc_example](https://github.com/jonathan-beard/simple_wc_example).
 
+## Compilation
+
+The following packages are required:
+- `libzstd-dev`
+- `zlib1g-dev`
+- `llvm-18`
+
 ## Reports
 
 Reports for CS323-2023-Fall are placed under `reports` folder, with images placed under `images` folder.

@@ -2,7 +2,6 @@ FUNCTION isPalindrome :
 PARAM num
 reversed := #0
 original := num
-digit := #0
 LABEL lb_3 :
 IF num != #0 GOTO lb_4
 GOTO lb_5
@@ -12,10 +11,9 @@ ARG #10
 tmp_6 := CALL mod
 digit := tmp_6
 tmp_7 := reversed * #10
-tmp_8 := tmp_7 + digit
-reversed := tmp_8
+reversed := tmp_7 + digit
 tmp_9 := num / #10
-num := tmp_9
+num := num / #10
 GOTO lb_3
 LABEL lb_5 :
 IF reversed == original GOTO lb_10
@@ -38,7 +36,8 @@ LABEL lb_14 :
 WRITE #1
 GOTO lb_17
 LABEL lb_15 :
-WRITE #-1
+tmp_18 := #-1
+WRITE tmp_18
 LABEL lb_17 :
 RETURN #0
 

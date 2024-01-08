@@ -1,4 +1,3 @@
-#include "Translation/TranslationContext.hh"
 #ifndef __SPLC_TRANSLATION_TRANSLATIONMANAGER_HH__
 #define __SPLC_TRANSLATION_TRANSLATIONMANAGER_HH__ 1
 
@@ -13,6 +12,7 @@
 #include "AST/DerivedAST.hh"
 
 #include "Translation/TranslationBase.hh"
+#include "Translation/TranslationContext.hh"
 #include "Translation/TranslationOption.hh"
 #include "Translation/TranslationUnit.hh"
 
@@ -166,21 +166,8 @@ class TranslationManager {
 
     Ptr<TranslationUnit> getTransUnit() const noexcept;
 
-    auto &getTypeVec() const noexcept { return typeVec; }
-
-    auto &getTypeVec() noexcept { return typeVec; }
-
-    auto &getNameVec() const noexcept { return nameVec; }
-
-    auto &getNameVec() noexcept { return nameVec; }
-
   protected:
     Ptr<TranslationUnit> tunit;
-
-    std::vector<std::pair<Type *, bool>>
-        typeVec; ///< type used in attribute synthesis in parser
-    std::vector<std::string>
-        nameVec; ///< type used in attribute synthesis in parser
 
     // TODO: add options
     // TODO: allow manager to retrieve include options and stuff

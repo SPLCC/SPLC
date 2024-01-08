@@ -45,12 +45,55 @@ const char *typeNames[] = {"void",
                            nullptr,
                            "function",
                            "pointer",
-                           "structure",
+                           "struct",
                            "array"};
 
 std::string_view Type::getName() const noexcept
 {
     return {typeNames[static_cast<int>(ID)]};
+}
+
+std::ostream &operator<<(std::ostream &os, const Type &type)
+{
+    os << type.getName();
+
+    if (type.isArrayTy()) {
+        os << " " << type.getArrayNumElements() << " of ";
+        os << **type.containedTys;
+    }
+    else if (type.isFunctionTy()) {
+        if (type.getFunctionNumParams() > 0) {
+            os << " (";
+            for (auto it = type.subtype_begin() + 1; it != type.subtype_end();
+                 ++it) {
+                os << **it;
+                if (it + 1 != type.subtype_end())
+                    os << ", ";
+            }
+            os << ")";
+        }
+        os << " returning " << **type.containedTys;
+    }
+    else if (type.isPointerTy()) {
+        os << " to " << **type.containedTys;
+    }
+    else if (type.isStructTy()) {
+        const StructType *st = dynamic_cast<const StructType *>(&type);
+        if (!st->isLiteral()) {
+            os << " " << st->getName();
+        }
+        else {
+            os << " unnamed";
+        }
+        os << " {";
+        for (auto it = type.subtype_begin(); it != type.subtype_end(); ++it) {
+            os << **it;
+            if (it + 1 != type.subtype_end())
+                os << ", ";
+        }
+        os << "}";
+    }
+    return os;
 }
 
 Type *Type::getPrimitiveType(SPLCContext &C, TypeID ID)
@@ -100,7 +143,7 @@ bool Type::isSizedDerivedType() const
 
 Type *Type::getSigned() const
 {
-    if(!isIntTy())
+    if (!isIntTy())
         return nullptr;
     if (isSIntTy())
         return const_cast<Type *>(this);
@@ -121,7 +164,7 @@ Type *Type::getSigned() const
 
 Type *Type::getUnsigned() const
 {
-    if(!isIntTy())
+    if (!isIntTy())
         return nullptr;
     if (isUIntTy())
         return const_cast<Type *>(this);
@@ -313,15 +356,18 @@ void StructType::setName(std::string_view name)
     }
 
     // No name collision is allowed!
-    splc_assert((it = map.find(name)) != map.end())
-        << "duplicated structure name is not allowed in type system";
-    map.insert(std::make_pair(std::string{name}, this));
+    auto [insertIt, inserted] = map.insert({std::string{name}, this});
+    splc_assert(inserted)
+        << " duplicated structure name is not allowed in type system";
+
+    // FIXME: temporary fix
+    setSubclassData(getSubclassData() & (~SCDB_IsLiteral));
+    this->name = insertIt->first;
 }
 
 std::string_view StructType::getName() const noexcept
 {
-    if (!isLiteral())
-        return "unnamed struct";
+    splc_assert(!isLiteral()) << "literal struct has no names";
     return name;
 }
 
