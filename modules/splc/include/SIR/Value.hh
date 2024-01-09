@@ -4,9 +4,7 @@
 #include "Basic/Type.hh"
 #include "SIR/SIRCommons.hh"
 
-namespace splc {
-
-namespace SIR {
+namespace splc::SIR {
 
 //===----------------------------------------------------------------------===//
 //                                 Value Class
@@ -26,30 +24,42 @@ namespace SIR {
 /// objects that watch it and listen to RAUW and Destroy events.  See
 /// llvm/IR/ValueHandle.h for details.
 class Value {
-  protected:
-    Type *vTy;
-    
-    const unsigned subClassID;  // Subclass identifier (for isa/dyn_cast)
-    
   public:
-    enum ValueTy {
-        ArgumentVal,
-    };
+    enum class ValueTy {};
 
-    Value(Type *Ty, unsigned scid) : vTy(Ty), subClassID(scid) {}
+    Value(const Value &) = delete;
+    Value &operator=(const Value&) = delete;
 
-    virtual ~Value() {}
+    /// Delete a pointer to a generic Value.
+    void deleteValue();
 
-    Type *getType() const {return vTy;}
+    Type* getType() const;
+    SPLCContext &getContext() const;
 
-    unsigned getValueID() const {return subClassID;}
-
-    String getName() const;
-
+    bool hasName() const;
+    Ptr<String> getName() const;
     void setName(const String &name);
-};
-} // namespace SIR
+    /// Transfer the name from V to this value.
+    void takeName(Ptr<Value> V);
 
-} // namespace splc
+    /// Change all uses of this to point to a new Value.
+    void replaceAllUsesWith(Ptr<Value> V);
+
+    // TODO iterator
+
+
+    unsigned getUseNum() const;
+    void addUse(Use &U);
+
+    /// Return an ID for the concrete type of this object.
+    unsigned getValueID() const;
+
+    void print(std::ostream os) const;
+
+  protected:
+    Value(Type *ty, unsigned scid);
+    ~Value();
+};
+} // namespace splc::SIR
 
 #endif // __SPLC_SIR_VALUE_HH__

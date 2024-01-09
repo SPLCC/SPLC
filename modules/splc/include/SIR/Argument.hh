@@ -3,39 +3,24 @@
 #include "SIR/SIRCommons.hh"
 #include "SIR/Value.hh"
 
-namespace splc {
-
-namespace SIR {
+namespace splc::SIR {
 
 class Argument final : public Value {
-    Ptr<Function> parent;
-    unsigned argNo;
-
   public:
-    Argument(Type *ty, const String &name = "", Ptr<Function> parent = nullptr,
-             unsigned argNo = 0)
-        : Value(ty, Value::ArgumentVal), parent(parent), argNo(argNo)
-    {
-        this->setName(name);
-    }
+    Argument(Type *ty, const String &name = "", Ptr<Function> = nullptr,
+             unsigned argNo = 0);
+    
+    const Ptr<Function> getParent() const;
+    Ptr<Function> getParent();
+    unsigned getArgNo() const;
 
-    Ptr<Function> getParent() { return parent; }
-    const Ptr<Function> getParent() const { return parent; }
+    Type *getType() const;
 
-    unsigned getArgNo() const { return argNo; }
+    static bool classof(const Ptr<Value> V);
 
-    Type *getType() { return vTy; }
-    const Type* getType() const {return vTy;}
-
-    /// Support for type inquiry through isa, cast, and dyn_cast
-    static bool classof(const Ptr<Value> v) {
-      return v->getValueID() == Value::ArgumentVal;
-    }
-
+    friend class Function;
 
 };
-
-} // namespace SIR
-} // namespace splc
+} // namespace splc::SIR
 
 #endif // __SPLC_SIR_ARGUMENT_HH__

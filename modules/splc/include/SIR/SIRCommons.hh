@@ -12,9 +12,10 @@ namespace SIR {
 template <class T, typename... args>
 class SymbolTableList;
 
-class Instruction;
-class User;
 class Value;
+class Use;
+class User;
+class Instruction;
 class Constant;
 class GlobalValue;
 class GlobalVariable;
