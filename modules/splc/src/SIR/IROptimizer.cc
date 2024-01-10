@@ -151,22 +151,7 @@ DepKey IROptimizer::buildDependency(Ptr<IRFunction> func)
     return key;
 }
 
-void recursiveColorChildren(DepNode *node)
-{
-    // TODO(future): refactor all
-    // SPLC_LOG_WARN(nullptr, false)
-    //     << "processing node children: " << node->var->name;
-    // for (auto child : node->children) {
-    //     SPLC_LOG_DEBUG(nullptr, false)
-    //         << "`-" << child->var->name << ", " << child->isMarked();
-    // }
-    node->setMarked();
-    for (auto n : node->children) {
-        recursiveColorChildren(n);
-    }
-}
-
-void recursiveColorParent(IRVec<DepNode *> &childrenToColor, DepNode *node)
+void recursiveColor(DepNode *node)
 {
     // SPLC_LOG_WARN(nullptr, false)
     //     << "processing node parents: " << node->var->getName();
@@ -178,25 +163,20 @@ void recursiveColorParent(IRVec<DepNode *> &childrenToColor, DepNode *node)
     node->setMarked();
     for (auto parent : node->parents) {
         if (parent->isUnmarked()) {
-            recursiveColorParent(childrenToColor, parent);
+            recursiveColor(parent);
         }
     }
-    if (node->stmt != nullptr && node->stmt->isBranchIf()) {
-        // SPLC_LOG_NOTE(nullptr, false)
-        //     << "pushed children: " << node->var->getName();
-        childrenToColor.push_back(node);
+    for (auto child : node->children) {
+        if (child->isUnmarked()) {
+            recursiveColor(child);
+        }
     }
 }
 
 void color(DepNodeList &inputs, DepNodeList &outputs)
 {
-    IRVec<DepNode *> childrenToColor;
     for (auto &output : outputs) {
-        recursiveColorParent(childrenToColor, output.get());
-    }
-
-    for (auto child : childrenToColor) {
-        recursiveColorChildren(child);
+        recursiveColor(output.get());
     }
 
     for (auto &input : inputs) {
