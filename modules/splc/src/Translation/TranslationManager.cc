@@ -7,9 +7,9 @@ using namespace splc;
 
 using CS = splc::utils::logging::ControlSeq;
 
-void TranslationManager::startTranslationRecord()
+void TranslationManager::startTranslationRecord(SPLCContext &C)
 {
-    tunit = makeSharedPtr<TranslationUnit>();
+    tunit = makeSharedPtr<TranslationUnit>(C);
 }
 
 void TranslationManager::endTranslationRecord() {}
@@ -44,7 +44,8 @@ void TranslationManager::tryRegisterSymbol(SymEntryType symEntTy,
         // TODO: revise
         auto ent =
             registerSymbol(symEntTy, name_, type_, defined_, location_, body_);
-        // SPLC_LOG_DEBUG(location_, false) << "registered identifier " << name_;
+        // SPLC_LOG_DEBUG(location_, false) << "registered identifier " <<
+        // name_;
         if (type_ != nullptr) {
             SPLC_LOG_DEBUG(location_, false)
                 << "the type of the identifier is: " << *type_;

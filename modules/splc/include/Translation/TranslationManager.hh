@@ -30,7 +30,7 @@ class TranslationManager {
 
     virtual ~TranslationManager() = default;
 
-    void startTranslationRecord();
+    void startTranslationRecord(SPLCContext &C);
 
     void endTranslationRecord();
 
@@ -38,9 +38,9 @@ class TranslationManager {
 
     void setTransUnitRootAST(PtrAST rootNode_) { tunit->rootNode = rootNode_; }
 
-    auto getContext() { return tunit->getContext(); }
+    auto &getContext() { return tunit->getContext(); }
 
-    const auto getContext() const { return tunit->getContext(); }
+    const auto &getContext() const { return tunit->getContext(); }
 
     auto getASTCtxMgr() noexcept { return tunit->astCtxMgr; }
 

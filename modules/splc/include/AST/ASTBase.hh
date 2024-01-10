@@ -79,9 +79,9 @@ class AST : public std::enable_shared_from_this<AST> {
     }
 
     template <IsValidASTValue T = ASTValueType>
-    AST(Ptr<SPLCContext> C, const ASTSymType symType_, const Location &loc_,
+    AST(SPLCContext &C, const ASTSymType symType_, const Location &loc_,
         T &&value_ = {}) noexcept
-        : context{C}, symType{symType_}, loc{loc_}, value{value_}
+        : context{&C}, symType{symType_}, loc{loc_}, value{value_}
     {
     }
 
@@ -111,7 +111,7 @@ class AST : public std::enable_shared_from_this<AST> {
     }
 
     template <AllArePtrAST... Children>
-    static PtrAST make(Ptr<SPLCContext> C, ASTSymType type, const Location &loc,
+    static PtrAST make(SPLCContext &C, ASTSymType type, const Location &loc,
                        Children &&...children)
     {
         PtrAST parentNode = makeSharedPtr<AST>(C, type, loc);
@@ -120,7 +120,7 @@ class AST : public std::enable_shared_from_this<AST> {
     }
 
     template <IsValidASTValue T, AllArePtrAST... Children>
-    static PtrAST make(Ptr<SPLCContext> C, ASTSymType type, const Location &loc,
+    static PtrAST make(SPLCContext &C, ASTSymType type, const Location &loc,
                        T &&value, Children &&...children)
     {
         PtrAST parentNode =
@@ -139,7 +139,7 @@ class AST : public std::enable_shared_from_this<AST> {
     }
 
     template <IsBaseAST ASTTypeLike, AllArePtrAST... Children>
-    static Ptr<ASTTypeLike> makeDerived(Ptr<SPLCContext> C, const Location &loc,
+    static Ptr<ASTTypeLike> makeDerived(SPLCContext &C, const Location &loc,
                                         Children &&...children)
     {
         Ptr<ASTTypeLike> parentNode = makeSharedPtr<ASTTypeLike>(C, loc);
@@ -259,7 +259,7 @@ class AST : public std::enable_shared_from_this<AST> {
         return std::holds_alternative<T>(value);
     }
 
-    void setContext(Ptr<SPLCContext> typeContext_) { context = typeContext_; }
+    void setContext(SPLCContext *context_) { context = context_; }
 
     auto getContext() { return context; }
 
@@ -296,17 +296,17 @@ class AST : public std::enable_shared_from_this<AST> {
 
     void setASTContext(Ptr<ASTContext> astContext_) noexcept
     {
-        astContext_ = astContext_;
+        astContext = astContext_;
     }
 
-    auto getASTContext() noexcept { return astContext_; }
+    auto getASTContext() noexcept { return astContext; }
 
-    auto getASTContext() const noexcept { return astContext_; }
+    auto getASTContext() const noexcept { return astContext; }
 
     auto &getVariant() noexcept { return value; }
 
   protected:
-    Ptr<SPLCContext> context;
+    SPLCContext *context = nullptr;
     ASTSymType symType;
     mutable Type *langType =
         nullptr; ///< type related to this AST, e.g., type for specifiers.
@@ -316,7 +316,7 @@ class AST : public std::enable_shared_from_this<AST> {
     WeakPtrAST parent;
     std::vector<PtrAST> children_;
     Location loc;
-    Ptr<ASTContext> astContext_;
+    Ptr<ASTContext> astContext;
     ASTValueType value;
 
     //===----------------------------------------------------------------------===//

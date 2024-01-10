@@ -34,7 +34,7 @@ PtrAST AST::copy(const std::function<bool(Ptr<const AST>)> &predicate,
 
     ret->loc = this->loc;
     if (copyContext) {
-        ret->astContext_ = this->astContext_; // TODO(verify): is this desirable?
+        ret->astContext = this->astContext; // TODO(verify): is this desirable?
                                         // Copying the entire context may
                                         // lead to filtered out contents
     }

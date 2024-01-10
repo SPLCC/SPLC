@@ -21,7 +21,7 @@ class Driver {
     friend class Parser;
 
   public:
-    Driver(bool traceParsing_ = false);
+    Driver(SPLCContext &C, bool traceParsing_ = false);
 
     virtual ~Driver() = default;
 
@@ -40,9 +40,14 @@ class Driver {
     // Ptr<TranslationUnit> parse(const std::string &streamName,
     //                            std::istream &iss);
 
+    auto &getContext() { return context; }
+
+    auto &getContext() const { return context; }
+
   protected:
     Ptr<TranslationUnit> internalParse(Ptr<TranslationContext> initialContext);
 
+    SPLCContext &context;
     Ptr<TranslationManager> transMgr;
     Ptr<Parser> parser;
     Ptr<Scanner> scanner;

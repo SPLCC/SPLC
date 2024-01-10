@@ -29,7 +29,8 @@ int main(const int argc, const char **argv)
 
     bool traceParsing = std::stoi(std::string{argv[1]}) != 0;
 
-    IO::Driver driver{traceParsing};
+    UniquePtr<SPLCContext> context = makeUniquePtr<SPLCContext>();
+    IO::Driver driver{*context, traceParsing};
 
     // TODO(future): just parse the first file first
 
@@ -47,7 +48,7 @@ int main(const int argc, const char **argv)
         SPLC_LOG_DEBUG(nullptr, false) << "\n" << *node->getASTContext();
     }
 
-    IRBuilder builder{*tunit->getContext()};
+    IRBuilder builder{tunit->getContext()};
 
     Ptr<IRProgram> program = builder.makeProgram(node);
 

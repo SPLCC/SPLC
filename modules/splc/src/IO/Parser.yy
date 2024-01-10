@@ -27,7 +27,7 @@
 }
 
 %parse-param { TranslationManager  &transMgr }
-%parse-param { Ptr<SPLCContext>     tyCtx    }
+%parse-param { SPLCContext         &tyCtx    }
 %parse-param { Driver              &driver   }
 %parse-param { Scanner             &scanner  }
 
