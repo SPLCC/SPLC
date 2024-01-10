@@ -44,10 +44,10 @@ int main(const int argc, const char **argv)
     if (node) {
         SPLC_LOG_DEBUG(nullptr, false) << "\n"
                                        << splc::treePrintTransform(*node);
-        SPLC_LOG_DEBUG(nullptr, false) << "\n" << *node->getContext();
+        SPLC_LOG_DEBUG(nullptr, false) << "\n" << *node->getASTContext();
     }
 
-    IRBuilder builder{*tunit->getTypeContext()};
+    IRBuilder builder{*tunit->getContext()};
 
     Ptr<IRProgram> program = builder.makeProgram(node);
 

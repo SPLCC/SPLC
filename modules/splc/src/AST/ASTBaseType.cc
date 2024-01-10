@@ -9,7 +9,7 @@ Type *AST::computeSimpleTypeSpec() const noexcept
 {
     splc_assert(isSpecQualList() || isDeclSpec());
 
-    if (tyContext == nullptr) {
+    if (context == nullptr) {
         splc_error() << "no type context has been provided";
     }
 
@@ -38,7 +38,7 @@ Type *AST::computeSimpleTypeSpec() const noexcept
             if (nTypedef > 0) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
                     << "multiple typedef";
-                return &getTyContext()->SInt32Ty;
+                return &getContext()->SInt32Ty;
             }
             ++nTypedef;
             break;
@@ -48,7 +48,7 @@ Type *AST::computeSimpleTypeSpec() const noexcept
                 nFloat > 0 || nDouble > 0 || ret != nullptr) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
                     << "multiple base type specifier";
-                return &getTyContext()->SInt32Ty;
+                return &getContext()->SInt32Ty;
             }
             ++nChar;
             break;
@@ -57,7 +57,7 @@ Type *AST::computeSimpleTypeSpec() const noexcept
                 nFloat > 0 || nDouble > 0 || ret != nullptr) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
                     << "multiple base type specifier";
-                return &getTyContext()->SInt32Ty;
+                return &getContext()->SInt32Ty;
             }
             ++nShort;
             break;
@@ -66,7 +66,7 @@ Type *AST::computeSimpleTypeSpec() const noexcept
                 nFloat > 0 || nDouble > 0 || ret != nullptr) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
                     << "multiple base type specifier";
-                return &getTyContext()->SInt32Ty;
+                return &getContext()->SInt32Ty;
             }
             ++nInt;
             break;
@@ -74,18 +74,18 @@ Type *AST::computeSimpleTypeSpec() const noexcept
             if (nUnsigned > 0) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
                     << "contradictory type specifier";
-                return &getTyContext()->SInt32Ty;
+                return &getContext()->SInt32Ty;
             }
             else if (nFloat > 0 || nDouble > 0) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
                     << "type specifier cannot be applied to floating-point "
                        "type";
-                return &getTyContext()->SInt32Ty;
+                return &getContext()->SInt32Ty;
             }
             else if (ret != nullptr) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
                     << "specifier cannot be applied to struct/union types";
-                return &getTyContext()->SInt32Ty;
+                return &getContext()->SInt32Ty;
             }
             ++nSigned;
             break;
@@ -93,18 +93,18 @@ Type *AST::computeSimpleTypeSpec() const noexcept
             if (nSigned > 0) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
                     << "contradictory type specifier";
-                return &getTyContext()->SInt32Ty;
+                return &getContext()->SInt32Ty;
             }
             else if (nFloat > 0 || nDouble > 0) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
                     << "type specifier cannot be applied to floating-point "
                        "type";
-                return &getTyContext()->SInt32Ty;
+                return &getContext()->SInt32Ty;
             }
             else if (ret != nullptr) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
                     << "specifier cannot be applied to struct/union types";
-                return &getTyContext()->SInt32Ty;
+                return &getContext()->SInt32Ty;
             }
             ++nUnsigned;
             break;
@@ -113,13 +113,13 @@ Type *AST::computeSimpleTypeSpec() const noexcept
                 nDouble > 0 || ret != nullptr) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
                     << "multiple base type specifier";
-                return &getTyContext()->SInt32Ty;
+                return &getContext()->SInt32Ty;
             }
             else if (nLong == 2) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
                     << "too many `" << CS::Bold << "long" << CS::Reset
                     << "' as type specifier";
-                return &getTyContext()->SInt32Ty;
+                return &getContext()->SInt32Ty;
             }
             ++nLong;
             break;
@@ -128,12 +128,12 @@ Type *AST::computeSimpleTypeSpec() const noexcept
                 nFloat > 0 || nDouble > 0 || ret != nullptr) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
                     << "multiple base type specifier";
-                return &getTyContext()->SInt32Ty;
+                return &getContext()->SInt32Ty;
             }
             else if (nSigned > 0 || nUnsigned > 0) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
                     << "cannot apply to floating-point type";
-                return &getTyContext()->SInt32Ty;
+                return &getContext()->SInt32Ty;
             }
             ++nFloat;
             break;
@@ -142,12 +142,12 @@ Type *AST::computeSimpleTypeSpec() const noexcept
                 nFloat > 0 || nDouble > 0 || ret != nullptr) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
                     << "multiple base type specifier";
-                return &getTyContext()->SInt32Ty;
+                return &getContext()->SInt32Ty;
             }
             else if (nSigned > 0 || nUnsigned > 0) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
                     << "cannot apply to floating-point type";
-                return &getTyContext()->SInt32Ty;
+                return &getContext()->SInt32Ty;
             }
             ++nDouble;
             break;
@@ -195,29 +195,29 @@ Type *AST::computeSimpleTypeSpec() const noexcept
         nLong > 0 || nFloat > 0 || nDouble > 0) {
 
         if (nChar > 0)
-            ret = &getTyContext()->SInt8Ty;
+            ret = &getContext()->SInt8Ty;
         if (nShort > 0)
-            ret = &getTyContext()->SInt16Ty;
+            ret = &getContext()->SInt16Ty;
         if (nInt > 0)
-            ret = &getTyContext()->SInt32Ty;
+            ret = &getContext()->SInt32Ty;
         if (nLong == 1)
-            ret = &getTyContext()->SInt32Ty;
+            ret = &getContext()->SInt32Ty;
         if (nLong == 2)
-            ret = &getTyContext()->SInt64Ty;
+            ret = &getContext()->SInt64Ty;
         if (nFloat == 2)
-            ret = &getTyContext()->FloatTy;
+            ret = &getContext()->FloatTy;
         if (nDouble == 2)
-            ret = &getTyContext()->DoubleTy;
+            ret = &getContext()->DoubleTy;
 
         if (nSigned > 0) {
             if (ret == nullptr)
-                ret = &getTyContext()->SInt32Ty;
+                ret = &getContext()->SInt32Ty;
             else
                 ret = ret->getSigned();
         }
         if (nUnsigned > 0) {
             if (ret == nullptr)
-                ret = &getTyContext()->UInt32Ty;
+                ret = &getContext()->UInt32Ty;
             else
                 ret = ret->getUnsigned();
         }
@@ -309,7 +309,7 @@ Type *ASTHelper::getBaseTySpecRecursive(const AST &root) noexcept
     // TODO: use a general judge:
     // TODO: require refactoring of the ASTSymbolType class.
     if (root.symType == ASTSymType::IntTy)
-        return &root.tyContext->SInt32Ty; // Just assume it is signed int32
+        return &root.context->SInt32Ty; // Just assume it is signed int32
 
     Type *ty = nullptr;
     for (auto &child : root.children_) {
@@ -443,7 +443,7 @@ std::vector<Type *> ASTHelper::processInitDeclList(const AST &root,
 std::vector<Type *> ASTHelper::getDeclTy(const AST &root) noexcept
 {
     // TODO: maybe just add more support, whatsoever
-    SPLCContext &context = *root.tyContext;
+    SPLCContext &context = *root.context;
     const AST &dirDecl = *root.children_[0];
 
     // Get base type
@@ -458,7 +458,7 @@ std::vector<Type *> ASTHelper::getDeclTy(const AST &root) noexcept
 
 Type *ASTHelper::getFuncTy(const AST &root) noexcept
 {
-    SPLCContext &context = *root.tyContext;
+    SPLCContext &context = *root.context;
 
     // Get base type. There is always
     // a base type specifier, provided by the parser.

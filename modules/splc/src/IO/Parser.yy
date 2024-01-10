@@ -194,7 +194,7 @@ ParseRoot:
         transMgr.setRootNode($TransUnit);
         SPLC_LOG_DEBUG(&@TransUnit, true) << "completed parsing";
 
-        $TransUnit->setContext(transMgr.getASTCtxMgr()[0]);
+        $TransUnit->setASTContext(transMgr.getASTCtxMgr()[0]);
         transMgr.popASTCtx();
     }
     ;
@@ -310,7 +310,7 @@ StructOrUnionSpec:
       }
     | StructOrUnion StructDeclBody {
           $$ = AST::makeDerived<StructOrUnionSpecAST>(tyCtx, @$, $1, $2);
-          $$->setContext(transMgr.getASTCtxMgr()[0]);
+          $$->setASTContext(transMgr.getASTCtxMgr()[0]);
           transMgr.popASTCtx();
 
           Type *structTy = $$->computeAndSetLangType();
@@ -324,7 +324,7 @@ StructOrUnionSpec:
       }
     | StructOrUnion IDWrapper StructDeclBody {
           $$ = AST::makeDerived<StructOrUnionSpecAST>(tyCtx, @$, $1, $2, $3);
-          $$->setContext(transMgr.getASTCtxMgr()[0]);
+          $$->setASTContext(transMgr.getASTCtxMgr()[0]);
           transMgr.popASTCtx();
 
           Type *structTy = $$->computeAndSetLangType();
@@ -596,7 +596,7 @@ FuncDef:
                 true, &child->getLocation());
           }
 
-          $$->setContext(transMgr.getASTCtxMgr()[0]);
+          $$->setASTContext(transMgr.getASTCtxMgr()[0]);
           transMgr.popASTCtx();
 
           // register function
@@ -624,7 +624,7 @@ FuncDecl:
       }  */
       DeclSpecWrapper FuncDecltr PSemi {
           $$ = AST::make(tyCtx, SymType::FuncDecl, @$, $1, $2);
-          $$->setContext(transMgr.getASTCtxMgr()[0]);
+          $$->setASTContext(transMgr.getASTCtxMgr()[0]);
           transMgr.popASTCtx();
       }
     ;
@@ -704,7 +704,7 @@ CompStmt:
       /* PLC general-statement-list PRC */
       PLC ComptStmtBegin GeneralStmtList PRC {
           $$ = AST::make(tyCtx, SymType::CompStmt, @$, $GeneralStmtList);
-          $$->setContext(transMgr.getASTCtxMgr()[0]);
+          $$->setASTContext(transMgr.getASTCtxMgr()[0]);
           transMgr.popASTCtx();
       }
     | PLC ComptStmtBegin PRC { $$ = AST::make(tyCtx, SymType::CompStmt, @$); }
@@ -804,7 +804,7 @@ IterStmt:
 
     | KwdFor ForLoopCtxBegin PLP ForLoopBody PRP Stmt {
           $$ = AST::make(tyCtx, SymType::IterStmt, @$, $KwdFor, $ForLoopBody, $Stmt);
-          $$->setContext(transMgr.getASTCtxMgr()[0]);
+          $$->setASTContext(transMgr.getASTCtxMgr()[0]);
           transMgr.popASTCtx();
       }
     | KwdFor ForLoopCtxBegin PLP ForLoopBody PRP error {}

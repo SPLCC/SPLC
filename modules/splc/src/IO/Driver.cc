@@ -57,7 +57,7 @@ Ptr<TranslationUnit> Driver::parse(std::string_view filename)
 Ptr<TranslationUnit> Driver::internalParse(Ptr<TranslationContext> initialContext)
 {
     scanner = makeSharedPtr<Scanner>(*transMgr);
-    parser = makeSharedPtr<Parser>(*transMgr, transMgr->getTyContext(), *this, *scanner);
+    parser = makeSharedPtr<Parser>(*transMgr, transMgr->getContext(), *this, *scanner);
     scanner->setInitialContext(initialContext);
 
     const int accept{0};

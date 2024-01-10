@@ -28,14 +28,14 @@ class TranslationUnit {
     TranslationUnit()
         : astCtxMgr{}, transCtxMgr{}, rootNode{}, warningCount{0}, errorCount{0}
     {
-        typeContext = makeSharedPtr<SPLCContext>();
+        context = makeSharedPtr<SPLCContext>();
     }
 
     virtual ~TranslationUnit() = default;
 
-    auto getTypeContext() { return typeContext; }
+    auto getContext() { return context; }
 
-    const auto getTypeContext() const { return typeContext; }
+    const auto getContext() const { return context; }
 
     auto &getASTContextManager() { return astCtxMgr; }
 
@@ -52,7 +52,7 @@ class TranslationUnit {
     Ptr<const AST> getRootNode() const { return {rootNode}; }
 
   protected:
-    Ptr<SPLCContext> typeContext; ///< Maintains all internal type contexts.
+    Ptr<SPLCContext> context; ///< Maintains all internal type contexts.
 
     ASTContextManager astCtxMgr; ///< Manages AST contexts, i.e., scopes
                                  ///< and variable definitions.

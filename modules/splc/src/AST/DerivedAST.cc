@@ -270,8 +270,8 @@ Type *SpecQualListAST::computeAndSetLangType(Type *baseType) const noexcept
 
 Type *StructOrUnionSpecAST::computeAndSetLangType(Type *baseType) const noexcept
 {
-    splc_assert(getContext());
-    auto &symList = getContext()->getSymbolList();
+    splc_assert(getASTContext());
+    auto &symList = getASTContext()->getSymbolList();
     auto &containedTys = getContainedTys();
     std::transform(symList.begin(), symList.end(),
                    std::back_inserter(containedTys),
@@ -285,7 +285,7 @@ Type *StructOrUnionSpecAST::computeAndSetLangType(Type *baseType) const noexcept
 
     std::erase_if(containedTys, [](auto p) { return p == nullptr; });
 
-    StructType *structTy = StructType::create(*getTyContext(), containedTys);
+    StructType *structTy = StructType::create(*getContext(), containedTys);
 
     auto IDNode = findFirstChild(ASTSymType::ID);
 

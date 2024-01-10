@@ -39,7 +39,7 @@ class ParamDecltrAST;
 ///
 /// To make the template helper function `makeAST` work properly, subclasses of
 /// AST must implement the existing implicit constructors inside class AST.
-/// Namely, constructors that accept parameters of sequence (Ptr<TypeContext>,
+/// Namely, constructors that accept parameters of sequence (Ptr<SPLCContext>,
 /// optional) ASTSymType, Location, T value. Each subclass of AST shall perform
 /// the necessary actions in their constructor, such that no more actions inside
 /// the parser would be needed. Despite that, each AST class must also support
@@ -79,9 +79,9 @@ class AST : public std::enable_shared_from_this<AST> {
     }
 
     template <IsValidASTValue T = ASTValueType>
-    AST(Ptr<SPLCContext> typeContext, const ASTSymType symType_,
-        const Location &loc_, T &&value_ = {}) noexcept
-        : tyContext{typeContext}, symType{symType_}, loc{loc_}, value{value_}
+    AST(Ptr<SPLCContext> C, const ASTSymType symType_, const Location &loc_,
+        T &&value_ = {}) noexcept
+        : context{C}, symType{symType_}, loc{loc_}, value{value_}
     {
     }
 
@@ -111,20 +111,20 @@ class AST : public std::enable_shared_from_this<AST> {
     }
 
     template <AllArePtrAST... Children>
-    static PtrAST make(Ptr<SPLCContext> typeContext, ASTSymType type,
-                       const Location &loc, Children &&...children)
+    static PtrAST make(Ptr<SPLCContext> C, ASTSymType type, const Location &loc,
+                       Children &&...children)
     {
-        PtrAST parentNode = makeSharedPtr<AST>(typeContext, type, loc);
+        PtrAST parentNode = makeSharedPtr<AST>(C, type, loc);
         parentNode->addChildren(std::forward<Children>(children)...);
         return parentNode;
     }
 
     template <IsValidASTValue T, AllArePtrAST... Children>
-    static PtrAST make(Ptr<SPLCContext> typeContext, ASTSymType type,
-                       const Location &loc, T &&value, Children &&...children)
+    static PtrAST make(Ptr<SPLCContext> C, ASTSymType type, const Location &loc,
+                       T &&value, Children &&...children)
     {
         PtrAST parentNode =
-            makeSharedPtr<AST>(typeContext, type, loc, std::forward<T>(value));
+            makeSharedPtr<AST>(C, type, loc, std::forward<T>(value));
         parentNode->addChildren(std::forward<Children>(children)...);
         return parentNode;
     }
@@ -139,12 +139,10 @@ class AST : public std::enable_shared_from_this<AST> {
     }
 
     template <IsBaseAST ASTTypeLike, AllArePtrAST... Children>
-    static Ptr<ASTTypeLike> makeDerived(Ptr<SPLCContext> typeContext,
-                                        const Location &loc,
+    static Ptr<ASTTypeLike> makeDerived(Ptr<SPLCContext> C, const Location &loc,
                                         Children &&...children)
     {
-        Ptr<ASTTypeLike> parentNode =
-            makeSharedPtr<ASTTypeLike>(typeContext, loc);
+        Ptr<ASTTypeLike> parentNode = makeSharedPtr<ASTTypeLike>(C, loc);
         parentNode->addChildren(std::forward<Children>(children)...);
         return parentNode;
     }
@@ -206,7 +204,7 @@ class AST : public std::enable_shared_from_this<AST> {
     virtual void addChild(PtrAST child) noexcept
     {
         children_.push_back(child);
-        child->tyContext = this->tyContext;
+        child->context = this->context;
         child->parent = shared_from_this();
         this->loc += child->loc; // TODO: check if required
 
@@ -261,14 +259,11 @@ class AST : public std::enable_shared_from_this<AST> {
         return std::holds_alternative<T>(value);
     }
 
-    void setTyContext(Ptr<SPLCContext> typeContext_)
-    {
-        tyContext = typeContext_;
-    }
+    void setContext(Ptr<SPLCContext> typeContext_) { context = typeContext_; }
 
-    auto getTyContext() { return tyContext; }
+    auto getContext() { return context; }
 
-    auto getTyContext() const { return tyContext; }
+    auto getContext() const { return context; }
 
     auto getSymType() const noexcept { return symType; }
 
@@ -299,19 +294,19 @@ class AST : public std::enable_shared_from_this<AST> {
 
     auto &getLocation() const noexcept { return loc; }
 
-    void setContext(Ptr<ASTContext> astContext_) noexcept
+    void setASTContext(Ptr<ASTContext> astContext_) noexcept
     {
-        context_ = astContext_;
+        astContext_ = astContext_;
     }
 
-    auto getContext() noexcept { return context_; }
+    auto getASTContext() noexcept { return astContext_; }
 
-    auto getContext() const noexcept { return context_; }
+    auto getASTContext() const noexcept { return astContext_; }
 
     auto &getVariant() noexcept { return value; }
 
   protected:
-    Ptr<SPLCContext> tyContext;
+    Ptr<SPLCContext> context;
     ASTSymType symType;
     mutable Type *langType =
         nullptr; ///< type related to this AST, e.g., type for specifiers.
@@ -321,7 +316,7 @@ class AST : public std::enable_shared_from_this<AST> {
     WeakPtrAST parent;
     std::vector<PtrAST> children_;
     Location loc;
-    Ptr<ASTContext> context_;
+    Ptr<ASTContext> astContext_;
     ASTValueType value;
 
     //===----------------------------------------------------------------------===//

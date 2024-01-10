@@ -38,9 +38,9 @@ class TranslationManager {
 
     void setTransUnitRootAST(PtrAST rootNode_) { tunit->rootNode = rootNode_; }
 
-    auto getTyContext() { return tunit->getTypeContext(); }
+    auto getContext() { return tunit->getContext(); }
 
-    const auto getTyContext() const { return tunit->getTypeContext(); }
+    const auto getContext() const { return tunit->getContext(); }
 
     auto getASTCtxMgr() noexcept { return tunit->astCtxMgr; }
 
