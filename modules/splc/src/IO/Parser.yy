@@ -596,7 +596,7 @@ FuncDef:
               transMgr.tryRegisterSymbol(
                   SymEntryType::Function, node->getRootID(),
                   ty,
-                  true, &ent.location, $2);
+                  true, &ent.location, $$);
           }
           else {
               SPLC_LOG_ERROR(&decltrNode->getLocation(), true) << "function does not match the previous definition: given: " << *ty;

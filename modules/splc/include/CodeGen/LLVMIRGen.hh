@@ -8,7 +8,7 @@
 
 namespace splc {
 
-constexpr unsigned int defaultAddrSpace = 0;
+static constexpr unsigned int defaultAddrSpace = 0;
 
 class LLVMIRBuilder {
   public:
