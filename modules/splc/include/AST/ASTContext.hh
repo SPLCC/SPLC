@@ -59,6 +59,8 @@ class ASTContext {
 
     void unregisterSymbol(SymEntryType entType, std::string_view name_);
 
+    size_t getSize() const { return symbolList.size(); }
+
     auto &getParentContexts() { return parentContexts; }
 
     auto &getParentContexts() const { return parentContexts; }

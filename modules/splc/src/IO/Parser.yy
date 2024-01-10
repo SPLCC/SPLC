@@ -584,6 +584,8 @@ Designator:
 
 FuncDef:
       FuncProto CompStmt {
+          transMgr.popASTCtx();
+
           $$ = AST::make(tyCtx, SymType::FuncDef, @$, $1, $2);
           // TODO: register function body
           auto decltrNode = $1->getChildren()[1];
@@ -602,8 +604,6 @@ FuncDef:
               SPLC_LOG_ERROR(&decltrNode->getLocation(), true) << "function does not match the previous definition: given: " << *ty;
               SPLC_LOG_NOTE(&ent.location, true) << "previously declared here: given: " << *ent.type;
           }
-          
-          transMgr.popASTCtx();
       }
     /* | FuncDecltr CompStmt {
           SPLC_LOG_WARN(&@1, true) << "function is missing a specifier and will default to 'int'";
@@ -620,6 +620,9 @@ FuncProto:
           $$ = AST::make(tyCtx, SymType::FuncProto, @$, declSpec, $1);
       }  */
       DeclSpecWrapper FuncDecltr {
+          auto ctx = transMgr.getASTCtxMgr()[0]; // Pop the context temporarily to push function definition.
+          transMgr.popASTCtx();
+
           $$ = AST::make(tyCtx, SymType::FuncProto, @$, $1, $2);
 
           // push all parameters
@@ -642,7 +645,8 @@ FuncProto:
               node->getRootIDLangType(),
               false, &@2);
 
-          $$->setASTContext(transMgr.getASTCtxMgr()[0]);
+          transMgr.pushASTCtx(ctx);
+          $$->setASTContext(ctx);
       }
     ;
 
@@ -721,8 +725,9 @@ CompStmt:
       /* PLC general-statement-list PRC */
       PLC ComptStmtBegin GeneralStmtList PRC {
           $$ = AST::make(tyCtx, SymType::CompStmt, @$, $GeneralStmtList);
-          $$->setASTContext(transMgr.getASTCtxMgr()[0]);
+          auto ctx = transMgr.getASTCtxMgr()[0];
           transMgr.popASTCtx();
+          $$->setASTContext(ctx);
       }
     | PLC ComptStmtBegin PRC { $$ = AST::make(tyCtx, SymType::CompStmt, @$); }
 
@@ -821,8 +826,6 @@ IterStmt:
 
     | KwdFor ForLoopCtxBegin PLP ForLoopBody PRP Stmt {
           $$ = AST::make(tyCtx, SymType::IterStmt, @$, $KwdFor, $ForLoopBody, $Stmt);
-          $$->setASTContext(transMgr.getASTCtxMgr()[0]);
-          transMgr.popASTCtx();
       }
     | KwdFor ForLoopCtxBegin PLP ForLoopBody PRP error {}
     | KwdFor ForLoopCtxBegin PLP ForLoopBody error {}
