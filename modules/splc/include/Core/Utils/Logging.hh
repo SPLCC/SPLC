@@ -231,9 +231,17 @@ class ErrorHelper : public Logger {
 
 // TODO: check message system macros
 
+#ifndef SPLC_NO_FUNCTION_MACRO
+#define __SPLC_LOG_FUNCTION__ __PRETTY_FUNCTION__
+#else
+#define __SPLC_LOG_FUNCTION__ ""
+#endif
+
 #define SPLC_LOGGER_TAG(msg)                                                   \
     splc::utils::logging::internal::LoggerTag { msg }
 
+//===----------------------------------------------------------------------===//
+//                     Compilation Information Logging
 #define SPLC_LOG_EMPTY_DISPATCH()                                              \
     splc::utils::logging::internal::Logger                                     \
     {                                                                          \
@@ -272,11 +280,34 @@ class ErrorHelper : public Logger {
     SPLC_LOG_DISPATCH(splc::utils::logging::Level::FatalError, (locPtr),       \
                       (trace))
 
-#ifndef SPLC_NO_FUNCTION_MACRO
-#define __SPLC_LOG_FUNCTION__ __PRETTY_FUNCTION__
-#else
-#define __SPLC_LOG_FUNCTION__ ""
-#endif
+//===----------------------------------------------------------------------===//
+//                        SPLC Internal Logging
+#define splc_ilog_dispatch(level, locPtr, trace)                               \
+    splc::utils::logging::internal::Logger{true, level, (locPtr), (trace)}     \
+        << __FILE__ << ":" << __LINE__ << ", at " << __SPLC_LOG_FUNCTION__     \
+        << ": "
+
+#define splc_ilog_debug(locPtr, trace)                                         \
+    splc_ilog_dispatch(splc::utils::logging::Level::Debug, (locPtr), (trace))
+
+#define splc_ilog_info(locPtr, trace)                                          \
+    splc_ilog_dispatch(splc::utils::logging::Level::Info, (locPtr), (trace))
+
+#define splc_ilog_note(locPtr, trace)                                          \
+    splc_ilog_dispatch(splc::utils::logging::Level::Note, (locPtr), (trace))
+
+#define splc_ilog_warn(locPtr, trace)                                          \
+    splc_ilog_dispatch(splc::utils::logging::Level::Warning, (locPtr), (trace))
+
+#define splc_ilog_error(locPtr, trace)                                         \
+    splc_ilog_dispatch(splc::utils::logging::Level::Error, (locPtr), (trace))
+
+#define splc_ilog_fatal_error(locPtr, trace)                                   \
+    splc_ilog_dispatch(splc::utils::logging::Level::FatalError, (locPtr),      \
+                       (trace))
+
+//===----------------------------------------------------------------------===//
+//                          Internal Utilities
 
 #define splc_assert(cond)                                                      \
     splc::utils::logging::internal::AssertionHelper                            \
