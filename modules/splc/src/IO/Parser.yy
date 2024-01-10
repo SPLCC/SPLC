@@ -502,7 +502,6 @@ TypeQualList:
 /* Definition: Base */
 Decl:
       DirDecl PSemi { $$ = AST::make(tyCtx, SymType::Decl, @$, $1); }
-    | FuncProto PSemi { $$ = AST::make(tyCtx, SymType::Decl, @$, $1); transMgr.popASTCtx(); }
     | DirDecl error {}
     ;
 
@@ -543,6 +542,7 @@ InitDecltrList:
 /* Definition: Single declaration unit. */
 InitDecltr:
       Decltr { $$ = AST::makeDerived<InitDecltrAST>(tyCtx, @$, $1); }
+    | FuncDecltr { $$ = AST::makeDerived<InitDecltrAST>(tyCtx, @$, $1); transMgr.popASTCtx(); }
     | Decltr OpAssign Initializer { $$ = AST::makeDerived<InitDecltrAST>(tyCtx, @$, $1, $2, $3); }
     | Decltr OpAssign error {}
     ;
@@ -610,7 +610,6 @@ FuncDef:
           auto declSpec = ASTHelper::makeDeclSpecifierTree(Location{@$.begin}, SymType::IntTy);
           $$ = AST::make(tyCtx, SymType::FuncDef, @$, declSpec, $1, $2);
       }  */
-    | DeclSpecWrapper FuncDecltr error {}
     ;
 
 FuncProto:
@@ -745,7 +744,6 @@ ComptStmtBegin:
 GeneralStmtList:
       Stmt { $$ = AST::make(tyCtx, SymType::GeneralStmtList, @$, $1); }
     | Decl { $$ = AST::make(tyCtx, SymType::GeneralStmtList, @$, $1); }
-    /* | FuncProto { $$ = AST::make(tyCtx, SymType::GeneralStmtList, @$, $1); } */
     | GeneralStmtList Stmt { $1->addChild($2); $$ = $1; }
     | GeneralStmtList Decl { $1->addChild($2); $$ = $1; }
     ;
