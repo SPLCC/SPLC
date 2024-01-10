@@ -2,8 +2,8 @@
 #define __SPLC_CODEGEN_LLVMIRGEN_HH__ 1
 
 #include "AST/DerivedAST.hh"
-#include "CodeGen/LLVMWrapper.hh"
 #include "CodeGen/ASTDispatch.hh"
+#include "CodeGen/LLVMWrapper.hh"
 #include "Translation/TranslationUnit.hh"
 
 namespace splc {
@@ -27,6 +27,9 @@ class LLVMIRBuilder {
 
     void codegen(TranslationUnit &tunit);
 
+    //===----------------------------------------------------------------------===//
+    //                               Member Access
+
     llvm::LLVMContext &getLLVMCtx() const noexcept { return llvmCtx; }
 
     SPLCContext &getSPLCCtx() const noexcept { return splcCtx; }
@@ -36,7 +39,23 @@ class LLVMIRBuilder {
     llvm::LLVMContext &llvmCtx;
     SPLCContext &splcCtx;
 
+  private:
     std::map<splc::Type *, llvm::Type *> tyCache;
+    Ptr<ASTContext> curASTCtx;
+
+    std::map<std::string, llvm::AllocaInst *> NamedValues;
+    std::map<std::string, Ptr<AST>> FunctionProtos;
+
+    UniquePtr<llvm::Module> TheModule;
+    UniquePtr<llvm::IRBuilder<>> TheBuilder;
+    
+    UniquePtr<llvm::FunctionPassManager> TheFPM;
+    UniquePtr<llvm::LoopAnalysisManager> TheLAM;
+    UniquePtr<llvm::FunctionAnalysisManager> TheFAM;
+    UniquePtr<llvm::CGSCCAnalysisManager> TheCGAM;
+    UniquePtr<llvm::ModuleAnalysisManager> TheMAM;
+    UniquePtr<llvm::PassInstrumentationCallbacks> ThePIC;
+    UniquePtr<llvm::StandardInstrumentations> TheSI;
 };
 
 } // namespace splc

@@ -215,7 +215,6 @@ ExternDecl:
       PSemi { $$ = AST::make(tyCtx, SymType::ExternDecl, @$); }
     | Decl { $$ = AST::make(tyCtx, SymType::ExternDecl, @$, $1); }
     | FuncDef { $$ = AST::make(tyCtx, SymType::ExternDecl, @$, $1); }
-    | FuncDecl { $$ = AST::make(tyCtx, SymType::ExternDecl, @$, $1); }
     ;
 
 /* Wrapper for registering types */
@@ -502,7 +501,7 @@ TypeQualList:
 /* Definition: Base */
 Decl:
       DirDecl PSemi { $$ = AST::make(tyCtx, SymType::Decl, @$, $1); }
-
+    | FuncDecl PSemi { $$ = AST::make(tyCtx, SymType::Decl, @$, $1); }
     | DirDecl error {}
     ;
 
@@ -622,7 +621,7 @@ FuncDecl:
           auto declSpec = ASTHelper::makeDeclSpecifierTree(Location{@$.begin}, SymType::IntTy);
           $$ = AST::make(tyCtx, SymType::FuncDecl, @$, declSpec, $1);
       }  */
-      DeclSpecWrapper FuncDecltr PSemi {
+      DeclSpecWrapper FuncDecltr {
           $$ = AST::make(tyCtx, SymType::FuncDecl, @$, $1, $2);
           $$->setASTContext(transMgr.getASTCtxMgr()[0]);
           transMgr.popASTCtx();

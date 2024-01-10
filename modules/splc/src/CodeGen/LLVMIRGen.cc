@@ -130,6 +130,9 @@ llvm::Type *LLVMIRBuilder::getCvtType(splc::Type *ty)
     }
 }
 
-
+void LLVMIRBuilder::codegen(TranslationUnit &tunit)
+{
+    // TODO
+}
 
 } // namespace splc
