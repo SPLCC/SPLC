@@ -2,8 +2,8 @@
 #define __SPLC_CODEGEN_LLVMIRGEN_HH__ 1
 
 #include "AST/DerivedAST.hh"
-#include "CodeGen/ASTDispatch.hh"
 #include "CodeGen/LLVMWrapper.hh"
+#include "CodeGen/ASTDispatch.hh"
 #include "Translation/TranslationUnit.hh"
 
 namespace splc {
@@ -37,7 +37,6 @@ class LLVMIRBuilder {
     SPLCContext &splcCtx;
 
     std::map<splc::Type *, llvm::Type *> tyCache;
-    std::map<llvm::Type *, splc::Type *> revTyCache;
 };
 
 } // namespace splc
