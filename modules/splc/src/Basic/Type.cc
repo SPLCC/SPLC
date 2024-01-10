@@ -107,6 +107,10 @@ Type *Type::getPrimitiveType(SPLCContext &C, TypeID ID)
         return getDoubleTy(C);
     case TypeID::Int1:
         return getInt1Ty(C);
+    case TypeID::UInt8:
+        return getUInt8Ty(C);
+    case TypeID::SInt8:
+        return getSInt8Ty(C);
     case TypeID::UInt16:
         return getUInt16Ty(C);
     case TypeID::SInt16:
