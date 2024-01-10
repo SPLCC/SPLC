@@ -43,19 +43,19 @@ class LLVMIRBuilder {
     std::map<splc::Type *, llvm::Type *> tyCache;
     Ptr<ASTContext> curASTCtx;
 
-    std::map<std::string, llvm::AllocaInst *> NamedValues;
-    std::map<std::string, Ptr<AST>> FunctionProtos;
+    std::map<std::string, llvm::AllocaInst *> namedValues;
+    std::map<std::string, Ptr<AST>> functionProtos;
 
-    UniquePtr<llvm::Module> TheModule;
-    UniquePtr<llvm::IRBuilder<>> TheBuilder;
-    
-    UniquePtr<llvm::FunctionPassManager> TheFPM;
-    UniquePtr<llvm::LoopAnalysisManager> TheLAM;
-    UniquePtr<llvm::FunctionAnalysisManager> TheFAM;
-    UniquePtr<llvm::CGSCCAnalysisManager> TheCGAM;
-    UniquePtr<llvm::ModuleAnalysisManager> TheMAM;
-    UniquePtr<llvm::PassInstrumentationCallbacks> ThePIC;
-    UniquePtr<llvm::StandardInstrumentations> TheSI;
+    UniquePtr<llvm::Module> theModule;
+    UniquePtr<llvm::IRBuilder<>> theBuilder;
+
+    UniquePtr<llvm::FunctionPassManager> theFPM;
+    UniquePtr<llvm::LoopAnalysisManager> theLAM;
+    UniquePtr<llvm::FunctionAnalysisManager> theFAM;
+    UniquePtr<llvm::CGSCCAnalysisManager> theCGAM;
+    UniquePtr<llvm::ModuleAnalysisManager> theMAM;
+    UniquePtr<llvm::PassInstrumentationCallbacks> thePIC;
+    UniquePtr<llvm::StandardInstrumentations> theSI;
 };
 
 } // namespace splc
