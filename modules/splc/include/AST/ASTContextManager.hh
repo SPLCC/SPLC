@@ -65,6 +65,8 @@ class ASTContextManager {
                                const Location *location_,
                                PtrAST body_ = nullptr);
 
+    void unregisterSymbol(SymEntryType summary_, std::string_view name_);
+
     ///
     /// \brief Provide a convenient way to access stack elements
     ///

@@ -62,6 +62,12 @@ void TranslationManager::tryRegisterSymbol(SymEntryType symEntTy,
     }
 }
 
+void TranslationManager::tryUnregisterSymbol(SymEntryType symEntTy,
+                                             std::string_view name_)
+{
+    tunit->getASTContextManager().unregisterSymbol(symEntTy, name_);
+}
+
 Ptr<TranslationContext>
 TranslationManager::pushTransFileContext(const Location *intrLoc_,
                                          std::string_view fileName_)

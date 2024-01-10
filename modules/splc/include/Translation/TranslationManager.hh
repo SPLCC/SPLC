@@ -46,7 +46,10 @@ class TranslationManager {
 
     auto getASTCtxMgr() const noexcept { return tunit->astCtxMgr; }
 
-    void pushASTCtx(Ptr<ASTContext> ctx) noexcept { tunit->astCtxMgr.pushContext(ctx); }
+    void pushASTCtx(Ptr<ASTContext> ctx) noexcept
+    {
+        tunit->astCtxMgr.pushContext(ctx);
+    }
 
     void pushASTCtx() noexcept { tunit->astCtxMgr.pushContext(); }
 
@@ -76,6 +79,8 @@ class TranslationManager {
     void tryRegisterSymbol(SymEntryType symEntTy, std::string_view name_,
                            Type *type_, bool defined_,
                            const Location *location_, PtrAST body_ = nullptr);
+
+    void tryUnregisterSymbol(SymEntryType symEntTy, std::string_view name_);
 
     Ptr<TranslationContext> getCurTransCtx() noexcept
     {

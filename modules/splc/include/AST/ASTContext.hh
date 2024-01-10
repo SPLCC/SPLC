@@ -52,10 +52,12 @@ class ASTContext {
     ///
     /// \brief Register a `SymbolEntry` at the top context.
     ///
-    SymbolEntry registerSymbol(SymEntryType summary_, std::string_view name_,
+    SymbolEntry registerSymbol(SymEntryType entType, std::string_view name_,
                                Type *type_, bool defined_,
                                const Location *location_,
                                PtrAST body_ = nullptr);
+
+    void unregisterSymbol(SymEntryType entType, std::string_view name_);
 
     auto &getParentContexts() { return parentContexts; }
 

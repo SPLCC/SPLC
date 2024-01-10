@@ -32,4 +32,10 @@ SymbolEntry ASTContextManager::registerSymbol(SymEntryType summary_,
                                                location_, body_);
 }
 
+void ASTContextManager::unregisterSymbol(SymEntryType summary_,
+                                         std::string_view name_)
+{
+    contextStack.back()->unregisterSymbol(summary_, name_);
+}
+
 } // namespace splc

@@ -52,6 +52,16 @@ SymbolEntry ASTContext::registerSymbol(SymEntryType symEntTy_,
     return symEntry;
 }
 
+void ASTContext::unregisterSymbol(SymEntryType entTy, std::string_view name_)
+{
+    auto it = symbolMap.find(name_);
+    if (it != symbolMap.end()) {
+        symbolMap.erase(it);
+        std::erase_if(symbolList,
+                      [&](const auto &sym) { return sym.first == name_; });
+    }
+}
+
 std::ostream &printLeadingSpace(std::ostream &os, ASTContextDepthType depth)
 {
     for (ASTContextDepthType i = 0; i < depth; ++i) {
