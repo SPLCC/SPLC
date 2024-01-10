@@ -18,6 +18,15 @@ namespace splc {
 class ASTContextManager {
   public:
     ///
+    /// \brief Push an existing into the stack, linking no parents.
+    ///
+    Ptr<ASTContext> pushContext(Ptr<ASTContext> ctx) noexcept
+    {
+        contextStack.push_back(ctx);
+        return ctx;
+    }
+
+    ///
     /// \brief Push a context into the stack.
     ///
     Ptr<ASTContext> pushContext() noexcept

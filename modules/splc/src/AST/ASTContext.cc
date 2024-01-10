@@ -40,6 +40,8 @@ SymbolEntry ASTContext::registerSymbol(SymEntryType symEntTy_,
                                 "redefining same identifier in the same scope"};
         }
         symbolMap.erase(it);
+        std::erase_if(symbolList,
+                      [&](const auto &sym) { return sym.first == name_; });
     }
 
     auto symEntry = SymbolEntry::createSymbolEntry(symEntTy_, type_, defined_,
@@ -69,8 +71,8 @@ std::ostream &operator<<(std::ostream &os, const ASTContext &ctx) noexcept
 
     for (auto &ent : ctx.getSymbolList()) {
         printLeadingSpace(os, ctx.depth + 1)
-            << "\"" << CS::BrightGreen << ent.first << CS::Reset << "\", " << ent.second
-            << "\n";
+            << "\"" << CS::BrightGreen << ent.first << CS::Reset << "\", "
+            << ent.second << "\n";
     }
     for (auto &child : ctx.getDirectChildren()) {
         os << *child;

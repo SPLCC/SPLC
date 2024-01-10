@@ -15,7 +15,7 @@ void ASTHelper::getIDRecursive(std::vector<ASTDeclEntityType> &vec,
                 vec.push_back({id, loc});
             }
             else if (node->isSymTypeOneOf(
-                         ASTSymType::FuncDef, ASTSymType::FuncDecl,
+                         ASTSymType::FuncDef, ASTSymType::FuncProto,
                          ASTSymType::FuncDecltr, ASTSymType::DirFuncDecltr,
                          ASTSymType::ID, ASTSymType::DirDecl,
                          ASTSymType::InitDecltrList, ASTSymType::InitDecltr,
@@ -39,7 +39,7 @@ ASTHelper::getNamedDeclRecursive(const AST &root) noexcept
 // TODO(future): get type also
 std::vector<ASTDeclEntityType> AST::getNamedDeclEntities() const
 {
-    splc_dbgassert(isSymTypeOneOf(ASTSymType::Decl, ASTSymType::FuncDecl,
+    splc_dbgassert(isSymTypeOneOf(ASTSymType::Decl, ASTSymType::FuncProto,
                                   ASTSymType::FuncDef));
     return ASTHelper::getNamedDeclRecursive(*this);
 }

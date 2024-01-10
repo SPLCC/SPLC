@@ -453,7 +453,7 @@ Type *InitDecltrAST::computeAndSetLangType(Type *baseType) const noexcept
 
 // FuncDef-AST declaration slot
 
-// FuncDecl-AST declaration slot
+// FuncProto-AST declaration slot
 
 // FuncDecltr-AST declaration slot
 

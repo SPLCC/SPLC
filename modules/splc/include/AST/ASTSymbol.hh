@@ -163,7 +163,7 @@ enum class symbol_kind_type {
     DesignatorList = 144,    // DesignatorList
     Designator = 145,        // Designator
     FuncDef = 146,           // FuncDef
-    FuncDecl = 147,          // FuncDecl
+    FuncProto = 147,          // FuncProto
     FuncDecltr = 148,        // FuncDecltr
     DirFuncDecltr = 149,     // DirFuncDecltr
     DirDecltrForFunc = 150,  // DirDecltrForFunc

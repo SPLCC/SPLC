@@ -45,6 +45,7 @@
     #include "Translation/TranslationManager.hh"
 
     using SymType = splc::ASTSymType;
+    using SymbolEntry = splc::SymbolEntry;
     using Type = splc::Type;
     using CS = splc::utils::logging::ControlSeq;
 
@@ -501,7 +502,7 @@ TypeQualList:
 /* Definition: Base */
 Decl:
       DirDecl PSemi { $$ = AST::make(tyCtx, SymType::Decl, @$, $1); }
-    | FuncDecl PSemi { $$ = AST::make(tyCtx, SymType::Decl, @$, $1); }
+    | FuncProto PSemi { $$ = AST::make(tyCtx, SymType::Decl, @$, $1); transMgr.popASTCtx(); }
     | DirDecl error {}
     ;
 
@@ -582,8 +583,45 @@ Designator:
     ;
 
 FuncDef:
-      DeclSpecWrapper FuncDecltr CompStmt {
-          $$ = AST::make(tyCtx, SymType::FuncDef, @$, $1, $2, $3);
+      FuncProto CompStmt {
+          $$ = AST::make(tyCtx, SymType::FuncDef, @$, $1, $2);
+          // TODO: register function body
+          auto decltrNode = $1->getChildren()[1];
+          Type *ty = decltrNode->getRootIDLangType();
+          auto node = decltrNode->getRootIDNode();
+
+          SymbolEntry ent = transMgr.getSymbol(SymEntryType::Function, node->getRootID());
+          
+          if (ent.type == ty) {
+              transMgr.tryRegisterSymbol(
+                  SymEntryType::Function, node->getRootID(),
+                  ty,
+                  true, &ent.location, $2);
+          }
+          else {
+              SPLC_LOG_ERROR(&decltrNode->getLocation(), true) << "function does not match the previous definition: given: " << *ty;
+              SPLC_LOG_NOTE(&ent.location, true) << "previously declared here: given: " << *ent.type;
+          }
+          
+          transMgr.popASTCtx();
+      }
+    /* | FuncDecltr CompStmt {
+          SPLC_LOG_WARN(&@1, true) << "function is missing a specifier and will default to 'int'";
+          auto declSpec = ASTHelper::makeDeclSpecifierTree(Location{@$.begin}, SymType::IntTy);
+          $$ = AST::make(tyCtx, SymType::FuncDef, @$, declSpec, $1, $2);
+      }  */
+    | DeclSpecWrapper FuncDecltr error {}
+    ;
+
+FuncProto:
+      /* FuncDecltr PSemi {
+          SPLC_LOG_WARN(&@1, true) << "function is missing a specifier and will default to 'int'";
+          auto declSpec = ASTHelper::makeDeclSpecifierTree(Location{@$.begin}, SymType::IntTy);
+          $$ = AST::make(tyCtx, SymType::FuncProto, @$, declSpec, $1);
+      }  */
+      DeclSpecWrapper FuncDecltr {
+          $$ = AST::make(tyCtx, SymType::FuncProto, @$, $1, $2);
+
           // push all parameters
           auto paramTypeNode = $2->findFirstChildBFS(SymType::ParamTypeList);
 
@@ -595,9 +633,6 @@ FuncDef:
                 true, &child->getLocation());
           }
 
-          $$->setASTContext(transMgr.getASTCtxMgr()[0]);
-          transMgr.popASTCtx();
-
           // register function
           $2->computeAndSetLangType($1->computeAndSetLangType());
           auto node = $2->getRootIDNode();
@@ -605,26 +640,9 @@ FuncDef:
           transMgr.tryRegisterSymbol(
               SymEntryType::Function, node->getRootID(),
               node->getRootIDLangType(),
-              true, &@2, $3);
-      }
-    /* | FuncDecltr CompStmt {
-          SPLC_LOG_WARN(&@1, true) << "function is missing a specifier and will default to 'int'";
-          auto declSpec = ASTHelper::makeDeclSpecifierTree(Location{@$.begin}, SymType::IntTy);
-          $$ = AST::make(tyCtx, SymType::FuncDef, @$, declSpec, $1, $2);
-      }  */
-    | DeclSpecWrapper FuncDecltr error {}
-    ;
+              false, &@2);
 
-FuncDecl:
-      /* FuncDecltr PSemi {
-          SPLC_LOG_WARN(&@1, true) << "function is missing a specifier and will default to 'int'";
-          auto declSpec = ASTHelper::makeDeclSpecifierTree(Location{@$.begin}, SymType::IntTy);
-          $$ = AST::make(tyCtx, SymType::FuncDecl, @$, declSpec, $1);
-      }  */
-      DeclSpecWrapper FuncDecltr {
-          $$ = AST::make(tyCtx, SymType::FuncDecl, @$, $1, $2);
           $$->setASTContext(transMgr.getASTCtxMgr()[0]);
-          transMgr.popASTCtx();
       }
     ;
 
@@ -722,7 +740,7 @@ ComptStmtBegin:
 GeneralStmtList:
       Stmt { $$ = AST::make(tyCtx, SymType::GeneralStmtList, @$, $1); }
     | Decl { $$ = AST::make(tyCtx, SymType::GeneralStmtList, @$, $1); }
-    /* | FuncDecl { $$ = AST::make(tyCtx, SymType::GeneralStmtList, @$, $1); } */
+    /* | FuncProto { $$ = AST::make(tyCtx, SymType::GeneralStmtList, @$, $1); } */
     | GeneralStmtList Stmt { $1->addChild($2); $$ = $1; }
     | GeneralStmtList Decl { $1->addChild($2); $$ = $1; }
     ;

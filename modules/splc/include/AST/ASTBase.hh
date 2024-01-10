@@ -620,7 +620,7 @@ class AST : public std::enable_shared_from_this<AST> {
 
     bool isFuncDef() const noexcept { return getSymType() == ASTSymType::FuncDef; }
 
-    bool isFuncDecl() const noexcept { return getSymType() == ASTSymType::FuncDecl; }
+    bool isFuncProto() const noexcept { return getSymType() == ASTSymType::FuncProto; }
 
     bool isFuncDecltr() const noexcept { return getSymType() == ASTSymType::FuncDecltr; }
 

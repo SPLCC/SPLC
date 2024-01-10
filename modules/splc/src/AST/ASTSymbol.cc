@@ -46,7 +46,7 @@ const yytname_[] =
 "EnumeratorList", "Enumerator", "EnumConst", "Decltr", "DirDecltr",
 "WrappedDirDecltr", "TypeQualList", "Decl", "DirDecl", "InitDecltrList",
 "InitDecltr", "Initializer", "InitializerList", "Designation",
-"DesignatorList", "Designator", "FuncDef", "FuncDecl", "FuncDecltr",
+"DesignatorList", "Designator", "FuncDef", "FuncProto", "FuncDecltr",
 "DirFuncDecltr", "DirDecltrForFunc", "ParamTypeList", "ParamList",
 "ParamDecltr", "CompStmt", "GeneralStmtList", "Stmt", "ExprStmt",
 "SelStmt", "LabeledStmt", "JumpStmt", "IterStmt", "ForLoopBody",
@@ -242,7 +242,7 @@ std::ostream &printSymbolConsoleTraits(std::ostream &os,
     case SPLSymType::DesignatorList:
     case SPLSymType::Designator:
     case SPLSymType::FuncDef:
-    case SPLSymType::FuncDecl:
+    case SPLSymType::FuncProto:
     case SPLSymType::FuncDecltr:
     case SPLSymType::DirFuncDecltr:
     case SPLSymType::DirDecltrForFunc:

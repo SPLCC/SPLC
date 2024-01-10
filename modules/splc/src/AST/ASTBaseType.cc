@@ -499,7 +499,7 @@ std::vector<Type *> ASTHelper::getTypeHelperDispatch(const AST &root)
     case ASTSymType::Decl:
         return getDeclTy(root);
     case ASTSymType::FuncDef:
-    case ASTSymType::FuncDecl:
+    case ASTSymType::FuncProto:
         return {getFuncTy(root)};
     default:
         splc_error() << "invalid symbol type: "
@@ -514,7 +514,7 @@ std::vector<Type *> ASTHelper::getTypeHelperDispatch(const AST &root)
 // {
 //     splc_dbgassert(isASTSymbolTypeOneOf(
 //         this->symType, ASTSymType::Decl, ASTSymType::FuncDef,
-//         ASTSymType::FuncDecl));
+//         ASTSymType::FuncProto));
 //     auto vec = ASTHelper::getTypeHelperDispatch(*this);
 //     return vec;
 // }

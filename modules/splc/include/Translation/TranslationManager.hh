@@ -46,6 +46,8 @@ class TranslationManager {
 
     auto getASTCtxMgr() const noexcept { return tunit->astCtxMgr; }
 
+    void pushASTCtx(Ptr<ASTContext> ctx) noexcept { tunit->astCtxMgr.pushContext(ctx); }
+
     void pushASTCtx() noexcept { tunit->astCtxMgr.pushContext(); }
 
     void popASTCtx() noexcept { tunit->astCtxMgr.popContext(); }

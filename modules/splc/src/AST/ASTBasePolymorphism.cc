@@ -312,7 +312,7 @@ Ptr<DeclSpecAST> AST::toDeclSpecAST() noexcept
 
 // FuncDef-AST declaration slot
 
-// FuncDecl-AST declaration slot
+// FuncProto-AST declaration slot
 
 // FuncDecltr-AST declaration slot
 

@@ -426,7 +426,7 @@ class InitDecltrAST : public AST {
 
 /// FuncDef-AST declaration slot
 
-/// FuncDecl-AST declaration slot
+/// FuncProto-AST declaration slot
 
 /// FuncDecltr-AST declaration slot
 class FuncDecltrAST : public AST {
