@@ -515,16 +515,41 @@ DirDecl:
           $1->computeAndSetLangType();
 
           for (auto &child : $2->getChildren()) {
-              child->computeAndSetLangType($1->getLangType());
+              // dispatch: check whether it is function or declaration
+              if (auto decltrNode = child->findFirstChild(SymType::Decltr); decltrNode != nullptr) {
+                  child->computeAndSetLangType($1->getLangType());
 
-              auto IDNode = child->getRootIDNode();
+                  auto IDNode = child->getRootIDNode();
 
-              transMgr.tryRegisterSymbol(
-                  $1->isTypedef() ? SymEntryType::Typedef :
-                                    SymEntryType::Variable,
-                  IDNode->getRootID(),
-                  IDNode->getRootIDLangType(),
-                  true, &child->getLocation());
+                  transMgr.tryRegisterSymbol(
+                      $1->isTypedef() ? SymEntryType::Typedef :
+                                        SymEntryType::Variable,
+                      IDNode->getRootID(),
+                      IDNode->getRootIDLangType(),
+                      true, &child->getLocation());
+              }
+              else {
+                  // push all parameters
+                  decltrNode = child->findFirstChild(SymType::FuncDecltr);
+                  auto paramTypeNode = decltrNode->findFirstChildBFS(SymType::ParamTypeList);
+
+                  for (auto &innerChild : paramTypeNode->getChildren()[0]->getChildren()) {
+                      auto IDNode = innerChild->getRootIDNode();
+                      transMgr.tryRegisterSymbol(
+                          SymEntryType::Paramater, IDNode->getRootID(),
+                          IDNode->getRootIDLangType(),
+                          true, &innerChild->getLocation());
+                  }
+
+                  // register function
+                  decltrNode->computeAndSetLangType($1->computeAndSetLangType());
+                  auto node = decltrNode->getRootIDNode();
+
+                  transMgr.tryRegisterSymbol(
+                      SymEntryType::Function, node->getRootID(),
+                      node->getRootIDLangType(),
+                      false, &decltrNode->getLocation());
+              }
           }
       }
     ;
@@ -628,11 +653,11 @@ FuncProto:
           auto paramTypeNode = $2->findFirstChildBFS(SymType::ParamTypeList);
 
           for (auto &child : paramTypeNode->getChildren()[0]->getChildren()) {
-            auto IDNode = child->getRootIDNode();
-            transMgr.tryRegisterSymbol(
-                SymEntryType::Paramater, IDNode->getRootID(),
-                IDNode->getRootIDLangType(),
-                true, &child->getLocation());
+              auto IDNode = child->getRootIDNode();
+              transMgr.tryRegisterSymbol(
+                  SymEntryType::Paramater, IDNode->getRootID(),
+                  IDNode->getRootIDLangType(),
+                  true, &child->getLocation());
           }
 
           // register function
