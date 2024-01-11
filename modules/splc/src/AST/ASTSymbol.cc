@@ -34,7 +34,7 @@ const yytname_[] =
 "OpAstrk", "OpDiv", "OpMod", "OpDot", "OpRArrow", "OpSizeOf", "OpLSB",
 "OpRSB", "OpComma", "OpEllipsis", "PSemi", "PLC", "PRC", "PLP", "PRP",
 "UIntLiteral", "SIntLiteral", "FloatLiteral", "CharLiteral", "StrUnit",
-"SubscriptExpr", "CallExpr", "AccessExpr", "ExplicitCastExpr",
+"SubscriptExpr", "CallExpr", "AccessExpr", "ExplicitCastExpr", "ImplicitCastExpr",
 "AddrOfExpr", "DerefExpr", "SizeOfExpr", "KwdThen", "DecltrPrec",
 "FuncDeclPrec", "OpUnaryPrec", "PLParen", "PRParen", "PLSBracket",
 "PRSBracket", "$accept", "ParseRoot", "$@1", "TransUnit",
@@ -187,6 +187,7 @@ std::ostream &printSymbolConsoleTraits(std::ostream &os,
     case SPLSymType::CallExpr:
     case SPLSymType::AccessExpr:
     case SPLSymType::ExplicitCastExpr:
+    case SPLSymType::ImplicitCastExpr:
     case SPLSymType::AddrOfExpr:
     case SPLSymType::DerefExpr:
     case SPLSymType::SizeOfExpr: {

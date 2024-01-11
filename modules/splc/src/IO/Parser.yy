@@ -152,7 +152,7 @@
 //                           Additional Tokens
 //===----------------------------------------------------------------------===//
 %token SubscriptExpr CallExpr AccessExpr 
-%token ExplicitCastExpr
+%token ExplicitCastExpr ImplicitCastExpr
 %token AddrOfExpr DerefExpr
 %token SizeOfExpr
 
