@@ -517,6 +517,8 @@ class AST : public std::enable_shared_from_this<AST> {
     bool isAccessExpr() const noexcept { return getSymType() == ASTSymType::AccessExpr; }
 
     bool isExplicitCastExpr() const noexcept { return getSymType() == ASTSymType::ExplicitCastExpr; }
+    
+    bool isImplicitCastExpr() const noexcept { return getSymType() == ASTSymType::ImplicitCastExpr; }
 
     bool isAddrOfExpr() const noexcept { return getSymType() == ASTSymType::AddrOfExpr; }
 

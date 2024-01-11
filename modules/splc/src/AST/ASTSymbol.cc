@@ -37,7 +37,7 @@ const yytname_[] =
 "SubscriptExpr", "CallExpr", "AccessExpr", "ExplicitCastExpr", "ImplicitCastExpr",
 "AddrOfExpr", "DerefExpr", "SizeOfExpr", "KwdThen", "DecltrPrec",
 "FuncDeclPrec", "OpUnaryPrec", "PLParen", "PRParen", "PLSBracket",
-"PRSBracket", "$accept", "ParseRoot", "$@1", "TransUnit",
+"PRSBracket", "$accept", "ParseRoot", "TransUnit",
 "ExternDeclList", "ExternDecl", "DeclSpec", "StorageSpec",
 "SpecQualList", "TypeSpec", "FuncSpec", "TypeQual", "TypeName",
 "BuiltinTypeSpec", "AbsDecltr", "DirAbsDecltr", "StructOrUnionSpec",
