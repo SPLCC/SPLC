@@ -927,7 +927,7 @@ UnaryExpr:
     | OpBAnd CastExpr %prec OpUnaryPrec { $$ = AST::make(tyCtx, SymType::AddrOfExpr, @$, $1, $2); }
     | OpAstrk CastExpr %prec OpUnaryPrec { $$ = AST::make(tyCtx, SymType::DerefExpr, @$, $1, $2); }
     | UnaryArithOp CastExpr %prec OpUnaryPrec { $$ = AST::make(tyCtx, SymType::Expr, @$, $1, $2); }
-    | OpSizeOf UnaryExpr { $$ = AST::make(tyCtx, SymType::Expr, @$, $1, $2); }
+    | OpSizeOf UnaryExpr { $$ = AST::make(tyCtx, SymType::SizeOfExpr, @$, $1, $2); }
     | OpSizeOf PLP TypeName PRP { $$ = AST::make(tyCtx, SymType::SizeOfExpr, @$, $1, $3); }
 
     | OpBAnd error {}
