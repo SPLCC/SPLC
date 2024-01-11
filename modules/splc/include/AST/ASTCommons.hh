@@ -23,6 +23,11 @@ typedef unsigned long long ASTUIntType;
 typedef double ASTFloatType;
 typedef std::string ASTIDType;
 
+constexpr int ASTCharTypeNumBits = 8;
+constexpr int ASTSIntTypeNumBits = 64;
+constexpr int ASTUIntTypeNumBits = 64;
+constexpr int ASTFloatTypeNumBits = 64;
+
 using ASTValueType = std::variant<std::monostate, ASTCharType, ASTSIntType,
                                   ASTUIntType, ASTFloatType, ASTIDType>;
 
