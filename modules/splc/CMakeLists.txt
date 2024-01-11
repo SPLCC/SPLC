@@ -18,7 +18,10 @@ include_directories(${LLVM_INCLUDE_DIRS})
 separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
 add_definitions(${LLVM_DEFINITIONS_LIST})
 # TODO: determine necessary libraries to link
-llvm_map_components_to_libnames(llvm_libs support core irreader)
+execute_process(COMMAND llvm-config --libs all
+                OUTPUT_VARIABLE llvm_libraries)
+
+string(STRIP ${llvm_libraries} llvm_libraries)
 
 # ===================================================================
 #                    Setup generation directories

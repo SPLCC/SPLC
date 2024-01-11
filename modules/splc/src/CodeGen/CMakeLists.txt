@@ -9,4 +9,4 @@ file(GLOB SPLCCodeGen_HEADER_FILES "${SPLC_INCL_DIR}/CodeGen/*.hh")
 set_target_properties(SPLCCodeGen PROPERTIES 
     PUBLIC_HEADER "${SPLCCodeGen_HEADER_FILES}")
 
-target_link_libraries(SPLCCodeGen SPLCCore SPLCBasic SPLCAST ${llvm_libs})
+target_link_libraries(SPLCCodeGen SPLCCore SPLCBasic SPLCAST ${llvm_libraries})

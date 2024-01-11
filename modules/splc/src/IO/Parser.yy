@@ -646,11 +646,9 @@ FuncProto:
           auto ID = $2->getRootID();
 
           if (!transMgr.isSymDefined(SymEntryType::Function, ID)) {
-              auto ctx = transMgr.getASTCtxMgr()[0]; // Pop the context temporarily to push function definition.
-              transMgr.popASTCtx();
 
               $$ = AST::make(tyCtx, SymType::FuncProto, @$, $1, $2);
-
+              
               // push all parameters
               auto paramTypeNode = $2->findFirstChildBFS(SymType::ParamTypeList);
 
@@ -662,12 +660,15 @@ FuncProto:
                       false, &child->getLocation());
               }
 
+              auto ctx = transMgr.getASTCtxMgr()[0]; // Pop the context temporarily to push function definition.
+              transMgr.popASTCtx();
+
               // register function
               $2->computeAndSetLangType($1->computeAndSetLangType());
 
               transMgr.tryRegisterSymbol(
                   SymEntryType::Function, ID,
-                  node->getRootIDLangType(),
+                  $2->getRootIDLangType(),
                   false, &@2);
 
               transMgr.pushASTCtx(ctx);
@@ -755,7 +756,7 @@ CompStmt:
           transMgr.popASTCtx();
           $$->setASTContext(ctx);
       }
-    | PLC ComptStmtBegin PRC { $$ = AST::make(tyCtx, SymType::CompStmt, @$); transMgr.popASTCtx(); $$->setASTContext(ctx); }
+    | PLC ComptStmtBegin PRC { $$ = AST::make(tyCtx, SymType::CompStmt, @$); auto ctx = transMgr.getASTCtxMgr()[0]; transMgr.popASTCtx(); $$->setASTContext(ctx); }
 
     | PLC ComptStmtBegin GeneralStmtList error {}
     | PLC ComptStmtBegin error {}

@@ -10,6 +10,7 @@ test*.in
 test.out
 test.c
 test.o
+test.c.ll
 
 basic_test.sh
 syntax.tab.h
