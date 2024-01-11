@@ -206,7 +206,7 @@ class AST : public std::enable_shared_from_this<AST> {
         children_.push_back(child);
         child->context = this->context;
         child->parent = shared_from_this();
-        this->loc += child->loc; // TODO: check if required
+        // this->loc += child->loc;
 
         // Update type information
         setLangTypeSet(false);
@@ -293,6 +293,8 @@ class AST : public std::enable_shared_from_this<AST> {
     auto &getLocation() noexcept { return loc; }
 
     auto &getLocation() const noexcept { return loc; }
+
+    const Location &computeLocation() noexcept;
 
     void setASTContext(Ptr<ASTContext> astContext_) noexcept
     {

@@ -544,7 +544,6 @@ DirDecl:
                   // register function
                   decltrNode->computeAndSetLangType($1->computeAndSetLangType());
                   auto node = decltrNode->getRootIDNode();
-
                   transMgr.tryRegisterSymbol(
                       SymEntryType::Function, node->getRootID(),
                       node->getRootIDLangType(),
@@ -688,7 +687,7 @@ FuncDecltr:
 
 DirFuncDecltr:
       DirDecltrForFunc DirFuncDecltrBegin PLP ParamTypeList PRP { 
-          $$ = AST::makeDerived<DirFuncDecltrAST>(tyCtx, @$, $DirDecltrForFunc, $ParamTypeList); 
+          $$ = AST::makeDerived<DirFuncDecltrAST>(tyCtx, @$, $DirDecltrForFunc, $ParamTypeList);
       }
     /* | direct-declarator-for-function PLP PRP {} */
 

@@ -11,6 +11,18 @@ thread_local ASTPrintMap astPrintMap;
 
 void resetASTPrintMapContext() noexcept { astPrintMap.clear(); }
 
+const Location &AST::computeLocation() noexcept
+{
+    if (getChildrenNum() > 0) {
+        loc = getChildren()[0]->loc;
+        for (auto it = getChildren().begin() + 1; it != getChildren().end();
+             ++it) {
+            loc += (*it)->getLocation();
+        }
+    }
+    return loc;
+}
+
 PtrAST AST::copy(const std::function<bool(Ptr<const AST>)> &predicate,
                  const bool copyContext) const
 {
@@ -35,8 +47,8 @@ PtrAST AST::copy(const std::function<bool(Ptr<const AST>)> &predicate,
     ret->loc = this->loc;
     if (copyContext) {
         ret->astContext = this->astContext; // TODO(verify): is this desirable?
-                                        // Copying the entire context may
-                                        // lead to filtered out contents
+                                            // Copying the entire context may
+                                            // lead to filtered out contents
     }
     ret->value = this->value;
 
