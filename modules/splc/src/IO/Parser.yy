@@ -643,33 +643,36 @@ FuncProto:
           $$ = AST::make(tyCtx, SymType::FuncProto, @$, declSpec, $1);
       }  */
       DeclSpecWrapper FuncDecltr {
-          auto ctx = transMgr.getASTCtxMgr()[0]; // Pop the context temporarily to push function definition.
-          transMgr.popASTCtx();
+          auto ID = $2->getRootID();
 
-          $$ = AST::make(tyCtx, SymType::FuncProto, @$, $1, $2);
+          if (!transMgr.isSymDefined(SymEntryType::Function, ID)) {
+              auto ctx = transMgr.getASTCtxMgr()[0]; // Pop the context temporarily to push function definition.
+              transMgr.popASTCtx();
 
-          // push all parameters
-          auto paramTypeNode = $2->findFirstChildBFS(SymType::ParamTypeList);
+              $$ = AST::make(tyCtx, SymType::FuncProto, @$, $1, $2);
 
-          for (auto &child : paramTypeNode->getChildren()[0]->getChildren()) {
-              auto IDNode = child->getRootIDNode();
+              // push all parameters
+              auto paramTypeNode = $2->findFirstChildBFS(SymType::ParamTypeList);
+
+              for (auto &child : paramTypeNode->getChildren()[0]->getChildren()) {
+                  auto IDNode = child->getRootIDNode();
+                  transMgr.tryRegisterSymbol(
+                      SymEntryType::Paramater, IDNode->getRootID(),
+                      IDNode->getRootIDLangType(),
+                      false, &child->getLocation());
+              }
+
+              // register function
+              $2->computeAndSetLangType($1->computeAndSetLangType());
+
               transMgr.tryRegisterSymbol(
-                  SymEntryType::Paramater, IDNode->getRootID(),
-                  IDNode->getRootIDLangType(),
-                  true, &child->getLocation());
+                  SymEntryType::Function, ID,
+                  node->getRootIDLangType(),
+                  false, &@2);
+
+              transMgr.pushASTCtx(ctx);
+              $$->setASTContext(ctx);
           }
-
-          // register function
-          $2->computeAndSetLangType($1->computeAndSetLangType());
-          auto node = $2->getRootIDNode();
-
-          transMgr.tryRegisterSymbol(
-              SymEntryType::Function, node->getRootID(),
-              node->getRootIDLangType(),
-              false, &@2);
-
-          transMgr.pushASTCtx(ctx);
-          $$->setASTContext(ctx);
       }
     ;
 
@@ -752,7 +755,7 @@ CompStmt:
           transMgr.popASTCtx();
           $$->setASTContext(ctx);
       }
-    | PLC ComptStmtBegin PRC { $$ = AST::make(tyCtx, SymType::CompStmt, @$); }
+    | PLC ComptStmtBegin PRC { $$ = AST::make(tyCtx, SymType::CompStmt, @$); transMgr.popASTCtx(); $$->setASTContext(ctx); }
 
     | PLC ComptStmtBegin GeneralStmtList error {}
     | PLC ComptStmtBegin error {}
@@ -1075,16 +1078,7 @@ CondExpr:
     ;
 
 AssignExpr:
-      CondExpr  {
-          // Always wrap the output with Expr
-          if ($1->isExpr()) {
-              $$ = $1;
-          }
-          else {
-              $$ = AST::make(tyCtx, SymType::Expr, @$, $1); 
-          }
-      }
-    
+      CondExpr
     | CondExpr AssignOp AssignExpr { $$ = AST::make(tyCtx, SymType::Expr, @$, $1, $2, $3); }
     | CondExpr AssignOp error {}
     | AssignOp AssignExpr {}

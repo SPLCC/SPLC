@@ -23,6 +23,15 @@ const Location &AST::computeLocation() noexcept
     return loc;
 }
 
+bool AST::isGeneralExpr() const noexcept
+{
+    return isSymTypeOneOf(
+        ASTSymType::Expr, ASTSymType::InitExpr, ASTSymType::ExplicitCastExpr,
+        ASTSymType::ImplicitCastExpr, ASTSymType::AddrOfExpr,
+        ASTSymType::DerefExpr, ASTSymType::SubscriptExpr,
+        ASTSymType::AccessExpr, ASTSymType::CallExpr, ASTSymType::SizeOfExpr);
+}
+
 PtrAST AST::copy(const std::function<bool(Ptr<const AST>)> &predicate,
                  const bool copyContext) const
 {

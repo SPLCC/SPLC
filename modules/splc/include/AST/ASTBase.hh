@@ -714,6 +714,9 @@ class AST : public std::enable_shared_from_this<AST> {
 
     bool isInitExpr() const noexcept { return getSymType() == ASTSymType::InitExpr; }
 
+    /// Return true if this is considered a general expression
+    bool isGeneralExpr() const noexcept;
+
     bool isArgList() const noexcept { return getSymType() == ASTSymType::ArgList; }
 
     bool isStringLiteral() const noexcept { return getSymType() == ASTSymType::StringLiteral; }
