@@ -372,7 +372,7 @@ StructDecl:
           $$ = AST::make(tyCtx, SymType::StructDecl, @$, $1, $2);
           $1->computeAndSetLangType();
 
-          for (auto &child : std::views::reverse($2->getChildren())) {
+          for (auto &child :$2->getChildren()) {
               child->computeAndSetLangType($1->getLangType());
 
               auto IDNode = child->getRootIDNode();
@@ -514,7 +514,7 @@ DirDecl:
           $$ = AST::make(tyCtx, SymType::DirDecl, @$, $1, $2);
           $1->computeAndSetLangType();
 
-          for (auto &child : std::views::reverse($2->getChildren())) {
+          for (auto &child : $2->getChildren()) {
               child->computeAndSetLangType($1->getLangType());
 
               auto IDNode = child->getRootIDNode();
