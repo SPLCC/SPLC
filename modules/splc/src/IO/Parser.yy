@@ -27,7 +27,7 @@
 }
 
 %parse-param { TranslationManager  &transMgr }
-%parse-param { Ptr<SPLCContext>     tyCtx    }
+%parse-param { SPLCContext         &tyCtx    }
 %parse-param { Driver              &driver   }
 %parse-param { Scanner             &scanner  }
 
@@ -45,6 +45,7 @@
     #include "Translation/TranslationManager.hh"
 
     using SymType = splc::ASTSymType;
+    using SymbolEntry = splc::SymbolEntry;
     using Type = splc::Type;
     using CS = splc::utils::logging::ControlSeq;
 
@@ -194,7 +195,7 @@ ParseRoot:
         transMgr.setRootNode($TransUnit);
         SPLC_LOG_DEBUG(&@TransUnit, true) << "completed parsing";
 
-        $TransUnit->setContext(transMgr.getASTCtxMgr()[0]);
+        $TransUnit->setASTContext(transMgr.getASTCtxMgr()[0]);
         transMgr.popASTCtx();
     }
     ;
@@ -215,7 +216,6 @@ ExternDecl:
       PSemi { $$ = AST::make(tyCtx, SymType::ExternDecl, @$); }
     | Decl { $$ = AST::make(tyCtx, SymType::ExternDecl, @$, $1); }
     | FuncDef { $$ = AST::make(tyCtx, SymType::ExternDecl, @$, $1); }
-    | FuncDecl { $$ = AST::make(tyCtx, SymType::ExternDecl, @$, $1); }
     ;
 
 /* Wrapper for registering types */
@@ -310,7 +310,7 @@ StructOrUnionSpec:
       }
     | StructOrUnion StructDeclBody {
           $$ = AST::makeDerived<StructOrUnionSpecAST>(tyCtx, @$, $1, $2);
-          $$->setContext(transMgr.getASTCtxMgr()[0]);
+          $$->setASTContext(transMgr.getASTCtxMgr()[0]);
           transMgr.popASTCtx();
 
           Type *structTy = $$->computeAndSetLangType();
@@ -324,7 +324,7 @@ StructOrUnionSpec:
       }
     | StructOrUnion IDWrapper StructDeclBody {
           $$ = AST::makeDerived<StructOrUnionSpecAST>(tyCtx, @$, $1, $2, $3);
-          $$->setContext(transMgr.getASTCtxMgr()[0]);
+          $$->setASTContext(transMgr.getASTCtxMgr()[0]);
           transMgr.popASTCtx();
 
           Type *structTy = $$->computeAndSetLangType();
@@ -372,7 +372,7 @@ StructDecl:
           $$ = AST::make(tyCtx, SymType::StructDecl, @$, $1, $2);
           $1->computeAndSetLangType();
 
-          for (auto &child : std::views::reverse($2->getChildren())) {
+          for (auto &child :$2->getChildren()) {
               child->computeAndSetLangType($1->getLangType());
 
               auto IDNode = child->getRootIDNode();
@@ -502,7 +502,6 @@ TypeQualList:
 /* Definition: Base */
 Decl:
       DirDecl PSemi { $$ = AST::make(tyCtx, SymType::Decl, @$, $1); }
-
     | DirDecl error {}
     ;
 
@@ -515,17 +514,42 @@ DirDecl:
           $$ = AST::make(tyCtx, SymType::DirDecl, @$, $1, $2);
           $1->computeAndSetLangType();
 
-          for (auto &child : std::views::reverse($2->getChildren())) {
-              child->computeAndSetLangType($1->getLangType());
+          for (auto &child : $2->getChildren()) {
+              // dispatch: check whether it is function or declaration
+              if (auto decltrNode = child->findFirstChild(SymType::Decltr); decltrNode != nullptr) {
+                  child->computeAndSetLangType($1->getLangType());
 
-              auto IDNode = child->getRootIDNode();
+                  auto IDNode = child->getRootIDNode();
 
-              transMgr.tryRegisterSymbol(
-                  $1->isTypedef() ? SymEntryType::Typedef :
-                                    SymEntryType::Variable,
-                  IDNode->getRootID(),
-                  IDNode->getRootIDLangType(),
-                  true, &child->getLocation());
+                  transMgr.tryRegisterSymbol(
+                      $1->isTypedef() ? SymEntryType::Typedef :
+                                        SymEntryType::Variable,
+                      IDNode->getRootID(),
+                      IDNode->getRootIDLangType(),
+                      true, &child->getLocation());
+              }
+              else {
+                  // push all parameters
+                  decltrNode = child->findFirstChild(SymType::FuncDecltr);
+                  auto paramTypeNode = decltrNode->findFirstChildBFS(SymType::ParamTypeList);
+
+                  for (auto &innerChild : paramTypeNode->getChildren()[0]->getChildren()) {
+                      auto IDNode = innerChild->getRootIDNode();
+                      transMgr.tryRegisterSymbol(
+                          SymEntryType::Paramater, IDNode->getRootID(),
+                          IDNode->getRootIDLangType(),
+                          true, &innerChild->getLocation());
+                  }
+
+                  // register function
+                  decltrNode->computeAndSetLangType($1->computeAndSetLangType());
+                  auto node = decltrNode->getRootIDNode();
+
+                  transMgr.tryRegisterSymbol(
+                      SymEntryType::Function, node->getRootID(),
+                      node->getRootIDLangType(),
+                      false, &decltrNode->getLocation());
+              }
           }
       }
     ;
@@ -543,6 +567,7 @@ InitDecltrList:
 /* Definition: Single declaration unit. */
 InitDecltr:
       Decltr { $$ = AST::makeDerived<InitDecltrAST>(tyCtx, @$, $1); }
+    | FuncDecltr { $$ = AST::makeDerived<InitDecltrAST>(tyCtx, @$, $1); transMgr.popASTCtx(); }
     | Decltr OpAssign Initializer { $$ = AST::makeDerived<InitDecltrAST>(tyCtx, @$, $1, $2, $3); }
     | Decltr OpAssign error {}
     ;
@@ -583,21 +608,57 @@ Designator:
     ;
 
 FuncDef:
-      DeclSpecWrapper FuncDecltr CompStmt {
-          $$ = AST::make(tyCtx, SymType::FuncDef, @$, $1, $2, $3);
+      FuncProto CompStmt {
+          transMgr.popASTCtx();
+
+          $$ = AST::make(tyCtx, SymType::FuncDef, @$, $1, $2);
+          // TODO: register function body
+          auto decltrNode = $1->getChildren()[1];
+          Type *ty = decltrNode->getRootIDLangType();
+          auto node = decltrNode->getRootIDNode();
+
+          SymbolEntry ent = transMgr.getSymbol(SymEntryType::Function, node->getRootID());
+          
+          if (ent.type == ty) {
+              transMgr.tryRegisterSymbol(
+                  SymEntryType::Function, node->getRootID(),
+                  ty,
+                  true, &ent.location, $$);
+          }
+          else {
+              SPLC_LOG_ERROR(&decltrNode->getLocation(), true) << "function does not match the previous definition: given: " << *ty;
+              SPLC_LOG_NOTE(&ent.location, true) << "previously declared here: given: " << *ent.type;
+          }
+      }
+    /* | FuncDecltr CompStmt {
+          SPLC_LOG_WARN(&@1, true) << "function is missing a specifier and will default to 'int'";
+          auto declSpec = ASTHelper::makeDeclSpecifierTree(Location{@$.begin}, SymType::IntTy);
+          $$ = AST::make(tyCtx, SymType::FuncDef, @$, declSpec, $1, $2);
+      }  */
+    ;
+
+FuncProto:
+      /* FuncDecltr PSemi {
+          SPLC_LOG_WARN(&@1, true) << "function is missing a specifier and will default to 'int'";
+          auto declSpec = ASTHelper::makeDeclSpecifierTree(Location{@$.begin}, SymType::IntTy);
+          $$ = AST::make(tyCtx, SymType::FuncProto, @$, declSpec, $1);
+      }  */
+      DeclSpecWrapper FuncDecltr {
+          auto ctx = transMgr.getASTCtxMgr()[0]; // Pop the context temporarily to push function definition.
+          transMgr.popASTCtx();
+
+          $$ = AST::make(tyCtx, SymType::FuncProto, @$, $1, $2);
+
           // push all parameters
           auto paramTypeNode = $2->findFirstChildBFS(SymType::ParamTypeList);
 
           for (auto &child : paramTypeNode->getChildren()[0]->getChildren()) {
-            auto IDNode = child->getRootIDNode();
-            transMgr.tryRegisterSymbol(
-                SymEntryType::Paramater, IDNode->getRootID(),
-                IDNode->getRootIDLangType(),
-                true, &child->getLocation());
+              auto IDNode = child->getRootIDNode();
+              transMgr.tryRegisterSymbol(
+                  SymEntryType::Paramater, IDNode->getRootID(),
+                  IDNode->getRootIDLangType(),
+                  true, &child->getLocation());
           }
-
-          $$->setContext(transMgr.getASTCtxMgr()[0]);
-          transMgr.popASTCtx();
 
           // register function
           $2->computeAndSetLangType($1->computeAndSetLangType());
@@ -606,26 +667,10 @@ FuncDef:
           transMgr.tryRegisterSymbol(
               SymEntryType::Function, node->getRootID(),
               node->getRootIDLangType(),
-              true, &@2, $3);
-      }
-    /* | FuncDecltr CompStmt {
-          SPLC_LOG_WARN(&@1, true) << "function is missing a specifier and will default to 'int'";
-          auto declSpec = ASTHelper::makeDeclSpecifierTree(Location{@$.begin}, SymType::IntTy);
-          $$ = AST::make(tyCtx, SymType::FuncDef, @$, declSpec, $1, $2);
-      }  */
-    | DeclSpecWrapper FuncDecltr error {}
-    ;
+              false, &@2);
 
-FuncDecl:
-      /* FuncDecltr PSemi {
-          SPLC_LOG_WARN(&@1, true) << "function is missing a specifier and will default to 'int'";
-          auto declSpec = ASTHelper::makeDeclSpecifierTree(Location{@$.begin}, SymType::IntTy);
-          $$ = AST::make(tyCtx, SymType::FuncDecl, @$, declSpec, $1);
-      }  */
-      DeclSpecWrapper FuncDecltr PSemi {
-          $$ = AST::make(tyCtx, SymType::FuncDecl, @$, $1, $2);
-          $$->setContext(transMgr.getASTCtxMgr()[0]);
-          transMgr.popASTCtx();
+          transMgr.pushASTCtx(ctx);
+          $$->setASTContext(ctx);
       }
     ;
 
@@ -704,8 +749,9 @@ CompStmt:
       /* PLC general-statement-list PRC */
       PLC ComptStmtBegin GeneralStmtList PRC {
           $$ = AST::make(tyCtx, SymType::CompStmt, @$, $GeneralStmtList);
-          $$->setContext(transMgr.getASTCtxMgr()[0]);
+          auto ctx = transMgr.getASTCtxMgr()[0];
           transMgr.popASTCtx();
+          $$->setASTContext(ctx);
       }
     | PLC ComptStmtBegin PRC { $$ = AST::make(tyCtx, SymType::CompStmt, @$); }
 
@@ -723,7 +769,6 @@ ComptStmtBegin:
 GeneralStmtList:
       Stmt { $$ = AST::make(tyCtx, SymType::GeneralStmtList, @$, $1); }
     | Decl { $$ = AST::make(tyCtx, SymType::GeneralStmtList, @$, $1); }
-    /* | FuncDecl { $$ = AST::make(tyCtx, SymType::GeneralStmtList, @$, $1); } */
     | GeneralStmtList Stmt { $1->addChild($2); $$ = $1; }
     | GeneralStmtList Decl { $1->addChild($2); $$ = $1; }
     ;
@@ -804,8 +849,6 @@ IterStmt:
 
     | KwdFor ForLoopCtxBegin PLP ForLoopBody PRP Stmt {
           $$ = AST::make(tyCtx, SymType::IterStmt, @$, $KwdFor, $ForLoopBody, $Stmt);
-          $$->setContext(transMgr.getASTCtxMgr()[0]);
-          transMgr.popASTCtx();
       }
     | KwdFor ForLoopCtxBegin PLP ForLoopBody PRP error {}
     | KwdFor ForLoopCtxBegin PLP ForLoopBody error {}
@@ -833,7 +876,7 @@ ForLoopBody: // TODO: add constant expressions
     ;
 
 ConstExpr:
-      CondExpr { $$ = AST::make(tyCtx, SymType::ConstExpr, @$, $1); }
+      CondExpr { $$ = AST::make(tyCtx, SymType::Expr, @$, $1); }
     ;
 
 Constant:
@@ -884,7 +927,7 @@ UnaryExpr:
     | OpBAnd CastExpr %prec OpUnaryPrec { $$ = AST::make(tyCtx, SymType::AddrOfExpr, @$, $1, $2); }
     | OpAstrk CastExpr %prec OpUnaryPrec { $$ = AST::make(tyCtx, SymType::DerefExpr, @$, $1, $2); }
     | UnaryArithOp CastExpr %prec OpUnaryPrec { $$ = AST::make(tyCtx, SymType::Expr, @$, $1, $2); }
-    | OpSizeOf UnaryExpr { $$ = AST::make(tyCtx, SymType::Expr, @$, $1, $2); }
+    | OpSizeOf UnaryExpr { $$ = AST::make(tyCtx, SymType::SizeOfExpr, @$, $1, $2); }
     | OpSizeOf PLP TypeName PRP { $$ = AST::make(tyCtx, SymType::SizeOfExpr, @$, $1, $3); }
 
     | OpBAnd error {}
@@ -1033,7 +1076,15 @@ CondExpr:
     ;
 
 AssignExpr:
-      CondExpr
+      CondExpr  {
+          // Always wrap the output with Expr
+          if ($1->isExpr()) {
+              $$ = $1;
+          }
+          else {
+              $$ = AST::make(tyCtx, SymType::Expr, @$, $1); 
+          }
+      }
     
     | CondExpr AssignOp AssignExpr { $$ = AST::make(tyCtx, SymType::Expr, @$, $1, $2, $3); }
     | CondExpr AssignOp error {}
@@ -1060,13 +1111,13 @@ AssignOp: /* Use the default behavior to pass the value */
 
 /* expressions */
 Expr:
-      AssignExpr
+      AssignExpr // Already wrapped at AssignExpr
     | Expr OpComma AssignExpr { $$ = AST::make(tyCtx, SymType::Expr, @$, $1, $3); }
 
     | Expr OpComma error {}
     | OpComma AssignExpr {}
     ;
-  
+
 InitExpr:
       Expr { $$ = AST::make(tyCtx, SymType::InitExpr, @$, $1); }
     | DirDecl { $$ = AST::make(tyCtx, SymType::InitExpr, @$, $1); }

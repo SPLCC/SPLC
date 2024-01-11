@@ -11,7 +11,8 @@ namespace splc::IO {
 class Scanner : public SplcFlexLexer {
   public:
     Scanner(TranslationManager &transMgr_, std::istream *in = nullptr)
-        : transMgr{transMgr_}, tyCtx{transMgr_.getTyContext()}, SplcFlexLexer{in} {};
+        : transMgr{transMgr_}, tyCtx{transMgr_.getContext()},
+          SplcFlexLexer{in} {};
     virtual ~Scanner() = default;
 
     // get rid of override virtual function warning
@@ -66,7 +67,7 @@ class Scanner : public SplcFlexLexer {
     Location concatTmpLocVec();
 
     TranslationManager &transMgr;
-    Ptr<SPLCContext> tyCtx;
+    SPLCContext &tyCtx;
 
     splc::IO::Parser::value_type *glval; ///< yylval
     splc::utils::Location *gloc;         ///< yyloc

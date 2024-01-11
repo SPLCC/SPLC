@@ -30,7 +30,8 @@ int main(const int argc, const char **argv)
 
     bool traceParsing = std::stoi(std::string{argv[1]}) != 0;
 
-    IO::Driver driver{traceParsing};
+    UniquePtr<SPLCContext> context = makeUniquePtr<SPLCContext>();
+    IO::Driver driver{*context, traceParsing};
 
     // TODO(future): just parse the first file first
 
@@ -45,27 +46,17 @@ int main(const int argc, const char **argv)
     if (node) {
         SPLC_LOG_DEBUG(nullptr, false) << "\n"
                                        << splc::treePrintTransform(*node);
-        SPLC_LOG_DEBUG(nullptr, false) << "\n" << *node->getContext();
+        SPLC_LOG_DEBUG(nullptr, false) << "\n" << *node->getASTContext();
     }
-    IRBuilder builder{*tunit->getTypeContext()};
 
-    Ptr<IRProgram> program = builder.makeProgram(node);
+    // IRBuilder builder{tunit->getContext()};
+
+    // Ptr<IRProgram> program = builder.makeProgram(node);
 
     // Disable
     // IROptimizer::optimizeProgram(program);
 
-    // Open the output file
-    std::ofstream outputFile("output.ir");
-    if (!outputFile.is_open()) {
-        std::cout << "Failed to open output file\n";
-        return (EXIT_FAILURE);
-    }
-
-    // Write the program to the output file
-    IRProgram::writeProgram(outputFile, program);
-
-    // Close the output file
-    outputFile.close();
+    // IRProgram::writeProgram(std::cout, program);
 
     return (EXIT_SUCCESS);
 }

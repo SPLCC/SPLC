@@ -244,8 +244,8 @@ class DeclSpecAST : public AST {
     {
     }
 
-    DeclSpecAST(Ptr<SPLCContext> typeContext_, const Location &loc_) noexcept
-        : AST{typeContext_, ASTSymType::DeclSpec, loc_}
+    DeclSpecAST(SPLCContext &context_, const Location &loc_) noexcept
+        : AST{context_, ASTSymType::DeclSpec, loc_}
     {
     }
 
@@ -265,9 +265,8 @@ class SpecQualListAST : public AST {
     {
     }
 
-    SpecQualListAST(Ptr<SPLCContext> typeContext_,
-                    const Location &loc_) noexcept
-        : AST{typeContext_, ASTSymType::DeclSpec, loc_}
+    SpecQualListAST(SPLCContext &context_, const Location &loc_) noexcept
+        : AST{context_, ASTSymType::DeclSpec, loc_}
     {
     }
 
@@ -299,12 +298,11 @@ class StructOrUnionSpecAST : public AST {
     {
     }
 
-    StructOrUnionSpecAST(Ptr<SPLCContext> typeContext_,
-                         const Location &loc_) noexcept
-        : AST{typeContext_, ASTSymType::StructOrUnionSpec, loc_}
+    StructOrUnionSpecAST(SPLCContext &context_, const Location &loc_) noexcept
+        : AST{context_, ASTSymType::StructOrUnionSpec, loc_}
     {
     }
-    
+
     virtual Type *computeAndSetLangType(Type *baseType) const noexcept override;
 };
 
@@ -326,9 +324,8 @@ class StructDecltrAST : public AST {
     {
     }
 
-    StructDecltrAST(Ptr<SPLCContext> typeContext_,
-                    const Location &loc_) noexcept
-        : AST{typeContext_, ASTSymType::InitDecltr, loc_}
+    StructDecltrAST(SPLCContext &context_, const Location &loc_) noexcept
+        : AST{context_, ASTSymType::InitDecltr, loc_}
     {
     }
 
@@ -351,8 +348,8 @@ class DecltrAST : public AST {
   public:
     DecltrAST(const Location &loc_) noexcept : AST{ASTSymType::Decltr, loc_} {}
 
-    DecltrAST(Ptr<SPLCContext> typeContext_, const Location &loc_) noexcept
-        : AST{typeContext_, ASTSymType::Decltr, loc_}
+    DecltrAST(SPLCContext &context_, const Location &loc_) noexcept
+        : AST{context_, ASTSymType::Decltr, loc_}
     {
     }
 
@@ -368,8 +365,8 @@ class DirDecltrAST : public AST {
     {
     }
 
-    DirDecltrAST(Ptr<SPLCContext> typeContext_, const Location &loc_) noexcept
-        : AST{typeContext_, ASTSymType::DirDecltr, loc_}
+    DirDecltrAST(SPLCContext &context_, const Location &loc_) noexcept
+        : AST{context_, ASTSymType::DirDecltr, loc_}
     {
     }
 
@@ -385,9 +382,8 @@ class WrappedDirDecltrAST : public AST {
     {
     }
 
-    WrappedDirDecltrAST(Ptr<SPLCContext> typeContext_,
-                        const Location &loc_) noexcept
-        : AST{typeContext_, ASTSymType::WrappedDirDecltr, loc_}
+    WrappedDirDecltrAST(SPLCContext &context_, const Location &loc_) noexcept
+        : AST{context_, ASTSymType::WrappedDirDecltr, loc_}
     {
     }
 
@@ -410,8 +406,8 @@ class InitDecltrAST : public AST {
     {
     }
 
-    InitDecltrAST(Ptr<SPLCContext> typeContext_, const Location &loc_) noexcept
-        : AST{typeContext_, ASTSymType::InitDecltr, loc_}
+    InitDecltrAST(SPLCContext &context_, const Location &loc_) noexcept
+        : AST{context_, ASTSymType::InitDecltr, loc_}
     {
     }
 
@@ -430,7 +426,7 @@ class InitDecltrAST : public AST {
 
 /// FuncDef-AST declaration slot
 
-/// FuncDecl-AST declaration slot
+/// FuncProto-AST declaration slot
 
 /// FuncDecltr-AST declaration slot
 class FuncDecltrAST : public AST {
@@ -440,8 +436,8 @@ class FuncDecltrAST : public AST {
     {
     }
 
-    FuncDecltrAST(Ptr<SPLCContext> typeContext_, const Location &loc_) noexcept
-        : AST{typeContext_, ASTSymType::FuncDecltr, loc_}
+    FuncDecltrAST(SPLCContext &context_, const Location &loc_) noexcept
+        : AST{context_, ASTSymType::FuncDecltr, loc_}
     {
     }
 
@@ -456,9 +452,8 @@ class DirFuncDecltrAST : public AST {
     {
     }
 
-    DirFuncDecltrAST(Ptr<SPLCContext> typeContext_,
-                     const Location &loc_) noexcept
-        : AST{typeContext_, ASTSymType::DirFuncDecltr, loc_}
+    DirFuncDecltrAST(SPLCContext &context_, const Location &loc_) noexcept
+        : AST{context_, ASTSymType::DirFuncDecltr, loc_}
     {
     }
 
@@ -480,8 +475,8 @@ class ParamListAST : public AST {
     {
     }
 
-    ParamListAST(Ptr<SPLCContext> typeContext_, const Location &loc_) noexcept
-        : AST{typeContext_, ASTSymType::ParamList, loc_}
+    ParamListAST(SPLCContext &context_, const Location &loc_) noexcept
+        : AST{context_, ASTSymType::ParamList, loc_}
     {
     }
 
@@ -497,8 +492,8 @@ class ParamDecltrAST : public AST {
     {
     }
 
-    ParamDecltrAST(Ptr<SPLCContext> typeContext_, const Location &loc_) noexcept
-        : AST{typeContext_, ASTSymType::ParamDecltr, loc_}
+    ParamDecltrAST(SPLCContext &context_, const Location &loc_) noexcept
+        : AST{context_, ASTSymType::ParamDecltr, loc_}
     {
     }
 

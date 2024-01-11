@@ -15,7 +15,7 @@ PtrAST AST::copy(const std::function<bool(Ptr<const AST>)> &predicate,
                  const bool copyContext) const
 {
     PtrAST ret = makeSharedPtr<AST>();
-    ret->tyContext = this->tyContext;
+    ret->context = this->context;
     ret->symType = this->symType;
     ret->parent = this->parent;
 
@@ -34,7 +34,7 @@ PtrAST AST::copy(const std::function<bool(Ptr<const AST>)> &predicate,
 
     ret->loc = this->loc;
     if (copyContext) {
-        ret->context_ = this->context_; // TODO(verify): is this desirable?
+        ret->astContext = this->astContext; // TODO(verify): is this desirable?
                                         // Copying the entire context may
                                         // lead to filtered out contents
     }
@@ -70,9 +70,9 @@ std::ostream &operator<<(std::ostream &os, const AST &node) noexcept
     os << CS::Reset << ">";
 
     // print node content
-    if (node.getContext()) {
+    if (node.getASTContext()) {
         os << " with ";
-        const auto &ctx = *node.getContext();
+        const auto &ctx = *node.getASTContext();
         printASTCtxSummary(os, ctx);
     }
 

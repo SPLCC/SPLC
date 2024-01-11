@@ -16,10 +16,15 @@
 #include "llvm/IR/PassManager.h"
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Verifier.h"
+#include "llvm/MC/TargetRegistry.h"
 #include "llvm/Passes/PassBuilder.h"
 #include "llvm/Passes/StandardInstrumentations.h"
+#include "llvm/Support/FileSystem.h"
 #include "llvm/Support/TargetSelect.h"
+#include "llvm/Support/raw_os_ostream.h"
 #include "llvm/Target/TargetMachine.h"
+#include "llvm/Target/TargetOptions.h"
+#include "llvm/TargetParser/Host.h"
 #include "llvm/Transforms/InstCombine/InstCombine.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Scalar/GVN.h"
@@ -30,16 +35,6 @@
 namespace splc {
 
 namespace LLVMWrapper {
-
-llvm::Type *cvtIRPrimitiveType(llvm::LLVMContext &C, splc::Type *primTy);
-
-llvm::FunctionType *cvtIRFunctionType(llvm::LLVMContext &C, splc::Type *fTy);
-
-llvm::StructType *cvtIRStructType(llvm::LLVMContext &C, splc::Type *sTy);
-
-llvm::ArrayType *cvtIRArrayType(llvm::LLVMContext &C, splc::Type *arrTy);
-
-llvm::PointerType *cvtIRPointerType(llvm::LLVMContext &C, splc::Type *ptrTy);
 
 } // namespace LLVMWrapper
 

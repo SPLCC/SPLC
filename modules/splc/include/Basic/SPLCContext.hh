@@ -1,4 +1,4 @@
-//===- splc/TypeContext.hh - Classes for storing types ----------*- C++ -*-===//
+//===- splc/SPLCContext.hh - Classes for storing types ----------*- C++ -*-===//
 //
 // Part of the SPLC project. Reference from the LLVM project under the Apache
 // License v2.0 with LLVM exceptions.

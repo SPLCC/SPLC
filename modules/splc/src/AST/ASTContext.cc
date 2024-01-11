@@ -40,6 +40,8 @@ SymbolEntry ASTContext::registerSymbol(SymEntryType symEntTy_,
                                 "redefining same identifier in the same scope"};
         }
         symbolMap.erase(it);
+        std::erase_if(symbolList,
+                      [&](const auto &sym) { return sym.first == name_; });
     }
 
     auto symEntry = SymbolEntry::createSymbolEntry(symEntTy_, type_, defined_,
@@ -48,6 +50,16 @@ SymbolEntry ASTContext::registerSymbol(SymEntryType symEntTy_,
     symbolMap.insert(p);
     symbolList.push_back(p);
     return symEntry;
+}
+
+void ASTContext::unregisterSymbol(SymEntryType entTy, std::string_view name_)
+{
+    auto it = symbolMap.find(name_);
+    if (it != symbolMap.end()) {
+        symbolMap.erase(it);
+        std::erase_if(symbolList,
+                      [&](const auto &sym) { return sym.first == name_; });
+    }
 }
 
 std::ostream &printLeadingSpace(std::ostream &os, ASTContextDepthType depth)
@@ -69,8 +81,8 @@ std::ostream &operator<<(std::ostream &os, const ASTContext &ctx) noexcept
 
     for (auto &ent : ctx.getSymbolList()) {
         printLeadingSpace(os, ctx.depth + 1)
-            << "\"" << CS::BrightGreen << ent.first << CS::Reset << "\", " << ent.second
-            << "\n";
+            << "\"" << CS::BrightGreen << ent.first << CS::Reset << "\", "
+            << ent.second << "\n";
     }
     for (auto &child : ctx.getDirectChildren()) {
         os << *child;

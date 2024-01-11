@@ -28,17 +28,17 @@ namespace splc {
 //===----------------------------------------------------------------------===//
 
 const char *typeNames[] = {"void",
-                           "32-bit floating-point",
-                           "64-bit floating-point",
-                           "1-bit int",
-                           "8-bit unsigned int",
-                           "8-bit signed int",
-                           "16-bit unsigned int",
-                           "16-bit signed int",
-                           "32-bit unsigned int",
-                           "32-bit signed int",
-                           "64-bit unsigned int",
-                           "64-bit signed int",
+                           "f32",
+                           "f64",
+                           "i1",
+                           "ui8",
+                           "si8",
+                           "ui16",
+                           "si16",
+                           "ui32",
+                           "si32",
+                           "ui64",
+                           "si64",
                            "label",
                            "token",
                            nullptr,
@@ -107,6 +107,10 @@ Type *Type::getPrimitiveType(SPLCContext &C, TypeID ID)
         return getDoubleTy(C);
     case TypeID::Int1:
         return getInt1Ty(C);
+    case TypeID::UInt8:
+        return getUInt8Ty(C);
+    case TypeID::SInt8:
+        return getSInt8Ty(C);
     case TypeID::UInt16:
         return getUInt16Ty(C);
     case TypeID::SInt16:

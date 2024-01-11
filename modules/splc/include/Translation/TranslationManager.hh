@@ -30,7 +30,7 @@ class TranslationManager {
 
     virtual ~TranslationManager() = default;
 
-    void startTranslationRecord();
+    void startTranslationRecord(SPLCContext &C);
 
     void endTranslationRecord();
 
@@ -38,13 +38,18 @@ class TranslationManager {
 
     void setTransUnitRootAST(PtrAST rootNode_) { tunit->rootNode = rootNode_; }
 
-    auto getTyContext() { return tunit->getTypeContext(); }
+    auto &getContext() { return tunit->getContext(); }
 
-    const auto getTyContext() const { return tunit->getTypeContext(); }
+    const auto &getContext() const { return tunit->getContext(); }
 
     auto getASTCtxMgr() noexcept { return tunit->astCtxMgr; }
 
     auto getASTCtxMgr() const noexcept { return tunit->astCtxMgr; }
+
+    void pushASTCtx(Ptr<ASTContext> ctx) noexcept
+    {
+        tunit->astCtxMgr.pushContext(ctx);
+    }
 
     void pushASTCtx() noexcept { tunit->astCtxMgr.pushContext(); }
 
@@ -74,6 +79,8 @@ class TranslationManager {
     void tryRegisterSymbol(SymEntryType symEntTy, std::string_view name_,
                            Type *type_, bool defined_,
                            const Location *location_, PtrAST body_ = nullptr);
+
+    void tryUnregisterSymbol(SymEntryType symEntTy, std::string_view name_);
 
     Ptr<TranslationContext> getCurTransCtx() noexcept
     {

@@ -1,6 +1,6 @@
 add_library(SPLCCodeGen SHARED
     ASTDispatch.cc
-    LLVMIRGen.cc
+    ObjBuilder.cc
 )
 target_include_directories(SPLCCodeGen PUBLIC ${SPLC_INCL_DIR})
 set_target_properties(SPLCCodeGen PROPERTIES 
