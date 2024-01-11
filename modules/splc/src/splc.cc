@@ -48,14 +48,14 @@ int main(const int argc, const char **argv)
         SPLC_LOG_DEBUG(nullptr, false) << "\n" << *node->getASTContext();
     }
 
-    IRBuilder builder{tunit->getContext()};
+    // IRBuilder builder{tunit->getContext()};
 
-    Ptr<IRProgram> program = builder.makeProgram(node);
+    // Ptr<IRProgram> program = builder.makeProgram(node);
 
     // Disable
     // IROptimizer::optimizeProgram(program);
 
-    IRProgram::writeProgram(std::cout, program);
+    // IRProgram::writeProgram(std::cout, program);
 
     return (EXIT_SUCCESS);
 }
