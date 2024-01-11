@@ -876,7 +876,7 @@ ForLoopBody: // TODO: add constant expressions
     ;
 
 ConstExpr:
-      CondExpr { $$ = AST::make(tyCtx, SymType::ConstExpr, @$, $1); }
+      CondExpr { $$ = AST::make(tyCtx, SymType::Expr, @$, $1); }
     ;
 
 Constant:
@@ -1076,7 +1076,15 @@ CondExpr:
     ;
 
 AssignExpr:
-      CondExpr
+      CondExpr  {
+          // Always wrap the output with Expr
+          if ($1->isExpr()) {
+              $$ = $1;
+          }
+          else {
+              $$ = AST::make(tyCtx, SymType::Expr, @$, $1); 
+          }
+      }
     
     | CondExpr AssignOp AssignExpr { $$ = AST::make(tyCtx, SymType::Expr, @$, $1, $2, $3); }
     | CondExpr AssignOp error {}
@@ -1103,13 +1111,13 @@ AssignOp: /* Use the default behavior to pass the value */
 
 /* expressions */
 Expr:
-      AssignExpr
+      AssignExpr // Already wrapped at AssignExpr
     | Expr OpComma AssignExpr { $$ = AST::make(tyCtx, SymType::Expr, @$, $1, $3); }
 
     | Expr OpComma error {}
     | OpComma AssignExpr {}
     ;
-  
+
 InitExpr:
       Expr { $$ = AST::make(tyCtx, SymType::InitExpr, @$, $1); }
     | DirDecl { $$ = AST::make(tyCtx, SymType::InitExpr, @$, $1); }
