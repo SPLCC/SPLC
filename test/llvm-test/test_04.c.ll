@@ -31,7 +31,7 @@ isPerfectNumber:
   store i32 1, ptr %j, align 4
   br label %looptest
 
-looptest:                                         ; preds = %ifcont11, %isPerfectNumber
+looptest:                                         ; preds = %ifcont, %isPerfectNumber
   %j2 = load i32, ptr %j, align 4
   %number3 = load i32, ptr %number1, align 4
   %0 = sdiv i32 %number3, 2
@@ -45,42 +45,42 @@ loopbody:                                         ; preds = %looptest
   %calltmp = call i32 @mod(i32 %number4, i32 %j5)
   %2 = icmp eq i32 %calltmp, 0
   %ifcond6 = icmp ne i1 %2, false
-  br i1 %ifcond6, label %then, label %else10
-
-afterloop:                                        ; preds = %looptest
-  %sum14 = load i32, ptr %sum, align 4
-  %number15 = load i32, ptr %number1, align 4
-  %3 = icmp eq i32 %sum14, %number15
-  %ifcond16 = icmp ne i1 %3, false
-  br i1 %ifcond16, label %then17, label %else18
+  br i1 %ifcond6, label %then, label %else
 
 then:                                             ; preds = %loopbody
   %sum7 = load i32, ptr %sum, align 4
   %sum8 = load i32, ptr %sum, align 4
   %j9 = load i32, ptr %j, align 4
-  %4 = add i32 %sum8, %j9
-  store i32 %4, ptr %sum, align 4
-  %5 = load i32, ptr %sum, align 4
-  br label %ifcont11
+  %3 = add i32 %sum8, %j9
+  store i32 %3, ptr %sum, align 4
+  %4 = load i32, ptr %sum, align 4
+  br label %ifcont
 
-else10:                                           ; preds = %loopbody
-  br label %ifcont11
+else:                                             ; preds = %loopbody
+  br label %ifcont
 
-ifcont11:                                         ; preds = %else10, %then
-  %j12 = load i32, ptr %j, align 4
-  %j13 = load i32, ptr %j, align 4
-  %6 = add i32 %j13, 1
-  store i32 %6, ptr %j, align 4
-  %7 = load i32, ptr %j, align 4
+ifcont:                                           ; preds = %else, %then
+  %j10 = load i32, ptr %j, align 4
+  %j11 = load i32, ptr %j, align 4
+  %5 = add i32 %j11, 1
+  store i32 %5, ptr %j, align 4
+  %6 = load i32, ptr %j, align 4
   br label %looptest
 
-then17:                                           ; preds = %afterloop
+afterloop:                                        ; preds = %looptest
+  %sum12 = load i32, ptr %sum, align 4
+  %number13 = load i32, ptr %number1, align 4
+  %7 = icmp eq i32 %sum12, %number13
+  %ifcond14 = icmp ne i1 %7, false
+  br i1 %ifcond14, label %then15, label %else16
+
+then15:                                           ; preds = %afterloop
   ret i32 1
 
-else18:                                           ; preds = %afterloop
-  br label %ifcont19
+else16:                                           ; preds = %afterloop
+  br label %ifcont17
 
-ifcont19:                                         ; preds = %else18
+ifcont17:                                         ; preds = %else16
   ret i32 0
 }
 
@@ -92,7 +92,7 @@ do_main:
   store i32 1, ptr %i, align 4
   br label %looptest
 
-looptest:                                         ; preds = %ifcont6, %do_main
+looptest:                                         ; preds = %ifcont, %do_main
   %i1 = load i32, ptr %i, align 4
   %0 = icmp sle i32 %i1, 100
   %ifcond = icmp ne i1 %0, false
@@ -103,24 +103,24 @@ loopbody:                                         ; preds = %looptest
   %calltmp = call i32 @isPerfectNumber(i32 %i2)
   %1 = icmp eq i32 %calltmp, 1
   %ifcond3 = icmp ne i1 %1, false
-  br i1 %ifcond3, label %then, label %else5
-
-afterloop:                                        ; preds = %looptest
-  ret i32 0
+  br i1 %ifcond3, label %then, label %else
 
 then:                                             ; preds = %loopbody
   %i4 = load i32, ptr %i, align 4
   call void @write(i32 %i4)
-  br label %ifcont6
+  br label %ifcont
 
-else5:                                            ; preds = %loopbody
-  br label %ifcont6
+else:                                             ; preds = %loopbody
+  br label %ifcont
 
-ifcont6:                                          ; preds = %else5, %then
-  %i7 = load i32, ptr %i, align 4
-  %i8 = load i32, ptr %i, align 4
-  %2 = add i32 %i8, 1
+ifcont:                                           ; preds = %else, %then
+  %i5 = load i32, ptr %i, align 4
+  %i6 = load i32, ptr %i, align 4
+  %2 = add i32 %i6, 1
   store i32 %2, ptr %i, align 4
   %3 = load i32, ptr %i, align 4
   br label %looptest
+
+afterloop:                                        ; preds = %looptest
+  ret i32 0
 }

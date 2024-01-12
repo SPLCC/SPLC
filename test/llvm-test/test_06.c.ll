@@ -18,7 +18,7 @@ hanoi:
   %n5 = load i32, ptr %n1, align 4
   %0 = icmp eq i32 %n5, 1
   %ifcond = icmp ne i1 %0, false
-  br i1 %ifcond, label %then, label %else8
+  br i1 %ifcond, label %then, label %else
 
 then:                                             ; preds = %hanoi
   %p16 = load i32, ptr %p12, align 4
@@ -26,29 +26,29 @@ then:                                             ; preds = %hanoi
   %p37 = load i32, ptr %p34, align 4
   %2 = add i32 %1, %p37
   call void @write(i32 %2)
-  br label %ifcont20
+  br label %ifcont
 
-else8:                                            ; preds = %hanoi
-  %n9 = load i32, ptr %n1, align 4
-  %3 = sub i32 %n9, 1
-  %p110 = load i32, ptr %p12, align 4
-  %p311 = load i32, ptr %p34, align 4
-  %p212 = load i32, ptr %p23, align 4
-  %calltmp = call i32 @hanoi(i32 %3, i32 %p110, i32 %p311, i32 %p212)
-  %p113 = load i32, ptr %p12, align 4
-  %4 = mul i32 %p113, 1000000
-  %p314 = load i32, ptr %p34, align 4
-  %5 = add i32 %4, %p314
+else:                                             ; preds = %hanoi
+  %n8 = load i32, ptr %n1, align 4
+  %3 = sub i32 %n8, 1
+  %p19 = load i32, ptr %p12, align 4
+  %p310 = load i32, ptr %p34, align 4
+  %p211 = load i32, ptr %p23, align 4
+  %calltmp = call i32 @hanoi(i32 %3, i32 %p19, i32 %p310, i32 %p211)
+  %p112 = load i32, ptr %p12, align 4
+  %4 = mul i32 %p112, 1000000
+  %p313 = load i32, ptr %p34, align 4
+  %5 = add i32 %4, %p313
   call void @write(i32 %5)
-  %n15 = load i32, ptr %n1, align 4
-  %6 = sub i32 %n15, 1
-  %p216 = load i32, ptr %p23, align 4
-  %p117 = load i32, ptr %p12, align 4
-  %p318 = load i32, ptr %p34, align 4
-  %calltmp19 = call i32 @hanoi(i32 %6, i32 %p216, i32 %p117, i32 %p318)
-  br label %ifcont20
+  %n14 = load i32, ptr %n1, align 4
+  %6 = sub i32 %n14, 1
+  %p215 = load i32, ptr %p23, align 4
+  %p116 = load i32, ptr %p12, align 4
+  %p317 = load i32, ptr %p34, align 4
+  %calltmp18 = call i32 @hanoi(i32 %6, i32 %p215, i32 %p116, i32 %p317)
+  br label %ifcont
 
-ifcont20:                                         ; preds = %else8, %then
+ifcont:                                           ; preds = %else, %then
   ret i32 0
 }
 

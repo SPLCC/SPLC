@@ -17,81 +17,81 @@ do_main:
   store i32 1, ptr %k, align 4
   br label %looptest
 
-looptest:                                         ; preds = %ifcont25, %do_main
+looptest:                                         ; preds = %ifcont22, %do_main
   %k1 = load i32, ptr %k, align 4
   %N2 = load i32, ptr %N, align 4
   %0 = icmp sle i32 %k1, %N2
   %ifcond = icmp ne i1 %0, false
-  br i1 %ifcond, label %loopbody, label %afterloop
+  br i1 %ifcond, label %loopbody, label %afterloop27
 
 loopbody:                                         ; preds = %looptest
   br label %looptest3
 
-afterloop:                                        ; preds = %looptest
-  ret i32 0
+looptest3:                                        ; preds = %ifcont, %loopbody
+  %i4 = load i32, ptr %i, align 4
+  %k5 = load i32, ptr %k, align 4
+  %1 = icmp sle i32 %i4, %k5
+  %ifcond6 = icmp ne i1 %1, false
+  br i1 %ifcond6, label %loopbody7, label %afterloop
 
-looptest3:                                        ; preds = %ifcont17, %loopbody
-  %i6 = load i32, ptr %i, align 4
-  %k7 = load i32, ptr %k, align 4
-  %1 = icmp sle i32 %i6, %k7
-  %ifcond8 = icmp ne i1 %1, false
-  br i1 %ifcond8, label %loopbody4, label %afterloop5
-
-loopbody4:                                        ; preds = %looptest3
+loopbody7:                                        ; preds = %looptest3
+  %k8 = load i32, ptr %k, align 4
   %k9 = load i32, ptr %k, align 4
-  %k10 = load i32, ptr %k, align 4
+  %i10 = load i32, ptr %i, align 4
+  %2 = sdiv i32 %k9, %i10
   %i11 = load i32, ptr %i, align 4
-  %2 = sdiv i32 %k10, %i11
-  %i12 = load i32, ptr %i, align 4
-  %3 = mul i32 %2, %i12
-  %4 = icmp eq i32 %k9, %3
-  %ifcond13 = icmp ne i1 %4, false
-  br i1 %ifcond13, label %then, label %else16
+  %3 = mul i32 %2, %i11
+  %4 = icmp eq i32 %k8, %3
+  %ifcond12 = icmp ne i1 %4, false
+  br i1 %ifcond12, label %then, label %else
 
-afterloop5:                                       ; preds = %looptest3
-  %num20 = load i32, ptr %num, align 4
-  %5 = icmp eq i32 %num20, 2
-  %ifcond21 = icmp ne i1 %5, false
-  br i1 %ifcond21, label %then22, label %else24
-
-then:                                             ; preds = %loopbody4
+then:                                             ; preds = %loopbody7
+  %num13 = load i32, ptr %num, align 4
   %num14 = load i32, ptr %num, align 4
-  %num15 = load i32, ptr %num, align 4
-  %6 = add i32 %num15, 1
-  store i32 %6, ptr %num, align 4
-  %7 = load i32, ptr %num, align 4
-  br label %ifcont17
+  %5 = add i32 %num14, 1
+  store i32 %5, ptr %num, align 4
+  %6 = load i32, ptr %num, align 4
+  br label %ifcont
 
-else16:                                           ; preds = %loopbody4
-  br label %ifcont17
+else:                                             ; preds = %loopbody7
+  br label %ifcont
 
-ifcont17:                                         ; preds = %else16, %then
-  %i18 = load i32, ptr %i, align 4
-  %i19 = load i32, ptr %i, align 4
-  %8 = add i32 %i19, 1
-  store i32 %8, ptr %i, align 4
-  %9 = load i32, ptr %i, align 4
+ifcont:                                           ; preds = %else, %then
+  %i15 = load i32, ptr %i, align 4
+  %i16 = load i32, ptr %i, align 4
+  %7 = add i32 %i16, 1
+  store i32 %7, ptr %i, align 4
+  %8 = load i32, ptr %i, align 4
   br label %looptest3
 
-then22:                                           ; preds = %afterloop5
-  %k23 = load i32, ptr %k, align 4
-  call void @write(i32 %k23)
-  br label %ifcont25
+afterloop:                                        ; preds = %looptest3
+  %num17 = load i32, ptr %num, align 4
+  %9 = icmp eq i32 %num17, 2
+  %ifcond18 = icmp ne i1 %9, false
+  br i1 %ifcond18, label %then19, label %else21
 
-else24:                                           ; preds = %afterloop5
-  br label %ifcont25
+then19:                                           ; preds = %afterloop
+  %k20 = load i32, ptr %k, align 4
+  call void @write(i32 %k20)
+  br label %ifcont22
 
-ifcont25:                                         ; preds = %else24, %then22
-  %i26 = load i32, ptr %i, align 4
+else21:                                           ; preds = %afterloop
+  br label %ifcont22
+
+ifcont22:                                         ; preds = %else21, %then19
+  %i23 = load i32, ptr %i, align 4
   store i32 1, ptr %i, align 4
   %10 = load i32, ptr %i, align 4
-  %num27 = load i32, ptr %num, align 4
+  %num24 = load i32, ptr %num, align 4
   store i32 0, ptr %num, align 4
   %11 = load i32, ptr %num, align 4
-  %k28 = load i32, ptr %k, align 4
-  %k29 = load i32, ptr %k, align 4
-  %12 = add i32 %k29, 1
+  %k25 = load i32, ptr %k, align 4
+  %k26 = load i32, ptr %k, align 4
+  %12 = add i32 %k26, 1
   store i32 %12, ptr %k, align 4
   %13 = load i32, ptr %k, align 4
   br label %looptest
+
+afterloop27:                                      ; preds = %looptest
+  ret i32 0
 }
