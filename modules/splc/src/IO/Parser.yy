@@ -531,15 +531,6 @@ DirDecl:
               else {
                   // push all parameters
                   decltrNode = child->findFirstChild(SymType::FuncDecltr);
-                  auto paramTypeNode = decltrNode->findFirstChildBFS(SymType::ParamTypeList);
-
-                  for (auto &innerChild : paramTypeNode->getChildren()[0]->getChildren()) {
-                      auto IDNode = innerChild->getRootIDNode();
-                      transMgr.tryRegisterSymbol(
-                          SymEntryType::Paramater, IDNode->getRootID(),
-                          IDNode->getRootIDLangType(),
-                          true, &innerChild->getLocation());
-                  }
 
                   // register function
                   decltrNode->computeAndSetLangType($1->computeAndSetLangType());
