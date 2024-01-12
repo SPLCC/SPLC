@@ -28,12 +28,11 @@ class ObjParsingContext {
 
 class ObjBuilder {
   public:
-    ObjBuilder(SPLCContext &splcCtx_, llvm::LLVMContext &llvmCtx_)
-        : splcCtx{splcCtx_}, llvmCtx{llvmCtx_}
-    {
-        initializeModuleAndManagers();
-    }
+    ObjBuilder() = default;
+    ObjBuilder(const ObjBuilder &other) = delete;
+    ObjBuilder(ObjBuilder &&other) = default;
 
+  private:
     //===----------------------------------------------------------------------===//
     //                               Type Conversions
     //===----------------------------------------------------------------------===//
@@ -55,7 +54,8 @@ class ObjBuilder {
 
     llvm::Function *getFunction(std::string_view name);
 
-    void registerGlobalCtxMutableVar(std::string_view name, const SymbolEntry &ent);
+    void registerGlobalCtxMutableVar(std::string_view name,
+                                     const SymbolEntry &ent);
     void registerCtxMutableVar(std::string_view name, const SymbolEntry &ent);
     // void registerCtxFuncParam(std::string_view name, const SymbolEntry &ent);
     void registerCtxFuncProto(std::string_view name, const SymbolEntry &ent);
@@ -135,25 +135,25 @@ class ObjBuilder {
     void CGExternDeclList(Ptr<AST> externDeclListRoot);
     void CGTransUnit(Ptr<AST> transUnitRoot);
 
+  public:
     //===----------------------------------------------------------------------===//
     // CG
 
-    void codegen(TranslationUnit &tunit);
+    void generateModule(TranslationUnit &tunit);
+    void optimizeModule();
 
     //===----------------------------------------------------------------------===//
     //                             IR/Obj Generation
     //===----------------------------------------------------------------------===//
 
-    void writeLLVMIR(std::ostream &os);
-    void writeProgram(std::string_view path);
+    void writeModuleAsLLVMIR(std::ostream &os);
+    void writeModuleAsObj(std::string_view path);
 
     //===----------------------------------------------------------------------===//
     //                               Member Access
     //===----------------------------------------------------------------------===//
 
-    llvm::LLVMContext &getLLVMCtx() const noexcept { return llvmCtx; }
-
-    SPLCContext &getSPLCCtx() const noexcept { return splcCtx; }
+    llvm::LLVMContext &getLLVMCtx() const noexcept { return *llvmCtx; }
 
   protected:
   private:
@@ -163,6 +163,8 @@ class ObjBuilder {
 
     void initializeModuleAndManagers();
     void initializeTargetRegistry();
+
+    void initializeInternalStates();
 
     //===----------------------------------------------------------------------===//
     // Variable Management
@@ -188,17 +190,15 @@ class ObjBuilder {
     std::pair<llvm::Type *, Ptr<AST>> findFuncProto(std::string_view name);
 
   private:
-    llvm::LLVMContext &llvmCtx;
-    SPLCContext &splcCtx;
+    UniquePtr<llvm::LLVMContext> llvmCtx;
 
     bool llvmTargetEnvInitialized = false;
-    bool llvmIRGenerated = false;
+    bool llvmModuleGenerated = false;
 
   private:
     static std::atomic<int> moduleCnt;
 
     std::map<splc::Type *, llvm::Type *> tyCache;
-    Ptr<ASTContext> curASTCtx;
 
     std::vector<ObjParsingContext> varCtxStack;
     std::map<std::string, std::pair<llvm::Type *, Ptr<AST>>, std::less<>>
