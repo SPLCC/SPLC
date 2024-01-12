@@ -1621,14 +1621,13 @@ void ObjBuilder::CGTransUnit(Ptr<AST> transUnitRoot)
 
 void ObjBuilder::generateModule(TranslationUnit &tunit)
 {
-    initializeModuleAndManagers();
+    initializeInternalStates();
     CGTransUnit(tunit.getRootNode());
     llvmModuleGenerated = true;
 }
 
-void ObjBuilder::optimizeContainedModule()
+void ObjBuilder::optimizeModule()
 {
-    // TODO: optimization
     if (!llvmModuleGenerated) {
         splc_ilog_error(nullptr, false)
             << "contained module has not been generated";
@@ -1638,15 +1637,17 @@ void ObjBuilder::optimizeContainedModule()
     for (auto &func : theModule->getFunctionList()) {
         theFPM->run(func, *theFAM);
     }
+
+    // TODO(near_future): module-level optimization
 }
 
-void ObjBuilder::writeLLVMIR(std::ostream &os)
+void ObjBuilder::writeModuleAsLLVMIR(std::ostream &os)
 {
     llvm::raw_os_ostream trueOs{os};
     theModule->print(trueOs, nullptr);
 }
 
-void ObjBuilder::writeProgram(std::string_view path)
+void ObjBuilder::writeModuleAsObj(std::string_view path)
 {
     initializeTargetRegistry();
 
@@ -1703,22 +1704,23 @@ void ObjBuilder::writeProgram(std::string_view path)
 void ObjBuilder::initializeModuleAndManagers()
 {
     // Open a new context and module.
-    theModule = std::make_unique<llvm::Module>(
-        "splc auto-gen module " + std::to_string(moduleCnt++), llvmCtx);
+    llvmCtx = makeUniquePtr<llvm::LLVMContext>();
+    theModule = makeUniquePtr<llvm::Module>(
+        "splc auto-gen module " + std::to_string(moduleCnt++), getLLVMCtx());
 
     // Create a new builder for the module.
-    builder = std::make_unique<llvm::IRBuilder<>>(llvmCtx);
+    builder = makeUniquePtr<llvm::IRBuilder<>>(getLLVMCtx());
 
     // Create new pass and analysis managers.
-    theFPM = std::make_unique<llvm::FunctionPassManager>();
-    theLAM = std::make_unique<llvm::LoopAnalysisManager>();
-    theFAM = std::make_unique<llvm::FunctionAnalysisManager>();
-    theCGAM = std::make_unique<llvm::CGSCCAnalysisManager>();
-    theMAM = std::make_unique<llvm::ModuleAnalysisManager>();
-    thePIC = std::make_unique<llvm::PassInstrumentationCallbacks>();
+    theFPM = makeUniquePtr<llvm::FunctionPassManager>();
+    theLAM = makeUniquePtr<llvm::LoopAnalysisManager>();
+    theFAM = makeUniquePtr<llvm::FunctionAnalysisManager>();
+    theCGAM = makeUniquePtr<llvm::CGSCCAnalysisManager>();
+    theMAM = makeUniquePtr<llvm::ModuleAnalysisManager>();
+    thePIC = makeUniquePtr<llvm::PassInstrumentationCallbacks>();
     theSI =
-        std::make_unique<llvm::StandardInstrumentations>(llvmCtx,
-                                                         /*DebugLogging*/ true);
+        makeUniquePtr<llvm::StandardInstrumentations>(getLLVMCtx(),
+                                                      /*DebugLogging*/ true);
     theSI->registerCallbacks(*thePIC, theMAM.get());
 
     // Add transform passes.
@@ -1749,6 +1751,16 @@ void ObjBuilder::initializeTargetRegistry()
     llvm::InitializeAllAsmParsers();
     llvm::InitializeAllAsmPrinters();
     llvmTargetEnvInitialized = true;
+}
+
+void ObjBuilder::initializeInternalStates()
+{
+    tyCache.clear();
+    varCtxStack.clear();
+    functionProtos.clear();
+    llvmModuleGenerated = false;
+
+    initializeModuleAndManagers();
 }
 
 //===----------------------------------------------------------------------===//

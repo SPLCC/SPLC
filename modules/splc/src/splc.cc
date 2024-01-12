@@ -32,17 +32,15 @@ void writeSIR(SPLCContext &C, Ptr<AST> root)
 
 void testObjBuilder(std::string_view path, Ptr<TranslationUnit> tunit)
 {
-    std::unique_ptr<llvm::LLVMContext> llvmCtx =
-        std::make_unique<llvm::LLVMContext>();
-    ObjBuilder builder{tunit->getContext(), *llvmCtx};
+    ObjBuilder builder;
 
     std::ofstream of{std::string{path} + ".ll"};
 
     builder.generateModule(*tunit);
-    builder.optimizeContainedModule();
-    builder.writeLLVMIR(of);
+    // builder.optimizeModule();
+    builder.writeModuleAsLLVMIR(of);
     of.flush();
-    builder.writeProgram(std::string{path} + ".o");
+    builder.writeModuleAsObj(std::string{path} + ".o");
 
     // Disable
     // IROptimizer::optimizeProgram(program);
