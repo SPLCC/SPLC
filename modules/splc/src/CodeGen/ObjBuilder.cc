@@ -1716,10 +1716,16 @@ void ObjBuilder::writeModuleAsObj(std::string_view path)
     }
 
     pass.run(*theModule);
-    dest.flush();
 
-    SPLC_LOG_INFO(nullptr, false) << "wrote " << path;
+    // cleanup
+    dest.flush();
     delete targetMachine;
+
+    using CS = utils::logging::ControlSeq;
+    SPLC_LOG_INFO(nullptr, false)
+        << "writing object file for platform: " << CS::BrightCyan
+        << targetTriple << CS::Reset;
+    SPLC_LOG_INFO(nullptr, false) << "wrote " << path;
 }
 
 //===----------------------------------------------------------------------===//
