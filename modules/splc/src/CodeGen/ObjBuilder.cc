@@ -1678,7 +1678,7 @@ void ObjBuilder::writeProgram(std::string_view path)
     pass.run(*theModule);
     dest.flush();
 
-    SPLC_LOG_INFO(nullptr, false) << "wrote " << path << "\n";
+    SPLC_LOG_INFO(nullptr, false) << "wrote " << path;
 }
 
 //===----------------------------------------------------------------------===//
