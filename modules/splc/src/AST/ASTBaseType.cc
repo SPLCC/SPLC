@@ -16,6 +16,7 @@ Type *AST::computeSimpleTypeSpec() const noexcept
     Type *ret{nullptr};
 
     int nTypedef{0};
+    int nVoid{0};
     int nChar{0};
     int nShort{0};
     int nInt{0};
@@ -43,7 +44,18 @@ Type *AST::computeSimpleTypeSpec() const noexcept
             ++nTypedef;
             break;
         }
-        case ASTSymType::CharTy:
+        case ASTSymType::VoidTy: {
+            if (nChar > 0 || nShort > 0 || nInt > 0 || nLong > 0 ||
+                nFloat > 0 || nDouble > 0 || nUnsigned > 0 || nSigned > 0 ||
+                ret != nullptr) {
+                SPLC_LOG_ERROR(&realSpec->getLocation(), false)
+                    << "multiple base type specifier";
+                return &getContext()->SInt32Ty;
+            }
+            ++nVoid;
+            break;
+        }
+        case ASTSymType::CharTy: {
             if (nChar > 0 || nShort > 0 || nInt > 0 || nLong > 0 ||
                 nFloat > 0 || nDouble > 0 || ret != nullptr) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
@@ -52,7 +64,8 @@ Type *AST::computeSimpleTypeSpec() const noexcept
             }
             ++nChar;
             break;
-        case ASTSymType::ShortTy:
+        }
+        case ASTSymType::ShortTy: {
             if (nChar > 0 || nShort > 0 || nInt > 0 || nLong > 0 ||
                 nFloat > 0 || nDouble > 0 || ret != nullptr) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
@@ -61,7 +74,8 @@ Type *AST::computeSimpleTypeSpec() const noexcept
             }
             ++nShort;
             break;
-        case ASTSymType::IntTy:
+        }
+        case ASTSymType::IntTy: {
             if (nChar > 0 || nShort > 0 || nInt > 0 || nLong > 0 ||
                 nFloat > 0 || nDouble > 0 || ret != nullptr) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
@@ -70,7 +84,8 @@ Type *AST::computeSimpleTypeSpec() const noexcept
             }
             ++nInt;
             break;
-        case ASTSymType::SignedTy:
+        }
+        case ASTSymType::SignedTy: {
             if (nUnsigned > 0) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
                     << "contradictory type specifier";
@@ -89,7 +104,8 @@ Type *AST::computeSimpleTypeSpec() const noexcept
             }
             ++nSigned;
             break;
-        case ASTSymType::UnsignedTy:
+        }
+        case ASTSymType::UnsignedTy: {
             if (nSigned > 0) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
                     << "contradictory type specifier";
@@ -108,7 +124,8 @@ Type *AST::computeSimpleTypeSpec() const noexcept
             }
             ++nUnsigned;
             break;
-        case ASTSymType::LongTy:
+        }
+        case ASTSymType::LongTy: {
             if (nChar > 0 || nShort > 0 || nInt > 0 || nFloat > 0 ||
                 nDouble > 0 || ret != nullptr) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
@@ -123,7 +140,8 @@ Type *AST::computeSimpleTypeSpec() const noexcept
             }
             ++nLong;
             break;
-        case ASTSymType::FloatTy:
+        }
+        case ASTSymType::FloatTy: {
             if (nChar > 0 || nShort > 0 || nInt > 0 || nLong > 0 ||
                 nFloat > 0 || nDouble > 0 || ret != nullptr) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
@@ -137,7 +155,8 @@ Type *AST::computeSimpleTypeSpec() const noexcept
             }
             ++nFloat;
             break;
-        case ASTSymType::DoubleTy:
+        }
+        case ASTSymType::DoubleTy: {
             if (nChar > 0 || nShort > 0 || nInt > 0 || nLong > 0 ||
                 nFloat > 0 || nDouble > 0 || ret != nullptr) {
                 SPLC_LOG_ERROR(&realSpec->getLocation(), false)
@@ -151,6 +170,7 @@ Type *AST::computeSimpleTypeSpec() const noexcept
             }
             ++nDouble;
             break;
+        }
         case ASTSymType::StructOrUnionSpec: {
             // TODO: handle struct/union
             if (ret == nullptr) {
@@ -191,9 +211,11 @@ Type *AST::computeSimpleTypeSpec() const noexcept
     }
 
     // Process primitive type declarations
-    if (nChar > 0 || nShort > 0 || nInt > 0 || nSigned > 0 || nUnsigned > 0 ||
-        nLong > 0 || nFloat > 0 || nDouble > 0) {
+    if (nVoid > 0 || nChar > 0 || nShort > 0 || nInt > 0 || nSigned > 0 ||
+        nUnsigned > 0 || nLong > 0 || nFloat > 0 || nDouble > 0) {
 
+        if (nVoid > 0)
+            ret = &getContext()->VoidTy;
         if (nChar > 0)
             ret = &getContext()->SInt8Ty;
         if (nShort > 0)

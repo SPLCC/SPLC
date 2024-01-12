@@ -11,6 +11,9 @@ test.out
 test.c
 test.o
 test.c.ll
+test.c.o
+*.asm
+main.c
 
 basic_test.sh
 syntax.tab.h

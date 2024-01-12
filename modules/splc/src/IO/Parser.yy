@@ -566,7 +566,7 @@ InitDecltrList:
 /* Definition: Single declaration unit. */
 InitDecltr:
       Decltr { $$ = AST::makeDerived<InitDecltrAST>(tyCtx, @$, $1); }
-    | FuncDecltr { $$ = AST::makeDerived<InitDecltrAST>(tyCtx, @$, $1); transMgr.popASTCtx(); }
+    | FuncDecltr { $$ = AST::makeDerived<InitDecltrAST>(tyCtx, @$, $1); auto ctx = transMgr.getASTCtxMgr()[0]; $1->setASTContext(ctx); transMgr.popASTCtx(); }
     | Decltr OpAssign Initializer { $$ = AST::makeDerived<InitDecltrAST>(tyCtx, @$, $1, $2, $3); }
     | Decltr OpAssign error {}
     ;
@@ -648,7 +648,7 @@ FuncProto:
           if (!transMgr.isSymDefined(SymEntryType::Function, ID)) {
 
               $$ = AST::make(tyCtx, SymType::FuncProto, @$, $1, $2);
-              
+
               // push all parameters
               auto paramTypeNode = $2->findFirstChildBFS(SymType::ParamTypeList);
 
