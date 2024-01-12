@@ -45,7 +45,7 @@ class Driver {
     auto &getContext() const { return context; }
 
   protected:
-    Ptr<TranslationUnit> internalParse(Ptr<TranslationContext> initialContext);
+    void internalParse(Ptr<TranslationContext> initialContext);
 
     SPLCContext &context;
     Ptr<TranslationManager> transMgr;

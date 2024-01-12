@@ -15,15 +15,26 @@ namespace splc::IO {
 Driver::Driver(SPLCContext &C, bool traceParsing_)
     : context{C}, traceParsing{traceParsing_}
 {
-    transMgr = makeSharedPtr<TranslationManager>();
 }
 
 Ptr<TranslationUnit> Driver::parse(std::string_view filename)
 {
-    transMgr->startTranslationRecord(context);
+    // Create a new TranslationManager
+    transMgr = makeSharedPtr<TranslationManager>();
+
+    transMgr->startTranslationRecord(getContext());
+
     Ptr<TranslationContext> context =
         transMgr->pushTransFileContext(nullptr, filename);
-    Ptr<TranslationUnit> tunit = internalParse(context);
+
+    internalParse(context);
+    transMgr->endTranslationRecord();
+
+    Ptr<TranslationUnit> tunit = transMgr->getTransUnit();
+
+    // Clear the TranslationManager
+    transMgr.reset();
+
     return tunit;
 }
 
@@ -59,8 +70,7 @@ Ptr<TranslationUnit> Driver::parse(std::string_view filename)
 //     return {};
 // }
 
-Ptr<TranslationUnit>
-Driver::internalParse(Ptr<TranslationContext> initialContext)
+void Driver::internalParse(Ptr<TranslationContext> initialContext)
 {
     scanner = makeSharedPtr<Scanner>(*transMgr);
     parser = makeSharedPtr<Parser>(*transMgr, transMgr->getContext(), *this,
@@ -77,9 +87,6 @@ Driver::internalParse(Ptr<TranslationContext> initialContext)
         // TODO: revise
         SPLC_LOG_DEBUG(nullptr, false) << "Parse failed.";
     }
-    transMgr->endTranslationRecord();
-    Ptr<TranslationUnit> tunit = transMgr->getTransUnit();
-    return tunit;
 }
 
 } // namespace splc::IO
