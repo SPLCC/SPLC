@@ -1619,10 +1619,25 @@ void ObjBuilder::CGTransUnit(Ptr<AST> transUnitRoot)
     popVarCtxStack();
 }
 
-void ObjBuilder::codegen(TranslationUnit &tunit)
+void ObjBuilder::generateModule(TranslationUnit &tunit)
 {
+    initializeModuleAndManagers();
     CGTransUnit(tunit.getRootNode());
-    llvmIRGenerated = true;
+    llvmModuleGenerated = true;
+}
+
+void ObjBuilder::optimizeContainedModule()
+{
+    // TODO: optimization
+    if (!llvmModuleGenerated) {
+        splc_ilog_error(nullptr, false)
+            << "contained module has not been generated";
+        return;
+    }
+
+    for (auto &func : theModule->getFunctionList()) {
+        theFPM->run(func, *theFAM);
+    }
 }
 
 void ObjBuilder::writeLLVMIR(std::ostream &os)

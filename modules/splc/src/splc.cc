@@ -38,7 +38,8 @@ void testObjBuilder(std::string_view path, Ptr<TranslationUnit> tunit)
 
     std::ofstream of{std::string{path} + ".ll"};
 
-    builder.codegen(*tunit);
+    builder.generateModule(*tunit);
+    builder.optimizeContainedModule();
     builder.writeLLVMIR(of);
     of.flush();
     builder.writeProgram(std::string{path} + ".o");

@@ -31,9 +31,9 @@ class ObjBuilder {
     ObjBuilder(SPLCContext &splcCtx_, llvm::LLVMContext &llvmCtx_)
         : splcCtx{splcCtx_}, llvmCtx{llvmCtx_}
     {
-        initializeModuleAndManagers();
     }
 
+  private:
     //===----------------------------------------------------------------------===//
     //                               Type Conversions
     //===----------------------------------------------------------------------===//
@@ -55,7 +55,8 @@ class ObjBuilder {
 
     llvm::Function *getFunction(std::string_view name);
 
-    void registerGlobalCtxMutableVar(std::string_view name, const SymbolEntry &ent);
+    void registerGlobalCtxMutableVar(std::string_view name,
+                                     const SymbolEntry &ent);
     void registerCtxMutableVar(std::string_view name, const SymbolEntry &ent);
     // void registerCtxFuncParam(std::string_view name, const SymbolEntry &ent);
     void registerCtxFuncProto(std::string_view name, const SymbolEntry &ent);
@@ -135,10 +136,12 @@ class ObjBuilder {
     void CGExternDeclList(Ptr<AST> externDeclListRoot);
     void CGTransUnit(Ptr<AST> transUnitRoot);
 
+  public:
     //===----------------------------------------------------------------------===//
     // CG
 
-    void codegen(TranslationUnit &tunit);
+    void generateModule(TranslationUnit &tunit);
+    void optimizeContainedModule();
 
     //===----------------------------------------------------------------------===//
     //                             IR/Obj Generation
@@ -192,7 +195,7 @@ class ObjBuilder {
     SPLCContext &splcCtx;
 
     bool llvmTargetEnvInitialized = false;
-    bool llvmIRGenerated = false;
+    bool llvmModuleGenerated = false;
 
   private:
     static std::atomic<int> moduleCnt;
