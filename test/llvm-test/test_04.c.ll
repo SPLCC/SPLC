@@ -78,9 +78,9 @@ then15:                                           ; preds = %afterloop
   ret i32 1
 
 else16:                                           ; preds = %afterloop
-  br label %ifcont17
+  ret i32 0
 
-ifcont17:                                         ; preds = %else16
+ifcont17:                                         ; No predecessors!
   ret i32 0
 }
 

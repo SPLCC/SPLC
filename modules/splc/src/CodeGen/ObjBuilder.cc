@@ -1380,7 +1380,11 @@ void ObjBuilder::CGReturnStmt(Ptr<AST> returnStmtRoot)
     auto &children = returnStmtRoot->getChildren();
 
     if (children.size() == 1) {
-        builder->CreateRetVoid();
+        llvm::Type *retTy = builder->GetInsertBlock()->getParent()->getReturnType();
+        if (retTy->isVoidTy())
+            builder->CreateRetVoid();
+        else
+            builder->CreateRet(llvm::Constant::getNullValue(retTy));
         return;
     }
 
@@ -1501,8 +1505,13 @@ llvm::Function *ObjBuilder::CGFuncDef(Ptr<AST> funcRoot)
     popVarCtxStack();
 
     llvm::Instruction *funcEndInst = builder->GetInsertBlock()->getTerminator();
-    if (funcEndInst == nullptr)
-        builder->CreateRetVoid();
+    if (funcEndInst == nullptr) {
+        llvm::Type *retTy = theFunction->getReturnType();
+        if (retTy->isVoidTy())
+            builder->CreateRetVoid();
+        else
+            builder->CreateRet(llvm::Constant::getNullValue(retTy));
+    }
 
     llvm::raw_os_ostream errorOut{std::cerr};
     if (llvm::verifyFunction(*theFunction, &errorOut)) {
