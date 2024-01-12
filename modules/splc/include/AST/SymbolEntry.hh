@@ -42,10 +42,11 @@ class SymbolEntry {
     // ASTValueType value; ///< The value of this symbol entry.
     //                     ///< If this symbol has a value, try const
     //                     propagation.
-    PtrAST body; ///< If this is a function, there stores its body content.
 
     bool defined; ///< If defined, set to true
     Location location;
+
+    PtrAST body; ///< If this is a function, there stores its body content.
 };
 
 std::ostream &operator<<(std::ostream &os, const SymbolEntry &ent) noexcept;

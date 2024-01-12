@@ -38,7 +38,7 @@ bool Scanner::pushFileContext(const Location *intrLoc_,
         pushInternalBuffer(context);
         return true;
     }
-    catch (SemanticError e) {
+    catch (SemanticError &e) {
         SPLC_LOG_ERROR(intrLoc_, true) << e.what();
     }
     return false;
@@ -53,7 +53,7 @@ bool Scanner::pushMacroVarContext(const Location *intrLoc_,
         pushInternalBuffer(context);
         return true;
     }
-    catch (SemanticError e) {
+    catch (SemanticError &e) {
         SPLC_LOG_ERROR(intrLoc_, true) << e.what();
     }
     return false;
@@ -79,7 +79,7 @@ bool Scanner::registerMacroVarContext(const Location *regLocation,
         return transMgr.registerTransMacroVarContext(regLocation, macroVarName_,
                                                      content_) != nullptr;
     }
-    catch (SemanticError e) {
+    catch (SemanticError &e) {
         SPLC_LOG_ERROR(regLocation, true) << e.what();
         if (e.loc)
             SPLC_LOG_NOTE(&e.loc, false) << "previously defined here";
@@ -94,7 +94,7 @@ bool Scanner::unregisterMacroVarContext(const Location *unRegLoc,
         return transMgr.unregisterTransMacroVarContext(
                    unRegLoc, macroVarName_) != nullptr;
     }
-    catch (SemanticError e) {
+    catch (SemanticError &e) {
         SPLC_LOG_ERROR(unRegLoc, true) << e.what();
         return false;
     }

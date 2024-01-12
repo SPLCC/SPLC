@@ -92,7 +92,7 @@ class TranslationManager {
         return tunit->transCtxMgr[0]->name;
     }
 
-    const TranslationContextIDType getCurTransCtxID() const noexcept
+    TranslationContextIDType getCurTransCtxID() const noexcept
     {
         return tunit->transCtxMgr[0]->contextID;
     }

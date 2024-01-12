@@ -11,8 +11,10 @@ namespace splc::IO {
 class Scanner : public SplcFlexLexer {
   public:
     Scanner(TranslationManager &transMgr_, std::istream *in = nullptr)
-        : transMgr{transMgr_}, tyCtx{transMgr_.getContext()},
-          SplcFlexLexer{in} {};
+        : SplcFlexLexer{in}, transMgr{transMgr_}, tyCtx{transMgr_.getContext()}
+    {
+    }
+
     virtual ~Scanner() = default;
 
     // get rid of override virtual function warning

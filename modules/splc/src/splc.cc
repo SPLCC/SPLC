@@ -41,21 +41,19 @@ void testObjBuilder(std::string_view path, Ptr<TranslationUnit> tunit)
     builder.writeModuleAsLLVMIR(of);
     of.flush();
     builder.writeModuleAsObj(std::string{path} + ".o");
-
-    // Disable
-    // IROptimizer::optimizeProgram(program);
 }
 
 int main(const int argc, const char **argv)
 {
     // check for the right # of arguments
-    if (argc < 3) {
+    if (argc != 2) {
         //  exit with failure condition
-        std::cout << "usage: [traceParsing 0/1] [file] ...\n";
+        std::cout << "usage: [file] ...\n";
         return (EXIT_FAILURE);
     }
 
-    bool traceParsing = std::stoi(std::string{argv[1]}) != 0;
+    // bool traceParsing = std::stoi(std::string{argv[1]}) != 0;
+    bool traceParsing = false;
 
     UniquePtr<SPLCContext> context = makeUniquePtr<SPLCContext>();
     IO::Driver driver{*context, traceParsing};
@@ -64,8 +62,8 @@ int main(const int argc, const char **argv)
 
     // assume file, prod code, use stat to check
     std::vector<std::string> filenameVector;
-    filenameVector.reserve(argc - 2);
-    std::transform(argv + 2, argv + argc, std::back_inserter(filenameVector),
+    filenameVector.reserve(argc - 1);
+    std::transform(argv + 1, argv + argc, std::back_inserter(filenameVector),
                    [](const char *str) { return std::string{str}; });
     auto tunit = driver.parse(filenameVector[0]);
 

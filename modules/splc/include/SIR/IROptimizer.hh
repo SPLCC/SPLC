@@ -22,7 +22,7 @@ class DepNode {
 
   public:
     DepNode(IRVar *var_, IRStmt *stmt_, Type type_)
-        : type{type_}, var{var_}, stmt{stmt_}, color{Color::Unmarked}
+        : type{type_}, color{Color::Unmarked}, var{var_}, stmt{stmt_}
     {
     }
 

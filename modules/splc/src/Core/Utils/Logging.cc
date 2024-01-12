@@ -17,8 +17,8 @@ std::ostream *logStream = &std::cerr;
 std::ostream &getLogStream() { return *logStream; }
 
 Logger::Logger(const bool enable_, const Level level_) noexcept
-    : enable{enable_}, level{level_}, locPtr{nullptr}, trace{false},
-      localLogStream{*logStream}
+    : enable{enable_}, localLogStream{*logStream}, level{level_},
+      locPtr{nullptr}, trace{false}
 {
     if (!isEnabled())
         return;
@@ -27,8 +27,8 @@ Logger::Logger(const bool enable_, const Level level_) noexcept
 
 Logger::Logger(const bool enable_, const Level level_,
                const Location *const locPtr_, const bool trace_) noexcept
-    : enable(enable_), level{level_}, locPtr{locPtr_}, trace{trace_},
-      localLogStream{*logStream}
+    : enable(enable_), localLogStream{*logStream}, level{level_},
+      locPtr{locPtr_}, trace{trace_}
 {
     if (!isEnabled())
         return;
@@ -122,7 +122,7 @@ void printIndicator(std::ostream &os, utils::logging::Level level,
         return;
     }
 
-    size_t lineCnt = 0;
+    Location::CounterType lineCnt = 0;
     while (fin) {
         std::getline(fin, lineStr);
         lineCnt++;
@@ -138,7 +138,7 @@ void printIndicator(std::ostream &os, utils::logging::Level level,
     }
 
     // Print actual error
-    size_t start = loc.begin.column, end = 1;
+    Location::CounterType start = loc.begin.column, end = 1;
     if (loc.end.line > loc.begin.line) {
         end = 1 + lineStr.length();
     }

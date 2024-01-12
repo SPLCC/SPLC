@@ -407,7 +407,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     ASTFloatType val = 0.0;
     try {
         val = std::stod({yytext});
-    } catch (std::out_of_range e) {
+    } catch (std::out_of_range &e) {
         SPLC_LOG_ERROR(gloc, true) << e.what();
     }
     *glval = AST::make(tyCtx, SymType::FloatLiteral, *gloc, val);
@@ -426,7 +426,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     ASTUIntType val = 0ULL;
     try {
         val = std::stoull({yytext});
-    } catch (std::out_of_range e) {
+    } catch (std::out_of_range &e) {
         SPLC_LOG_ERROR(gloc, true) << e.what();
     }
     *glval = AST::make(tyCtx, SymType::UIntLiteral, *gloc, val);
@@ -437,7 +437,7 @@ identifier [a-zA-Z_][a-zA-Z0-9_]*
     ASTUIntType val = 0ULL;
     try {
         val = std::stoull({yytext}, nullptr, 16);
-    } catch (std::out_of_range e) {
+    } catch (std::out_of_range &e) {
         SPLC_LOG_ERROR(gloc, true) << e.what();
     }
     *glval = AST::make(tyCtx, SymType::UIntLiteral, *gloc, val);

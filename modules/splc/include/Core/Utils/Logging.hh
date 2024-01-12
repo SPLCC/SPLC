@@ -82,8 +82,8 @@ class Logger {
     ///        `other`.
     ///
     Logger(Logger &&other)
-        : enable{other.enable}, level{other.level}, locPtr{other.locPtr},
-          trace{other.trace}, localLogStream{other.localLogStream}
+        : enable{other.enable}, localLogStream{other.localLogStream},
+          level{other.level}, locPtr{other.locPtr}, trace{other.trace}
 
     {
         other.enable = false;
@@ -123,10 +123,10 @@ class Logger {
     virtual void printInitial() const noexcept;
 
     bool enable;
-    bool trace;
     std::ostream &localLogStream;
     const Level level;
     const Location *const locPtr;
+    bool trace;
 };
 
 template <class T>

@@ -9,6 +9,8 @@ namespace splc {
 
 std::atomic<int> ObjBuilder::moduleCnt = 0;
 
+ObjBuilder::~ObjBuilder() = default;
+
 //===----------------------------------------------------------------------===//
 //                               Type Conversions
 //===----------------------------------------------------------------------===//
@@ -61,7 +63,7 @@ llvm::FunctionType *ObjBuilder::getFunctionType(splc::FunctionType *ty)
 
     auto splcSubTys = ty->subtypes();
     resRetTy = getCvtType(ty->getReturnType());
-    for (auto i = 1; i < splcSubTys.size(); ++i) {
+    for (unsigned i = 1; i < splcSubTys.size(); ++i) {
         resArgTys.push_back(getCvtType(splcSubTys[i]));
     }
 
@@ -488,6 +490,7 @@ llvm::Value *ObjBuilder::CGUnaryExpr(Ptr<AST> unaryExprRoot)
                 exprRes,
                 llvm::ConstantFP::get(getLLVMCtx(), llvm::APFloat(1.0)));
         }
+        break;
     }
 
     case ASTSymType::OpDMinus: {
@@ -501,6 +504,7 @@ llvm::Value *ObjBuilder::CGUnaryExpr(Ptr<AST> unaryExprRoot)
                 exprRes,
                 llvm::ConstantFP::get(getLLVMCtx(), llvm::APFloat(1.0)));
         }
+        break;
     }
 
     case ASTSymType::OpPlus: {
@@ -514,6 +518,7 @@ llvm::Value *ObjBuilder::CGUnaryExpr(Ptr<AST> unaryExprRoot)
         else if (exprRes->getType()->isFloatingPointTy()) {
             return builder->CreateFNeg(exprRes);
         }
+        break;
     }
 
     case ASTSymType::OpBNot: {
@@ -542,13 +547,14 @@ llvm::Value *ObjBuilder::CGUnaryExpr(Ptr<AST> unaryExprRoot)
         }
     }
 
-    default: {
-        splc_ilog_error(&op->getLocation(), false)
-            << "unsupported op type: " << op->getSymType();
-        return nullptr;
-    }
+    default:
+        break;
 
     } // switch (op->getSymType())
+
+    splc_ilog_error(&op->getLocation(), false)
+        << "unsupported op type: " << op->getSymType();
+    return nullptr;
 }
 
 llvm::Value *ObjBuilder::CGSubscriptExpr(Ptr<AST> subscriptExprRoot)
@@ -1227,10 +1233,9 @@ void ObjBuilder::CGIfStmt(Ptr<AST> ifStmtRoot)
 
     llvm::BasicBlock *thenBB =
         llvm::BasicBlock::Create(getLLVMCtx(), "then", theFunction);
-    llvm::BasicBlock *elseBB =
-        llvm::BasicBlock::Create(getLLVMCtx(), "else", theFunction);
+    llvm::BasicBlock *elseBB = llvm::BasicBlock::Create(getLLVMCtx(), "else");
     llvm::BasicBlock *mergeBB =
-        llvm::BasicBlock::Create(getLLVMCtx(), "ifcont", theFunction);
+        llvm::BasicBlock::Create(getLLVMCtx(), "ifcont");
 
     // Emit starting conditional
     builder->CreateCondBr(condV, thenBB, elseBB);
@@ -1238,11 +1243,13 @@ void ObjBuilder::CGIfStmt(Ptr<AST> ifStmtRoot)
     // Emit IfStmt
     builder->SetInsertPoint(thenBB);
     CGStmt(thenStmt);
+
+    // Get the new thenBB in case it has changed
+    thenBB = builder->GetInsertBlock();
     llvm::Instruction *thenTerm = thenBB->getTerminator();
     if (thenTerm == nullptr)
         builder->CreateBr(mergeBB); // LLVM IR requires each basic block to end
                                     // with jump/other instructions
-    thenBB = builder->GetInsertBlock();
 
     // Emit ElseStmt
     theFunction->insert(theFunction->end(), elseBB);
@@ -1252,11 +1259,14 @@ void ObjBuilder::CGIfStmt(Ptr<AST> ifStmtRoot)
         auto &elseStmt = children[4];
         CGStmt(elseStmt);
     }
+
+    // Get the new elseBB in case it has changed
+    elseBB = builder->GetInsertBlock();
+
     // If there is already a terminator, then do nothing
     llvm::Instruction *elseTerm = elseBB->getTerminator();
     if (elseTerm == nullptr)
         builder->CreateBr(mergeBB);
-    elseBB = builder->GetInsertBlock();
 
     theFunction->insert(theFunction->end(), mergeBB);
     builder->SetInsertPoint(mergeBB);
@@ -1303,9 +1313,9 @@ void ObjBuilder::CGWhileStmt(Ptr<AST> whileStmtRoot)
     llvm::BasicBlock *loopTestBB =
         llvm::BasicBlock::Create(getLLVMCtx(), "looptest", theFunction);
     llvm::BasicBlock *loopBodyBB =
-        llvm::BasicBlock::Create(getLLVMCtx(), "loopbody", theFunction);
+        llvm::BasicBlock::Create(getLLVMCtx(), "loopbody");
     llvm::BasicBlock *afterBB =
-        llvm::BasicBlock::Create(getLLVMCtx(), "afterloop", theFunction);
+        llvm::BasicBlock::Create(getLLVMCtx(), "afterloop");
 
     builder->CreateBr(loopTestBB);
     builder->SetInsertPoint(loopTestBB);
@@ -1322,10 +1332,12 @@ void ObjBuilder::CGWhileStmt(Ptr<AST> whileStmtRoot)
     builder->CreateCondBr(condV, loopBodyBB, afterBB);
 
     // Emit Body
+    theFunction->insert(theFunction->end(), loopBodyBB);
     builder->SetInsertPoint(loopBodyBB);
     CGStmt(stmt);
-    builder->CreateBr(loopTestBB);
 
+    builder->CreateBr(loopTestBB);
+    theFunction->insert(theFunction->end(), afterBB);
     builder->SetInsertPoint(afterBB);
 }
 
@@ -1502,6 +1514,7 @@ llvm::Function *ObjBuilder::CGFuncDef(Ptr<AST> funcRoot)
                "them and compile again. This function has been ignored.";
         SPLC_LOG_NOTE(&funcRoot->getLocation(), false) << "first defined here";
         theFunction->eraseFromParent();
+        setGenerationStatus(false);
         return nullptr;
     }
 
@@ -1607,6 +1620,8 @@ void ObjBuilder::CGExternDeclList(Ptr<AST> externDeclListRoot)
 void ObjBuilder::CGTransUnit(Ptr<AST> transUnitRoot)
 {
     splc_dbgassert(transUnitRoot->isTransUnit());
+    if (transUnitRoot->getChildrenNum() == 0)
+        return;
 
     // Register the context of translation unit
     pushVarCtxStack();
@@ -1649,6 +1664,13 @@ void ObjBuilder::writeModuleAsLLVMIR(std::ostream &os)
 
 void ObjBuilder::writeModuleAsObj(std::string_view path)
 {
+    if (!llvmModuleGenerated && !isGenerationSuccess()) {
+        splc_ilog_fatal_error(nullptr, false)
+            << "no module generated/generation has failed. Skipping writing "
+               "object file.";
+        return;
+    }
+
     initializeTargetRegistry();
 
     auto targetTriple = llvm::sys::getDefaultTargetTriple();
@@ -1668,10 +1690,10 @@ void ObjBuilder::writeModuleAsObj(std::string_view path)
     auto Features = "";
 
     llvm::TargetOptions opt;
-    auto TheTargetMachine = target->createTargetMachine(
+    auto targetMachine = target->createTargetMachine(
         targetTriple, CPU, Features, opt, llvm::Reloc::PIC_);
 
-    theModule->setDataLayout(TheTargetMachine->createDataLayout());
+    theModule->setDataLayout(targetMachine->createDataLayout());
 
     std::error_code errorCode;
     llvm::raw_fd_ostream dest(path, errorCode, llvm::sys::fs::OF_None);
@@ -1679,15 +1701,17 @@ void ObjBuilder::writeModuleAsObj(std::string_view path)
     if (errorCode) {
         splc_ilog_fatal_error(nullptr, false)
             << "Could not open file: " << errorCode.message();
+        delete targetMachine;
         return;
     }
 
     llvm::legacy::PassManager pass;
-    auto FileType = llvm::CodeGenFileType::ObjectFile;
+    auto fileType = llvm::CodeGenFileType::ObjectFile;
 
-    if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType)) {
+    if (targetMachine->addPassesToEmitFile(pass, dest, nullptr, fileType)) {
         splc_ilog_fatal_error(nullptr, false)
             << "TheTargetMachine can't emit a file of this type";
+        delete targetMachine;
         return;
     }
 
@@ -1695,6 +1719,7 @@ void ObjBuilder::writeModuleAsObj(std::string_view path)
     dest.flush();
 
     SPLC_LOG_INFO(nullptr, false) << "wrote " << path;
+    delete targetMachine;
 }
 
 //===----------------------------------------------------------------------===//
@@ -1758,6 +1783,7 @@ void ObjBuilder::initializeInternalStates()
     tyCache.clear();
     varCtxStack.clear();
     functionProtos.clear();
+    setGenerationStatus(true);
     llvmModuleGenerated = false;
 
     initializeModuleAndManagers();

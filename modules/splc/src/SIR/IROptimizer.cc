@@ -186,7 +186,7 @@ void color(DepNodeList &inputs, DepNodeList &outputs)
 
 void IROptimizer::removeUnusedStmts(Ptr<IRFunction> func)
 {
-    using Type = DepNode::Type;
+    // using Type = DepNode::Type;
 
     auto [depNodes, nodeMap, inputs, outputs] = buildDependency(func);
     IRSet<IRVar *> usedVars;
@@ -322,7 +322,7 @@ void constantPropagate(DepNode *node)
 void IROptimizer::constantPropagate(Ptr<IRFunction> func)
 {
     // TODO: basic const propagation
-    using Type = DepNode::Type;
+    // using Type = DepNode::Type;
 
     auto [depNodes, nodeMap, inputs, outputs] = buildDependency(func);
 

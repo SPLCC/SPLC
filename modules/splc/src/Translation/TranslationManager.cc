@@ -56,7 +56,7 @@ void TranslationManager::tryRegisterSymbol(SymEntryType symEntTy,
                 << "undefined" << CS::Reset;
         }
     }
-    catch (SemanticError e) {
+    catch (SemanticError &e) {
         SPLC_LOG_ERROR(location_, true) << e.what();
         SPLC_LOG_NOTE(&e.loc, false) << "previously defined here";
     }

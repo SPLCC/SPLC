@@ -15,15 +15,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # =====================================
 project(SPLCC)
 
-# Include the subdirectories containing other CMakeLists.txt files.
-add_subdirectory(modules/splc)
-add_subdirectory(modules/libspl)
-add_subdirectory(modules/ts)
-
-
 # Add compile options
 if (MSVC)
   add_compile_options(/W4 "$<$<CONFIG:DEBUG>:/O0;/g3;/ggdb>" "$<$<CONFIG:RELEASE>:/O3>")
 else()
-  add_compile_options(-Wall -Wextra -Wpedantic "$<$<CONFIG:DEBUG>:-O0;-g3;-ggdb>" "$<$<CONFIG:RELEASE>:-O3>")
+  add_compile_options(-Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable "$<$<CONFIG:DEBUG>:-O0;-g3;-ggdb;-fsanitize=address;-fno-omit-frame-pointer>" "$<$<CONFIG:RELEASE>:-O3>")
+  add_link_options("$<$<CONFIG:DEBUG>:-fsanitize=address;-fno-omit-frame-pointer>")
 endif()
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# Include the subdirectories containing other CMakeLists.txt files.
+add_subdirectory(modules/splc)
+add_subdirectory(modules/libspl)
+add_subdirectory(modules/ts)

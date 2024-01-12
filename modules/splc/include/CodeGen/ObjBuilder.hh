@@ -32,6 +32,8 @@ class ObjBuilder {
     ObjBuilder(const ObjBuilder &other) = delete;
     ObjBuilder(ObjBuilder &&other) = default;
 
+    ~ObjBuilder();
+
   private:
     //===----------------------------------------------------------------------===//
     //                               Type Conversions
@@ -166,6 +168,16 @@ class ObjBuilder {
 
     void initializeInternalStates();
 
+    void setGenerationStatus(bool s) noexcept
+    {
+        llvmModuleGenerationSuccess = s;
+    }
+
+    bool isGenerationSuccess() const noexcept
+    {
+        return llvmModuleGenerationSuccess;
+    }
+
     //===----------------------------------------------------------------------===//
     // Variable Management
 
@@ -194,6 +206,7 @@ class ObjBuilder {
 
     bool llvmTargetEnvInitialized = false;
     bool llvmModuleGenerated = false;
+    bool llvmModuleGenerationSuccess = false;
 
   private:
     static std::atomic<int> moduleCnt;

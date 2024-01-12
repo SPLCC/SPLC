@@ -65,15 +65,15 @@ afterloop:                                        ; preds = %looptest
   %original12 = load i32, ptr %original, align 4
   %7 = icmp eq i32 %reversed11, %original12
   %ifcond13 = icmp ne i1 %7, false
-  br i1 %ifcond13, label %then, label %else14
+  br i1 %ifcond13, label %then, label %else
 
 then:                                             ; preds = %afterloop
   ret i32 1
 
-else14:                                           ; preds = %afterloop
-  br label %ifcont15
+else:                                             ; preds = %afterloop
+  br label %ifcont
 
-ifcont15:                                         ; preds = %else14
+ifcont:                                           ; preds = %else
   ret i32 0
 }
 
@@ -88,16 +88,16 @@ do_main:
   %calltmp3 = call i32 @isPalindrome(i32 %number2)
   %1 = icmp eq i32 %calltmp3, 1
   %ifcond = icmp ne i1 %1, false
-  br i1 %ifcond, label %then, label %else4
+  br i1 %ifcond, label %then, label %else
 
 then:                                             ; preds = %do_main
   call void @write(i32 1)
-  br label %ifcont5
+  br label %ifcont
 
-else4:                                            ; preds = %do_main
+else:                                             ; preds = %do_main
   call void @write(i32 -1)
-  br label %ifcont5
+  br label %ifcont
 
-ifcont5:                                          ; preds = %else4, %then
+ifcont:                                           ; preds = %else, %then
   ret i32 0
 }
