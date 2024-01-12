@@ -1649,8 +1649,38 @@ void ObjBuilder::optimizeModule()
         return;
     }
 
+    // Create new pass and analysis managers.
+    theFPM = makeUniquePtr<llvm::FunctionPassManager>();
+    theLAM = makeUniquePtr<llvm::LoopAnalysisManager>();
+    theFAM = makeUniquePtr<llvm::FunctionAnalysisManager>();
+    theCGAM = makeUniquePtr<llvm::CGSCCAnalysisManager>();
+    theMAM = makeUniquePtr<llvm::ModuleAnalysisManager>();
+    thePIC = makeUniquePtr<llvm::PassInstrumentationCallbacks>();
+    theSI =
+        makeUniquePtr<llvm::StandardInstrumentations>(getLLVMCtx(),
+                                                      /*DebugLogging*/ true);
+    theSI->registerCallbacks(*thePIC, theMAM.get());
+
+    // Add transform passes.
+    // Do simple "peephole" optimizations and bit-twiddling optzns.
+    theFPM->addPass(llvm::InstCombinePass());
+    // Reassociate expressions.
+    theFPM->addPass(llvm::ReassociatePass());
+    // Eliminate Common SubExpressions.
+    theFPM->addPass(llvm::GVNPass());
+    // Simplify the control flow graph (deleting unreachable blocks, etc).
+    theFPM->addPass(llvm::SimplifyCFGPass());
+
+    // Register analysis passes used in these transform passes.
+    llvm::PassBuilder PB;
+    PB.registerModuleAnalyses(*theMAM);
+    PB.registerFunctionAnalyses(*theFAM);
+    PB.crossRegisterProxies(*theLAM, *theFAM, *theCGAM, *theMAM);
+
+    // Optimize each function (if not declaration only)
     for (auto &func : theModule->getFunctionList()) {
-        theFPM->run(func, *theFAM);
+        if (!func.isDeclaration())
+            theFPM->run(func, *theFAM);
     }
 
     // TODO(near_future): module-level optimization
@@ -1741,34 +1771,6 @@ void ObjBuilder::initializeModuleAndManagers()
 
     // Create a new builder for the module.
     builder = makeUniquePtr<llvm::IRBuilder<>>(getLLVMCtx());
-
-    // Create new pass and analysis managers.
-    theFPM = makeUniquePtr<llvm::FunctionPassManager>();
-    theLAM = makeUniquePtr<llvm::LoopAnalysisManager>();
-    theFAM = makeUniquePtr<llvm::FunctionAnalysisManager>();
-    theCGAM = makeUniquePtr<llvm::CGSCCAnalysisManager>();
-    theMAM = makeUniquePtr<llvm::ModuleAnalysisManager>();
-    thePIC = makeUniquePtr<llvm::PassInstrumentationCallbacks>();
-    theSI =
-        makeUniquePtr<llvm::StandardInstrumentations>(getLLVMCtx(),
-                                                      /*DebugLogging*/ true);
-    theSI->registerCallbacks(*thePIC, theMAM.get());
-
-    // Add transform passes.
-    // Do simple "peephole" optimizations and bit-twiddling optzns.
-    theFPM->addPass(llvm::InstCombinePass());
-    // Reassociate expressions.
-    theFPM->addPass(llvm::ReassociatePass());
-    // Eliminate Common SubExpressions.
-    theFPM->addPass(llvm::GVNPass());
-    // Simplify the control flow graph (deleting unreachable blocks, etc).
-    theFPM->addPass(llvm::SimplifyCFGPass());
-
-    // Register analysis passes used in these transform passes.
-    llvm::PassBuilder PB;
-    PB.registerModuleAnalyses(*theMAM);
-    PB.registerFunctionAnalyses(*theFAM);
-    PB.crossRegisterProxies(*theLAM, *theFAM, *theCGAM, *theMAM);
 }
 
 void ObjBuilder::initializeTargetRegistry()
