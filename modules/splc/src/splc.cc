@@ -30,7 +30,8 @@ void writeSIR(SPLCContext &C, Ptr<AST> root)
     IRProgram::writeProgram(std::cout, program);
 }
 
-void testObjBuilder(std::string_view path, Ptr<TranslationUnit> tunit)
+void testObjBuilder(std::string_view path, Ptr<TranslationUnit> tunit,
+                    bool writeMIPSObj)
 {
     ObjBuilder builder;
 
@@ -40,20 +41,25 @@ void testObjBuilder(std::string_view path, Ptr<TranslationUnit> tunit)
     // builder.optimizeModule();
     builder.writeModuleAsLLVMIR(of);
     of.flush();
-    builder.writeModuleAsObj(std::string{path} + ".o");
+    if (writeMIPSObj)
+        builder.writeModuleAsMIPSObj(std::string{path} + ".o");
+    else
+        builder.writeModuleAsDefaultObj(std::string{path} + ".o");
 }
 
 int main(const int argc, const char **argv)
 {
     // check for the right # of arguments
-    if (argc != 2) {
+    if (argc != 3) {
         //  exit with failure condition
-        std::cout << "usage: [file] ...\n";
+        std::cout << "usage: [1 if generate for MIPS. 0 for default target] "
+                     "[file] ...\n";
         return (EXIT_FAILURE);
     }
 
     // bool traceParsing = std::stoi(std::string{argv[1]}) != 0;
     bool traceParsing = false;
+    bool writeMIPSObj = std::stoi(std::string{argv[1]}) != 0;
 
     UniquePtr<SPLCContext> context = makeUniquePtr<SPLCContext>();
     IO::Driver driver{*context, traceParsing};
@@ -62,8 +68,8 @@ int main(const int argc, const char **argv)
 
     // assume file, prod code, use stat to check
     std::vector<std::string> filenameVector;
-    filenameVector.reserve(argc - 1);
-    std::transform(argv + 1, argv + argc, std::back_inserter(filenameVector),
+    filenameVector.reserve(argc - 2);
+    std::transform(argv + 2, argv + argc, std::back_inserter(filenameVector),
                    [](const char *str) { return std::string{str}; });
     auto tunit = driver.parse(filenameVector[0]);
 
@@ -75,7 +81,7 @@ int main(const int argc, const char **argv)
     }
 
     // writeSIR(tunit->getContext(), root); // Don't write it right now
-    testObjBuilder(filenameVector[0], tunit);
+    testObjBuilder(filenameVector[0], tunit, writeMIPSObj);
 
     return (EXIT_SUCCESS);
 }

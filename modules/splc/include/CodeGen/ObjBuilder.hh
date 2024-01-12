@@ -149,7 +149,8 @@ class ObjBuilder {
     //===----------------------------------------------------------------------===//
 
     void writeModuleAsLLVMIR(std::ostream &os);
-    void writeModuleAsObj(std::string_view path);
+    void writeModuleAsMIPSObj(std::string_view path);
+    void writeModuleAsDefaultObj(std::string_view path);
 
     //===----------------------------------------------------------------------===//
     //                               Member Access
@@ -159,6 +160,15 @@ class ObjBuilder {
 
   protected:
   private:
+    //===----------------------------------------------------------------------===//
+    //                          IR/Obj Generation Impl
+    //===----------------------------------------------------------------------===//
+
+    void generateModuleImpl(TranslationUnit &tunit);
+    void optimizeModuleImpl();
+    void writeModuleLLVMIRImpl(std::ostream &os);
+    void writeModuleObjImpl(std::string_view targetTriple, std::string_view path);
+
     //===----------------------------------------------------------------------===//
     //                          Internal State Management
     //===----------------------------------------------------------------------===//

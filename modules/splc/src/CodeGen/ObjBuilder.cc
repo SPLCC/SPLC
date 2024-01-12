@@ -1380,7 +1380,8 @@ void ObjBuilder::CGReturnStmt(Ptr<AST> returnStmtRoot)
     auto &children = returnStmtRoot->getChildren();
 
     if (children.size() == 1) {
-        llvm::Type *retTy = builder->GetInsertBlock()->getParent()->getReturnType();
+        llvm::Type *retTy =
+            builder->GetInsertBlock()->getParent()->getReturnType();
         if (retTy->isVoidTy())
             builder->CreateRetVoid();
         else
@@ -1645,12 +1646,40 @@ void ObjBuilder::CGTransUnit(Ptr<AST> transUnitRoot)
 
 void ObjBuilder::generateModule(TranslationUnit &tunit)
 {
+    generateModuleImpl(tunit);
+}
+
+void ObjBuilder::optimizeModule() { optimizeModuleImpl(); }
+
+void ObjBuilder::writeModuleAsLLVMIR(std::ostream &os)
+{
+    writeModuleLLVMIRImpl(os);
+}
+
+void ObjBuilder::writeModuleAsMIPSObj(std::string_view path)
+{
+    auto targetTriple = llvm::sys::getDefaultTargetTriple();
+    writeModuleObjImpl("mips", path);
+}
+
+void ObjBuilder::writeModuleAsDefaultObj(std::string_view path)
+{
+    auto targetTriple = llvm::sys::getDefaultTargetTriple();
+    writeModuleObjImpl(targetTriple, path);
+}
+
+//===----------------------------------------------------------------------===//
+//                          IR/Obj Generation Impl
+//===----------------------------------------------------------------------===//
+
+void ObjBuilder::generateModuleImpl(TranslationUnit &tunit)
+{
     initializeInternalStates();
     CGTransUnit(tunit.getRootNode());
     llvmModuleGenerated = true;
 }
 
-void ObjBuilder::optimizeModule()
+void ObjBuilder::optimizeModuleImpl()
 {
     if (!llvmModuleGenerated) {
         splc_ilog_error(nullptr, false)
@@ -1695,13 +1724,14 @@ void ObjBuilder::optimizeModule()
     // TODO(near_future): module-level optimization
 }
 
-void ObjBuilder::writeModuleAsLLVMIR(std::ostream &os)
+void ObjBuilder::writeModuleLLVMIRImpl(std::ostream &os)
 {
     llvm::raw_os_ostream trueOs{os};
     theModule->print(trueOs, nullptr);
 }
 
-void ObjBuilder::writeModuleAsObj(std::string_view path)
+void ObjBuilder::writeModuleObjImpl(std::string_view targetTriple,
+                                    std::string_view path)
 {
     if (!llvmModuleGenerated && !isGenerationSuccess()) {
         splc_ilog_fatal_error(nullptr, false)
@@ -1711,8 +1741,6 @@ void ObjBuilder::writeModuleAsObj(std::string_view path)
     }
 
     initializeTargetRegistry();
-
-    auto targetTriple = llvm::sys::getDefaultTargetTriple();
     theModule->setTargetTriple(targetTriple);
 
     std::string errorMsg;
