@@ -7,43 +7,7 @@ namespace splc {
 //                          LLVMIRBuilder Implementation
 //===----------------------------------------------------------------------===//
 
-void ObjBuilder::initializeModuleAndManagers()
-{
-    // Open a new context and module.
-    theModule = std::make_unique<llvm::Module>(
-        "module" + std::to_string(moduleCnt++), llvmCtx);
-
-    // Create a new builder for the module.
-    theBuilder = std::make_unique<llvm::IRBuilder<>>(llvmCtx);
-
-    // Create new pass and analysis managers.
-    theFPM = std::make_unique<llvm::FunctionPassManager>();
-    theLAM = std::make_unique<llvm::LoopAnalysisManager>();
-    theFAM = std::make_unique<llvm::FunctionAnalysisManager>();
-    theCGAM = std::make_unique<llvm::CGSCCAnalysisManager>();
-    theMAM = std::make_unique<llvm::ModuleAnalysisManager>();
-    thePIC = std::make_unique<llvm::PassInstrumentationCallbacks>();
-    theSI =
-        std::make_unique<llvm::StandardInstrumentations>(llvmCtx,
-                                                         /*DebugLogging*/ true);
-    theSI->registerCallbacks(*thePIC, theMAM.get());
-
-    // Add transform passes.
-    // Do simple "peephole" optimizations and bit-twiddling optzns.
-    theFPM->addPass(llvm::InstCombinePass());
-    // Reassociate expressions.
-    theFPM->addPass(llvm::ReassociatePass());
-    // Eliminate Common SubExpressions.
-    theFPM->addPass(llvm::GVNPass());
-    // Simplify the control flow graph (deleting unreachable blocks, etc).
-    theFPM->addPass(llvm::SimplifyCFGPass());
-
-    // Register analysis passes used in these transform passes.
-    llvm::PassBuilder PB;
-    PB.registerModuleAnalyses(*theMAM);
-    PB.registerFunctionAnalyses(*theFAM);
-    PB.crossRegisterProxies(*theLAM, *theFAM, *theCGAM, *theMAM);
-}
+std::atomic<int> ObjBuilder::moduleCnt = 0;
 
 //===----------------------------------------------------------------------===//
 //                               Type Conversions
@@ -190,11 +154,118 @@ llvm::Function *ObjBuilder::getFunction(std::string_view name)
         return f;
     }
 
-    auto fi = functionProtos.find(name);
-    if (fi != functionProtos.end())
-        return CGFuncProto(fi->second);
+    // auto fi = functionProtos.find(name);
+    // if (fi != functionProtos.end())
+    //     return CGFuncProto(fi->second.second);
+
+    splc_error() << "function should be present upon searching. Since "
+                    "ObjBuilder registers all function prototypes in advance, "
+                    "this indicates that the given AST is not "
+                    "semantically correct: the name of the missing function is "
+                 << name;
 
     return nullptr;
+}
+
+void ObjBuilder::registerGlobalCtxMutableVar(std::string_view name,
+                                             const SymbolEntry &ent)
+{
+    splc_ilog_error(&ent.location, false)
+        << "using global variables is currently unsupported";
+    return;
+
+    llvm::Type *ty = getCvtType(ent.type);
+    llvm::Function *theFunction = builder->GetInsertBlock()->getParent();
+
+    llvm::AllocaInst *alloca =
+        createEntryBlockAlloc(theFunction, ty, nullptr, name);
+    insertNamedValue(name, ty, alloca);
+}
+
+void ObjBuilder::registerCtxMutableVar(std::string_view name,
+                                       const SymbolEntry &ent)
+{
+    llvm::Type *ty = getCvtType(ent.type);
+    llvm::Function *theFunction = builder->GetInsertBlock()->getParent();
+
+    llvm::AllocaInst *alloca =
+        createEntryBlockAlloc(theFunction, ty, nullptr, name);
+    insertNamedValue(name, ty, alloca);
+}
+
+// void ObjBuilder::registerCtxFuncParam(std::string_view name,
+//                                       const SymbolEntry &ent)
+// {
+//     llvm::Type *ty = getCvtType(ent.type);
+//     llvm::Function *theFunction = builder->GetInsertBlock()->getParent();
+
+//     llvm::AllocaInst *alloca =
+//         createEntryBlockAlloc(theFunction, ty, nullptr, name);
+//     insertNamedValue(name, ty, alloca);
+// }
+
+void ObjBuilder::registerCtxFuncProto(std::string_view name,
+                                      const SymbolEntry &ent)
+{
+    llvm::FunctionType *FT =
+        getFunctionType(static_cast<FunctionType *>(ent.type));
+    llvm::Function *theFunction = llvm::Function::Create(
+        FT, llvm::Function::ExternalLinkage, name, theModule.get());
+
+    std::vector<std::string_view> argNames;
+
+    if (ent.body != nullptr) {
+        auto ctx = ent.body->getASTContext();
+
+        if (ctx != nullptr) {
+            for (const auto &symListEnt : ctx->getSymbolList()) {
+                const auto &symName = symListEnt.first;
+                const auto &sym = symListEnt.second;
+                if (sym.symEntTy == SymEntryType::Paramater) {
+                    argNames.push_back(symName);
+                }
+            }
+
+            unsigned idx = 0;
+            for (auto &arg : theFunction->args()) {
+                arg.setName(argNames[idx++]);
+            }
+        }
+    }
+
+    registerFuncProto(name, FT, ent.body);
+}
+
+void ObjBuilder::registerCtxFuncDef(std::string_view name,
+                                    const SymbolEntry &ent)
+{
+    llvm::FunctionType *FT =
+        getFunctionType(static_cast<FunctionType *>(ent.type));
+
+    llvm::Function *theFunction = llvm::Function::Create(
+        FT, llvm::Function::ExternalLinkage, name, theModule.get());
+
+    std::vector<std::string_view> argNames;
+
+    auto &protoNode = ent.body->getChildren()[0];
+    auto ctx = protoNode->getASTContext();
+    splc_dbgassert(ctx != nullptr);
+
+    for (const auto &symListEnt : ctx->getSymbolList()) {
+        const auto &symName = symListEnt.first;
+        const auto &sym = symListEnt.second;
+        if (sym.symEntTy == SymEntryType::Paramater) {
+            argNames.push_back(symName);
+        }
+    }
+
+    splc_dbgassert(argNames.size() == theFunction->arg_size());
+    unsigned idx = 0;
+    for (auto &arg : theFunction->args()) {
+        arg.setName(argNames[idx++]);
+    }
+
+    registerFuncProto(name, FT, ent.body);
 }
 
 void ObjBuilder::registerCtx(Ptr<ASTContext> ctx)
@@ -206,9 +277,16 @@ void ObjBuilder::registerCtx(Ptr<ASTContext> ctx)
         switch (sym.symEntTy) {
         case SymEntryType::Unspecified:
         case SymEntryType::All:
-        case SymEntryType::Empty:
+        case SymEntryType::Empty: {
+            break;
+        }
         case SymEntryType::Function: {
-            // TODO
+            if (sym.defined) {
+                registerCtxFuncDef(symName, sym);
+            }
+            else {
+                registerCtxFuncProto(symName, sym);
+            }
             break;
         }
         case SymEntryType::StructDecl: {
@@ -228,10 +306,14 @@ void ObjBuilder::registerCtx(Ptr<ASTContext> ctx)
             break;
         }
         case SymEntryType::Variable: {
-            // TODO
+            if (isVarCtxGlobalScope())
+                registerGlobalCtxMutableVar(symName, sym);
+            else
+                registerCtxMutableVar(symName, sym);
             break;
         }
         case SymEntryType::Paramater:
+            // SKIP
             break;
         }
     }
@@ -242,201 +324,1119 @@ void ObjBuilder::registerCtx(Ptr<ASTContext> ctx)
 
 llvm::Value *ObjBuilder::CGConstant(Ptr<AST> constantRoot)
 {
-    // TODO
+    splc_dbgassert(constantRoot->isConstant());
+
+    auto &child = constantRoot->getChildren()[0];
+
+    switch (child->getSymType()) {
+    case ASTSymType::UIntLiteral:
+        // TODO(near_future): allow unsigned integer literal
+        // TODO(near_future): allow int64
+        return llvm::ConstantInt::get(
+            llvm::Type::getInt32Ty(getLLVMCtx()),
+            llvm::APInt(
+                32, static_cast<ASTSIntType>(child->getConstVal<ASTUIntType>()),
+                true));
+
+    case ASTSymType::SIntLiteral:
+        return llvm::ConstantInt::get(
+            llvm::Type::getInt32Ty(getLLVMCtx()),
+            llvm::APInt(32, child->getConstVal<ASTSIntType>(), true));
+
+    case ASTSymType::FloatLiteral:
+        return llvm::ConstantFP::get(
+            getLLVMCtx(), llvm::APFloat(child->getConstVal<ASTFloatType>()));
+
+    case ASTSymType::CharLiteral:
+        return llvm::ConstantInt::get(
+            getLLVMCtx(),
+            llvm::APInt(ASTCharTypeNumBits, child->getConstVal<ASTCharType>()));
+
+    default: {
+        splc_ilog_error(&child->getLocation(), false)
+            << "unsupported constant type: " << child->getSymType();
+        return nullptr;
+    }
+    }
 }
 
-llvm::Value *ObjBuilder::CGConstExpr(Ptr<AST> constExprRoot)
+// llvm::Value *ObjBuilder::CGConstExpr(Ptr<AST> constExprRoot)
+// {
+//     // TODO!
+// }
+
+llvm::Value *ObjBuilder::CGPrimaryExpr(Ptr<AST> primaryExprRoot)
 {
-    // TODO
+    splc_dbgassert(primaryExprRoot->isGeneralExpr());
+    auto &child = primaryExprRoot->getChildren()[0];
+
+    switch (child->getSymType()) {
+
+    case ASTSymType::Constant:
+        return CGConstant(child);
+
+    case ASTSymType::Expr:
+        return CGGeneralExprDispatch(child);
+
+    case ASTSymType::ID:
+        return CGExprID(child);
+
+    case ASTSymType::StringLiteral: {
+        // TODO(future)
+        splc_ilog_error(&child->getLocation(), false)
+            << "using string literals are not supported in ObjBuilder";
+        return nullptr;
+    }
+
+    default: {
+        splc_ilog_error(&primaryExprRoot->getLocation(), true)
+            << "unsupported type for dispatch: "
+            << primaryExprRoot->getSymType();
+        return nullptr;
+    }
+    }
 }
 
-llvm::Value *ObjBuilder::CGPrimaryExpr(Ptr<AST> varExprRoot)
+llvm::Value *ObjBuilder::CGPostfixExpr(Ptr<AST> postfixExprRoot)
 {
-    // TODO
+    // splc_ilog_error(&postfixExprRoot->getLocation(), false)
+    //     << "not supported in ObjBuilder";
+    // return nullptr;
+    // TODO(near_future) check for offset, allowing other postfix expressions
+
+    splc_dbgassert(postfixExprRoot->getChildrenNum() == 2);
+    auto &children = postfixExprRoot->getChildren();
+    auto &opExpr = children[0];
+    auto &op = children[1];
+    llvm::Value *retVal = CGGeneralExprDispatch(opExpr);
+
+    auto &IDNode = opExpr->getChildren()[0];
+    splc_dbgassert(IDNode->isID());
+    auto [ty, memloc] = findNamedValue(IDNode->getRootID());
+    splc_dbgassert(memloc != nullptr);
+    llvm::Value *newVal = nullptr;
+
+    switch (op->getSymType()) {
+    case ASTSymType::OpDPlus: {
+        if (retVal->getType()->isIntegerTy()) {
+            newVal = builder->CreateAdd(
+                retVal,
+                llvm::ConstantInt::get(
+                    getLLVMCtx(),
+                    llvm::APInt(retVal->getType()->getPrimitiveSizeInBits(),
+                                1)));
+        }
+        else if (retVal->getType()->isFloatingPointTy()) {
+            newVal = builder->CreateFAdd(
+                retVal,
+                llvm::ConstantFP::get(getLLVMCtx(), llvm::APFloat(1.0)));
+        }
+        break;
+    }
+
+    case ASTSymType::OpDMinus: {
+        if (retVal->getType()->isIntegerTy()) {
+            newVal = builder->CreateSub(
+                retVal,
+                llvm::ConstantInt::get(
+                    getLLVMCtx(),
+                    llvm::APInt(retVal->getType()->getPrimitiveSizeInBits(),
+                                1)));
+        }
+        else if (retVal->getType()->isFloatingPointTy()) {
+            newVal = builder->CreateFSub(
+                retVal,
+                llvm::ConstantFP::get(getLLVMCtx(), llvm::APFloat(1.0)));
+        }
+        break;
+    }
+
+    default: {
+        splc_ilog_error(&op->getLocation(), false)
+            << "unsupported op type: " << op->getSymType();
+        return nullptr;
+    }
+
+    } // switch (op->getSymType())
+
+    splc_dbgassert(newVal != nullptr);
+    builder->CreateStore(newVal, memloc);
+    return retVal;
 }
 
 llvm::Value *ObjBuilder::CGUnaryExpr(Ptr<AST> unaryExprRoot)
 {
-    // TODO
-}
+    splc_dbgassert(unaryExprRoot->getChildrenNum() == 2);
+    auto &children = unaryExprRoot->getChildren();
+    auto &op = children[0];
+    auto &opExpr = children[1];
+    llvm::Value *exprRes = CGGeneralExprDispatch(opExpr);
 
-llvm::Value *ObjBuilder::CGBinaryExpr(Ptr<AST> binaryExprRoot)
-{
-    // TODO
-}
+    // TODO(future): support sizeof
+    splc_dbgassert(opExpr->isGeneralExpr());
 
-llvm::Value *ObjBuilder::CGTrinaryExpr(Ptr<AST> trinaryExprRoot)
-{
-    // TODO
+    switch (op->getSymType()) {
+
+    case ASTSymType::OpDPlus: {
+        if (exprRes->getType()->isIntegerTy()) {
+            return builder->CreateAdd(
+                exprRes, llvm::ConstantInt::get(
+                             getLLVMCtx(), llvm::APInt(ASTSIntTypeNumBits, 1)));
+        }
+        else if (exprRes->getType()->isFloatingPointTy()) {
+            return builder->CreateFAdd(
+                exprRes,
+                llvm::ConstantFP::get(getLLVMCtx(), llvm::APFloat(1.0)));
+        }
+    }
+
+    case ASTSymType::OpDMinus: {
+        if (exprRes->getType()->isIntegerTy()) {
+            return builder->CreateSub(
+                exprRes, llvm::ConstantInt::get(
+                             getLLVMCtx(), llvm::APInt(ASTSIntTypeNumBits, 1)));
+        }
+        else if (exprRes->getType()->isFloatingPointTy()) {
+            return builder->CreateFSub(
+                exprRes,
+                llvm::ConstantFP::get(getLLVMCtx(), llvm::APFloat(1.0)));
+        }
+    }
+
+    case ASTSymType::OpPlus: {
+        return exprRes;
+    }
+
+    case ASTSymType::OpMinus: {
+        if (exprRes->getType()->isIntegerTy()) {
+            return builder->CreateNeg(exprRes);
+        }
+        else if (exprRes->getType()->isFloatingPointTy()) {
+            return builder->CreateFNeg(exprRes);
+        }
+    }
+
+    case ASTSymType::OpBNot: {
+        if (exprRes->getType()->isIntegerTy()) {
+            return builder->CreateNot(exprRes);
+        }
+        else {
+            splc_ilog_error(&unaryExprRoot->getLocation(), false)
+                << "using unknown type with bitwise not";
+            return nullptr;
+        }
+    }
+
+    case ASTSymType::OpNot: {
+        if (exprRes->getType()->isIntegerTy()) {
+            auto size_in_bits = exprRes->getType()->getPrimitiveSizeInBits();
+            return builder->CreateICmpEQ(
+                exprRes,
+                llvm::ConstantInt::get(
+                    builder->getIntNTy((unsigned)size_in_bits), 0, false));
+        }
+        else {
+            splc_ilog_error(&unaryExprRoot->getLocation(), false)
+                << "using unknown type with logical not";
+            return nullptr;
+        }
+    }
+
+    default: {
+        splc_ilog_error(&op->getLocation(), false)
+            << "unsupported op type: " << op->getSymType();
+        return nullptr;
+    }
+
+    } // switch (op->getSymType())
 }
 
 llvm::Value *ObjBuilder::CGSubscriptExpr(Ptr<AST> subscriptExprRoot)
 {
-    // TODO
+    // TODO(future): support
+    splc_ilog_error(&subscriptExprRoot->getLocation(), false)
+        << "subscription is not supported yet";
+    return nullptr;
 }
 
 llvm::Value *ObjBuilder::CGDerefExpr(Ptr<AST> derefExprRoot)
 {
-    // TODO
+    // TODO(future): support
+    splc_ilog_error(&derefExprRoot->getLocation(), false)
+        << "deref is not supported";
+    return nullptr;
 }
 
 llvm::Value *ObjBuilder::CGAddrOfExpr(Ptr<AST> addrOfExprRoot)
 {
-    // TODO
+    // TODO(future): support
+    splc_ilog_error(&addrOfExprRoot->getLocation(), false)
+        << "addr-of is not supported";
+    return nullptr;
 }
 
 llvm::Value *ObjBuilder::CGAccessExpr(Ptr<AST> accessExprRoot)
 {
-    // TODO
+    // TODO(near_future): support
+    splc_ilog_error(&accessExprRoot->getLocation(), false)
+        << "member access is not supported yet";
+    return nullptr;
+}
+
+llvm::Value *ObjBuilder::CGSizeOfExpr(Ptr<AST> sizeOfExprRoot)
+{
+    // TODO(future): support
+    splc_ilog_error(&sizeOfExprRoot->getLocation(), false)
+        << "size-of is not supported";
+    return nullptr;
 }
 
 llvm::Value *ObjBuilder::CGCallExpr(Ptr<AST> callExprRoot)
 {
-    // TODO
+    splc_dbgassert(callExprRoot->isCallExpr());
+
+    // Each argument is an expression
+    // TODO(future): support arbitrary expression as function call callee
+
+    auto &children = callExprRoot->getChildren();
+    splc_dbgassert(children[0]->getChildrenNum() ==
+                   1); // assert callee ID exists
+
+    auto &calleeNode = children[0]->getChildren()[0];
+    auto &argListNode = children[1];
+    auto &argExprNodes = argListNode->getChildren();
+
+    splc_dbgassert(calleeNode->isID());
+
+    // Look up the name in the global table
+    std::string calleeFName = calleeNode->getConstVal<ASTIDType>();
+    llvm::Function *calleeF = getFunction(calleeFName);
+    if (!calleeF) {
+        splc_ilog_error(&callExprRoot->getLocation(), true)
+            << "callee does not exist " << calleeFName;
+        return nullptr;
+    }
+
+    if (calleeF->arg_size() != argListNode->getChildrenNum()) {
+        splc_ilog_error(&callExprRoot->getLocation(), true)
+            << "argument number does not match. Expected "
+            << calleeF->arg_size() << ", got " << argListNode->getChildrenNum();
+        return nullptr;
+    }
+
+    std::vector<llvm::Value *> argsV;
+    argsV.reserve(argExprNodes.size());
+    std::transform(argExprNodes.begin(), argExprNodes.end(),
+                   std::back_inserter(argsV),
+                   [this](const auto &p) { return CGGeneralExprDispatch(p); });
+
+    // If the function has "void" as return type, then return nothing and do not
+    // generate name for it.
+    llvm::Type *ft = calleeF->getReturnType();
+    if (ft->isVoidTy()) {
+        builder->CreateCall(calleeF, argsV);
+        return nullptr;
+    }
+    else {
+        return builder->CreateCall(calleeF, argsV, "calltmp");
+    }
 }
 
-llvm::Value *ObjBuilder::CGImlicitCastExpr(Ptr<AST> impCastExprRoot)
+llvm::Value *ObjBuilder::CGAssignExpr(Ptr<AST> assignExprRoot)
 {
-    // TODO
+    splc_dbgassert(assignExprRoot->getChildrenNum() == 3);
+
+    auto &children = assignExprRoot->getChildren();
+    auto &lhsNode = children[0];
+    auto &rhsNode = children[2];
+
+    llvm::Value *lhsVal = CGGeneralExprDispatch(lhsNode);
+    llvm::Value *rhsVal = CGGeneralExprDispatch(rhsNode);
+    llvm::Value *val2BeAssigned = rhsVal;
+
+    switch (children[1]->getSymType()) {
+
+    case ASTSymType::OpAssign:
+        break;
+
+    case ASTSymType::OpMulAssign: {
+        if (lhsVal->getType()->isIntegerTy()) {
+            val2BeAssigned = builder->CreateMul(lhsVal, rhsVal);
+        }
+        else if (lhsVal->getType()->isFloatingPointTy()) {
+            val2BeAssigned = builder->CreateFMul(lhsVal, rhsVal);
+        }
+        else {
+            splc_ilog_error(nullptr, false) << "type mismatch";
+        }
+        break;
+    }
+
+    // TODO(near_future): relax the assumption all are signed integers
+    case ASTSymType::OpDivAssign: {
+        if (lhsVal->getType()->isIntegerTy()) {
+            val2BeAssigned = builder->CreateSDiv(lhsVal, rhsVal);
+        }
+        else if (lhsVal->getType()->isFloatingPointTy()) {
+            val2BeAssigned = builder->CreateFDiv(lhsVal, rhsVal);
+        }
+        else {
+            splc_ilog_error(nullptr, false) << "type mismatch";
+        }
+        break;
+    }
+
+    case ASTSymType::OpModAssign: {
+        if (lhsVal->getType()->isIntegerTy()) {
+            auto tmp1 = builder->CreateSDiv(lhsVal, rhsVal);
+            auto tmp2 = builder->CreateMul(rhsVal, tmp1);
+            val2BeAssigned = builder->CreateSub(lhsVal, tmp2);
+        }
+        else {
+            splc_ilog_error(nullptr, false) << "type mismatch or unsupported";
+        }
+        break;
+    }
+
+    case ASTSymType::OpPlusAssign: {
+        if (lhsVal->getType()->isIntegerTy()) {
+            val2BeAssigned = builder->CreateAdd(lhsVal, rhsVal);
+        }
+        else if (lhsVal->getType()->isFloatingPointTy()) {
+            val2BeAssigned = builder->CreateFAdd(lhsVal, rhsVal);
+        }
+        else {
+            splc_ilog_error(nullptr, false) << "type mismatch";
+        }
+        break;
+    }
+
+    case ASTSymType::OpMinusAssign: {
+        if (lhsVal->getType()->isIntegerTy()) {
+            val2BeAssigned = builder->CreateSub(lhsVal, rhsVal);
+        }
+        else if (lhsVal->getType()->isFloatingPointTy()) {
+            val2BeAssigned = builder->CreateFSub(lhsVal, rhsVal);
+        }
+        else {
+            splc_ilog_error(nullptr, false) << "type mismatch";
+        }
+        break;
+    }
+
+    case ASTSymType::OpLShiftAssign: {
+        if (lhsVal->getType()->isIntegerTy()) {
+            val2BeAssigned = builder->CreateShl(lhsVal, rhsVal);
+        }
+        else {
+            splc_ilog_error(nullptr, false) << "type mismatch or unsupported";
+        }
+        break;
+    }
+
+    case ASTSymType::OpRShiftAssign: {
+        if (lhsVal->getType()->isIntegerTy()) {
+            val2BeAssigned = builder->CreateLShr(lhsVal, rhsVal);
+        }
+        else {
+            splc_ilog_error(nullptr, false) << "type mismatch or unsupported";
+        }
+        break;
+    }
+
+    case ASTSymType::OpBAndAssign: {
+        if (lhsVal->getType()->isIntegerTy()) {
+            val2BeAssigned = builder->CreateAnd(lhsVal, rhsVal);
+        }
+        else {
+            splc_ilog_error(nullptr, false) << "type mismatch or unsupported";
+        }
+        break;
+    }
+
+    case ASTSymType::OpBXorAssign: {
+        if (lhsVal->getType()->isIntegerTy()) {
+            val2BeAssigned = builder->CreateXor(lhsVal, rhsVal);
+        }
+        else {
+            splc_ilog_error(nullptr, false) << "type mismatch or unsupported";
+        }
+        break;
+    }
+
+    case ASTSymType::OpBOrAssign: {
+        if (lhsVal->getType()->isIntegerTy()) {
+            val2BeAssigned = builder->CreateOr(lhsVal, rhsVal);
+        }
+        else {
+            splc_ilog_error(nullptr, false) << "type mismatch or unsupported";
+        }
+        break;
+    }
+
+    default: {
+        splc_ilog_error(&children[1]->getLocation(), false)
+            << "unrecognized op type: " << children[1]->getSymType();
+        break;
+    }
+    }
+
+    auto &IDNode = lhsNode->getChildren()[0];
+    splc_dbgassert(IDNode->isID());
+    auto [ty, memloc] = findNamedValue(IDNode->getRootID());
+    // llvm::AllocaInst *memloc = llvm::findAllocaForValue(lhsVal);
+    // TODO(near_future) check for offset, allowing array specification
+    splc_dbgassert(memloc != nullptr);
+    builder->CreateStore(val2BeAssigned, memloc);
+
+    return builder->CreateLoad(ty, memloc);
+}
+
+llvm::Value *ObjBuilder::CGBinaryCondExpr(Ptr<AST> binCondExprRoot)
+{
+    splc_dbgassert(binCondExprRoot->getChildrenNum() == 3);
+    auto &children = binCondExprRoot->getChildren();
+    auto opType = children[1]->getSymType();
+
+    llvm::Value *lhsVal = CGGeneralExprDispatch(children[0]);
+    llvm::Value *rhsVal = CGGeneralExprDispatch(children[2]);
+
+    switch (opType) {
+    case ASTSymType::OpAnd:
+        return builder->CreateLogicalAnd(lhsVal, rhsVal);
+    case ASTSymType::OpOr:
+        return builder->CreateLogicalOr(lhsVal, rhsVal);
+    case ASTSymType::OpLT: {
+        if (lhsVal->getType()->isIntegerTy()) {
+            // TODO(near_future): relax the assumption that integers are all
+            // signed
+            return builder->CreateICmpSLT(lhsVal, rhsVal);
+        }
+        else if (lhsVal->getType()->isFloatingPointTy()) {
+            return builder->CreateFCmpOLT(lhsVal, rhsVal);
+        }
+        break;
+    }
+    case ASTSymType::OpLE: {
+        if (lhsVal->getType()->isIntegerTy()) {
+            // TODO(near_future): relax the assumption that integers are all
+            // signed
+            return builder->CreateICmpSLE(lhsVal, rhsVal);
+        }
+        else if (lhsVal->getType()->isFloatingPointTy()) {
+            return builder->CreateFCmpOLE(lhsVal, rhsVal);
+        }
+        break;
+    }
+    case ASTSymType::OpGT: {
+        if (lhsVal->getType()->isIntegerTy()) {
+            // TODO(near_future): relax the assumption that integers are all
+            // signed
+            return builder->CreateICmpSGT(lhsVal, rhsVal);
+        }
+        else if (lhsVal->getType()->isFloatingPointTy()) {
+            return builder->CreateFCmpOGT(lhsVal, rhsVal);
+        }
+        break;
+    }
+    case ASTSymType::OpGE: {
+        if (lhsVal->getType()->isIntegerTy()) {
+            // TODO(near_future): relax the assumption that integers are all
+            // signed
+            return builder->CreateICmpSGE(lhsVal, rhsVal);
+        }
+        else if (lhsVal->getType()->isFloatingPointTy()) {
+            return builder->CreateFCmpOGE(lhsVal, rhsVal);
+        }
+        break;
+    }
+    case ASTSymType::OpNE: {
+        if (lhsVal->getType()->isIntegerTy()) {
+            // TODO(near_future): relax the assumption that integers are all
+            // signed
+            return builder->CreateICmpNE(lhsVal, rhsVal);
+        }
+        else if (lhsVal->getType()->isFloatingPointTy()) {
+            return builder->CreateFCmpONE(lhsVal, rhsVal);
+        }
+        break;
+    }
+    case ASTSymType::OpEQ: {
+        if (lhsVal->getType()->isIntegerTy()) {
+            // TODO(near_future): relax the assumption that integers are all
+            // signed
+            return builder->CreateICmpEQ(lhsVal, rhsVal);
+        }
+        else if (lhsVal->getType()->isFloatingPointTy()) {
+            return builder->CreateFCmpOEQ(lhsVal, rhsVal);
+        }
+        break;
+    }
+
+    default:
+        break;
+    }
+    splc_ilog_error(&binCondExprRoot->getLocation(), false)
+        << "unexpected operand type for operands: " << opType;
+    return nullptr;
+}
+
+llvm::Value *ObjBuilder::CGBinaryArithExpr(Ptr<AST> binaryExprRoot)
+{
+    splc_dbgassert(binaryExprRoot->getChildrenNum() == 3);
+    auto &children = binaryExprRoot->getChildren();
+    auto opType = children[1]->getSymType();
+
+    llvm::Value *lhsVal = CGGeneralExprDispatch(children[0]);
+    llvm::Value *rhsVal = CGGeneralExprDispatch(children[2]);
+
+    switch (opType) {
+    case ASTSymType::OpLShift: {
+        if (lhsVal->getType()->isIntegerTy()) {
+            // TODO(near_future): relax the assumption that integers are all
+            // signed
+            return builder->CreateShl(lhsVal, rhsVal);
+        }
+        break;
+    }
+
+    case ASTSymType::OpRShift: {
+        if (lhsVal->getType()->isIntegerTy()) {
+            // TODO(near_future): relax the assumption that integers are all
+            // signed
+            return builder->CreateLShr(lhsVal, rhsVal);
+        }
+        break;
+    }
+
+    case ASTSymType::OpBAnd: {
+        if (lhsVal->getType()->isIntegerTy()) {
+            // TODO(near_future): relax the assumption that integers are all
+            // signed
+            return builder->CreateAnd(lhsVal, rhsVal);
+        }
+        break;
+    }
+
+    case ASTSymType::OpBOr: {
+        if (lhsVal->getType()->isIntegerTy()) {
+            // TODO(near_future): relax the assumption that integers are all
+            // signed
+            return builder->CreateOr(lhsVal, rhsVal);
+        }
+        break;
+    }
+
+    case ASTSymType::OpBXor: {
+        if (lhsVal->getType()->isIntegerTy()) {
+            // TODO(near_future): relax the assumption that integers are all
+            // signed
+            return builder->CreateXor(lhsVal, rhsVal);
+        }
+        break;
+    }
+
+    case ASTSymType::OpPlus: {
+        if (lhsVal->getType()->isIntegerTy()) {
+            // TODO(near_future): relax the assumption that integers are all
+            // signed
+            return builder->CreateAdd(lhsVal, rhsVal);
+        }
+        else if (lhsVal->getType()->isFloatingPointTy()) {
+            return builder->CreateFAdd(lhsVal, rhsVal);
+        }
+        break;
+    }
+
+    case ASTSymType::OpMinus: {
+        if (lhsVal->getType()->isIntegerTy()) {
+            // TODO(near_future): relax the assumption that integers are all
+            // signed
+            return builder->CreateSub(lhsVal, rhsVal);
+        }
+        else if (lhsVal->getType()->isFloatingPointTy()) {
+            return builder->CreateFSub(lhsVal, rhsVal);
+        }
+        break;
+    }
+
+    case ASTSymType::OpAstrk: {
+        if (lhsVal->getType()->isIntegerTy()) {
+            // TODO(near_future): relax the assumption that integers are all
+            // signed
+            return builder->CreateMul(lhsVal, rhsVal);
+        }
+        else if (lhsVal->getType()->isFloatingPointTy()) {
+            return builder->CreateFMul(lhsVal, rhsVal);
+        }
+        break;
+    }
+
+    case ASTSymType::OpDiv: {
+        if (lhsVal->getType()->isIntegerTy()) {
+            // TODO(near_future): relax the assumption that integers are all
+            // signed
+            return builder->CreateSDiv(lhsVal, rhsVal);
+        }
+        else if (lhsVal->getType()->isFloatingPointTy()) {
+            return builder->CreateFDiv(lhsVal, rhsVal);
+        }
+        break;
+    }
+
+    case ASTSymType::OpMod: {
+        if (lhsVal->getType()->isIntegerTy()) {
+            // TODO(near_future): relax the assumption that integers are all
+            // signed
+            auto tmp1 = builder->CreateSDiv(lhsVal, rhsVal);
+            auto tmp2 = builder->CreateMul(rhsVal, tmp1);
+            return builder->CreateSub(lhsVal, tmp2);
+        }
+        break;
+    }
+
+    default:
+        break;
+    }
+
+    splc_ilog_error(&binaryExprRoot->getLocation(), false)
+        << "unexpected operand type for operands: " << opType;
+    return nullptr;
+}
+
+llvm::Value *ObjBuilder::CGTrinaryCondExpr(Ptr<AST> triCondExprRoot)
+{
+    // TODO(future)
+    splc_ilog_error(&triCondExprRoot->getLocation(), false)
+        << "trinary expression not supported yet";
+    return nullptr;
+}
+
+llvm::Value *ObjBuilder::CGImplicitCastExpr(Ptr<AST> impCastExprRoot)
+{
+    // TODO(future)
+    splc_ilog_error(&impCastExprRoot->getLocation(), false)
+        << "implicit casts are not supported in ObjBuilder";
+    return nullptr;
 }
 
 llvm::Value *ObjBuilder::CGExplicitCastExpr(Ptr<AST> expCastExprRoot)
 {
-    // TODO
+    // TODO(future)
+    splc_ilog_error(&expCastExprRoot->getLocation(), false)
+        << "explicit casts are not supported in ObjBuilder";
+    return nullptr;
 }
 
-llvm::Value *ObjBuilder::CGExprIDWrapper(Ptr<AST> idWrapperRoot)
+llvm::Value *ObjBuilder::CGExprID(Ptr<AST> IDRoot)
 {
-    auto name = idWrapperRoot->getConstVal<ASTIDType>();
+    splc_dbgassert(IDRoot->isID());
+    auto name = IDRoot->getConstVal<ASTIDType>();
     auto [ty, allocaInst] = findNamedValue(name);
-    return theBuilder->CreateLoad(ty, allocaInst, name);
+    return builder->CreateLoad(ty, allocaInst, name);
 }
 
-llvm::Value *ObjBuilder::CGExprDispatchCN1(Ptr<AST> exprRoot)
+llvm::Value *ObjBuilder::CGGeneralExprDispCN1(Ptr<AST> exprRoot)
 {
     auto &child = exprRoot->getChildren()[0];
 
     switch (child->getSymType()) {
 
-    case ASTSymType::Expr:
-        return CGExpr(child);
-
-    case ASTSymType::ExplicitCastExpr:
-        return CGExplicitCastExpr(child);
-
-    case ASTSymType::AccessExpr:
-        return CGAccessExpr(child);
-
-    case ASTSymType::CallExpr:
-        return CGCallExpr(child);
-
-    case ASTSymType::IDWrapper:
-        return CGExprIDWrapper(child);
-
     case ASTSymType::Constant:
-        return CGConstant(child);
-
-    case ASTSymType::StringLiteral: {
-        // TODO(future)
-        splc_ilog_error(&child->getLocation(), false)
-            << "using string literals are not supported in LLVMIRGen";
-        return nullptr;
-    }
-
-    case ASTSymType::SizeOfExpr: {
-        // TODO(future)
-        splc_ilog_error(&child->getLocation(), false)
-            << "sizeof operator is not supported in LLVMIRGen";
-        return nullptr;
-    }
+    case ASTSymType::Expr:
+    case ASTSymType::ID:
+    case ASTSymType::StringLiteral:
+        return CGPrimaryExpr(exprRoot);
 
     default: {
-        splc_ilog_error(&exprRoot->getLocation(), true)
-            << "unsupported type for dispatch: " << exprRoot->getSymType();
+        splc_ilog_error(&child->getLocation(), true)
+            << "unsupported type for dispatch: " << child->getSymType();
         return nullptr;
     }
     }
 }
 
-llvm::Value *ObjBuilder::CGExprDispatchCN2(Ptr<AST> exprRoot)
+llvm::Value *ObjBuilder::CGGeneralExprDispCN2(Ptr<AST> exprRoot)
 {
-    // TODO
+    auto &children = exprRoot->getChildren();
+
+    if (children[1]->isSymTypeOneOf(ASTSymType::OpDPlus, ASTSymType::OpDMinus))
+        return CGPostfixExpr(exprRoot);
+
+    if (children[0]->isSymTypeOneOf(ASTSymType::OpDPlus, ASTSymType::OpDMinus,
+                                    ASTSymType::OpPlus, ASTSymType::OpMinus,
+                                    ASTSymType::OpBNot, ASTSymType::OpNot))
+        return CGUnaryExpr(exprRoot);
+
+    splc_ilog_error(&exprRoot->getLocation(), false)
+        << "unsupported type for ObjBuilder: " << exprRoot->getSymType();
+    return nullptr;
 }
 
-llvm::Value *ObjBuilder::CGExprDispatchCN3(Ptr<AST> exprRoot)
+llvm::Value *ObjBuilder::CGGeneralExprDispCN3(Ptr<AST> exprRoot)
 {
-    // TODO
+    auto &children = exprRoot->getChildren();
+
+    if (children[1]->isSymTypeOneOf(
+            ASTSymType::OpAssign, ASTSymType::OpMulAssign,
+            ASTSymType::OpDivAssign, ASTSymType::OpModAssign,
+            ASTSymType::OpPlusAssign, ASTSymType::OpMinusAssign,
+            ASTSymType::OpLShiftAssign, ASTSymType::OpRShiftAssign,
+            ASTSymType::OpBAndAssign, ASTSymType::OpBXorAssign,
+            ASTSymType::OpBOrAssign))
+        return CGAssignExpr(exprRoot);
+
+    if (children[1]->isSymTypeOneOf(
+            ASTSymType::OpAnd, ASTSymType::OpOr, ASTSymType::OpNot,
+            ASTSymType::OpLT, ASTSymType::OpLE, ASTSymType::OpGT,
+            ASTSymType::OpGE, ASTSymType::OpNE, ASTSymType::OpEQ))
+        return CGBinaryCondExpr(exprRoot);
+
+    if (children[1]->isSymTypeOneOf(
+            ASTSymType::OpLShift, ASTSymType::OpRShift, ASTSymType::OpBAnd,
+            ASTSymType::OpBOr, ASTSymType::OpBNot, ASTSymType::OpBXor,
+            ASTSymType::OpPlus, ASTSymType::OpMinus, ASTSymType::OpAstrk,
+            ASTSymType::OpDiv, ASTSymType::OpMod))
+        return CGBinaryArithExpr(exprRoot);
+
+    if (children[1]->isOpComma()) {
+        llvm::Value *ret = CGGeneralExprDispatch(children[0]);
+        CGGeneralExprDispatch(children[2]);
+        return ret;
+    }
+
+    splc_ilog_error(&exprRoot->getLocation(), false)
+        << "unsupported type for ObjBuilder: " << exprRoot->getSymType();
+    return nullptr;
 }
 
-llvm::Value *ObjBuilder::CGExprDispatchCN4(Ptr<AST> exprRoot)
+llvm::Value *ObjBuilder::CGGeneralExprDispCNN(Ptr<AST> exprRoot)
 {
-    // TODO
+    splc_dbgassert(exprRoot->getChildrenNum() > 0);
+    auto &children = exprRoot->getChildren();
+
+    if (children[1]->isOpQMark())
+        return CGTrinaryCondExpr(exprRoot);
+
+    splc_ilog_error(&exprRoot->getLocation(), false)
+        << "unsupported type dispatch: " << exprRoot->getSymType();
+    return nullptr;
 }
 
-llvm::Value *ObjBuilder::CGExprDispatchCNN(Ptr<AST> exprRoot)
+llvm::Value *ObjBuilder::CGGeneralExprDispatch(Ptr<AST> exprRoot)
 {
-    // TODO
-}
+    splc_dbgassert(exprRoot->isGeneralExpr());
 
-llvm::Value *ObjBuilder::CGExpr(Ptr<AST> exprRoot)
-{
-    splc_dbgassert(exprRoot->isExpr());
+    switch (exprRoot->getSymType()) {
+
+    case ASTSymType::ExplicitCastExpr:
+        return CGExplicitCastExpr(exprRoot);
+
+    case ASTSymType::ImplicitCastExpr:
+        return CGImplicitCastExpr(exprRoot);
+
+    case ASTSymType::AddrOfExpr:
+        return CGAddrOfExpr(exprRoot);
+
+    case ASTSymType::DerefExpr:
+        return CGDerefExpr(exprRoot);
+
+    case ASTSymType::SubscriptExpr:
+        return CGSubscriptExpr(exprRoot);
+
+    case ASTSymType::AccessExpr:
+        return CGAccessExpr(exprRoot);
+
+    case ASTSymType::CallExpr:
+        return CGCallExpr(exprRoot);
+
+    case ASTSymType::SizeOfExpr:
+        return CGSizeOfExpr(exprRoot);
+
+    default:
+        break;
+    }
 
     auto N = exprRoot->getChildrenNum();
     switch (N) {
     case 1:
-        return CGExprDispatchCN1(exprRoot);
+        return CGGeneralExprDispCN1(exprRoot);
     case 2:
-        return CGExprDispatchCN2(exprRoot);
+        return CGGeneralExprDispCN2(exprRoot);
     case 3:
-        return CGExprDispatchCN3(exprRoot);
-    case 4:
-        return CGExprDispatchCN4(exprRoot);
+        return CGGeneralExprDispCN3(exprRoot);
     default:
-        return CGExprDispatchCNN(exprRoot);
+        return CGGeneralExprDispCNN(exprRoot);
     }
 }
 
 //===----------------------------------------------------------------------===//
 // Statements
 
+void ObjBuilder::CGCompStmt(Ptr<AST> compStmtRoot)
+{
+    splc_dbgassert(compStmtRoot->isCompStmt());
+
+    auto &children = compStmtRoot->getChildren();
+    if (children.size() == 0) {
+        return;
+    }
+
+    auto &genStmtList = children[0];
+
+    pushVarCtxStack();
+    registerCtx(compStmtRoot->getASTContext());
+
+    for (auto &genChild : genStmtList->getChildren()) {
+        if (genChild->isStmt()) {
+            CGStmt(genChild);
+        }
+        if (genChild->isDecl()) {
+            CGDecl(genChild);
+        }
+    }
+
+    popVarCtxStack();
+}
+
+void ObjBuilder::CGExprStmt(Ptr<AST> exprStmtRoot)
+{
+    splc_dbgassert(exprStmtRoot->isExprStmt());
+    auto &expr = exprStmtRoot->getChildren()[0];
+    CGGeneralExprDispatch(expr);
+}
+
 void ObjBuilder::CGIfStmt(Ptr<AST> ifStmtRoot)
 {
-    // TODO
+    splc_dbgassert(ifStmtRoot->isSelStmt());
+
+    auto &children = ifStmtRoot->getChildren();
+    auto &cond = children[1];
+    auto &thenStmt = children[2];
+
+    llvm::Value *condV = CGGeneralExprDispatch(cond);
+
+    condV = builder->CreateICmpNE(
+        condV,
+        llvm::ConstantInt::get(
+            getLLVMCtx(),
+            llvm::APInt(condV->getType()->getPrimitiveSizeInBits(), 0)),
+        "ifcond");
+
+    llvm::Function *theFunction = builder->GetInsertBlock()->getParent();
+
+    llvm::BasicBlock *thenBB =
+        llvm::BasicBlock::Create(getLLVMCtx(), "then", theFunction);
+    llvm::BasicBlock *elseBB =
+        llvm::BasicBlock::Create(getLLVMCtx(), "else", theFunction);
+    llvm::BasicBlock *mergeBB =
+        llvm::BasicBlock::Create(getLLVMCtx(), "ifcont", theFunction);
+
+    // Emit starting conditional
+    builder->CreateCondBr(condV, thenBB, elseBB);
+
+    // Emit IfStmt
+    builder->SetInsertPoint(thenBB);
+    CGStmt(thenStmt);
+    llvm::Instruction *thenTerm = thenBB->getTerminator();
+    if (thenTerm == nullptr)
+        builder->CreateBr(mergeBB); // LLVM IR requires each basic block to end
+                                    // with jump/other instructions
+    thenBB = builder->GetInsertBlock();
+
+    // Emit ElseStmt
+    theFunction->insert(theFunction->end(), elseBB);
+    builder->SetInsertPoint(elseBB);
+    if (children.size() == 5) {
+        // If with Else
+        auto &elseStmt = children[4];
+        CGStmt(elseStmt);
+    }
+    // If there is already a terminator, then do nothing
+    llvm::Instruction *elseTerm = elseBB->getTerminator();
+    if (elseTerm == nullptr)
+        builder->CreateBr(mergeBB);
+    elseBB = builder->GetInsertBlock();
+
+    theFunction->insert(theFunction->end(), mergeBB);
+    builder->SetInsertPoint(mergeBB);
+
+    // No PHI node because they don't return llvm::Value*
 }
 
 void ObjBuilder::CGSelStmt(Ptr<AST> selStmtRoot)
 {
-    // TODO
+    splc_dbgassert(selStmtRoot->isSelStmt());
+
+    auto &children = selStmtRoot->getChildren();
+
+    if (children[0]->isKwdIf()) {
+        CGIfStmt(selStmtRoot);
+        return;
+    }
+
+    // TODO(near_future)
+    splc_ilog_error(&selStmtRoot->getLocation(), false)
+        << "not supported in ObjBuilder";
 }
 
-void ObjBuilder::CGDoWhileStmt(Ptr<AST> whileStmtRoot)
+void ObjBuilder::CGDoWhileStmt(Ptr<AST> doWhileStmtRoot)
 {
-    // TODO
+    splc_dbgassert(doWhileStmtRoot->isIterStmt());
+    // TODO(near_future)
+    splc_ilog_error(&doWhileStmtRoot->getLocation(), false)
+        << "not supported in ObjBuilder";
 }
+
 void ObjBuilder::CGWhileStmt(Ptr<AST> whileStmtRoot)
 {
-    // TODO
+    splc_dbgassert(whileStmtRoot->isIterStmt());
+
+    auto &children = whileStmtRoot->getChildren();
+    splc_dbgassert(children.size() == 3) << "should be KwdWhile Expr Stmt";
+
+    auto &expr = children[1];
+    auto &stmt = children[2];
+
+    llvm::Function *theFunction = builder->GetInsertBlock()->getParent();
+
+    llvm::BasicBlock *loopTestBB =
+        llvm::BasicBlock::Create(getLLVMCtx(), "looptest", theFunction);
+    llvm::BasicBlock *loopBodyBB =
+        llvm::BasicBlock::Create(getLLVMCtx(), "loopbody", theFunction);
+    llvm::BasicBlock *afterBB =
+        llvm::BasicBlock::Create(getLLVMCtx(), "afterloop", theFunction);
+
+    builder->CreateBr(loopTestBB);
+    builder->SetInsertPoint(loopTestBB);
+
+    llvm::Value *condV = CGGeneralExprDispatch(expr);
+    condV = builder->CreateICmpNE(
+        condV,
+        llvm::ConstantInt::get(
+            getLLVMCtx(),
+            llvm::APInt(condV->getType()->getPrimitiveSizeInBits(), 0)),
+        "ifcond");
+
+    // Emit starting conditional
+    builder->CreateCondBr(condV, loopBodyBB, afterBB);
+
+    // Emit Body
+    builder->SetInsertPoint(loopBodyBB);
+    CGStmt(stmt);
+    builder->CreateBr(loopTestBB);
+
+    builder->SetInsertPoint(afterBB);
 }
 
-void ObjBuilder::CGForStmt(Ptr<AST> whileStmtRoot)
+void ObjBuilder::CGForStmt(Ptr<AST> forStmtRoot)
 {
-    // TODO
+    splc_dbgassert(forStmtRoot->isIterStmt());
+    // TODO(near_future)
+    splc_ilog_error(&forStmtRoot->getLocation(), false)
+        << "not supported in ObjBuilder";
 }
 
 void ObjBuilder::CGIterStmt(Ptr<AST> iterStmtRoot)
 {
-    // TODO
+    splc_dbgassert(iterStmtRoot->isIterStmt());
+
+    auto &children = iterStmtRoot->getChildren();
+
+    if (children[0]->isKwdWhile()) {
+        CGWhileStmt(iterStmtRoot);
+        return;
+    }
+
+    // TODO(near_future)
+    splc_ilog_error(&iterStmtRoot->getLocation(), false)
+        << "not supported in ObjBuilder";
 }
 
-void ObjBuilder::CGCompStmt(Ptr<AST> compStmtRoot)
+void ObjBuilder::CGLabeledStmt(Ptr<AST> labeledStmtRoot)
 {
-    // TODO
+    splc_dbgassert(labeledStmtRoot->isLabeledStmt());
+    // TODO(near_future)
+    splc_ilog_error(&labeledStmtRoot->getLocation(), false)
+        << "not supported in ObjBuilder";
+}
+
+void ObjBuilder::CGReturnStmt(Ptr<AST> returnStmtRoot)
+{
+    splc_dbgassert(returnStmtRoot->isJumpStmt());
+
+    auto &children = returnStmtRoot->getChildren();
+
+    if (children.size() == 1) {
+        builder->CreateRetVoid();
+        return;
+    }
+
+    llvm::Value *val = CGGeneralExprDispatch(children[1]);
+    builder->CreateRet(val);
+}
+
+void ObjBuilder::CGJumpStmt(Ptr<AST> jumpStmtRoot)
+{
+    splc_dbgassert(jumpStmtRoot->isJumpStmt());
+
+    auto &children = jumpStmtRoot->getChildren();
+
+    if (children[0]->isKwdReturn()) {
+        CGReturnStmt(jumpStmtRoot);
+        return;
+    }
+
+    // TODO(near_future)
+    splc_ilog_error(&jumpStmtRoot->getLocation(), false)
+        << "not supported in ObjBuilder";
 }
 
 void ObjBuilder::CGStmt(Ptr<AST> stmtRoot)
 {
-    // TODO
+    splc_dbgassert(stmtRoot->isStmt());
+
+    if (stmtRoot->getChildrenNum() == 0)
+        return;
+
+    auto &child = stmtRoot->getChildren()[0];
+
+    switch (child->getSymType()) {
+    case ASTSymType::CompStmt: {
+        CGCompStmt(child);
+        break;
+    }
+
+    case ASTSymType::ExprStmt: {
+        CGExprStmt(child);
+        break;
+    }
+
+    case ASTSymType::SelStmt: {
+        CGSelStmt(child);
+        break;
+    }
+
+    case ASTSymType::IterStmt: {
+        CGIterStmt(child);
+        break;
+    }
+
+    case ASTSymType::LabeledStmt: {
+        CGLabeledStmt(child);
+        break;
+    }
+
+    case ASTSymType::JumpStmt: {
+        CGJumpStmt(child);
+        break;
+    }
+
+    default:
+        splc_ilog_error(&child->getLocation(), false)
+            << "unrecognized statement type: " << child->getSymType();
+        break;
+    }
 }
 
 //===----------------------------------------------------------------------===//
@@ -444,12 +1444,68 @@ void ObjBuilder::CGStmt(Ptr<AST> stmtRoot)
 
 llvm::Function *ObjBuilder::CGFuncProto(Ptr<AST> protoRoot)
 {
-    // TODO
+    // TODO(revise): just do nothing
+    return nullptr;
 }
 
 llvm::Function *ObjBuilder::CGFuncDef(Ptr<AST> funcRoot)
 {
-    // TODO
+    // The given node should be of ASTSymType::FuncDef
+    splc_dbgassert(funcRoot->isFuncDef());
+
+    auto &protoNode = funcRoot->getChildren()[0];
+    auto &compStmtNode = funcRoot->getChildren()[1];
+    auto &funcDecltrNode = protoNode->getChildren()[1];
+
+    // Get the type of this function
+    Type *splcFuncTy = funcDecltrNode->getLangType();
+    llvm::Type *funcTy = getCvtType(splcFuncTy); // transform into llvm type
+
+    auto ID = funcDecltrNode->getRootID();
+    llvm::Function *theFunction = getFunction(ID);
+    if (!theFunction) {
+        return nullptr;
+    }
+
+    llvm::BasicBlock *BB =
+        llvm::BasicBlock::Create(getLLVMCtx(), ID, theFunction);
+    builder->SetInsertPoint(BB);
+
+    pushVarCtxStack();
+    registerCtx(protoNode->getASTContext());
+
+    for (auto &arg : theFunction->args()) {
+        // Create an alloca for this variable
+        llvm::AllocaInst *alloca =
+            createEntryBlockAlloc(theFunction, funcTy, nullptr, arg.getName());
+
+        builder->CreateStore(&arg, alloca);
+
+        insertNamedValue(arg.getName(), arg.getType(), alloca);
+    }
+
+    CGCompStmt(compStmtNode);
+
+    popVarCtxStack();
+
+    llvm::Instruction *funcEndInst = builder->GetInsertBlock()->getTerminator();
+    if (funcEndInst == nullptr)
+        builder->CreateRetVoid();
+
+    llvm::raw_os_ostream errorOut{std::cerr};
+    if (llvm::verifyFunction(*theFunction, &errorOut)) {
+        errorOut.flush();
+        splc_ilog_error(&funcRoot->getLocation(), true)
+            << "this function is not well-formed according to the LLVM "
+               "backend. This may be caused by "
+               "unreachable code inside the provided source code. Try remove "
+               "them and compile again. This function has been ignored.";
+        SPLC_LOG_NOTE(&funcRoot->getLocation(), false) << "first defined here";
+        theFunction->eraseFromParent();
+        return nullptr;
+    }
+
+    return theFunction;
 }
 
 llvm::Value *ObjBuilder::CGInitializer(Ptr<AST> initRoot)
@@ -459,13 +1515,13 @@ llvm::Value *ObjBuilder::CGInitializer(Ptr<AST> initRoot)
 
     auto &child = initRoot->getChildren()[0];
 
-    if (!child->isExpr()) {
+    if (!child->isGeneralExpr()) {
         splc_ilog_error(&initRoot->getLocation(), true)
             << "non (Assign)Expr node as initializer is not supported";
         return nullptr;
     }
 
-    return CGExpr(child);
+    return CGGeneralExprDispatch(child);
 }
 
 void ObjBuilder::CGInitDecltr(Ptr<AST> initDecltrRoot)
@@ -488,7 +1544,7 @@ void ObjBuilder::CGInitDecltr(Ptr<AST> initDecltrRoot)
     auto [ty, allocaInst] = findNamedValue(ID);
     splc_dbgassert(allocaInst != nullptr)
         << "cannot bind allocation instance to ID " << ID;
-    theBuilder->CreateStore(initVal, allocaInst);
+    builder->CreateStore(initVal, allocaInst);
 }
 
 void ObjBuilder::CGInitDecltrList(Ptr<AST> initDecltrListRoot)
@@ -566,6 +1622,118 @@ void ObjBuilder::CGTransUnit(Ptr<AST> transUnitRoot)
 void ObjBuilder::codegen(TranslationUnit &tunit)
 {
     CGTransUnit(tunit.getRootNode());
+    llvmIRGenerated = true;
+}
+
+void ObjBuilder::writeLLVMIR(std::ostream &os)
+{
+    llvm::raw_os_ostream trueOs{os};
+    theModule->print(trueOs, nullptr);
+}
+
+void ObjBuilder::writeProgram(std::string_view path)
+{
+    initializeTargetRegistry();
+
+    auto targetTriple = llvm::sys::getDefaultTargetTriple();
+    theModule->setTargetTriple(targetTriple);
+
+    std::string errorMsg;
+    auto target = llvm::TargetRegistry::lookupTarget(targetTriple, errorMsg);
+
+    if (!target) {
+        splc_ilog_fatal_error(nullptr, false)
+            << "failed to lookup target: " << targetTriple;
+        splc_ilog_fatal_error(nullptr, false) << errorMsg;
+        return;
+    }
+
+    auto CPU = "generic";
+    auto Features = "";
+
+    llvm::TargetOptions opt;
+    auto TheTargetMachine = target->createTargetMachine(
+        targetTriple, CPU, Features, opt, llvm::Reloc::PIC_);
+
+    theModule->setDataLayout(TheTargetMachine->createDataLayout());
+
+    std::error_code errorCode;
+    llvm::raw_fd_ostream dest(path, errorCode, llvm::sys::fs::OF_None);
+
+    if (errorCode) {
+        splc_ilog_fatal_error(nullptr, false)
+            << "Could not open file: " << errorCode.message();
+        return;
+    }
+
+    llvm::legacy::PassManager pass;
+    auto FileType = llvm::CodeGenFileType::ObjectFile;
+
+    if (TheTargetMachine->addPassesToEmitFile(pass, dest, nullptr, FileType)) {
+        splc_ilog_fatal_error(nullptr, false)
+            << "TheTargetMachine can't emit a file of this type";
+        return;
+    }
+
+    pass.run(*theModule);
+    dest.flush();
+
+    SPLC_LOG_INFO(nullptr, false) << "wrote " << path << "\n";
+}
+
+//===----------------------------------------------------------------------===//
+//                          Internal State Management
+//===----------------------------------------------------------------------===//
+
+void ObjBuilder::initializeModuleAndManagers()
+{
+    // Open a new context and module.
+    theModule = std::make_unique<llvm::Module>(
+        "splc auto-gen module " + std::to_string(moduleCnt++), llvmCtx);
+
+    // Create a new builder for the module.
+    builder = std::make_unique<llvm::IRBuilder<>>(llvmCtx);
+
+    // Create new pass and analysis managers.
+    theFPM = std::make_unique<llvm::FunctionPassManager>();
+    theLAM = std::make_unique<llvm::LoopAnalysisManager>();
+    theFAM = std::make_unique<llvm::FunctionAnalysisManager>();
+    theCGAM = std::make_unique<llvm::CGSCCAnalysisManager>();
+    theMAM = std::make_unique<llvm::ModuleAnalysisManager>();
+    thePIC = std::make_unique<llvm::PassInstrumentationCallbacks>();
+    theSI =
+        std::make_unique<llvm::StandardInstrumentations>(llvmCtx,
+                                                         /*DebugLogging*/ true);
+    theSI->registerCallbacks(*thePIC, theMAM.get());
+
+    // Add transform passes.
+    // Do simple "peephole" optimizations and bit-twiddling optzns.
+    theFPM->addPass(llvm::InstCombinePass());
+    // Reassociate expressions.
+    theFPM->addPass(llvm::ReassociatePass());
+    // Eliminate Common SubExpressions.
+    theFPM->addPass(llvm::GVNPass());
+    // Simplify the control flow graph (deleting unreachable blocks, etc).
+    theFPM->addPass(llvm::SimplifyCFGPass());
+
+    // Register analysis passes used in these transform passes.
+    llvm::PassBuilder PB;
+    PB.registerModuleAnalyses(*theMAM);
+    PB.registerFunctionAnalyses(*theFAM);
+    PB.crossRegisterProxies(*theLAM, *theFAM, *theCGAM, *theMAM);
+}
+
+void ObjBuilder::initializeTargetRegistry()
+{
+    if (llvmTargetEnvInitialized)
+        return;
+
+    llvm::InitializeAllTargetInfos();
+    llvm::InitializeAllTargets();
+    llvm::InitializeAllTargetMCs();
+    llvm::InitializeAllAsmParsers();
+    llvm::InitializeAllAsmPrinters();
+    llvmTargetEnvInitialized = true;
 }
 
 //===----------------------------------------------------------------------===//
@@ -597,10 +1765,25 @@ ObjBuilder::findNamedValue(std::string_view name) const
 }
 
 void ObjBuilder::insertNamedValue(std::string_view name, llvm::Type *ty,
-                                  llvm::AllocaInst *allocPos)
+                                  llvm::AllocaInst *alloca)
 {
     auto &varCtx = varCtxStack.back();
-    varCtx.namedValues[std::string{name}] = {ty, allocPos};
+    varCtx.namedValues[std::string{name}] = {ty, alloca};
+}
+
+void ObjBuilder::registerFuncProto(std::string_view name, llvm::Type *ty,
+                                   Ptr<AST> protoRoot)
+{
+    functionProtos[std::string{name}] = {ty, protoRoot};
+}
+
+std::pair<llvm::Type *, Ptr<AST>>
+ObjBuilder::findFuncProto(std::string_view name)
+{
+    auto it = functionProtos.find(name);
+    if (it == functionProtos.end())
+        return {nullptr, nullptr};
+    return it->second;
 }
 
 } // namespace splc

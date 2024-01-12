@@ -2,6 +2,7 @@
 #include "AST/ASTContext.hh"
 #include "AST/ASTProcess.hh"
 #include "AST/DerivedAST.hh"
+#include "CodeGen/ObjBuilder.hh"
 #include "IO/Driver.hh"
 #include "SIR/IRBuilder.hh"
 #include "SIR/IROptimizer.hh"
@@ -14,9 +15,37 @@
 
 using namespace splc;
 
-using SIR::IRBuilder;
-using SIR::IROptimizer;
-using SIR::IRProgram;
+void writeSIR(SPLCContext &C, Ptr<AST> root)
+{
+    using SIR::IRBuilder;
+    using SIR::IROptimizer;
+    using SIR::IRProgram;
+    IRBuilder builder{C};
+
+    Ptr<IRProgram> program = builder.makeProgram(root);
+
+    // Disable
+    // IROptimizer::optimizeProgram(program);
+
+    IRProgram::writeProgram(std::cout, program);
+}
+
+void testObjBuilder(std::string_view path, Ptr<TranslationUnit> tunit)
+{
+    std::unique_ptr<llvm::LLVMContext> llvmCtx =
+        std::make_unique<llvm::LLVMContext>();
+    ObjBuilder builder{tunit->getContext(), *llvmCtx};
+
+    std::ofstream of{std::string{path} + ".ll"};
+
+    builder.codegen(*tunit);
+    builder.writeLLVMIR(of);
+    of.flush();
+    builder.writeProgram(std::string{path} + ".o");
+
+    // Disable
+    // IROptimizer::optimizeProgram(program);
+}
 
 int main(const int argc, const char **argv)
 {
@@ -41,21 +70,15 @@ int main(const int argc, const char **argv)
                    [](const char *str) { return std::string{str}; });
     auto tunit = driver.parse(filenameVector[0]);
 
-    auto node = tunit->getRootNode();
-    if (node) {
+    auto root = tunit->getRootNode();
+    if (root) {
         SPLC_LOG_DEBUG(nullptr, false) << "\n"
-                                       << splc::treePrintTransform(*node);
-        SPLC_LOG_DEBUG(nullptr, false) << "\n" << *node->getASTContext();
+                                       << splc::treePrintTransform(*root);
+        SPLC_LOG_DEBUG(nullptr, false) << "\n" << *root->getASTContext();
     }
 
-    // IRBuilder builder{tunit->getContext()};
-
-    // Ptr<IRProgram> program = builder.makeProgram(node);
-
-    // Disable
-    // IROptimizer::optimizeProgram(program);
-
-    // IRProgram::writeProgram(std::cout, program);
+    // writeSIR(tunit->getContext(), root); // Don't write it right now
+    testObjBuilder(filenameVector[0], tunit);
 
     return (EXIT_SUCCESS);
 }

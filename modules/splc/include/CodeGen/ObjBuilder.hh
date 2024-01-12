@@ -15,11 +15,11 @@ class ObjBuilderConfig {
     // TODO
 };
 
-class LLVMDispatchContext {
+class ObjParsingContext {
   public:
-    LLVMDispatchContext() = default;
-    LLVMDispatchContext(const LLVMDispatchContext &other) = delete;
-    LLVMDispatchContext(LLVMDispatchContext &&other) = default;
+    ObjParsingContext() = default;
+    ObjParsingContext(const ObjParsingContext &other) = delete;
+    ObjParsingContext(ObjParsingContext &&other) = default;
 
     std::map<std::string, std::pair<llvm::Type *, llvm::AllocaInst *>,
              std::less<>>
@@ -33,8 +33,6 @@ class ObjBuilder {
     {
         initializeModuleAndManagers();
     }
-
-    void initializeModuleAndManagers();
 
     //===----------------------------------------------------------------------===//
     //                               Type Conversions
@@ -57,53 +55,72 @@ class ObjBuilder {
 
     llvm::Function *getFunction(std::string_view name);
 
+    void registerGlobalCtxMutableVar(std::string_view name, const SymbolEntry &ent);
+    void registerCtxMutableVar(std::string_view name, const SymbolEntry &ent);
+    // void registerCtxFuncParam(std::string_view name, const SymbolEntry &ent);
+    void registerCtxFuncProto(std::string_view name, const SymbolEntry &ent);
+    void registerCtxFuncDef(std::string_view name, const SymbolEntry &ent);
     void registerCtx(Ptr<ASTContext> ctx);
 
     //===----------------------------------------------------------------------===//
     // Helper Functions
 
     llvm::Value *CGConstant(Ptr<AST> constantRoot);
-    llvm::Value *CGConstExpr(Ptr<AST> constExprRoot);
-    llvm::Value *CGPrimaryExpr(Ptr<AST> varExprRoot);
+    // llvm::Value *CGConstExpr(Ptr<AST> constExprRoot);
+    llvm::Value *CGPrimaryExpr(Ptr<AST> primaryExprRoot);
+    llvm::Value *CGPostfixExpr(Ptr<AST> postfixExprRoot);
     llvm::Value *CGUnaryExpr(Ptr<AST> unaryExprRoot);
-    llvm::Value *CGBinaryExpr(Ptr<AST> binaryExprRoot);
-    llvm::Value *CGTrinaryExpr(Ptr<AST> trinaryExprRoot);
     llvm::Value *CGSubscriptExpr(Ptr<AST> subscriptExprRoot);
     llvm::Value *CGDerefExpr(Ptr<AST> derefExprRoot);
     llvm::Value *CGAddrOfExpr(Ptr<AST> addrOfExprRoot);
     llvm::Value *CGAccessExpr(Ptr<AST> accessExprRoot);
     llvm::Value *CGCallExpr(Ptr<AST> callExprRoot);
+    llvm::Value *CGSizeOfExpr(Ptr<AST> sizeOfExprRoot);
+    llvm::Value *CGAssignExpr(Ptr<AST> assignExprRoot);
 
-    llvm::Value *CGImlicitCastExpr(Ptr<AST> impCastExprRoot);
+    llvm::Value *CGBinaryCondExpr(Ptr<AST> binCondExprRoot);
+    llvm::Value *CGBinaryArithExpr(Ptr<AST> binaryExprRoot);
+    llvm::Value *CGTrinaryCondExpr(Ptr<AST> triCondExprRoot);
+
+    llvm::Value *CGImplicitCastExpr(Ptr<AST> impCastExprRoot);
     llvm::Value *CGExplicitCastExpr(Ptr<AST> expCastExprRoot);
 
-    llvm::Value *CGExprIDWrapper(Ptr<AST> idWrapperRoot);
+    llvm::Value *CGExprID(Ptr<AST> IDRoot);
 
-    llvm::Value *CGExprDispatchCN1(Ptr<AST> exprRoot);
-    llvm::Value *CGExprDispatchCN2(Ptr<AST> exprRoot);
-    llvm::Value *CGExprDispatchCN3(Ptr<AST> exprRoot);
-    llvm::Value *CGExprDispatchCN4(Ptr<AST> exprRoot);
-    llvm::Value *CGExprDispatchCNN(Ptr<AST> exprRoot);
-    llvm::Value *CGExpr(Ptr<AST> exprRoot);
+    llvm::Value *CGGeneralExprDispCN1(Ptr<AST> exprRoot);
+    llvm::Value *CGGeneralExprDispCN2(Ptr<AST> exprRoot);
+    llvm::Value *CGGeneralExprDispCN3(Ptr<AST> exprRoot);
+    llvm::Value *CGGeneralExprDispCNN(Ptr<AST> exprRoot);
+    llvm::Value *CGGeneralExprDispatch(Ptr<AST> exprRoot);
 
     //===----------------------------------------------------------------------===//
     // Statements
 
+    void CGCompStmt(Ptr<AST> compStmtRoot);
+
+    void CGExprStmt(Ptr<AST> exprStmtRoot);
+
     void CGIfStmt(Ptr<AST> ifStmtRoot);
     void CGSelStmt(Ptr<AST> selStmtRoot);
 
-    void CGDoWhileStmt(Ptr<AST> whileStmtRoot);
+    void CGDoWhileStmt(Ptr<AST> doWhileStmtRoot);
     void CGWhileStmt(Ptr<AST> whileStmtRoot);
-    void CGForStmt(Ptr<AST> whileStmtRoot);
+    void CGForStmt(Ptr<AST> forStmtRoot);
     void CGIterStmt(Ptr<AST> iterStmtRoot);
 
-    void CGCompStmt(Ptr<AST> compStmtRoot);
+    void CGLabeledStmt(Ptr<AST> labeledStmtRoot);
+
+    void CGReturnStmt(Ptr<AST> returnStmtRoot);
+    void CGJumpStmt(Ptr<AST> jumpStmtRoot);
+
     void CGStmt(Ptr<AST> stmtRoot);
 
     //===----------------------------------------------------------------------===//
     // Declarations
 
+    /// Accept FuncDecltr as protoRoot.
     llvm::Function *CGFuncProto(Ptr<AST> protoRoot);
+    /// Accept FuncDef as funcRoot.
     llvm::Function *CGFuncDef(Ptr<AST> funcRoot);
 
     llvm::Value *CGInitializer(Ptr<AST> initRoot);
@@ -127,8 +144,8 @@ class ObjBuilder {
     //                             IR/Obj Generation
     //===----------------------------------------------------------------------===//
 
-    void writeLLVMIR();
-    void writeProgram();
+    void writeLLVMIR(std::ostream &os);
+    void writeProgram(std::string_view path);
 
     //===----------------------------------------------------------------------===//
     //                               Member Access
@@ -140,6 +157,13 @@ class ObjBuilder {
 
   protected:
   private:
+    //===----------------------------------------------------------------------===//
+    //                          Internal State Management
+    //===----------------------------------------------------------------------===//
+
+    void initializeModuleAndManagers();
+    void initializeTargetRegistry();
+
     //===----------------------------------------------------------------------===//
     // Variable Management
 
@@ -157,11 +181,18 @@ class ObjBuilder {
     std::pair<llvm::Type *, llvm::AllocaInst *>
     findNamedValue(std::string_view name) const;
     void insertNamedValue(std::string_view name, llvm::Type *ty,
-                          llvm::AllocaInst *allocPos);
+                          llvm::AllocaInst *alloca);
+
+    void registerFuncProto(std::string_view name, llvm::Type *ty,
+                           Ptr<AST> protoRoot);
+    std::pair<llvm::Type *, Ptr<AST>> findFuncProto(std::string_view name);
 
   private:
     llvm::LLVMContext &llvmCtx;
     SPLCContext &splcCtx;
+
+    bool llvmTargetEnvInitialized = false;
+    bool llvmIRGenerated = false;
 
   private:
     static std::atomic<int> moduleCnt;
@@ -169,11 +200,12 @@ class ObjBuilder {
     std::map<splc::Type *, llvm::Type *> tyCache;
     Ptr<ASTContext> curASTCtx;
 
-    std::vector<LLVMDispatchContext> varCtxStack;
-    std::map<std::string, Ptr<AST>, std::less<>> functionProtos;
+    std::vector<ObjParsingContext> varCtxStack;
+    std::map<std::string, std::pair<llvm::Type *, Ptr<AST>>, std::less<>>
+        functionProtos;
 
     UniquePtr<llvm::Module> theModule;
-    UniquePtr<llvm::IRBuilder<>> theBuilder;
+    UniquePtr<llvm::IRBuilder<>> builder;
 
     UniquePtr<llvm::FunctionPassManager> theFPM;
     UniquePtr<llvm::LoopAnalysisManager> theLAM;
