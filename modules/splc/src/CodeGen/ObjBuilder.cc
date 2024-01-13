@@ -1757,8 +1757,8 @@ void ObjBuilder::writeModuleObjImpl(std::string_view targetTriple,
     auto Features = "";
 
     llvm::TargetOptions opt;
-    auto targetMachine = target->createTargetMachine(
-        targetTriple, CPU, Features, opt, llvm::Reloc::PIC_);
+    UniquePtr<llvm::TargetMachine> targetMachine{target->createTargetMachine(
+        targetTriple, CPU, Features, opt, llvm::Reloc::PIC_)};
 
     theModule->setDataLayout(targetMachine->createDataLayout());
 
@@ -1768,7 +1768,6 @@ void ObjBuilder::writeModuleObjImpl(std::string_view targetTriple,
     if (errorCode) {
         splc_ilog_fatal_error(nullptr, false)
             << "Could not open file: " << errorCode.message();
-        delete targetMachine;
         return;
     }
 
@@ -1778,7 +1777,6 @@ void ObjBuilder::writeModuleObjImpl(std::string_view targetTriple,
     if (targetMachine->addPassesToEmitFile(pass, dest, nullptr, fileType)) {
         splc_ilog_fatal_error(nullptr, false)
             << "TheTargetMachine can't emit a file of this type";
-        delete targetMachine;
         return;
     }
 
@@ -1786,7 +1784,6 @@ void ObjBuilder::writeModuleObjImpl(std::string_view targetTriple,
 
     // cleanup
     dest.flush();
-    delete targetMachine;
 
     using CS = utils::logging::ControlSeq;
     SPLC_LOG_INFO(nullptr, false)
