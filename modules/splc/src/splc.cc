@@ -47,7 +47,7 @@ void testObjBuilder(std::string_view path, Ptr<TranslationUnit> tunit,
         builder.writeModuleAsDefaultObj(std::string{path} + ".o");
 }
 
-int main(const int argc, const char **argv)
+int main(const int argc, const char *const argv[])
 {
     // check for the right # of arguments
     if (argc != 3) {
