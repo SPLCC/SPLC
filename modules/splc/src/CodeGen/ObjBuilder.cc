@@ -1656,16 +1656,16 @@ void ObjBuilder::writeModuleAsLLVMIR(std::ostream &os)
     writeModuleLLVMIRImpl(os);
 }
 
-void ObjBuilder::writeModuleAsMIPSObj(std::string_view path)
+void ObjBuilder::writeModuleAsAsm(std::string_view targetTriple,
+                                  std::string_view path)
 {
-    auto targetTriple = llvm::sys::getDefaultTargetTriple();
-    writeModuleObjImpl("mips", path);
+    writeModuleAsFile(llvm::CodeGenFileType::AssemblyFile, targetTriple, path);
 }
 
-void ObjBuilder::writeModuleAsDefaultObj(std::string_view path)
+void ObjBuilder::writeModuleAsObj(std::string_view targetTriple,
+                                  std::string_view path)
 {
-    auto targetTriple = llvm::sys::getDefaultTargetTriple();
-    writeModuleObjImpl(targetTriple, path);
+    writeModuleAsFile(llvm::CodeGenFileType::ObjectFile, targetTriple, path);
 }
 
 //===----------------------------------------------------------------------===//
@@ -1730,8 +1730,9 @@ void ObjBuilder::writeModuleLLVMIRImpl(std::ostream &os)
     theModule->print(trueOs, nullptr);
 }
 
-void ObjBuilder::writeModuleObjImpl(std::string_view targetTriple,
-                                    std::string_view path)
+void ObjBuilder::writeModuleAsFile(llvm::CodeGenFileType fileType,
+                                   std::string_view path,
+                                   std::string_view targetTriple)
 {
     if (!llvmModuleGenerated && !isGenerationSuccess()) {
         splc_ilog_fatal_error(nullptr, false)
@@ -1772,7 +1773,6 @@ void ObjBuilder::writeModuleObjImpl(std::string_view targetTriple,
     }
 
     llvm::legacy::PassManager pass;
-    auto fileType = llvm::CodeGenFileType::ObjectFile;
 
     if (targetMachine->addPassesToEmitFile(pass, dest, nullptr, fileType)) {
         splc_ilog_fatal_error(nullptr, false)

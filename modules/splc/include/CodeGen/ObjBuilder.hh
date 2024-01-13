@@ -149,8 +149,12 @@ class ObjBuilder {
     //===----------------------------------------------------------------------===//
 
     void writeModuleAsLLVMIR(std::ostream &os);
-    void writeModuleAsMIPSObj(std::string_view path);
-    void writeModuleAsDefaultObj(std::string_view path);
+    void writeModuleAsAsm(
+        std::string_view path,
+        std::string_view targetTriple = llvm::sys::getDefaultTargetTriple());
+    void writeModuleAsObj(
+        std::string_view path,
+        std::string_view targetTriple = llvm::sys::getDefaultTargetTriple());
 
     //===----------------------------------------------------------------------===//
     //                               Member Access
@@ -167,7 +171,9 @@ class ObjBuilder {
     void generateModuleImpl(TranslationUnit &tunit);
     void optimizeModuleImpl();
     void writeModuleLLVMIRImpl(std::ostream &os);
-    void writeModuleObjImpl(std::string_view targetTriple, std::string_view path);
+    void writeModuleAsFile(llvm::CodeGenFileType fileType,
+                           std::string_view path,
+                           std::string_view targetTriple);
 
     //===----------------------------------------------------------------------===//
     //                          Internal State Management

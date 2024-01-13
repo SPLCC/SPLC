@@ -3,6 +3,7 @@
 #include "AST/ASTProcess.hh"
 #include "AST/DerivedAST.hh"
 #include "CodeGen/ObjBuilder.hh"
+#include "Core/Utils/CommandLineParser.hh"
 #include "IO/Driver.hh"
 #include "SIR/IRBuilder.hh"
 #include "SIR/IROptimizer.hh"
@@ -12,8 +13,51 @@
 #include <cstring>
 #include <iostream>
 #include <iterator>
+#include <string_view>
 
 using namespace splc;
+using namespace std::string_view_literals;
+using utils::CommandLineParser;
+using CS = utils::logging::ControlSeq;
+
+static bool writeAssembly = false;
+static bool writeMIPSTarget = false; ///< If true, write MIPS instead
+std::vector<std::string> sourceFiles;
+
+bool parseArgs(const int argc, const char *const argv[])
+{
+    CommandLineParser parser{"splc"};
+
+    parser.addPositionalArg("genasm", CommandLineParser::ArgOption::NoOption);
+    parser.addPositionalArg("target", CommandLineParser::ArgOption::WithOption);
+
+    parser.parseArgs(argc, argv);
+
+    if (auto ivec = parser.get("genasm")) {
+        writeAssembly = true;
+        SPLC_LOG_DEBUG(nullptr, false) << "writing assembly instead";
+    }
+    if (auto ivec = parser.get<std::string_view>("target")) {
+        // TODO(future): allow generation for multiple targets simulatenously
+        // maybe
+        if ((*ivec)[0] == "mips"sv) {
+            writeMIPSTarget = true;
+        }
+        else if ((*ivec)[0] == "default") {
+            // SKIP
+        }
+        else {
+            SPLC_LOG_ERROR(nullptr, false) << "unknown target " << CS::BrightRed
+                                           << (*ivec)[0] << CS::Reset;
+        }
+        SPLC_LOG_DEBUG(nullptr, false) << "writing MIPS instead";
+    }
+    if (auto ivec = parser.getDirectArgVec(); !ivec.empty()) {
+        sourceFiles = ivec;
+    }
+
+    return parser.isHelpParsed();
+}
 
 void writeSIR(SPLCContext &C, Ptr<AST> root)
 {
@@ -30,8 +74,7 @@ void writeSIR(SPLCContext &C, Ptr<AST> root)
     IRProgram::writeProgram(std::cout, program);
 }
 
-void testObjBuilder(std::string_view path, Ptr<TranslationUnit> tunit,
-                    bool writeMIPSObj)
+void testObjBuilder(std::string_view path, Ptr<TranslationUnit> tunit)
 {
     ObjBuilder builder;
 
@@ -41,37 +84,44 @@ void testObjBuilder(std::string_view path, Ptr<TranslationUnit> tunit,
     // builder.optimizeModule();
     builder.writeModuleAsLLVMIR(of);
     of.flush();
-    if (writeMIPSObj)
-        builder.writeModuleAsMIPSObj(std::string{path} + ".o");
-    else
-        builder.writeModuleAsDefaultObj(std::string{path} + ".o");
+
+    if (writeAssembly) {
+        if (writeMIPSTarget) {
+            builder.writeModuleAsAsm(std::string{path} + ".asm", "mips");
+        }
+        else {
+            builder.writeModuleAsAsm(std::string{path} + ".asm");
+        }
+    }
+    else {
+        if (writeMIPSTarget) {
+            builder.writeModuleAsObj(std::string{path} + ".o", "mips");
+        }
+        else {
+            builder.writeModuleAsObj(std::string{path} + ".o");
+        }
+    }
 }
 
 int main(const int argc, const char *const argv[])
 {
-    // check for the right # of arguments
-    if (argc != 3) {
-        //  exit with failure condition
-        std::cout << "usage: [1 if generate for MIPS. 0 for default target] "
-                     "[file] ...\n";
-        return (EXIT_FAILURE);
+    bool helpOnly = parseArgs(argc, argv);
+
+    if (helpOnly) {
+        return (EXIT_SUCCESS);
     }
 
-    // bool traceParsing = std::stoi(std::string{argv[1]}) != 0;
-    bool traceParsing = false;
-    bool writeMIPSObj = std::stoi(std::string{argv[1]}) != 0;
+    if (sourceFiles.empty()) {{
+        SPLC_LOG_FATAL_ERROR(nullptr, false) << "no input files";
+        return (EXIT_FAILURE);}
+    }
 
     UniquePtr<SPLCContext> context = makeUniquePtr<SPLCContext>();
-    IO::Driver driver{*context, traceParsing};
+    IO::Driver driver{*context};
 
     // TODO(future): just parse the first file first
 
-    // assume file, prod code, use stat to check
-    std::vector<std::string> filenameVector;
-    filenameVector.reserve(argc - 2);
-    std::transform(argv + 2, argv + argc, std::back_inserter(filenameVector),
-                   [](const char *str) { return std::string{str}; });
-    auto tunit = driver.parse(filenameVector[0]);
+    auto tunit = driver.parse(sourceFiles[0]);
 
     auto root = tunit->getRootNode();
     if (root) {
@@ -81,7 +131,7 @@ int main(const int argc, const char *const argv[])
     }
 
     // writeSIR(tunit->getContext(), root); // Don't write it right now
-    testObjBuilder(filenameVector[0], tunit, writeMIPSObj);
+    testObjBuilder(sourceFiles[0], tunit);
 
     return (EXIT_SUCCESS);
 }
