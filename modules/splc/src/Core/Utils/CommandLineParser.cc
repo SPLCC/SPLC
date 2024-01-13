@@ -16,18 +16,18 @@ std::string toupper(std::string s)
 
 void CommandLineParser::printHelp() const noexcept
 {
-    std::cout << "usage: " << progname << " ";
-    std::cout << "[-h] [--h] ";
+    std::cout << "usage: " << progname;
+    std::cout << " [-h] [--h]";
 
     for (auto &ent : regArgMap) {
-        std::cout << "[--" << ent.first;
+        std::cout << " [--" << ent.first;
         if (ent.second & ArgOption::WithOption) {
             std::cout << " " << toupper(ent.first);
         }
         std::cout << "]";
     }
     for (auto &name : dirArgName) {
-        std::cout << name << " ";
+        std::cout << " " << name;
     }
     std::cout << std::endl;
 }
