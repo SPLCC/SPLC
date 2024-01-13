@@ -315,10 +315,9 @@ class ErrorHelper : public Logger {
         (bool)(cond), #cond, __FILE__, __LINE__, __SPLC_LOG_FUNCTION__         \
     }
 
-#ifndef NDEBUG
-#define __SPLC_BUILTIN_DEBUG_ASSERT(cond) splc_assert(cond)
+#ifdef NDEBUG
+#define __SPLC_BUILTIN_DEBUG_ASSERT(cond) ((cond), std::stringstream{})
 #else
-// TODO: revise
 #define __SPLC_BUILTIN_DEBUG_ASSERT(cond) splc_assert(cond)
 #endif
 
