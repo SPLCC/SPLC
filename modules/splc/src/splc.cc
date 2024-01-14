@@ -28,6 +28,7 @@ bool parseArgs(const int argc, const char *const argv[])
 {
     CommandLineParser parser{"splc"};
 
+    parser.addSeqDirArgName("SOURCE_FILE");
     parser.addPositionalArg("genasm", CommandLineParser::ArgOption::NoOption);
     parser.addPositionalArg("target", CommandLineParser::ArgOption::WithOption);
 
